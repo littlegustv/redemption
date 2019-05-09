@@ -1,42 +1,7 @@
-require 'socket'                 # Get sockets from stdlib
-
-class GameObject
-
-	attr_accessor :name
-
-	def initialize( name, game )
-		@name = name
-		@game = game
-	end
-
-end
-
-class Player < GameObject
-
-	def initialize( name, game, client, thread )
-		@client = client
-		@thread = thread
-		super name, game
-	end
-
-	def input_loop
-		loop do
-			raw = @client.gets
-			if raw.nil?
-				@game.disconnect @name
-				Thread.kill( @thread )
-			else
-				message = raw.chomp.to_s
-				@game.broadcast "#{@name} :: #{message}"
-			end
-		end
-	end
-
-	def output( message )
-		@client.puts message
-	end
-
-end
+require 'socket'
+require_relative 'constants'
+require_relative 'gameobject'
+require_relative 'player'
 
 class Game
 
@@ -45,6 +10,15 @@ class Game
 		@server = TCPServer.open( ip_address, port )
 		@players = Hash.new
 
+		@start_time = Time.now
+		@interval = 0
+
+		# game update loop runs on a single thread
+		Thread.start do
+			game_loop
+		end
+
+		# each client runs on its own thread as well
 		loop do
 			thread = Thread.start(@server.accept) do |client|
 
@@ -69,6 +43,27 @@ class Game
 				end
 
 			end
+		end
+	end
+
+	def game_loop
+		loop do
+			new_time = Time.now
+			dt = new_time - @start_time
+			@start_time = new_time
+
+			@interval += dt
+			if @interval > ( 1.0 / Constants::FPS )
+				@interval = 0
+				update
+			end
+		end
+	end
+
+	# eventually, this will handle all game logic
+	def update
+		@players.each do | username, player |
+			player.update
 		end
 	end
 
