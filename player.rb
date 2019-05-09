@@ -1,26 +1,48 @@
-class Player < GameObject
+class Player < Mobile
 
-	def initialize( name, game, client, thread )
+	@@whitelist = []
+
+	def self.append_whitelist( list )
+		@@whitelist += list
+	end
+
+	include BasicCommands
+
+	def initialize( name, game, room, client, thread )
 		@client = client
 		@thread = thread
-		super name, game
+		super name, game, room
 	end
 
 	def input_loop
 		loop do
 			raw = @client.gets
 			if raw.nil?
-				@game.disconnect @name
-				Thread.kill( @thread )
+				quit
 			else
 				message = raw.chomp.to_s
-				@game.broadcast "#{@name} :: #{message}"
+				do_command message				
 			end
+		end
+	end
+
+	def do_command( input )
+		cmd, args = input.split " ", 2
+		if @@whitelist.include? cmd
+			self.send "cmd_#{cmd}", args
+		else
+			output "Huh?"
 		end
 	end
 
 	def output( message )
 		@client.puts message
+	end
+
+	def quit
+		@client.close
+		@game.disconnect @name
+		Thread.kill( @thread )
 	end
 
 end

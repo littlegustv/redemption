@@ -1,6 +1,9 @@
 require 'socket'
 require_relative 'constants'
+require_relative 'commands'
 require_relative 'gameobject'
+require_relative 'room'
+require_relative 'mobile'
 require_relative 'player'
 
 class Game
@@ -12,6 +15,8 @@ class Game
 
 		@start_time = Time.now
 		@interval = 0
+
+		make_rooms
 
 		# game update loop runs on a single thread
 		Thread.start do
@@ -37,7 +42,7 @@ class Game
 						client.puts "Welcome, #{name}."
 						client.puts "Users Online: [#{ @players.keys.join(', ') }]"
 						broadcast "#{name} has joined the world."
-						@players[name] = Player.new( name, self, client, thread )
+						@players[name] = Player.new( name, self, @rooms.first, client, thread )
 						@players[name].input_loop
 					end
 				end
@@ -76,6 +81,25 @@ class Game
 	def disconnect( name )
 		@players.delete( name )
 		broadcast "#{name} has disconnected."
+	end
+
+	# temporary content-creation
+	def make_rooms
+		@rooms = []
+		10.times do |i|
+			@rooms.push Room.new( "Room no. #{i}", self )
+		end
+
+		@rooms.each_with_index do |room, index|
+			room.exits[:north] = @rooms[ (index + 1) % @rooms.count ]
+			@rooms[ (index + 1) % @rooms.count ].exits[:south] = room
+		end
+	end
+
+	def show_who
+		%Q(
+#{ @players.map{ |name, player| "[#{name}]" }.join( "\n" ) }
+		)
 	end
 
 end
