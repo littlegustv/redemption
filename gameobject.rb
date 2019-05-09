@@ -10,4 +10,7 @@ class GameObject
 	def update
 	end
 
+	def output( message )
+	end
+
 end

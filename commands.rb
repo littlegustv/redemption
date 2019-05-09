@@ -1,14 +1,15 @@
 module BasicCommands
 	
 	def self.included (base)
-		base.append_whitelist [ "say", "look", "quit", "help", "who" ]
+		base.append_whitelist [ "say", "look", "quit", "help", "who", "north", "south", "east", "west", "up", "down" ]
 	end
 
 	def cmd_say( args )
-		if args.count <= 0
+		if args.length <= 0
 			output 'Say what?'
 		else
-			@game.broadcast "#{@name} says '#{args}'"
+			output "You say '#{args}'"
+			@game.broadcast "#{@name} says '#{args}'", @game.target( { :not => self, :room => @room } )
 		end
 	end
 
@@ -53,11 +54,13 @@ module BasicCommands
 	end
 
 	def move( direction )
-		if @room.exits[ direction ].nil?
-			output( "There is no exit [#{direction}].")
+		if @room.exits[ direction.to_sym ].nil?
+			output "There is no exit [#{direction}]."
 		else
-			@room = @room.exits[ direction ]
-			broadcast( "#{@name} leaves #{direction}.")
+			@game.broadcast "#{@name} leaves #{direction}.", @game.target({ :not => self, :room => @room })
+			output "You leave #{direction}."
+			@room = @room.exits[ direction.to_sym ]
+			@game.broadcast "#{@name} has arrived.", @game.target({ :not => self, :room => @room })
 			cmd_look
 		end
 	end

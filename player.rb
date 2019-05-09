@@ -29,7 +29,7 @@ class Player < Mobile
 	def do_command( input )
 		cmd, args = input.split " ", 2
 		if @@whitelist.include? cmd
-			self.send "cmd_#{cmd}", args
+			self.send "cmd_#{cmd.to_s}", args.to_s
 		else
 			output "Huh?"
 		end

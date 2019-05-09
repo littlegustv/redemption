@@ -41,7 +41,7 @@ class Game
 					else
 						client.puts "Welcome, #{name}."
 						client.puts "Users Online: [#{ @players.keys.join(', ') }]"
-						broadcast "#{name} has joined the world."
+						broadcast "#{name} has joined the world.", target
 						@players[name] = Player.new( name, self, @rooms.first, client, thread )
 						@players[name].input_loop
 					end
@@ -72,15 +72,27 @@ class Game
 		end
 	end
 
-	def broadcast( message )
-		@players.each do | username, player |
+	def broadcast( message, targets )
+		targets.each do | player |
 			player.output( message )
 		end
 	end
 
+	# right now this is just for players??
+	def target( query = {} )
+		targets = @players.values
+		if query[:room]
+			targets = targets.select { |t| t.room == query[:room] }
+		end
+		if query[:not]
+			targets = targets.select { |t| t != query[:not] }
+		end
+		return targets
+	end
+
 	def disconnect( name )
 		@players.delete( name )
-		broadcast "#{name} has disconnected."
+		broadcast "#{name} has disconnected.", target
 	end
 
 	# temporary content-creation

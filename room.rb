@@ -16,6 +16,7 @@ class Room < GameObject
 		%Q(
 #{ @name }
 [#{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]
+#{ @game.target({ :room => self }).map{ |t| "#{t.name} is here" }.join("\n") }
 		)
 	end
 
