@@ -7,10 +7,14 @@ class GameObject
 		@game = game
 	end
 
-	def update
+	def update( elapsed )
 	end
 
 	def output( message )
+	end
+
+	def to_a
+		[ self ]
 	end
 
 end

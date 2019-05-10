@@ -29,7 +29,7 @@ class Player < Mobile
 	def do_command( input )
 		cmd, args = input.split " ", 2
 		if @@whitelist.include? cmd
-			self.send "cmd_#{cmd.to_s}", args.to_s
+			self.send "cmd_#{cmd.to_s}", args.to_s.split(" ")
 		else
 			output "Huh?"
 		end
@@ -37,6 +37,11 @@ class Player < Mobile
 
 	def output( message )
 		@client.puts message
+		@client.puts prompt
+	end
+
+	def prompt
+		"<#{@hitpoints}/500hp>"
 	end
 
 	def quit
