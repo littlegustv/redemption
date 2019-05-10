@@ -1,17 +1,33 @@
 module BasicCommands
 	
 	def self.included (base)
-		base.append_whitelist [ "kill", "say", "look", "quit", "help", "who", "north", "south", "east", "west", "up", "down" ]
+		base.append_whitelist [ "flee", "kill", "say", "look", "quit", "help", "who", "north", "south", "east", "west", "up", "down" ]
 	end
 
 	def cmd_kill( args )
-		if @target
-			output "But you are already fighting someone else!"
-		elsif ( target = @game.target({ room: @room, not: self, name: args.first.to_s }).first )
-			@target = target
-			@target.fight self
+		if @position < Position::STAND
+			output "You have to stand up first."
+		elsif @position >= Position::FIGHT
+			output "You are already fighting!"
+		elsif ( kill_target = target({ room: @room, not: self, name: args.first.to_s }).first )
+			start_combat kill_target
+			kill_target.start_combat self
 		else
 			output "I can't find anyone with that name #{args}"
+		end
+	end
+
+	def cmd_flee( args )
+		if @position < Position::FIGHT
+			output "But you aren't fighting anyone!"
+		elsif rand(0..10) < 5
+			output "You flee from combat!"
+			broadcast "#{@name} has fled!", target({ room: @room })
+
+			stop_combat
+			send "cmd_#{@room.exits.select{ |k, v| not v.nil? }.keys.sample}"
+		else
+			output "PANIC! You couldn't escape!"
 		end
 	end
 
@@ -20,12 +36,12 @@ module BasicCommands
 			output 'Say what?'
 		else
 			output "You say '#{args.join(' ')}'"
-			@game.broadcast "#{@name} says '#{args.join(' ')}'", @game.target( { :not => self, :room => @room } )
+			broadcast "#{@name} says '#{args.join(' ')}'", target( { :not => self, :room => @room } )
 		end
 	end
 
 	def cmd_look( args = [] )
-		output @room.show
+		output @room.show self
 	end
 
 	def cmd_quit( args = [] )
@@ -68,10 +84,10 @@ module BasicCommands
 		if @room.exits[ direction.to_sym ].nil?
 			output "There is no exit [#{direction}]."
 		else
-			@game.broadcast "#{@name} leaves #{direction}.", @game.target({ :not => self, :room => @room })
+			broadcast "#{@name} leaves #{direction}.", target({ :not => self, :room => @room })
 			output "You leave #{direction}."
 			@room = @room.exits[ direction.to_sym ]
-			@game.broadcast "#{@name} has arrived.", @game.target({ :not => self, :room => @room })
+			broadcast "#{@name} has arrived.", target({ :not => self, :room => @room })
 			cmd_look
 		end
 	end

@@ -9,6 +9,7 @@ class Player < Mobile
 	include BasicCommands
 
 	def initialize( name, game, room, client, thread )
+		@buffer = ""
 		@client = client
 		@thread = thread
 		super name, game, room
@@ -36,12 +37,19 @@ class Player < Mobile
 	end
 
 	def output( message )
-		@client.puts message
-		@client.puts prompt
+		@buffer += "#{message}\n"		
 	end
 
 	def prompt
 		"<#{@hitpoints}/500hp>"
+	end
+
+	def send_to_client
+		if @buffer.length > 0
+			@client.puts @buffer
+			@buffer = ""
+			@client.puts prompt
+		end
 	end
 
 	def quit

@@ -33,9 +33,9 @@ class Game
 						name = nil
 					else
 						client.puts "Welcome, #{name}."
-						client.puts "Users Online: [#{ @players.keys.join(', ') }]"
 						broadcast "#{name} has joined the world.", target
 						@players[name] = Player.new( name, self, @rooms.first, client, thread )
+						client.puts "Users Online: [#{ @players.keys.join(', ') }]"
 						@players[name].input_loop
 					end
 				end
@@ -51,11 +51,16 @@ class Game
 			@start_time = new_time
 
 			@interval += dt
+			# each update FRAME
 			if @interval > ( 1.0 / Constants::FPS )
 				@interval = 0
 				@clock += 1
+
 				update( 1.0 / Constants::FPS )
-				if @clock % 5 == 0
+				send_to_client
+
+				# each combat ROUND
+				if @clock % Constants::ROUND == 0
 					combat
 				end
 			end
@@ -66,6 +71,12 @@ class Game
 	def update( elapsed )
 		@players.each do | username, player |
 			player.update elapsed
+		end
+	end
+
+	def send_to_client
+		@players.each do | username, player |
+			player.send_to_client
 		end
 	end
 
@@ -84,10 +95,10 @@ class Game
 	# right now this is just for players??
 	def target( query = {} )
 		targets = @players.values
-		targets = targets.select { |t| query[:room].to_a.include? t.room }				if query[:room]
-		targets = targets.select { |t| !query[:not].to_a.include? t } 						if query[:not]
-		targets = targets.select { |t| query[:target].to_a.include? t.target } 		if query[:target]
-		targets = targets.select { |t| t.name.start_with? query[:name] } 					if query[:name]
+		targets = targets.select { |t| query[:room].to_a.include? t.room }							if query[:room]
+		targets = targets.select { |t| !query[:not].to_a.include? t } 									if query[:not]
+		targets = targets.select { |t| query[:attacking].to_a.include? t.attacking } 		if query[:attacking]
+		targets = targets.select { |t| t.name.start_with? query[:name] } 								if query[:name]
 		targets = targets[0...query[:limit].to_i] if query[:limit]
 		return targets
 	end

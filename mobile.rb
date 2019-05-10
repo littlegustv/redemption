@@ -1,8 +1,8 @@
 class Mobile < GameObject
 
-	attr_accessor :room, :target
+	attr_accessor :room, :attacking
 
-	@target
+	@attacking
 
 	def initialize( name, game, room )
 		@room = room
@@ -10,6 +10,7 @@ class Mobile < GameObject
 		@hitpoints = 500
 		@hitroll = rand(5...7)
 		@noun = ["entangle", "grep", "strangle", "pierce", "smother", "flaming bite"].sample
+		@position = Position::STAND
 		super name, game
 	end
 
@@ -17,16 +18,28 @@ class Mobile < GameObject
 		super elapsed
 	end
 
-	def fight( attacker )
-		@game.broadcast "#{@name} yells 'Help I am being attacked by #{ attacker.name }!", @game.target({ not: self })
-		output "You yell 'Help I am being attacked by #{ attacker.name }!"
-		if @target.nil?
-			@target = attacker
+	def start_combat( attacker )
+		# if they are already fighting you, i.e. they started it
+		@position = Position::FIGHT
+		if attacker && attacker.attacking == self
+			# fix me: replace with call to cmd_yell (also needs to be created)
+			broadcast "#{@name} yells 'Help I am being attacked by #{ attacker.name }!", target({ not: self })
+			output "You yell 'Help I am being attacked by #{ attacker.name }!"
+		end
+		if @attacking.nil?
+			@attacking = attacker
 		end
 	end
 
+	def stop_combat
+		@attacking = nil
+		@position = Position::STAND
+		# fix me: how to know what position to set everyone who was attacking ME, since they might still be being attacked??
+		target({ attacking: self }).each { |t| t.attacking = nil }
+	end
+
 	def combat
-		if @target
+		if @attacking
 			to_me = []
 			to_target = []
 			to_room = []
@@ -37,20 +50,18 @@ class Mobile < GameObject
 					damage = 0
 				end
 				m, t, r = hit damage
-				to_me.push m
-				to_target.push t
-				to_room.push r
+				output m
+				@attacking.output t
+				broadcast r, target({ not: [ self, @attacking ], room: @room })
+				@attacking.damage( damage )
+				break if @attacking.nil?
 			end
-			output to_me.join("\n")
-			@target.output to_target.join("\n")
-			@game.broadcast to_room.join("\n"), @game.target({ not: [ self, @target ], room: @room })
 		end
 	end
 
 	def hit( damage )
 		decorators = Constants::DAMAGE[damage]
-		@target.damage( damage )		
-		["Your #{decorators[2]} #{@noun} #{decorators[1]} #{@target.name}", "#{@name}'s' #{decorators[2]} #{@noun} #{decorators[1]} you", "#{@name}'s' #{decorators[2]} #{@noun} #{decorators[1]} #{@target.name}"]
+		texts = ["Your #{decorators[2]} #{@noun} #{decorators[1]} #{@attacking.name}", "#{@name}'s' #{decorators[2]} #{@noun} #{decorators[1]} you", "#{@name}'s' #{decorators[2]} #{@noun} #{decorators[1]} #{@attacking.name}"]
 	end
 
 	def damage( damage )
@@ -60,9 +71,8 @@ class Mobile < GameObject
 
 	def die
 		output "You have been KILLED!"
-		@game.broadcast "#{@name} has been KILLED.", @game.target({ not: [ self ] })
-		@target = nil
-		@game.target({ target: self }).each { |t| t.target = nil }
+		broadcast "#{@name} has been KILLED.", target({ not: [ self ] })
+		stop_combat
 	end
 
 end

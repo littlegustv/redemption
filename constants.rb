@@ -1,6 +1,14 @@
+module Position
+	SLEEP = 0
+	REST = 1
+	STAND = 2
+	FIGHT = 3
+end
+
 module Constants
 
-	FPS = 5
+	FPS = 30
+	ROUND = 30
 
 	DAMAGE = [
 	  ['miss', 'misses', 'clumsy', ''],
