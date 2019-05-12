@@ -22,7 +22,7 @@ class Player < Mobile
 				quit
 			else
 				message = raw.chomp.to_s
-				do_command message				
+				do_command message
 			end
 		end
 	end
@@ -37,7 +37,7 @@ class Player < Mobile
 	end
 
 	def output( message )
-		@buffer += "#{message}\n"		
+		@buffer += "#{message}\n"
 	end
 
 	def prompt

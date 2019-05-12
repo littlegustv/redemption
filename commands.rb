@@ -1,5 +1,5 @@
 module BasicCommands
-	
+
 	def self.included (base)
 		base.append_whitelist [ "flee", "kill", "say", "look", "quit", "help", "who", "north", "south", "east", "west", "up", "down" ]
 	end

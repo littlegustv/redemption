@@ -1,15 +1,23 @@
+require 'sequel'
+
 class Game
 
 	def initialize( ip_address, port )
+
+
 		puts "Opening server on #{ip_address}:#{port}"
 		@server = TCPServer.open( ip_address, port )
+
+
+        @starting_room = nil
+		make_rooms
+
 		@players = Hash.new
 
 		@start_time = Time.now
 		@interval = 0
 		@clock = 0
 
-		make_rooms
 
 		# game update loop runs on a single thread
 		Thread.start do
@@ -34,7 +42,7 @@ class Game
 					else
 						client.puts "Welcome, #{name}."
 						broadcast "#{name} has joined the world.", target
-						@players[name] = Player.new( name, self, @rooms.first, client, thread )
+						@players[name] = Player.new( name, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
 						client.puts "Users Online: [#{ @players.keys.join(', ') }]"
 						@players[name].input_loop
 					end
@@ -110,15 +118,48 @@ class Game
 
 	# temporary content-creation
 	def make_rooms
-		@rooms = []
-		10.times do |i|
-			@rooms.push Room.new( "Room no. #{i}", self )
-		end
 
-		@rooms.each_with_index do |room, index|
-			room.exits[:north] = @rooms[ (index + 1) % @rooms.count ]
-			@rooms[ (index + 1) % @rooms.count ].exits[:south] = room
-		end
+		@rooms = []
+
+        begin
+            # connect to database
+            db = Sequel.mysql2( :host => "localhost",
+                        :username => "root",
+                        :password => "c151c151",
+                        :database => "Room" )
+
+            room_rows = db[:Room]
+            exit_rows = db[:RoomExit]
+
+            # create a room_row[:vnum] hash, create rooms
+            rooms_hash = {}
+            room_rows.each do |row|
+    			@rooms.push Room.new( row[:name], self )
+                rooms_hash[row[:vnum]] = @rooms.last
+                if row[:vnum] == 31000
+                    @starting_room = @rooms.last
+                end
+            end
+
+            # assign each exit to its room in the hash (if the destination exists)
+            exit_rows.each do |exit|
+                if rooms_hash.key?(exit[:roomVnum]) && rooms_hash.key?(exit[:toVnum])
+                    rooms_hash[exit[:roomVnum]].exits[exit[:direction].to_sym] = rooms_hash[exit[:toVnum]]
+                end
+            end
+
+            puts ( "Rooms loaded from database." )
+
+        rescue
+    		10.times do |i|
+    			@rooms.push Room.new( "Room no. #{i}", self )
+    		end
+
+    		@rooms.each_with_index do |room, index|
+    			room.exits[:north] = @rooms[ (index + 1) % @rooms.count ]
+    			@rooms[ (index + 1) % @rooms.count ].exits[:south] = room
+    		end
+        end
 	end
 
 	def show_who
