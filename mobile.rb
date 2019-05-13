@@ -22,7 +22,7 @@ class Mobile < GameObject
 
         @position = Position::STAND
         @inventory = []
-        super @short_description, game
+        @game = game
     end
 
     def update( elapsed )
@@ -34,8 +34,8 @@ class Mobile < GameObject
         @position = Position::FIGHT
         if attacker && attacker.attacking == self
             # fix me: replace with call to cmd_yell (also needs to be created)
-            broadcast "#{@name} yells 'Help I am being attacked by #{ attacker.name }!", target({ not: self })
-            output "You yell 'Help I am being attacked by #{ attacker.name }!"
+            broadcast "#{self} yells 'Help I am being attacked by #{ attacker }!", target({ not: self })
+            output "You yell 'Help I am being attacked by #{ attacker }!"
         end
         if @attacking.nil?
             @attacking = attacker
@@ -73,7 +73,7 @@ class Mobile < GameObject
 
     def hit( damage )
         decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-        texts = ["Your #{decorators[2]} #{@noun} #{decorators[1]} #{@attacking.name} [#{damage}]", "#{@name}'s' #{decorators[2]} #{@noun} #{decorators[1]} you", "#{@name}'s' #{decorators[2]} #{@noun} #{decorators[1]} #{@attacking.name}"]
+        texts = ["Your #{decorators[2]} #{@noun} #{decorators[1]} #{@attacking } [#{damage}]", "#{self}'s' #{decorators[2]} #{@noun} #{decorators[1]} you", "#{self}'s' #{decorators[2]} #{@noun} #{decorators[1]} #{ @attacking }"]
     end
 
     def damage( damage )
@@ -83,7 +83,7 @@ class Mobile < GameObject
 
     def die
         output "You have been KILLED!"
-        broadcast "#{@name} has been KILLED.", target({ not: [ self ] })
+        broadcast "#{self} has been KILLED.", target({ not: [ self ] })
         stop_combat
     end
 
@@ -91,10 +91,10 @@ class Mobile < GameObject
         if @room.exits[ direction.to_sym ].nil?
             output "There is no exit [#{direction}]."
         else
-            broadcast "#{@name} leaves #{direction}.", target({ :not => self, :room => @room })
+            broadcast "#{self} leaves #{direction}.", target({ :not => self, :room => @room })
             output "You leave #{direction}."
             @room = @room.exits[ direction.to_sym ]
-            broadcast "#{@name} has arrived.", target({ :not => self, :room => @room })
+            broadcast "#{self} has arrived.", target({ :not => self, :room => @room })
             @game.do_command self, "look"
             # cmd_look
         end
@@ -103,21 +103,21 @@ class Mobile < GameObject
     def condition
         percent = ( 100 * @hitpoints ) / @maxhitpoints
         if (percent >= 100)
-            return "#{@name} is in excellent condition.\n"
+            return "#{self} is in excellent condition.\n"
         elsif (percent >= 90)
-            return "#{@name} has a few scratches.\n"
+            return "#{self} has a few scratches.\n"
         elsif (percent >= 75)
-            return "#{@name} has some small wounds and bruises.\n"
+            return "#{self} has some small wounds and bruises.\n"
         elsif (percent >= 50)
-            return "#{@name} has quite a few wounds.\n"
+            return "#{self} has quite a few wounds.\n"
         elsif (percent >= 30)
-            return "#{@name} has some big nasty wounds and scratches.\n"
+            return "#{self} has some big nasty wounds and scratches.\n"
         elsif (percent >= 15)
-            return "#{@name} looks pretty hurt.\n"
+            return "#{self} looks pretty hurt.\n"
         elsif (percent >= 0)
-            return "#{@name} is in awful condition.\n"
+            return "#{self} is in awful condition.\n"
         else
-            return "#{@name} is bleeding to death.\n"
+            return "#{self} is bleeding to death.\n"
         end
     end
 
@@ -127,6 +127,14 @@ class Mobile < GameObject
 
     def defense_rating
         ( -1  * @armor_class[0] - 100 ) / 5
+    end
+
+    def to_s
+        @short_description
+    end
+
+    def long
+        @long_description
     end
 
 end

@@ -114,11 +114,11 @@ class Game
     # right now this is just for players??
     def target( query = {} )
         targets = @players.values + @items + @mobiles
-        targets = targets.select { |t| query[:type].to_a.include? t.class.to_s }			if query[:type]
-        targets = targets.select { |t| query[:room].to_a.include? t.room }                  if query[:room]
-        targets = targets.select { |t| !query[:not].to_a.include? t }                       if query[:not]
-        targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }        if query[:attacking]
-        targets = targets.select { |t| t.name.fuzzy_match( query[:name] ) }					if query[:name]
+        targets = targets.select { |t| query[:type].to_a.include? t.class.to_s }			                        if query[:type]
+        targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
+        targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
+        targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
+        targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
         targets = targets[0...query[:limit].to_i] if query[:limit]
         return targets
     end
