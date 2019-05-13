@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :attacking, :lag, :position
+    attr_accessor :room, :attacking, :lag, :position, :inventory
 
     @attacking
 
@@ -8,9 +8,11 @@ class Mobile < GameObject
         @room = room
         @attack_speed = rand(2...4)
         @hitpoints = 500
+        @maxhitpoints = 500
         @hitroll = rand(5...7)
         @noun = ["entangle", "grep", "strangle", "pierce", "smother", "flaming bite"].sample
         @position = Position::STAND
+        @inventory = []
         super name, game
     end
 
@@ -85,6 +87,27 @@ class Mobile < GameObject
             broadcast "#{@name} has arrived.", target({ :not => self, :room => @room })
             @game.do_command self, "look"
             # cmd_look
+        end
+    end
+
+    def condition
+        percent = ( 100 * @hitpoints ) / @maxhitpoints
+        if (percent >= 100)
+            return "#{@name} is in excellent condition.\n"
+        elsif (percent >= 90)
+            return "#{@name} has a few scratches.\n"
+        elsif (percent >= 75)
+            return "#{@name} has some small wounds and bruises.\n"
+        elsif (percent >= 50)
+            return "#{@name} has quite a few wounds.\n"
+        elsif (percent >= 30)
+            return "#{@name} has some big nasty wounds and scratches.\n"
+        elsif (percent >= 15)
+            return "#{@name} looks pretty hurt.\n"
+        elsif (percent >= 0)
+            return "#{@name} is in awful condition.\n"
+        else
+            return "#{@name} is bleeding to death.\n"
         end
     end
 

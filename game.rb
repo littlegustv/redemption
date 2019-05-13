@@ -8,13 +8,14 @@ class Game
         puts "Opening server on #{ip_address}:#{port}"
         @server = TCPServer.open( ip_address, port )
 
+        @players = Hash.new
+        @items = []
+        @mobiles = []
 
         @starting_room = nil
         make_rooms
 
         make_commands
-
-        @players = Hash.new
 
         @start_time = Time.now
         @interval = 0
@@ -79,8 +80,8 @@ class Game
 
     # eventually, this will handle all game logic
     def update( elapsed )
-        @players.each do | username, player |
-            player.update elapsed
+        ( @players.values + @mobiles).each do | entity |
+            entity.update elapsed
         end
     end
 
@@ -91,8 +92,8 @@ class Game
     end
 
     def combat
-        @players.each do | username, player |
-            player.combat
+        ( @players.values + @mobiles).each do | entity |
+            entity.combat
         end
     end
 
@@ -104,12 +105,12 @@ class Game
 
     # right now this is just for players??
     def target( query = {} )
-        targets = @players.values
-        targets = targets.select { |t| query[:room].to_a.include? t.room }                   if query[:room]
-        targets = targets.select { |t| !query[:not].to_a.include? t }                        if query[:not]
-        targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }         if query[:attacking]
-        targets = targets.select { |t| t.name.match(/\A#{query[:name]}.*\z/i) }				 if query[:name]
-        # targets = targets.select { |t| t.name.start_with? query[:name] }                     if query[:name]
+        targets = @players.values + @items + @mobiles
+        targets = targets.select { |t| query[:room].to_a.include? t.room }                  if query[:room]
+        targets = targets.select { |t| !query[:not].to_a.include? t }                       if query[:not]
+        targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }        if query[:attacking]
+        targets = targets.select { |t| t.name.fuzzy_match( query[:name] ) }					if query[:name]
+        targets = targets.select { |t| query[:type].to_a.include? t.class.to_s }			if query[:type]
         targets = targets[0...query[:limit].to_i] if query[:limit]
         return targets
     end
@@ -160,6 +161,12 @@ class Game
                 end
             end
 
+            m = Mobile.new "Cuervo", self, @starting_room
+            @mobiles.push m
+
+            i = Item.new "A Teddy Bear", self, @starting_room
+            @items.push i
+
             puts ( "Rooms loaded from database." )
 
         rescue
@@ -204,7 +211,10 @@ class Game
     		Look.new( ["look"] ),
     		Say.new( ["say", "'"] ),
     		Kill.new( ["hit", "kill"], 0.5 ),
-    		Flee.new( ["flee"], 0.5 )
+    		Flee.new( ["flee"], 0.5 ),
+    		Get.new( ["get", "take"] ),
+    		Drop.new( ["drop"] ),
+    		Inventory.new( ["inventory"] )
     	]
     end
 end

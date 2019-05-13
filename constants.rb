@@ -1,3 +1,13 @@
+class String
+	def to_a
+		[ self ]
+	end
+
+	def fuzzy_match( arg )
+		self.match(/\A#{arg}.*\z/i)
+	end
+end
+
 module Position
     SLEEP = 0
     REST = 1

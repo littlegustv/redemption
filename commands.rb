@@ -7,7 +7,7 @@ class Command
     end
 
     def check( cmd )
-        @keywords.select{ |keyword| keyword.match(/\A#{cmd}.*\z/i) }.any?
+        @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.any?
     end
 
     def execute( actor, args )
@@ -59,7 +59,7 @@ end
 
 class Who < Command
     def attempt( actor, args )
-        targets = actor.target( {} )
+        targets = actor.target( { type: "Player" } )
         actor.output %Q(
 Players Online:
 #{ targets.map{ |p| "[51 Troll    Runist] [  Loner  ] #{ p.name } the Master of Runes" }.join("\n") }
@@ -108,7 +108,7 @@ class Kill < Command
             actor.output "You have to stand up first."
         elsif actor.position >= Position::FIGHT
             actor.output "You are already fighting!"
-        elsif ( kill_target = actor.target({ room: actor.room, not: actor, name: args.first.to_s }).first )
+        elsif ( kill_target = actor.target({ room: actor.room, not: actor, name: args.first.to_s, type: ["Mobile", "Player"] }).first )
             actor.start_combat kill_target
             kill_target.start_combat actor
         else
@@ -129,5 +129,40 @@ class Flee < Command
         else
             actor.output "PANIC! You couldn't escape!"
         end
+    end
+end
+
+class Get < Command
+    def attempt( actor, args )
+        if ( target = actor.target({ room: actor.room, name: args.first.to_s, type: "Item" }).first )
+            target.room = nil
+            actor.inventory.push target
+            actor.output "You get #{target.name}."
+            actor.broadcast "#{actor.name} gets #{target.name}.", actor.target({ not: actor, room: actor.room, type: "Player" })
+        else
+            actor.output "You don't see that here."
+        end
+    end
+end
+
+class Drop < Command
+    def attempt( actor, args )
+        if ( target = actor.inventory.select { |item| item.name.fuzzy_match( args.first.to_s ) }.first )
+            target.room = actor.room
+            actor.inventory.delete target
+            actor.output "You drop #{target.name}."
+            actor.broadcast "#{actor.name} drops #{target.name}.", actor.target({ not: actor, room: actor.room, type: "Player" })
+        else
+            actor.output "You don't have that."
+        end
+    end
+end
+
+class Inventory < Command
+    def attempt( actor, args )
+        actor.output %Q(
+Inventory:
+#{ actor.inventory.map(&:name).join("\n") }
+        )
     end
 end

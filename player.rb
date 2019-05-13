@@ -37,8 +37,9 @@ class Player < Mobile
     def send_to_client
         if @buffer.length > 0
             @client.puts @buffer
+            @client.puts @attacking.condition if @attacking
             @buffer = ""
-            @client.puts prompt
+            @client.puts "\n#{prompt}"
         end
     end
 
