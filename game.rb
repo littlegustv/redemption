@@ -179,7 +179,8 @@ class Game
                         weight: row[:weight].to_i,
                         cost: row[:cost].to_i,
                         type: row[:type],
-                        level: row[:level].to_i
+                        level: row[:level].to_i,
+                        wear_location: row[:wearFlags].match(/wear_(\w+)/).to_a[1].to_s
                     }, 
                     self, 
                     areas_hash[ row[:area] ].sample
@@ -288,7 +289,10 @@ class Game
     		Flee.new( ["flee"], 0.5 ),
     		Get.new( ["get", "take"] ),
     		Drop.new( ["drop"] ),
-    		Inventory.new( ["inventory"] )
+            Inventory.new( ["inventory"] ),
+            Equipment.new( ["equipment"] ),
+            Wear.new( ["wear", "hold", "wield"] ),
+            Remove.new( ["remove"] ),
     	]
     end
 end

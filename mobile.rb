@@ -1,10 +1,9 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :attacking, :lag, :position, :inventory
-
-    @attacking
+    attr_accessor :room, :attacking, :lag, :position, :inventory, :equipment
 
     def initialize( data, game, room )
+        @attacking
         @room = room
         @attack_speed = 1
         @keywords = data[:keywords]
@@ -23,6 +22,27 @@ class Mobile < GameObject
 
         @position = Position::STAND
         @inventory = []
+        @equipment = {
+            light: nil,
+            finger: nil,
+            neck: nil,
+            torso: nil,
+            head: nil,
+            legs: nil,
+            feet: nil,
+            hands: nil,
+            arms: nil,
+            shield: nil,
+            body: nil,
+            waist: nil,
+            wrist: nil,
+            held: nil,
+            float: nil,
+            orbit: nil,
+            wielded: nil,
+            ranged: nil,
+            ammunition: nil
+        }
         @game = game
     end
 
@@ -46,8 +66,12 @@ class Mobile < GameObject
     def stop_combat
         @attacking = nil
         @position = Position::STAND
-        # fix me: how to know what position to set everyone who was attacking ME, since they might still be being attacked??
-        target({ attacking: self, type: ["Mobile", "Player"] }).each { |t| t.attacking = nil }
+        target({ attacking: self, type: ["Mobile", "Player"] }).each do |t| 
+            t.attacking = nil
+            if target({ attacking: t, type: ["Mobile", "Player"] }).empty?
+                t.position = Position::STAND
+            end
+        end
     end
 
     def combat
@@ -136,6 +160,36 @@ class Mobile < GameObject
 
     def long
         @long_description
+    end
+
+    def wear( args )
+        if ( target = @inventory.select { |item| item.fuzzy_match( args[0].to_s ) }.first )
+            slot = target.wear_location.to_sym
+            if @equipment.keys.include? slot
+                if ( old = @equipment[ slot ] )
+                    @inventory.push old
+                    output "You stop wearing #{old}"
+                end
+                @equipment[ slot ] = target
+                @inventory.delete target
+                output "You wear #{target} '#{ slot }'"
+            else
+                output "You can't wear something '#{ slot }'"
+            end
+        else
+            output "You don't have any '#{args[0]}'"
+        end
+    end
+
+    def unwear( args )
+        if ( slot = @equipment.select { |slot, item| item.nil? ? false : item.fuzzy_match( args[0].to_s ) }.keys.first )
+            target = @equipment[ slot ]
+            @inventory.push target
+            @equipment[ slot ] = nil
+            output "You stop wearing #{ target }"
+        else
+            output "You don't have any '#{args[0]}'"
+        end 
     end
 
 end

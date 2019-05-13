@@ -62,7 +62,7 @@ class Who < Command
         targets = actor.target( { type: "Player" } )
         actor.output %Q(
 Players Online:
-#{ targets.map{ |p| "[51 Troll    Runist] [  Loner  ] #{ p.name } the Master of Runes" }.join("\n") }
+#{ targets.map{ |p| "[51 Troll    Runist] [  Loner  ] #{ p } the Master of Runes" }.join("\n") }
         )
     end
 end
@@ -150,8 +150,8 @@ class Drop < Command
         if ( target = actor.inventory.select { |item| item.fuzzy_match( args.first.to_s ) }.first )
             target.room = actor.room
             actor.inventory.delete target
-            actor.output "You drop #{target.name}."
-            actor.broadcast "#{actor.name} drops #{target.name}.", actor.target({ not: actor, room: actor.room, type: "Player" })
+            actor.output "You drop #{target}."
+            actor.broadcast "#{actor} drops #{target}.", actor.target({ not: actor, room: actor.room, type: "Player" })
         else
             actor.output "You don't have that."
         end
@@ -162,7 +162,28 @@ class Inventory < Command
     def attempt( actor, args )
         actor.output %Q(
 Inventory:
-#{ actor.inventory.map(&:name).join("\n") }
+#{ actor.inventory.map{ |i| "#{i}" }.join("\n") }
+        )
+    end
+end
+
+class Wear < Command
+    def attempt( actor, args )
+        actor.wear args
+    end
+end
+
+class Remove < Command
+    def attempt( actor, args )
+        actor.unwear args
+    end
+end
+
+class Equipment < Command
+    def attempt( actor, args )
+        actor.output %Q(
+Equipment
+#{ actor.equipment.map { |key, value| "<worn on #{key}> #{value}" }.join("\n") }
         )
     end
 end
