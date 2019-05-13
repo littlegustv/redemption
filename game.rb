@@ -12,6 +12,8 @@ class Game
         @starting_room = nil
         make_rooms
 
+        make_commands
+
         @players = Hash.new
 
         @start_time = Time.now
@@ -103,10 +105,11 @@ class Game
     # right now this is just for players??
     def target( query = {} )
         targets = @players.values
-        targets = targets.select { |t| query[:room].to_a.include? t.room }                            if query[:room]
-        targets = targets.select { |t| !query[:not].to_a.include? t }                                     if query[:not]
+        targets = targets.select { |t| query[:room].to_a.include? t.room }                   if query[:room]
+        targets = targets.select { |t| !query[:not].to_a.include? t }                        if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }         if query[:attacking]
-        targets = targets.select { |t| t.name.start_with? query[:name] }                                 if query[:name]
+        targets = targets.select { |t| t.name.match(/\A#{query[:name]}.*\z/i) }				 if query[:name]
+        # targets = targets.select { |t| t.name.start_with? query[:name] }                     if query[:name]
         targets = targets[0...query[:limit].to_i] if query[:limit]
         return targets
     end
@@ -120,25 +123,34 @@ class Game
     def make_rooms
 
         @rooms = []
+        @areas = []
 
         begin
             # connect to database
             db = Sequel.mysql2( :host => "localhost",
-                        :username => "root",
-                        :password => "c151c151",
-                        :database => "Room" )
+                        :username => "redemption",
+                        :password => "xsw23edC",
+                        :database => "redemption" )
 
             room_rows = db[:Room]
             exit_rows = db[:RoomExit]
 
             # create a room_row[:vnum] hash, create rooms
             rooms_hash = {}
+            areas_hash = {}
+
             room_rows.each do |row|
-                @rooms.push Room.new( row[:name], self )
+            	
+            	area = areas_hash[row[:area]] || Area.new( row[:area], row[:continent], self )
+            	areas_hash[row[:area]] = area
+            	@areas.push area
+
+                @rooms.push Room.new( row[:name], row[:description], row[:sector], area, row[:flags].to_s.split(" "), row[:hp].to_i, row[:mana].to_i, self )
                 rooms_hash[row[:vnum]] = @rooms.last
                 if row[:vnum] == 31000
                     @starting_room = @rooms.last
                 end
+
             end
 
             # assign each exit to its room in the hash (if the destination exists)
@@ -151,21 +163,48 @@ class Game
             puts ( "Rooms loaded from database." )
 
         rescue
+        	area = Area.new( "Default", "Terra", self )
+        	@areas.push area
+
             10.times do |i|
-                @rooms.push Room.new( "Room no. #{i}", self )
+                @rooms.push Room.new( "Room no. #{i}", "#{i} description", "forest", area, [], 100, 100, self )
             end
 
             @rooms.each_with_index do |room, index|
                 room.exits[:north] = @rooms[ (index + 1) % @rooms.count ]
                 @rooms[ (index + 1) % @rooms.count ].exits[:south] = room
             end
+
+            puts ( "Rooms created ( no database found )." )
         end
     end
 
-    def show_who
-        %Q(
-#{ @players.map{ |name, player| "[#{name}]" }.join( "\n" ) }
-        )
+    def do_command( actor, cmd, args = [] )
+    	@commands.each do | command |
+    		if command.check( cmd )
+    			command.execute( actor, args )
+    			return
+    		end    		
+    	end
+    	actor.output "Huh?"
     end
 
+    def make_commands
+    	@commands = [
+    		Down.new( ["down"], 0.5 ),
+    		Up.new( ["up"], 0.5 ),
+    		East.new( ["east"], 0.5 ),
+    		West.new( ["west"], 0.5 ),
+    		North.new( ["north"], 0.5 ),
+    		South.new( ["south"], 0.5 ),
+    		Who.new( ["who"] ),
+    		Help.new( ["help"] ),
+    		Qui.new( ["qui"] ),
+    		Quit.new( ["quit"] ),
+    		Look.new( ["look"] ),
+    		Say.new( ["say", "'"] ),
+    		Kill.new( ["hit", "kill"], 0.5 ),
+    		Flee.new( ["flee"], 0.5 )
+    	]
+    end
 end

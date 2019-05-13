@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :attacking
+    attr_accessor :room, :attacking, :lag, :position
 
     @attacking
 
@@ -73,6 +73,19 @@ class Mobile < GameObject
         output "You have been KILLED!"
         broadcast "#{@name} has been KILLED.", target({ not: [ self ] })
         stop_combat
+    end
+
+    def move( direction )
+        if @room.exits[ direction.to_sym ].nil?
+            output "There is no exit [#{direction}]."
+        else
+            broadcast "#{@name} leaves #{direction}.", target({ :not => self, :room => @room })
+            output "You leave #{direction}."
+            @room = @room.exits[ direction.to_sym ]
+            broadcast "#{@name} has arrived.", target({ :not => self, :room => @room })
+            @game.do_command self, "look"
+            # cmd_look
+        end
     end
 
 end

@@ -1,17 +1,11 @@
 class Player < Mobile
 
-    @@whitelist = []
-
-    def self.append_whitelist( list )
-        @@whitelist += list
-    end
-
-    include BasicCommands
-
     def initialize( name, game, room, client, thread )
         @buffer = ""
+	    @lag = 0
         @client = client
         @thread = thread
+        @commands = []
         super name, game, room
     end
 
@@ -22,18 +16,14 @@ class Player < Mobile
                 quit
             else
                 message = raw.chomp.to_s
-                do_command message
+                @commands.push message
             end
         end
     end
 
     def do_command( input )
         cmd, args = input.split " ", 2
-        if @@whitelist.include? cmd
-            self.send "cmd_#{cmd.to_s}", args.to_s.split(" ")
-        else
-            output "Huh?"
-        end
+        @game.do_command( self, cmd, args.to_s.split(" ") )
     end
 
     def output( message )
@@ -56,6 +46,14 @@ class Player < Mobile
         @client.close
         @game.disconnect @name
         Thread.kill( @thread )
+    end
+
+    def update( elasped )
+    	if @lag > 0
+    		@lag -= elasped
+    	elsif @commands.length > 0
+    		do_command @commands.shift
+    	end
     end
 
 end
