@@ -1,6 +1,6 @@
 class Room < GameObject
 
-    attr_accessor :exits
+    attr_accessor :exits, :area
 
     def initialize( name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
