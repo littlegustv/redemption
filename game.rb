@@ -17,12 +17,12 @@ class Game
         @areas = []
         @starting_room = nil
 
-       begin
+       #begin
             @db = Sequel.mysql2( :host => host, :username => username, :password => password, :database => "redemption" )
             load_rooms
-       rescue
-            make_rooms
-       end
+       #rescue
+       #     make_rooms
+       #end
 
         make_commands
 
@@ -171,8 +171,23 @@ class Game
         item_rows = @db[:Item]
 
         item_rows.each do |row|
-            @items.push Item.new( row[:name], self, areas_hash[ row[:area] ].sample ) if areas_hash[ row[:area] ]
+            if areas_hash[ row[:area] ]
+                @items.push Item.new( {
+                        short_description: row[:short],
+                        long_description: row[:description],
+                        keywords: row[:name].split(" "),
+                        weight: row[:weight].to_i,
+                        cost: row[:cost].to_i,
+                        type: row[:type],
+                        level: row[:level].to_i
+                    }, 
+                    self, 
+                    areas_hash[ row[:area] ].sample
+                )
+            end
         end
+
+        puts ( "Items loaded from database." )
 
         mobile_rows = @db[:Mobile]
 
@@ -216,6 +231,8 @@ class Game
                 ) 
             end
         end
+
+        puts ( "Mobiles loaded from database." )
 
     end
 

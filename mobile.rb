@@ -9,6 +9,7 @@ class Mobile < GameObject
         @attack_speed = 1
         @keywords = data[:keywords]
         @short_description = data[ :short_description ]
+        @long_description = data[ :long_description ]
         
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
@@ -57,7 +58,7 @@ class Mobile < GameObject
             @attack_speed.times do |attack|
                 hit_chance = ( attack_rating - @attacking.defense_rating ).clamp( 5, 95 )
                 if rand(0...100) < hit_chance
-                    damage = rand(@damage_range[0]...@damage_range[1]) + @damroll
+                    damage = rand(@damage_range[0]...@damage_range[1]).to_i + @damroll
                 else
                     damage = 0
                 end
