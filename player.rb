@@ -44,9 +44,10 @@ class Player < Mobile
     end
 
     def quit
-        @client.close
-        @game.disconnect @name
         Thread.kill( @thread )
+        @buffer = ""
+        @client.close
+        @game.disconnect @short_description
     end
 
     def update( elasped )
