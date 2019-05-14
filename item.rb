@@ -25,3 +25,23 @@ class Item < GameObject
     end
 
 end
+
+class Weapon < Item
+
+	attr_accessor :noun
+
+	def initialize( data, game, room )
+		super data, game, room
+
+		@noun = data[:noun] || "pierce"
+		@flags = data[:flags] || []
+		@element = data[:element] || "iron"
+		@dice_count = data[:dice_count] || 2
+		@dice_sides = data[:dice_sides] || 6
+	end
+
+	def damage
+		@dice_count.times.collect { |i| rand(1...@dice_sides) }.sum
+	end
+
+end

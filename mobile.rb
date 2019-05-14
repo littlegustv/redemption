@@ -82,7 +82,7 @@ class Mobile < GameObject
             @attack_speed.times do |attack|
                 hit_chance = ( attack_rating - @attacking.defense_rating ).clamp( 5, 95 )
                 if rand(0...100) < hit_chance
-                    damage = rand(@damage_range[0]...@damage_range[1]).to_i + @damroll
+                    damage = damage_rating
                 else
                     damage = 0
                 end
@@ -96,9 +96,13 @@ class Mobile < GameObject
         end
     end
 
+    def noun
+        @equipment[:wield] ? @equipment[:wield].noun : @noun
+    end
+
     def hit( damage )
         decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-        texts = ["Your #{decorators[2]} #{@noun} #{decorators[1]} #{@attacking } [#{damage}]", "#{self}'s' #{decorators[2]} #{@noun} #{decorators[1]} you", "#{self}'s' #{decorators[2]} #{@noun} #{decorators[1]} #{ @attacking }"]
+        texts = ["Your #{decorators[2]} #{noun} #{decorators[1]} #{@attacking } [#{damage}]", "#{self}'s' #{decorators[2]} #{noun} #{decorators[1]} you", "#{self}'s' #{decorators[2]} #{noun} #{decorators[1]} #{ @attacking }"]
     end
 
     def damage( damage )
@@ -152,6 +156,14 @@ class Mobile < GameObject
 
     def defense_rating
         ( -1  * @armor_class[0] - 100 ) / 5
+    end
+
+    def damage_rating
+        if @equipment[:wield]
+            @equipment[:wield].damage + @damroll
+        else
+            rand(@damage_range[0]...@damage_range[1]).to_i + @damroll
+        end
     end
 
     def to_s

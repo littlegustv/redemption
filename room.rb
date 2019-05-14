@@ -28,7 +28,7 @@ class Room < GameObject
 #{ @description }
 
 [Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]
-#{ @game.target({ :room => self, :not => looker, type: ["Player", "Mobile", "Item"] }).map{ |t| "#{t.long}" }.join("\n") }
+#{ @game.target({ :room => self, :not => looker, type: ["Player", "Mobile", "Item", "Weapon"] }).map{ |t| "#{t.long}" }.join("\n") }
         )
     end
 

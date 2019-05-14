@@ -172,19 +172,36 @@ class Game
 
         item_rows.each do |row|
             if areas_hash[ row[:area] ]
-                @items.push Item.new( {
-                        short_description: row[:short],
-                        long_description: row[:description],
-                        keywords: row[:name].split(" "),
-                        weight: row[:weight].to_i,
-                        cost: row[:cost].to_i,
-                        type: row[:type],
-                        level: row[:level].to_i,
-                        wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", "")
-                    }, 
-                    self, 
-                    areas_hash[ row[:area] ].sample
-                )
+                data = {
+                    short_description: row[:short],
+                    long_description: row[:description],
+                    keywords: row[:name].split(" "),
+                    weight: row[:weight].to_i,
+                    cost: row[:cost].to_i,
+                    type: row[:type],
+                    level: row[:level].to_i,
+                    wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", "")
+                }
+                if row[:type] == "weapon"
+                    weapon_info = @db["select * from Weapon where itemVnum = #{ row[:vnum] }"].first
+                    dice_info = @db["select * from Dice where itemVnum = #{ row[:vnum] }"].first
+                    weapon_data = {
+                        noun: weapon_info[:noun],
+                        flags: weapon_info[:flags].split(" "),
+                        element: weapon_info[:element],
+                        dice_sides: dice_info[:sides].to_i,
+                        dice_count: dice_info[:count].to_i
+                    }
+                    @items.push Weapon.new( data.merge( weapon_data ), 
+                        self, 
+                        areas_hash[ row[:area] ].sample
+                    )
+                else
+                    @items.push Item.new( data, 
+                        self, 
+                        areas_hash[ row[:area] ].sample
+                    )
+                end
             end
         end
 

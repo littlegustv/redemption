@@ -134,7 +134,7 @@ end
 
 class Get < Command
     def attempt( actor, args )
-        if ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: "Item" }).first )
+        if ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: ["Item", "Weapon"] }).first )
             target.room = nil
             actor.inventory.push target
             actor.output "You get #{ target }."
