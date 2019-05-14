@@ -180,7 +180,7 @@ class Game
                         cost: row[:cost].to_i,
                         type: row[:type],
                         level: row[:level].to_i,
-                        wear_location: row[:wearFlags].match(/wear_(\w+)/).to_a[1].to_s
+                        wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", "")
                     }, 
                     self, 
                     areas_hash[ row[:area] ].sample

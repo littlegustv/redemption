@@ -39,7 +39,7 @@ class Mobile < GameObject
             held: nil,
             float: nil,
             orbit: nil,
-            wielded: nil,
+            wield: nil,
             ranged: nil,
             ammunition: nil
         }
