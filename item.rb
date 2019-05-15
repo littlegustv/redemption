@@ -41,7 +41,7 @@ class Weapon < Item
 	end
 
 	def damage
-		@dice_count.times.collect { |i| rand(1...@dice_sides) }.sum
+		@dice_count.to_i.times.collect { |i| rand(1...@dice_sides.to_i) }.sum
 	end
 
 end

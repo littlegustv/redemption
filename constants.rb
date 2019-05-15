@@ -17,8 +17,8 @@ end
 
 module Constants
 
-    FPS = 30
-    ROUND = 30
+    FPS = 60
+    ROUND = 60
 
     DAMAGE_DECORATORS = {
 		0 => ['miss', 'misses', 'clumsy', ''],
