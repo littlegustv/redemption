@@ -31,7 +31,7 @@ class GameObject
     end
 
     def to_someone
-        "Someone"
+        "someone"
     end
 
     def show( looker )

@@ -21,7 +21,7 @@ class Item < GameObject
     end
 
     def to_someone
-        "Something"
+        "something"
     end
 
     def long

@@ -22,7 +22,7 @@ class Player < Mobile
     end
 
     def output( message, objects = [] )
-        @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n"
+        @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n".capitalize_first
     end
 
     def prompt

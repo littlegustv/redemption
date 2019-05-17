@@ -111,13 +111,13 @@ class Game
         end
     end
 
-    # right now this is just for players??
     def target( query = {} )
         targets = @players.values + @items + @mobiles
         targets = targets.select { |t| query[:type].to_a.include? t.class.to_s }			                        if query[:type]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
-        targets = targets.select { |t| query[:area].to_a.include? t.room.area }                                     if query[:area]
+        # fix me: figure out a good way of getting the area for objects that are not directly in a room
+        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }                           if query[:area]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
