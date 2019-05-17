@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :attacking, :lag, :position, :inventory, :equipment
+    attr_accessor :room, :attacking, :lag, :position, :inventory, :equipment, :affects
 
     def initialize( data, game, room )
         @attacking
@@ -9,6 +9,7 @@ class Mobile < GameObject
         @keywords = data[:keywords]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
+        @affects = []
         
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
@@ -50,13 +51,16 @@ class Mobile < GameObject
         super elapsed
     end
 
+    def do_command( input )
+        cmd, args = input.split " ", 2
+        @game.do_command( self, cmd, args.to_s.split(" ") )
+    end
+
     def start_combat( attacker )
         # if they are already fighting you, i.e. they started it
         @position = Position::FIGHT
         if attacker && attacker.attacking == self
-            # fix me: replace with call to cmd_yell (also needs to be created)
-            broadcast "#{self} yells 'Help I am being attacked by #{ attacker }!", target({ not: self })
-            output "You yell 'Help I am being attacked by #{ attacker }!"
+            do_command "yell 'Help I am being attacked by #{attacker}!'"
         end
         if @attacking.nil?
             @attacking = attacker
@@ -87,9 +91,9 @@ class Mobile < GameObject
                     damage = 0
                 end
                 m, t, r = hit damage
-                output m
-                @attacking.output t
-                broadcast r, target({ not: [ self, @attacking ], room: @room })
+                output m, [@attacking]
+                @attacking.output t, [self]
+                broadcast r, target({ not: [ self, @attacking ], room: @room }), [self, @attacking]
                 @attacking.damage( damage )
                 break if @attacking.nil?
             end
@@ -102,7 +106,7 @@ class Mobile < GameObject
 
     def hit( damage )
         decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-        texts = ["Your #{decorators[2]} #{noun} #{decorators[1]} #{@attacking } [#{damage}]", "#{self}'s' #{decorators[2]} #{noun} #{decorators[1]} you", "#{self}'s' #{decorators[2]} #{noun} #{decorators[1]} #{ @attacking }"]
+        texts = ["Your #{decorators[2]} #{noun} #{decorators[1]} %s [#{damage}]", "%s's' #{decorators[2]} #{noun} #{decorators[1]} you", "%s's' #{decorators[2]} #{noun} #{decorators[1]} %s"]
     end
 
     def damage( damage )
@@ -112,7 +116,7 @@ class Mobile < GameObject
 
     def die
         output "You have been KILLED!"
-        broadcast "#{self} has been KILLED.", target({ not: [ self ] })
+        broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
         stop_combat
     end
 
@@ -120,10 +124,10 @@ class Mobile < GameObject
         if @room.exits[ direction.to_sym ].nil?
             output "There is no exit [#{direction}]."
         else
-            broadcast "#{self} leaves #{direction}.", target({ :not => self, :room => @room })
+            broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self]
             output "You leave #{direction}."
             @room = @room.exits[ direction.to_sym ]
-            broadcast "#{self} has arrived.", target({ :not => self, :room => @room })
+            broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self]
             @game.do_command self, "look"
             # cmd_look
         end
@@ -175,7 +179,7 @@ class Mobile < GameObject
     end
 
     def wear( args )
-        if ( target = @inventory.select { |item| item.fuzzy_match( args[0].to_s ) }.first )
+        if ( target = @inventory.select { |item| item.fuzzy_match( args[0].to_s ) && can_see?(item) }.first )
             slot = target.wear_location.to_sym
             if @equipment.keys.include? slot
                 if ( old = @equipment[ slot ] )
@@ -194,7 +198,7 @@ class Mobile < GameObject
     end
 
     def unwear( args )
-        if ( slot = @equipment.select { |slot, item| item.nil? ? false : item.fuzzy_match( args[0].to_s ) }.keys.first )
+        if ( slot = @equipment.select { |slot, item| (item.nil? ? false : item.fuzzy_match( args[0].to_s )) && can_see?(item) }.keys.first )
             target = @equipment[ slot ]
             @inventory.push target
             @equipment[ slot ] = nil
@@ -202,6 +206,14 @@ class Mobile < GameObject
         else
             output "You don't have any '#{args[0]}'"
         end 
+    end
+
+    def can_see? target
+        if @affects.include? "blind"
+            false
+        else
+            true
+        end
     end
 
 end

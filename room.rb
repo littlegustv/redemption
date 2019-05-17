@@ -19,17 +19,17 @@ class Room < GameObject
     end
 
     def show( looker )
-# <#{ @area.name }>
-# <#{ @sector }>
-# <#{ @flags.join(", ") }>
-# <#{ @hp_regen } hp, #{ @mana_regen } mana >
-        %Q(
+        if looker.can_see? self
+            %Q(
 #{ @name }
 #{ @description }
 
 [Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]
-#{ @game.target({ :room => self, :not => looker, type: ["Player", "Mobile", "Item", "Weapon"] }).map{ |t| "#{t.long}" }.join("\n") }
+#{ @game.target({ :room => self, :not => looker, type: ["Player", "Mobile", "Item", "Weapon"], visible_to: looker }).map{ |t| "#{t.long}" }.join("\n") }
         )
+        else
+            "You can't see a thing!"
+        end
     end
 
 end

@@ -105,9 +105,9 @@ class Game
         end
     end
 
-    def broadcast( message, targets )
+    def broadcast( message, targets, objects = [] )
         targets.each do | player |
-            player.output( message )
+            player.output( message, objects )
         end
     end
 
@@ -115,7 +115,9 @@ class Game
     def target( query = {} )
         targets = @players.values + @items + @mobiles
         targets = targets.select { |t| query[:type].to_a.include? t.class.to_s }			                        if query[:type]
+        targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
+        targets = targets.select { |t| query[:area].to_a.include? t.room.area }                                     if query[:area]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
@@ -301,7 +303,8 @@ class Game
     		Qui.new( ["qui"] ),
     		Quit.new( ["quit"] ),
     		Look.new( ["look"] ),
-    		Say.new( ["say", "'"] ),
+            Say.new( ["say", "'"] ),
+            Yell.new( ["yell"] ),
     		Kill.new( ["hit", "kill"], 0.5 ),
     		Flee.new( ["flee"], 0.5 ),
     		Get.new( ["get", "take"] ),
@@ -310,6 +313,8 @@ class Game
             Equipment.new( ["equipment"] ),
             Wear.new( ["wear", "hold", "wield"] ),
             Remove.new( ["remove"] ),
+            Blind.new( ["blind"] ),
+            Unblind.new( ["unblind"] ),
     	]
     end
 end

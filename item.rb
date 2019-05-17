@@ -20,6 +20,10 @@ class Item < GameObject
     	@short_description
     end
 
+    def to_someone
+        "Something"
+    end
+
     def long
     	@long_description
     end

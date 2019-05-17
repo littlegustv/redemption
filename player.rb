@@ -21,13 +21,8 @@ class Player < Mobile
         end
     end
 
-    def do_command( input )
-        cmd, args = input.split " ", 2
-        @game.do_command( self, cmd, args.to_s.split(" ") )
-    end
-
-    def output( message )
-        @buffer += "#{message}\n"
+    def output( message, objects = [] )
+        @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n"
     end
 
     def prompt

@@ -11,11 +11,11 @@ class GameObject
     def update( elapsed )
     end
 
-    def output( message )
+    def output( message, objects = [] )
     end
 
-    def broadcast( message, targets )
-        @game.broadcast message, targets
+    def broadcast( message, targets, objects = [] )
+        @game.broadcast message, targets, objects
     end
 
     def target( query )
@@ -30,8 +30,24 @@ class GameObject
         @name
     end
 
+    def to_someone
+        "Someone"
+    end
+
+    def show( looker )
+        if looker.can_see? self
+            to_s
+        else
+            to_someone
+        end
+    end
+
     def fuzzy_match( query )
         @keywords.select{ |keyword| keyword.fuzzy_match( query ) }.any?
+    end
+
+    def can_see?
+        true
     end
 
 end
