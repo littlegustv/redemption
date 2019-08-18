@@ -29,16 +29,16 @@ module Constants
     ROUND = 60
 
     DAMAGE_DECORATORS = {
-		0 => ['miss', 'misses', 'clumsy', ''],
-		4 => ['bruise', 'bruises', 'clumsy', ''],
-		8 => ['scrape', 'scrapes', 'wobbly', ''],
-		12 => ['scratch', 'scratches', 'wobbly', ''],
-		16 => ['lightly wound', 'lightly wounds', 'amateur', ''],
-		20 => ['injure', 'injures', 'amateur', ''],
+		0 => ['miss', 'misses', 'clumsy', '.'],
+		4 => ['bruise', 'bruises', 'clumsy', '.'],
+		8 => ['scrape', 'scrapes', 'wobbly', '.'],
+		12 => ['scratch', 'scratches', 'wobbly', '.'],
+		16 => ['lightly wound', 'lightly wounds', 'amateur', '.'],
+		20 => ['injure', 'injures', 'amateur', '.'],
 		24 => ['harm', 'harms', 'competent', ', creating a bruise'],
 		28 => ['thrash', 'thrashes', 'competent', ', leaving marks!'],
-		32 => ['maul', 'mauls', 'skillfull', '!'],
-		36 => ['main', 'maims', 'skillfull', '!'],
+		32 => ['maul', 'mauls', 'skillful', '!'],
+		36 => ['maim', 'maims', 'skillful', '!'],
 		40 => ['decimate', 'decimates', 'cunning', ', the wound bleeds!'],
 		44 => ['devastate', 'devastates', 'cunning', ', hitting organs!'],
 		48 => ['mutilate', 'mutilates', 'calculated', ', shredding flesh!'],
@@ -58,6 +58,29 @@ module Constants
 
     PARTS = [
     	"brains"
+    ]
+
+    COLOR_CODE_REPLACEMENTS = [
+        ["{{", "{~"],
+        ["{d", "\033[0;30m"],
+        ["{r", "\033[0;31m"],
+        ["{g", "\033[0;32m"],
+        ["{y", "\033[0;33m"],
+        ["{b", "\033[0;34m"],
+        ["{m", "\033[0;35m"],
+        ["{c", "\033[0;36m"],
+        ["{w", "\033[0;37m"],
+        ["{x", "\033[0m"],
+        ["{D", "\033[1;30m"],
+        ["{R", "\033[0;31m"],
+        ["{G", "\033[0;32m"],
+        ["{Y", "\033[0;33m"],
+        ["{B", "\033[0;34m"],
+        ["{M", "\033[0;35m"],
+        ["{C", "\033[0;36m"],
+        ["{W", "\033[0;37m"],
+        ["{X", "\033[39m"],
+        ["{~", "{"]
     ]
 
 end

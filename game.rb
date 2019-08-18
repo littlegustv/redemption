@@ -223,7 +223,8 @@ class Game
                         alignment: row[:align].to_i,
                         # mobgroup??
                         hitroll: row[:hitroll].to_i,
-                        hitpoints: row[:hp].to_i,
+                        hitpoints: 200,
+                        # hitpoints: row[:hp].to_i,
                         #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
                         hp_range: [500, 1000],
                         # mana: row[:manaRange].split("-").map(&:to_i).first,

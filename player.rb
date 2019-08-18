@@ -23,6 +23,8 @@ class Player < Mobile
 
     def output( message, objects = [] )
         @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n".capitalize_first
+        Constants::COLOR_CODE_REPLACEMENTS.each { |r| @buffer = @buffer.gsub("#{r[0]}", "#{r[1]}") }
+        
     end
 
     def prompt
