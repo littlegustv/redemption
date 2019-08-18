@@ -21,6 +21,10 @@ end
 
 module Constants
 
+	def dice( count, sides )
+		count.times.collect{ rand(1..sides) }.sum
+	end
+
     FPS = 60
     ROUND = 60
 
