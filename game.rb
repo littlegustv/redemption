@@ -135,7 +135,7 @@ class Game
 
         # connect to database
 
-        room_rows = @db[:Room]
+        room_rows = @db[:RoomBase]
         exit_rows = @db[:RoomExit]
 
         # create a room_row[:vnum] hash, create rooms
@@ -143,7 +143,7 @@ class Game
         areas_hash = {}
 
         room_rows.each do |row|
-        	
+
         	area = areas_hash[row[:area]] || Area.new( row[:area], row[:continent], self )
         	areas_hash[row[:area]] = area
         	@areas.push area
@@ -170,14 +170,13 @@ class Game
             areas_hash[ area_name ] = @rooms.select{ | room | room.area == area }
         end
 
-        item_rows = @db[:Item]
-
+        item_rows = @db[:ItemBase]
         item_rows.each do |row|
             if areas_hash[ row[:area] ]
                 data = {
-                    short_description: row[:short],
-                    long_description: row[:description],
-                    keywords: row[:name].split(" "),
+                    short_description: row[:shortDesc],
+                    long_description: row[:longDesc],
+                    keywords: row[:keywords].split(" "),
                     weight: row[:weight].to_i,
                     cost: row[:cost].to_i,
                     type: row[:type],
@@ -185,8 +184,8 @@ class Game
                     wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", "")
                 }
                 if row[:type] == "weapon"
-                    weapon_info = @db["select * from Weapon where itemVnum = #{ row[:vnum] }"].first
-                    dice_info = @db["select * from Dice where itemVnum = #{ row[:vnum] }"].first
+                    weapon_info = @db["select * from ItemWeapon where itemVnum = #{ row[:vnum] }"].first
+                    dice_info = @db["select * from ItemDice where itemVnum = #{ row[:vnum] }"].first
                     weapon_data = {
                         noun: weapon_info[:noun],
                         flags: weapon_info[:flags].split(" "),
@@ -194,13 +193,13 @@ class Game
                         dice_sides: dice_info[:sides].to_i,
                         dice_count: dice_info[:count].to_i
                     }
-                    @items.push Weapon.new( data.merge( weapon_data ), 
-                        self, 
+                    @items.push Weapon.new( data.merge( weapon_data ),
+                        self,
                         areas_hash[ row[:area] ].sample
                     )
                 else
-                    @items.push Item.new( data, 
-                        self, 
+                    @items.push Item.new( data,
+                        self,
                         areas_hash[ row[:area] ].sample
                     )
                 end
@@ -209,7 +208,7 @@ class Game
 
         puts ( "Items loaded from database." )
 
-        mobile_rows = @db[:Mobile]
+        mobile_rows = @db[:MobileBase]
 
         mobile_rows.each do |row|
             if areas_hash[ row[:area] ]
@@ -217,7 +216,7 @@ class Game
                         keywords: row[:keywords].split(" "),
                         short_description: row[:shortDesc],
                         long_description: row[:longDesc],
-                        full_description: row[:description],
+                        full_description: row[:fullDesc],
                         race: row[:race],
                         action_flags: row[:actFlags],
                         affect_flags: row[:affFlags],
@@ -225,13 +224,15 @@ class Game
                         # mobgroup??
                         hitroll: row[:hitroll].to_i,
                         hitpoints: row[:hp].to_i,
-                        hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
+                        #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
+                        hp_range: [500, 1000],
                         # mana: row[:manaRange].split("-").map(&:to_i).first,
                         mana: row[:mana].to_i,
-                        damage_range: row[:damageRange].split("-").map(&:to_i),
+                        #damage_range: row[:damageRange].split("-").map(&:to_i),
+                        damage_range: [10, 20],
                         damage: row[:damage].to_i,
-                        damage_type: row[:attack].split(" ").first, # pierce, slash, none, etc.
-                        armor_class: row[:ac].split(" ").map(&:to_i),
+                        damage_type: row[:handToHandNoun].split(" ").first, # pierce, slash, none, etc.
+                        armor_class: [row[:acPierce], row[:acBash], row[:acSlash], row[:acMagic]],
                         offensive_flags: row[:offFlags],
                         immune_flags: row[:immFlags],
                         resist_flags: row[:resFlags],
@@ -245,10 +246,10 @@ class Game
                         size: row[:size],
                         material: row[:material],
                         level: row[:level]
-                    }, 
-                    self, 
-                    areas_hash[ row[:area] ].sample 
-                ) 
+                    },
+                    self,
+                    areas_hash[ row[:area] ].sample
+                )
             end
         end
 
@@ -285,7 +286,7 @@ class Game
     		if command.check( cmd )
     			command.execute( actor, args )
     			return
-    		end    		
+    		end
     	end
     	actor.output "Huh?"
     end
