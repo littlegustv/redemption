@@ -111,6 +111,10 @@ class Game
         end
     end
 
+    def dice( count, sides )
+        count.times.collect{ rand(1..sides) }.sum
+    end
+
     def target( query = {} )
         targets = @players.values + @items + @mobiles
         targets = targets.select { |t| query[:type].to_a.include? t.class.to_s }			                        if query[:type]
@@ -168,8 +172,61 @@ class Game
         # temporary: load all rooms into area hash, to randomly put mobiles and items in the right area
         areas_hash.each do | area_name, area |
             areas_hash[ area_name ] = @rooms.select{ | room | room.area == area }
+            puts "Loading mobs for #{area_name}"
+            base_mob_resets = @db[:resetbase].where( area: area_name, type: "mobile" ).as_hash(:id, :chance)
+            ids = base_mob_resets.keys
+            mob_resets = @db[:resetmobile].where(id: ids)
+            mob_vnums = mob_resets.map(:mobileVnum)
+            mob_data = @db[:mobilebase].where(vnum: mob_vnums).as_hash(:vnum)
+            mob_resets.each do |reset|
+                reset[:roomMax].times do
+                    row = mob_data[ reset[:mobileVnum] ]
+                    if row
+                        @mobiles.push Mobile.new( {
+                                keywords: row[:keywords].split(" "),
+                                short_description: row[:shortDesc],
+                                long_description: row[:longDesc],
+                                full_description: row[:fullDesc],
+                                race: row[:race],
+                                action_flags: row[:actFlags],
+                                affect_flags: row[:affFlags],
+                                alignment: row[:align].to_i,
+                                # mobgroup??
+                                hitroll: row[:hitroll].to_i,
+                                hitpoints: dice( row[:hpDiceCount].to_i, row[:hpDiceSides].to_i ) + row[:hpDiceBonus].to_i,
+                                #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
+                                hp_range: [500, 1000],
+                                # mana: row[:manaRange].split("-").map(&:to_i).first,
+                                mana: row[:mana].to_i,
+                                #damage_range: row[:damageRange].split("-").map(&:to_i),
+                                damage_range: [10, 20],
+                                damage: row[:damage].to_i,
+                                damage_type: row[:handToHandNoun].split(" ").first, # pierce, slash, none, etc.
+                                armor_class: [row[:acPierce], row[:acBash], row[:acSlash], row[:acMagic]],
+                                offensive_flags: row[:offFlags],
+                                immune_flags: row[:immFlags],
+                                resist_flags: row[:resFlags],
+                                vulnerable_flags: row[:vulnFlags],
+                                starting_position: row[:startPos],
+                                default_position: row[:defaultPos],
+                                sex: row[:sex],
+                                wealth: row[:wealth].to_i,
+                                form_flags: row[:formFlags],
+                                parts: row[:partFlags],
+                                size: row[:size],
+                                material: row[:material],
+                                level: row[:level]
+                            },
+                            self,
+                            rooms_hash[reset[:roomVnum]]
+                        )
+                    else
+                        puts "Mob not found: #{reset[:mobileVnum]}"
+                    end
+                end
+            end
         end
-
+=begin
         item_rows = @db[:ItemBase]
         item_rows.each do |row|
             if areas_hash[ row[:area] ]
@@ -254,7 +311,8 @@ class Game
         end
 
         puts ( "Mobiles loaded from database." )
-
+=end
+        puts "Redemption is ready to Rock on port ???"
     end
 
     def make_rooms
