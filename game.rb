@@ -2,11 +2,11 @@ require 'sequel'
 
 class Game
 
-    def initialize( ip_address, port )
+    def initialize( port )
 
 
-        puts "Opening server on #{ip_address}:#{port}"
-        @server = TCPServer.open( ip_address, port )
+        puts "Opening server on #{port}"
+        @server = TCPServer.open( port )
 
         sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
 

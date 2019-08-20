@@ -9,4 +9,4 @@ require_relative 'mobile'
 require_relative 'item'
 require_relative 'player'
 
-game = Game.new( ARGV[0] || "192.168.0.12", ARGV[1] || 2000 )
+game = Game.new( ARGV[1] || 4000 )
