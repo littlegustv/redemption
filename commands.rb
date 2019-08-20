@@ -16,7 +16,7 @@ class Command
     end
 
     def attempt( actor, args )
-        actor.output "Default command"
+        actor.output ""
     end
 
 end

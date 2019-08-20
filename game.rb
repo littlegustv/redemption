@@ -8,7 +8,7 @@ class Game
         puts "Opening server on #{ip_address}:#{port}"
         @server = TCPServer.open( ip_address, port )
 
-        host, port, username, password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
+        sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
 
         @players = Hash.new
         @items = []
@@ -17,14 +17,12 @@ class Game
         @areas = []
         @starting_room = nil
 
-       #begin
-            @db = Sequel.mysql2( :host => host, :username => username, :password => password, :database => "redemption" )
-            load_rooms
-       #rescue
-       #     make_rooms
-       #end
+        @db = Sequel.mysql2( :host => sql_host, :username => sql_username, :password => sql_password, :database => "redemption" )
+        load_rooms
 
         make_commands
+
+        puts( "Redemption is ready to rock on port #{port}!\n" )
 
         @start_time = Time.now
         @interval = 0
@@ -172,7 +170,7 @@ class Game
         mob_data = @db[:mobilebase].as_hash(:vnum)
         mob_resets = @db[:resetmobile].as_hash(:id)
         base_mob_resets = @db[:resetbase].where( type: "mobile" ).as_hash(:id, :chance)
-        
+
         base_mob_resets.each do |reset_id, chance|
             reset = mob_resets[reset_id]
             reset[:roomMax].times do
@@ -222,7 +220,7 @@ class Game
             end
         end
 
-        
+
         puts( "Mob Data and Resets loaded from database.")
 
         # temporary: load all rooms into area hash, to randomly put mobiles and items in the right area
@@ -230,8 +228,10 @@ class Game
             areas_hash[ area_name ] = @rooms.select{ | room | room.area == area }
             # puts "Loading mobs for #{area_name}"
         end
-=begin
+
         item_rows = @db[:ItemBase]
+        weapon_rows = @db[:ItemWeapon]
+        dice_rows = @db[:ItemDice]
         item_rows.each do |row|
             if areas_hash[ row[:area] ]
                 data = {
@@ -254,6 +254,7 @@ class Game
                         dice_sides: dice_info[:sides].to_i,
                         dice_count: dice_info[:count].to_i
                     }
+                    #puts ( "Noun: #{weapon_data[:noun]}" )
                     @items.push Weapon.new( data.merge( weapon_data ),
                         self,
                         areas_hash[ row[:area] ].sample
@@ -268,32 +269,7 @@ class Game
         end
 
         puts ( "Items loaded from database." )
-=end
-        puts "Redemption is ready to Rock on port ???"
-    end
 
-    def make_rooms
-        area = Area.new( "Default", "Terra", self )
-        @areas.push area
-
-        10.times do |i|
-            @rooms.push Room.new( "Room no. #{i}", "#{i} description", "forest", area, [], 100, 100, self )
-        end
-
-        @rooms.each_with_index do |room, index|
-            room.exits[:north] = @rooms[ (index + 1) % @rooms.count ]
-            @rooms[ (index + 1) % @rooms.count ].exits[:south] = room
-        end
-
-        @starting_room = @rooms.first
-
-        # m = Mobile.new "Cuervo", self, @starting_room
-        # @mobiles.push m
-
-        # i = Item.new "A Teddy Bear", self, @starting_room
-        # @items.push i
-
-        puts ( "Rooms created ( no database found )." )
     end
 
     def do_command( actor, cmd, args = [] )
@@ -308,6 +284,7 @@ class Game
 
     def make_commands
     	@commands = [
+    		Command.new( [""] ),
     		Down.new( ["down"], 0.5 ),
     		Up.new( ["up"], 0.5 ),
     		East.new( ["east"], 0.5 ),
