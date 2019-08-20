@@ -8,7 +8,7 @@ class Game
         puts "Opening server on #{ip_address}:#{port}"
         @server = TCPServer.open( ip_address, port )
 
-        host, port, username, password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
+        sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
 
         @players = Hash.new
         @items = []
@@ -18,13 +18,15 @@ class Game
         @starting_room = nil
 
        #begin
-            @db = Sequel.mysql2( :host => host, :username => username, :password => password, :database => "redemption" )
+            @db = Sequel.mysql2( :host => sql_host, :username => sql_username, :password => sql_password, :database => "redemption" )
             load_rooms
        #rescue
        #     make_rooms
        #end
 
         make_commands
+
+        puts( "Redemption is ready to rock on port #{port}!\n" )
 
         @start_time = Time.now
         @interval = 0
@@ -171,6 +173,8 @@ class Game
         end
 
         item_rows = @db[:ItemBase]
+        weapon_rows = @db[:ItemWeapon]
+        dice_rows = @db[:ItemDice]
         item_rows.each do |row|
             if areas_hash[ row[:area] ]
                 data = {
@@ -193,6 +197,7 @@ class Game
                         dice_sides: dice_info[:sides].to_i,
                         dice_count: dice_info[:count].to_i
                     }
+                    #puts ( "Noun: #{weapon_data[:noun]}" )
                     @items.push Weapon.new( data.merge( weapon_data ),
                         self,
                         areas_hash[ row[:area] ].sample
@@ -294,6 +299,7 @@ class Game
 
     def make_commands
     	@commands = [
+    		Command.new( [""] ),
     		Down.new( ["down"], 0.5 ),
     		Up.new( ["up"], 0.5 ),
     		East.new( ["east"], 0.5 ),
