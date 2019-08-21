@@ -41,12 +41,10 @@ class Mobile < GameObject
             waist: nil,
             wrist_1: nil,
             wrist_2: nil,
-            held: nil,
+            hold: nil,
             float: nil,
             orbit: nil,
             wield: nil,
-            ranged: nil,
-            ammunition: nil
         }
         @game = game
     end
@@ -116,6 +114,30 @@ class Mobile < GameObject
     def damage( damage )
         @hitpoints -= damage
         die if @hitpoints <= 0
+    end
+
+    def show_equipment
+%Q(
+<used as light>       #{equipment[:light] || "<Nothing>"}
+<worn on finger>      #{equipment[:finger_1] || "<Nothing>"}
+<worn on finger>      #{equipment[:finger_2] || "<Nothing>"}
+<worn around neck>    #{equipment[:neck_1] || "<Nothing>"}
+<worn around neck>    #{equipment[:neck_2] || "<Nothing>"}
+<worn on torso>       #{equipment[:torso] || "<Nothing>"}
+<worn on head>        #{equipment[:head] || "<Nothing>"}
+<worn on legs>        #{equipment[:legs] || "<Nothing>"}
+<worn on feet>        #{equipment[:feet] || "<Nothing>"}
+<worn on hands>       #{equipment[:hands] || "<Nothing>"}
+<worn on arms>        #{equipment[:arms] || "<Nothing>"}
+<worn about body>     #{equipment[:body] || "<Nothing>"}
+<worn about waist>    #{equipment[:waist] || "<Nothing>"}
+<worn around wrist>   #{equipment[:wrist_1] || "<Nothing>"}
+<worn around wrist>   #{equipment[:wrist_2] || "<Nothing>"}
+<wielded>             #{equipment[:wield] || "<Nothing>"}
+<held>                #{equipment[:hold] || "<Nothing>"}
+<floating nearby>     #{equipment[:float] || "<Nothing>"}
+<orbiting nearby>     #{equipment[:orbit] || "<Nothing>"}
+)
     end
 
     def die

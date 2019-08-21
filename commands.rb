@@ -91,11 +91,11 @@ class Look < Command
             actor.output actor.room.show( actor )
         elsif ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: ["Mobile"], visible_to: actor }).first )
             actor.output %Q(
-#{target}
-
 #{target.full}
+#{target.condition}
 
-#{target.equipment.map{ |slot, item| "<#{slot}> #{item || 'Nothing'}" }.join("\n")}
+#{target} is using:
+#{target.show_equipment}
             )
         end
     end
@@ -217,8 +217,8 @@ end
 class Equipment < Command
     def attempt( actor, args )
         actor.output %Q(
-Equipment
-#{ actor.equipment.map { |key, value| "<worn on #{key}> #{ value.nil? ? "Nothing" : ( actor.can_see?(value) ? value.to_s : value.to_someone ) }" }.join("\n") }
+You are using:
+#{ actor.show_equipment }
         )
     end
 end

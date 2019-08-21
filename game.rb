@@ -261,7 +261,8 @@ class Game
         mob_resets = @db[:resetmobile].as_hash(:id)
         inventory_resets = @db[:resetinventoryitem].as_hash(:id)
         equipment_resets = @db[:resetequippeditem].as_hash(:id)
-        base_resets = @db[:resetbase].as_hash(:id)
+        base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
+        # base_resets = @db[:resetbase].as_hash(:id)
         base_mob_resets = base_resets.select{ |key, value| value[:type] == "mobile" }
         
         base_mob_resets.each do |reset_id, reset_data|
@@ -285,7 +286,16 @@ class Game
                     equipment_resets.select{ |id, equipment_reset| equipment_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:itemVnum] ]
                             item = load_item( item_reset[:itemVnum], nil )
-                            mob.equipment[ item.wear_location.to_sym ] = item
+                            ["", "_1", "2"].each do | modifier |
+                                slot = "#{item.wear_location}#{modifier}".to_sym
+                                if mob.equipment.key?( slot ) and mob.equipment[slot] == nil
+                                    mob.equipment[ item.wear_location.to_sym ] = item
+                                    if modifier != ""
+                                        puts "Found multi-slot item #{mob} #{mob.room} #{item} #{slot}"
+                                    end
+                                    break
+                                end
+                            end
                         else
                             puts "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{base_resets[item_reset_id][:area]}"
                         end
@@ -302,55 +312,9 @@ class Game
 
         puts( "Mob Data and Resets loaded from database.")
 
-        # temporary: load all rooms into area hash, to randomly put mobiles and items in the right area
         areas_hash.each do | area_name, area |
             areas_hash[ area_name ] = @rooms.select{ | room | room.area == area }
-            # puts "Loading mobs for #{area_name}"
         end
-
-=begin
-        item_rows = @db[:ItemBase]
-        weapon_rows = @db[:ItemWeapon]
-        dice_rows = @db[:ItemDice]
-        item_rows.each do |row|
-            if areas_hash[ row[:area] ]
-                data = {
-                    short_description: row[:shortDesc],
-                    long_description: row[:longDesc],
-                    keywords: row[:keywords].split(" "),
-                    weight: row[:weight].to_i,
-                    cost: row[:cost].to_i,
-                    type: row[:type],
-                    level: row[:level].to_i,
-                    wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", "")
-                }
-                if row[:type] == "weapon"
-                    weapon_info = @db["select * from ItemWeapon where itemVnum = #{ row[:vnum] }"].first
-                    dice_info = @db["select * from ItemDice where itemVnum = #{ row[:vnum] }"].first
-                    weapon_data = {
-                        noun: weapon_info[:noun],
-                        flags: weapon_info[:flags].split(" "),
-                        element: weapon_info[:element],
-                        dice_sides: dice_info[:sides].to_i,
-                        dice_count: dice_info[:count].to_i
-                    }
-                    #puts ( "Noun: #{weapon_data[:noun]}" )
-                    @items.push Weapon.new( data.merge( weapon_data ),
-                        self,
-                        areas_hash[ row[:area] ].sample
-                    )
-                else
-                    @items.push Item.new( data,
-                        self,
-                        areas_hash[ row[:area] ].sample
-                    )
-                end
-            end
-        end
-=end
-
-        # puts ( "Items loaded from database." )
-
     end
 
     def do_command( actor, cmd, args = [] )
