@@ -136,6 +136,88 @@ class Game
         broadcast "#{name} has disconnected.", target
     end
 
+    def load_mob( vnum, room )
+        row = @mob_data[ vnum ]
+        Mobile.new( {
+                keywords: row[:keywords].split(" "),
+                short_description: row[:shortDesc],
+                long_description: row[:longDesc],
+                full_description: row[:fullDesc],
+                race: row[:race],
+                action_flags: row[:actFlags],
+                affect_flags: row[:affFlags],
+                alignment: row[:align].to_i,
+                # mobgroup??
+                hitroll: row[:hitroll].to_i,
+                hitpoints: dice( row[:hpDiceCount].to_i, row[:hpDiceSides].to_i ) + row[:hpDiceBonus].to_i,
+                #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
+                hp_range: [500, 1000],
+                # mana: row[:manaRange].split("-").map(&:to_i).first,
+                mana: row[:mana].to_i,
+                #damage_range: row[:damageRange].split("-").map(&:to_i),
+                damage_range: [10, 20],
+                damage: row[:damage].to_i,
+                damage_type: row[:handToHandNoun].split(" ").first, # pierce, slash, none, etc.
+                armor_class: [row[:acPierce], row[:acBash], row[:acSlash], row[:acMagic]],
+                offensive_flags: row[:offFlags],
+                immune_flags: row[:immFlags],
+                resist_flags: row[:resFlags],
+                vulnerable_flags: row[:vulnFlags],
+                starting_position: row[:startPos],
+                default_position: row[:defaultPos],
+                sex: row[:sex],
+                wealth: row[:wealth].to_i,
+                form_flags: row[:formFlags],
+                parts: row[:partFlags],
+                size: row[:size],
+                material: row[:material],
+                level: row[:level]
+            },
+            self,
+            room
+        )
+    end
+
+    def load_item( vnum, room )
+        row = @item_data[ vnum ]
+        data = {
+            short_description: row[:shortDesc],
+            long_description: row[:longDesc],
+            keywords: row[:keywords].split(" "),
+            weight: row[:weight].to_i,
+            cost: row[:cost].to_i,
+            type: row[:type],
+            level: row[:level].to_i,
+            wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", "")
+        }
+        if row[:type] == "weapon"
+            weapon_info = @weapon_data[ vnum ]
+            dice_info = @dice_data[ vnum ]
+            if weapon_info and dice_info
+                weapon_data = {
+                    noun: weapon_info[:noun],
+                    flags: weapon_info[:flags].split(" "),
+                    element: weapon_info[:element],
+                    dice_sides: dice_info[:sides].to_i,
+                    dice_count: dice_info[:count].to_i
+                }
+                item = Weapon.new( data.merge( weapon_data ), self, room )
+            else
+                puts "[Weapon and/or Dice data not found] ITEM VNUM: #{vnum}"
+                item = Item.new( data, self, room )
+            end
+        else
+            item = Item.new( data, self, room )
+        end
+        if item
+            @items.push item
+            return item
+        else
+            "[Item creation unsuccessful]"
+            return nil
+        end
+    end
+
     # temporary content-creation
     def load_rooms
 
@@ -171,53 +253,37 @@ class Game
 
         puts ( "Rooms loaded from database." )
 
-        mob_data = @db[:mobilebase].as_hash(:vnum)
-        mob_resets = @db[:resetmobile].as_hash(:id)
-        base_mob_resets = @db[:resetbase].where( type: "mobile" ).as_hash(:id, :chance)
+        @mob_data = @db[:mobilebase].as_hash(:vnum)
+        @item_data = @db[:itembase].as_hash(:vnum)
+        @weapon_data = @db[:ItemWeapon].as_hash(:vnum)
+        @dice_data = @db[:ItemDice].as_hash(:vnum)
 
-        base_mob_resets.each do |reset_id, chance|
+        mob_resets = @db[:resetmobile].as_hash(:id)
+        inventory_resets = @db[:resetinventoryitem].as_hash(:id)
+        base_resets = @db[:resetbase].as_hash(:id)
+        base_mob_resets = base_resets.select{ |key, value| value[:type] == "mobile" }
+        
+        base_mob_resets.each do |reset_id, reset_data|
             reset = mob_resets[reset_id]
-            reset[:roomMax].times do
-                row = mob_data[ reset[:mobileVnum] ]
-                if row
-                    @mobiles.push Mobile.new( {
-                            keywords: row[:keywords].split(" "),
-                            short_description: row[:shortDesc],
-                            long_description: row[:longDesc],
-                            full_description: row[:fullDesc],
-                            race: row[:race],
-                            action_flags: row[:actFlags],
-                            affect_flags: row[:affFlags],
-                            alignment: row[:align].to_i,
-                            # mobgroup??
-                            hitroll: row[:hitroll].to_i,
-                            hitpoints: dice( row[:hpDiceCount].to_i, row[:hpDiceSides].to_i ) + row[:hpDiceBonus].to_i,
-                            #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
-                            hp_range: [500, 1000],
-                            # mana: row[:manaRange].split("-").map(&:to_i).first,
-                            mana: row[:mana].to_i,
-                            #damage_range: row[:damageRange].split("-").map(&:to_i),
-                            damage_range: [10, 20],
-                            damage: row[:damage].to_i,
-                            damage_type: row[:handToHandNoun].split(" ").first, # pierce, slash, none, etc.
-                            armor_class: [row[:acPierce], row[:acBash], row[:acSlash], row[:acMagic]],
-                            offensive_flags: row[:offFlags],
-                            immune_flags: row[:immFlags],
-                            resist_flags: row[:resFlags],
-                            vulnerable_flags: row[:vulnFlags],
-                            starting_position: row[:startPos],
-                            default_position: row[:defaultPos],
-                            sex: row[:sex],
-                            wealth: row[:wealth].to_i,
-                            form_flags: row[:formFlags],
-                            parts: row[:partFlags],
-                            size: row[:size],
-                            material: row[:material],
-                            level: row[:level]
-                        },
-                        self,
-                        rooms_hash[reset[:roomVnum]]
-                    )
+            reset[:roomMax].times do             
+                if @mob_data[ reset[:mobileVnum] ]
+                    mob = load_mob( reset[:mobileVnum], rooms_hash[ reset[:roomVnum] ] )
+                    @mobiles.push mob
+
+                    # inventory
+                    inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
+                        if @item_data[ item_reset[:itemVnum] ]
+                            item = load_item( item_reset[:itemVnum], nil )
+                            mob.inventory.push item                            
+                        else
+                            puts "[Item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}"
+                        end
+                    end
+
+                    #containers ???
+
+                    #equipment
+                    
                 else
                     puts "[Mob not found] RESET ID: #{reset[:id]}, MOB VNUM: #{reset[:mobileVnum]}"
                 end
@@ -233,6 +299,7 @@ class Game
             # puts "Loading mobs for #{area_name}"
         end
 
+=begin
         item_rows = @db[:ItemBase]
         weapon_rows = @db[:ItemWeapon]
         dice_rows = @db[:ItemDice]
@@ -271,8 +338,9 @@ class Game
                 end
             end
         end
+=end
 
-        puts ( "Items loaded from database." )
+        # puts ( "Items loaded from database." )
 
     end
 
@@ -312,6 +380,7 @@ class Game
             Remove.new( ["remove"] ),
             Blind.new( ["blind"] ),
             Unblind.new( ["unblind"] ),
+            Peek.new( ["peek"] ),
     	]
     end
 end
