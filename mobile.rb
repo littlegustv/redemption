@@ -224,18 +224,21 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
 
     def wear( args )
         if ( target = @inventory.select { |item| item.fuzzy_match( args[0].to_s ) && can_see?(item) }.first )
-            slot = target.wear_location.to_sym
-            if @equipment.keys.include? slot
-                if ( old = @equipment[ slot ] )
-                    @inventory.push old
-                    output "You stop wearing #{old}"
+            slot_name = target.wear_location
+            ["", "_1", "_2"].each do | modifier |
+                slot = "#{slot_name}#{modifier}".to_sym
+                if @equipment.keys.include? slot
+                    if ( old = @equipment[ slot ] )
+                        @inventory.push old
+                        output "You stop wearing #{old}"
+                    end
+                    @equipment[ slot ] = target
+                    @inventory.delete target
+                    output "You wear #{target} '#{ slot_name }'"
+                    return
                 end
-                @equipment[ slot ] = target
-                @inventory.delete target
-                output "You wear #{target} '#{ slot }'"
-            else
-                output "You can't wear something '#{ slot }'"
             end
+            output "You can't wear something '#{ slot_name }'"
         else
             output "You don't have any '#{args[0]}'"
         end
