@@ -43,7 +43,6 @@ class GameObject
     end
 
     def fuzzy_match( query )
-        count = query.match( /\A(\d+)\./ )
         @keywords.select{ |keyword| keyword.fuzzy_match( query ) }.any?
     end
 

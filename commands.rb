@@ -89,7 +89,13 @@ class Look < Command
     def attempt( actor, args )
         if args.length <= 0
             actor.output actor.room.show( actor )
-        elsif ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: ["Mobile"], visible_to: actor }).first )
+        elsif ( target = actor.target({ 
+            room: actor.room, 
+            keyword: args.first.gsub(/\A(\d+)\./, ""), 
+            type: ["Mobile"], 
+            visible_to: actor, 
+            offset: args.first.match(/\A\d+\./).to_s.to_i
+        }).first )
             actor.output %Q(
 #{target.full}
 #{target.condition}
