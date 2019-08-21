@@ -9,4 +9,4 @@ require_relative 'mobile'
 require_relative 'item'
 require_relative 'player'
 
-game = Game.new( ARGV[1] || 4000 )
+game = Game.new( ARGV[0], ARGV[1] || 4000 )
