@@ -110,7 +110,17 @@ end
 
 class Look < Command
     def attempt( actor, args )
-        actor.output actor.room.show( actor )
+        if args.length <= 0
+            actor.output actor.room.show( actor )
+        elsif ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: ["Mobile"], visible_to: actor }).first )
+            actor.output %Q(
+#{target}
+
+#{target.full}
+
+#{target.equipment.map{ |slot, item| "<#{slot}> #{item || 'Nothing'}" }.join("\n")}
+            )
+        end
     end
 end
 
@@ -162,6 +172,20 @@ class Flee < Command
             actor.do_command(actor.room.exits.select{ |k, v| not v.nil? }.keys.sample.to_s)
         else
             actor.output "PANIC! You couldn't escape!"
+        end
+    end
+end
+
+class Peek < Command
+    def attempt( actor, args )
+        if ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: ["Mobile"], visible_to: actor }).first )
+            if target.inventory.count > 0
+                actor.output "#{target} is carrying:\n#{target.inventory.map(&:to_s).join("\n")}"
+            else
+                actor.output "#{target} is carrying:\nNothing."
+            end            
+        else
+            actor.output "You cannot seem to catch a glimpse."
         end
     end
 end

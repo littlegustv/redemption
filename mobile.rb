@@ -10,6 +10,7 @@ class Mobile < GameObject
         @keywords = data[:keywords]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
+        @full_description = data[ :full_description ]
         @affects = []
 
         @level = data[:level] || 1
@@ -26,8 +27,10 @@ class Mobile < GameObject
         @inventory = []
         @equipment = {
             light: nil,
-            finger: nil,
-            neck: nil,
+            finger_1: nil,
+            finger_2: nil,            
+            neck_1: nil,
+            neck_2: nil,
             torso: nil,
             head: nil,
             legs: nil,
@@ -37,7 +40,8 @@ class Mobile < GameObject
             shield: nil,
             body: nil,
             waist: nil,
-            wrist: nil,
+            wrist_1: nil,
+            wrist_2: nil,
             held: nil,
             float: nil,
             orbit: nil,
@@ -176,6 +180,10 @@ class Mobile < GameObject
 
     def long
         @long_description
+    end
+
+    def full
+        @full_description
     end
 
     def wear( args )
