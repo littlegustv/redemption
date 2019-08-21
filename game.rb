@@ -2,6 +2,8 @@ require 'sequel'
 
 class Game
 
+    attr_accessor :mobiles
+
     def initialize( ip, port )
 
 
@@ -23,8 +25,7 @@ class Game
         @starting_room = nil
 
         @db = Sequel.mysql2( :host => sql_host, :username => sql_username, :password => sql_password, :database => "redemption" )
-
-        load_rooms
+        setup_game
 
         make_commands
 
@@ -86,6 +87,10 @@ class Game
                 if @clock % Constants::ROUND == 0
                     combat
                 end
+
+                if @clock % Constants::RESET == 0
+                    reset
+                end
             end
         end
     end
@@ -125,11 +130,12 @@ class Game
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
         # fix me: figure out a good way of getting the area for objects that are not directly in a room
-        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }                           if query[:area]
+        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }                          if query[:area]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
-        targets = targets[0...query[:limit].to_i] if query[:limit]
+        targets = targets[0...query[:limit].to_i]                                                                   if query[:limit]
+        targets = [ targets[ query[:offset] ] ]                                                                     if query[:offset]
         return targets
     end
 
@@ -138,9 +144,57 @@ class Game
         broadcast "#{name} has disconnected.", target
     end
 
+    def reset
+        @base_mob_resets.each do |reset_id, reset_data|
+            reset = @mob_resets[reset_id]
+            if @mob_data[ reset[:mobileVnum] ]
+                mob_count = @mobiles.select { |m| m.vnum == reset[:mobileVnum] }.count
+                if mob_count < reset[:roomMax]
+                    mob = load_mob( reset[:mobileVnum], @rooms_hash[ reset[:roomVnum] ] )
+                    @mobiles.push mob
+
+                    # inventory
+                    @inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
+                        if @item_data[ item_reset[:itemVnum] ]
+                            item = load_item( item_reset[:itemVnum], nil )
+                            mob.inventory.push item                            
+                        else
+                            puts "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{@base_resets[item_reset_id][:area]}"
+                        end
+                    end
+
+                    #equipment
+                    @equipment_resets.select{ |id, equipment_reset| equipment_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
+                        if @item_data[ item_reset[:itemVnum] ]
+                            item = load_item( item_reset[:itemVnum], nil )
+                            ["", "_1", "_2"].each do | modifier |
+                                slot = "#{item.wear_location}#{modifier}".to_sym
+                                if mob.equipment.key?( slot ) and mob.equipment[slot] == nil
+                                    mob.equipment[ slot ] = item
+                                    if modifier == "_2"
+                                        puts "Found multi-slot item #{mob} #{mob.room} #{item} #{slot}"
+                                    end
+                                    break
+                                end
+                            end
+                        else
+                            puts "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{@base_resets[item_reset_id][:area]}"
+                        end
+                    end
+
+                    #containers ???
+                end
+                
+            else
+                puts "[Mob not found] RESET ID: #{reset[:id]}, MOB VNUM: #{reset[:mobileVnum]}"
+            end
+        end
+    end
+
     def load_mob( vnum, room )
         row = @mob_data[ vnum ]
         Mobile.new( {
+                vnum: vnum,
                 keywords: row[:keywords].split(" "),
                 short_description: row[:shortDesc],
                 long_description: row[:longDesc],
@@ -221,7 +275,7 @@ class Game
     end
 
     # temporary content-creation
-    def load_rooms
+    def setup_game
 
         # connect to database
 
@@ -229,7 +283,7 @@ class Game
         exit_rows = @db[:RoomExit]
 
         # create a room_row[:vnum] hash, create rooms
-        rooms_hash = {}
+        @rooms_hash = {}
         areas_hash = {}
 
         room_rows.each do |row|
@@ -239,7 +293,7 @@ class Game
         	@areas.push area
 
             @rooms.push Room.new( row[:name], row[:description], row[:sector], area, row[:flags].to_s.split(" "), row[:hp].to_i, row[:mana].to_i, self )
-            rooms_hash[row[:vnum]] = @rooms.last
+            @rooms_hash[row[:vnum]] = @rooms.last
             if row[:vnum] == 31000
                 @starting_room = @rooms.last
             end
@@ -248,8 +302,8 @@ class Game
 
         # assign each exit to its room in the hash (if the destination exists)
         exit_rows.each do |exit|
-            if rooms_hash.key?(exit[:roomVnum]) && rooms_hash.key?(exit[:toVnum])
-                rooms_hash[exit[:roomVnum]].exits[exit[:direction].to_sym] = rooms_hash[exit[:toVnum]]
+            if @rooms_hash.key?(exit[:roomVnum]) && @rooms_hash.key?(exit[:toVnum])
+                @rooms_hash[exit[:roomVnum]].exits[exit[:direction].to_sym] = @rooms_hash[exit[:toVnum]]
             end
         end
 
@@ -260,104 +314,25 @@ class Game
         @weapon_data = @db[:ItemWeapon].as_hash(:itemVnum)
         @dice_data = @db[:ItemDice].as_hash(:itemVnum)
 
-        mob_resets = @db[:resetmobile].as_hash(:id)
-        inventory_resets = @db[:resetinventoryitem].as_hash(:id)
-        equipment_resets = @db[:resetequippeditem].as_hash(:id)
-        base_resets = @db[:resetbase].as_hash(:id)
-        base_mob_resets = base_resets.select{ |key, value| value[:type] == "mobile" }
+        @mob_resets = @db[:resetmobile].as_hash(:id)
+        @inventory_resets = @db[:resetinventoryitem].as_hash(:id)
+        @equipment_resets = @db[:resetequippeditem].as_hash(:id)
+        # @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
+        @base_resets = @db[:resetbase].as_hash(:id)
+        @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
         
-        base_mob_resets.each do |reset_id, reset_data|
-            reset = mob_resets[reset_id]
-            reset[:roomMax].times do             
-                if @mob_data[ reset[:mobileVnum] ]
-                    mob = load_mob( reset[:mobileVnum], rooms_hash[ reset[:roomVnum] ] )
-                    @mobiles.push mob
-
-                    # inventory
-                    inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
-                        if @item_data[ item_reset[:itemVnum] ]
-                            item = load_item( item_reset[:itemVnum], nil )
-                            mob.inventory.push item                            
-                        else
-                            puts "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{base_resets[item_reset_id][:area]}"
-                        end
-                    end
-
-                    #equipment
-                    equipment_resets.select{ |id, equipment_reset| equipment_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
-                        if @item_data[ item_reset[:itemVnum] ]
-                            item = load_item( item_reset[:itemVnum], nil )
-                            mob.equipment[ item.wear_location.to_sym ] = item
-                        else
-                            puts "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{base_resets[item_reset_id][:area]}"
-                        end
-                    end
-
-                    #containers ???
-                    
-                else
-                    puts "[Mob not found] RESET ID: #{reset[:id]}, MOB VNUM: #{reset[:mobileVnum]}"
-                end
-            end
-        end
-
+        reset
 
         puts( "Mob Data and Resets loaded from database.")
 
-        # temporary: load all rooms into area hash, to randomly put mobiles and items in the right area
         areas_hash.each do | area_name, area |
             areas_hash[ area_name ] = @rooms.select{ | room | room.area == area }
-            # puts "Loading mobs for #{area_name}"
         end
-
-=begin
-        item_rows = @db[:ItemBase]
-        weapon_rows = @db[:ItemWeapon]
-        dice_rows = @db[:ItemDice]
-        item_rows.each do |row|
-            if areas_hash[ row[:area] ]
-                data = {
-                    short_description: row[:shortDesc],
-                    long_description: row[:longDesc],
-                    keywords: row[:keywords].split(" "),
-                    weight: row[:weight].to_i,
-                    cost: row[:cost].to_i,
-                    type: row[:type],
-                    level: row[:level].to_i,
-                    wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", "")
-                }
-                if row[:type] == "weapon"
-                    weapon_info = @db["select * from ItemWeapon where itemVnum = #{ row[:vnum] }"].first
-                    dice_info = @db["select * from ItemDice where itemVnum = #{ row[:vnum] }"].first
-                    weapon_data = {
-                        noun: weapon_info[:noun],
-                        flags: weapon_info[:flags].split(" "),
-                        element: weapon_info[:element],
-                        dice_sides: dice_info[:sides].to_i,
-                        dice_count: dice_info[:count].to_i
-                    }
-                    #puts ( "Noun: #{weapon_data[:noun]}" )
-                    @items.push Weapon.new( data.merge( weapon_data ),
-                        self,
-                        areas_hash[ row[:area] ].sample
-                    )
-                else
-                    @items.push Item.new( data,
-                        self,
-                        areas_hash[ row[:area] ].sample
-                    )
-                end
-            end
-        end
-=end
-
-        # puts ( "Items loaded from database." )
 
         @helps = @db[:HelpBase].all
         @helps.each { |help| help[:keywords] = help[:keywords].split(" ") }
 
         puts ( "Helpfiles loaded from database." )
-
     end
 
     def do_command( actor, cmd, args = [] )

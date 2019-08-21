@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :attacking, :lag, :position, :inventory, :equipment, :affects
+    attr_accessor :room, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects
 
     def initialize( data, game, room )
         @game = game
@@ -8,6 +8,7 @@ class Mobile < GameObject
         @room = room
         @attack_speed = 1
         @keywords = data[:keywords]
+        @vnum = data[ :vnum ]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
@@ -25,7 +26,12 @@ class Mobile < GameObject
 
         @position = Position::STAND
         @inventory = []
-        @equipment = {
+        @equipment = empty_equipment_set
+        @game = game
+    end
+
+    def empty_equipment_set
+        {
             light: nil,
             finger_1: nil,
             finger_2: nil,            
@@ -42,12 +48,10 @@ class Mobile < GameObject
             waist: nil,
             wrist_1: nil,
             wrist_2: nil,
-            held: nil,
+            hold: nil,
             float: nil,
             orbit: nil,
             wield: nil,
-            ranged: nil,
-            ammunition: nil
         }
     end
 
@@ -98,7 +102,7 @@ class Mobile < GameObject
                 output m, [@attacking]
                 @attacking.output t, [self]
                 broadcast r, target({ not: [ self, @attacking ], room: @room }), [self, @attacking]
-                @attacking.damage( damage )
+                @attacking.damage( damage, self )                
                 break if @attacking.nil?
             end
         end
@@ -113,14 +117,47 @@ class Mobile < GameObject
         texts = ["Your #{decorators[2]} #{noun} #{decorators[1]} %s [#{damage}]", "%s's' #{decorators[2]} #{noun} #{decorators[1]} you", "%s's' #{decorators[2]} #{noun} #{decorators[1]} %s"]
     end
 
-    def damage( damage )
+    def damage( damage, attacker )
         @hitpoints -= damage
-        die if @hitpoints <= 0
+        die( attacker ) if @hitpoints <= 0
     end
 
-    def die
-        output "You have been KILLED!"
-        broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
+    def show_equipment
+%Q(
+<used as light>       #{equipment[:light] || "<Nothing>"}
+<worn on finger>      #{equipment[:finger_1] || "<Nothing>"}
+<worn on finger>      #{equipment[:finger_2] || "<Nothing>"}
+<worn around neck>    #{equipment[:neck_1] || "<Nothing>"}
+<worn around neck>    #{equipment[:neck_2] || "<Nothing>"}
+<worn on torso>       #{equipment[:torso] || "<Nothing>"}
+<worn on head>        #{equipment[:head] || "<Nothing>"}
+<worn on legs>        #{equipment[:legs] || "<Nothing>"}
+<worn on feet>        #{equipment[:feet] || "<Nothing>"}
+<worn on hands>       #{equipment[:hands] || "<Nothing>"}
+<worn on arms>        #{equipment[:arms] || "<Nothing>"}
+<worn about body>     #{equipment[:body] || "<Nothing>"}
+<worn about waist>    #{equipment[:waist] || "<Nothing>"}
+<worn around wrist>   #{equipment[:wrist_1] || "<Nothing>"}
+<worn around wrist>   #{equipment[:wrist_2] || "<Nothing>"}
+<wielded>             #{equipment[:wield] || "<Nothing>"}
+<held>                #{equipment[:hold] || "<Nothing>"}
+<floating nearby>     #{equipment[:float] || "<Nothing>"}
+<orbiting nearby>     #{equipment[:orbit] || "<Nothing>"}
+)
+    end
+
+    def die( killer )
+        killer.output %Q(
+#{self.to_s.capitalize} is DEAD!!
+You receive 0 experience points.
+#{self.to_s.capitalize}'s head is shattered, and her brains splash all over you.
+#{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.join("\n")}
+You offer your victory to Gabriel who rewards you with 1 deity points.
+)
+        killer.inventory += @inventory + @equipment.values.reject(&:nil?)
+        @inventory = []
+        @equipment 
+        @game.mobiles.delete( self )
         stop_combat
     end
 
@@ -188,18 +225,21 @@ class Mobile < GameObject
 
     def wear( args )
         if ( target = @inventory.select { |item| item.fuzzy_match( args[0].to_s ) && can_see?(item) }.first )
-            slot = target.wear_location.to_sym
-            if @equipment.keys.include? slot
-                if ( old = @equipment[ slot ] )
-                    @inventory.push old
-                    output "You stop wearing #{old}"
+            slot_name = target.wear_location
+            ["", "_1", "_2"].each do | modifier |
+                slot = "#{slot_name}#{modifier}".to_sym
+                if @equipment.keys.include? slot
+                    if ( old = @equipment[ slot ] )
+                        @inventory.push old
+                        output "You stop wearing #{old}"
+                    end
+                    @equipment[ slot ] = target
+                    @inventory.delete target
+                    output "You wear #{target} '#{ slot_name }'"
+                    return
                 end
-                @equipment[ slot ] = target
-                @inventory.delete target
-                output "You wear #{target} '#{ slot }'"
-            else
-                output "You can't wear something '#{ slot }'"
             end
+            output "You can't wear something '#{ slot_name }'"
         else
             output "You don't have any '#{args[0]}'"
         end
