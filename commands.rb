@@ -16,7 +16,7 @@ class Command
     end
 
     def attempt( actor, args )
-        actor.output ""
+        actor.delayed_output
     end
 
 end
@@ -68,8 +68,31 @@ Players Online:
 end
 
 class Help < Command
+
+    def initialize( keywords, helps )
+        @helps = helps
+        super( keywords, 0, Position::SLEEP )
+    end
+
     def attempt( actor, args )
-        actor.output "Helpfiles don't really exist yet."
+        matches = []
+
+        @helps.each do |help|
+            valid_help = true
+            args.each do |arg|
+                if !help[:keywords].any? { |keyword| keyword.fuzzy_match( arg ) }
+                    valid_help = false
+                    break
+                end
+            end
+            if valid_help
+                matches.push help
+            end
+        end
+
+        help_out = matches.map{ |row| "#{ row[:keywords].join(" ") }\n\n#{ row[:text] }" }.join("\n\n#{"=" * 80}\n\n")
+
+        actor.output(help_out)
     end
 end
 
@@ -107,8 +130,8 @@ class Yell < Command
         if args.length <= 0
             actor.output 'Yell what?'
         else
-            actor.output "{rYou yell '#{args.join(' ')}'{x"
-            actor.broadcast "{r%s yells '#{args.join(' ')}'{x", actor.target( { :not => actor, :area => actor.room.area }), [actor]
+            actor.output "{RYou yell '#{args.join(' ')}'{x"
+            actor.broadcast "{R%s yells '#{args.join(' ')}'{x", actor.target( { :not => actor, :area => actor.room.area }), [actor]
         end
     end
 end

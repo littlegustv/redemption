@@ -3,6 +3,7 @@ class Mobile < GameObject
     attr_accessor :room, :attacking, :lag, :position, :inventory, :equipment, :affects
 
     def initialize( data, game, room )
+        @game = game
         @attacking
         @room = room
         @attack_speed = 1
@@ -10,7 +11,7 @@ class Mobile < GameObject
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @affects = []
-        
+
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
         @maxhitpoints = @hitpoints
@@ -44,7 +45,6 @@ class Mobile < GameObject
             ranged: nil,
             ammunition: nil
         }
-        @game = game
     end
 
     def update( elapsed )
@@ -70,7 +70,7 @@ class Mobile < GameObject
     def stop_combat
         @attacking = nil
         @position = Position::STAND
-        target({ attacking: self, type: ["Mobile", "Player"] }).each do |t| 
+        target({ attacking: self, type: ["Mobile", "Player"] }).each do |t|
             t.attacking = nil
             if target({ attacking: t, type: ["Mobile", "Player"] }).empty?
                 t.position = Position::STAND
@@ -155,7 +155,7 @@ class Mobile < GameObject
     end
 
     def attack_rating
-        (15 + (@level * 3 / 2))            
+        (15 + (@level * 3 / 2))
     end
 
     def defense_rating
@@ -205,7 +205,7 @@ class Mobile < GameObject
             output "You stop wearing #{ target }"
         else
             output "You don't have any '#{args[0]}'"
-        end 
+        end
     end
 
     def can_see? target

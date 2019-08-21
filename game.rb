@@ -15,9 +15,11 @@ class Game
         @mobiles = []
         @rooms = []
         @areas = []
+        @helps = []
         @starting_room = nil
 
         @db = Sequel.mysql2( :host => sql_host, :username => sql_username, :password => sql_password, :database => "redemption" )
+
         load_rooms
 
         make_commands
@@ -39,20 +41,20 @@ class Game
 
                 name = nil
                 while name.nil?
-                    client.puts "By what name do you wish to be known?"
+                    client.puts "By what name do you wish to be known?\n\r"
                     name = client.gets.chomp.to_s
 
                     if name.length <= 2
-                        client.puts "Your name must be at least three characters."
+                        client.puts "Your name must be at least three characters.\n\r"
                         name = nil
                     elsif @players.has_key? name
-                        client.puts "That name is already in use, try another."
+                        client.puts "That name is already in use, try another.\n\r"
                         name = nil
                     else
                         client.puts "Welcome, #{name}."
                         broadcast "#{name} has joined the world.", target
                         @players[name] = Player.new( name, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
-                        client.puts "Users Online: [#{ @players.keys.join(', ') }]"
+                        client.puts "Users Online: [#{ @players.keys.join(', ') }]\n\r"
                         @players[name].input_loop
                     end
                 end
@@ -270,6 +272,11 @@ class Game
 
         puts ( "Items loaded from database." )
 
+        @helps = @db[:HelpBase].all
+        @helps.each { |help| help[:keywords] = help[:keywords].split(" ") }
+
+        puts ( "Helpfiles loaded from database." )
+
     end
 
     def do_command( actor, cmd, args = [] )
@@ -292,7 +299,7 @@ class Game
     		North.new( ["north"], 0.5 ),
     		South.new( ["south"], 0.5 ),
     		Who.new( ["who"] ),
-    		Help.new( ["help"] ),
+    		Help.new( ["help"], @helps ),
     		Qui.new( ["qui"] ),
     		Quit.new( ["quit"] ),
     		Look.new( ["look"] ),

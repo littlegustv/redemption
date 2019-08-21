@@ -2,6 +2,8 @@ class Player < Mobile
 
     def initialize( name, game, room, client, thread )
         @buffer = ""
+        @delayed_buffer = ""
+        @scroll = 40
 	    @lag = 0
         @client = client
         @thread = thread
@@ -16,6 +18,9 @@ class Player < Mobile
                 quit
             else
                 message = raw.chomp.to_s
+                if @delayed_buffer.length > 0 && message.length > 0
+                    @delayed_buffer = ""
+                end
                 @commands.push message
             end
         end
@@ -23,20 +28,40 @@ class Player < Mobile
 
     def output( message, objects = [] )
         @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n".capitalize_first
-        Constants::COLOR_CODE_REPLACEMENTS.each { |r| @buffer = @buffer.gsub("#{r[0]}", "#{r[1]}") }
-        @buffer = @buffer.gsub(/\n/, "\n\r")
+    end
+
+    def delayed_output
+        if @delayed_buffer.length > 0
+            @buffer += @delayed_buffer
+            @delayed_buffer = ""
+        else
+            @buffer += " "
+        end
     end
 
     def prompt
-        "<#{@hitpoints}/500hp>"
+        "{c<#{@hitpoints}/500hp>{x"
+    end
+
+    def color_replace( message )
+        Constants::COLOR_CODE_REPLACEMENTS.each { |r| message = message.gsub("#{r[0]}", "#{r[1]}") }
+        return message
     end
 
     def send_to_client
         if @buffer.length > 0
-            @client.puts @buffer
-            @client.puts @attacking.condition if @attacking
+            lines = @buffer.split("\n", 1 + @scroll)
+            @delayed_buffer = (lines.count > @scroll ? lines.pop : "")
+            out = lines.join("\n\r")
+            @client.puts color_replace( out )
             @buffer = ""
-            @client.puts "\n#{prompt}"
+
+            @client.puts color_replace( @attacking.condition ) if @attacking
+            if @delayed_buffer.length == 0
+                @client.puts color_replace( "\n#{prompt}" )
+            else
+                @client.puts( "\n\r[Hit Return to continue]")
+            end
         end
     end
 
