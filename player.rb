@@ -40,6 +40,13 @@ class Player < Mobile
         end
     end
 
+    def die
+        output "You have been KILLED!"
+        broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
+        stop_combat
+    end
+
+
     def quit
         Thread.kill( @thread )
         @buffer = ""

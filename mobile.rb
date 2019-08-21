@@ -1,12 +1,13 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :attacking, :lag, :position, :inventory, :equipment, :affects
+    attr_accessor :room, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects
 
     def initialize( data, game, room )
         @attacking
         @room = room
         @attack_speed = 1
         @keywords = data[:keywords]
+        @vnum = data[ :vnum ]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
@@ -24,7 +25,12 @@ class Mobile < GameObject
 
         @position = Position::STAND
         @inventory = []
-        @equipment = {
+        @equipment = empty_equipment_set
+        @game = game
+    end
+
+    def empty_equipment_set
+        {
             light: nil,
             finger_1: nil,
             finger_2: nil,            
@@ -46,7 +52,6 @@ class Mobile < GameObject
             orbit: nil,
             wield: nil,
         }
-        @game = game
     end
 
     def update( elapsed )
@@ -96,7 +101,7 @@ class Mobile < GameObject
                 output m, [@attacking]
                 @attacking.output t, [self]
                 broadcast r, target({ not: [ self, @attacking ], room: @room }), [self, @attacking]
-                @attacking.damage( damage )
+                @attacking.damage( damage, self )                
                 break if @attacking.nil?
             end
         end
@@ -111,9 +116,9 @@ class Mobile < GameObject
         texts = ["Your #{decorators[2]} #{noun} #{decorators[1]} %s [#{damage}]", "%s's' #{decorators[2]} #{noun} #{decorators[1]} you", "%s's' #{decorators[2]} #{noun} #{decorators[1]} %s"]
     end
 
-    def damage( damage )
+    def damage( damage, attacker )
         @hitpoints -= damage
-        die if @hitpoints <= 0
+        die( attacker ) if @hitpoints <= 0
     end
 
     def show_equipment
@@ -140,9 +145,18 @@ class Mobile < GameObject
 )
     end
 
-    def die
-        output "You have been KILLED!"
-        broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
+    def die( killer )
+        killer.output %Q(
+#{self.to_s.capitalize} is DEAD!!
+You receive 0 experience points.
+#{self.to_s.capitalize}'s head is shattered, and her brains splash all over you.
+#{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.join("\n")}
+You offer your victory to Gabriel who rewards you with 1 deity points.
+)
+        killer.inventory += @inventory + @equipment.values.reject(&:nil?)
+        @inventory = []
+        @equipment 
+        @game.mobiles.delete( self )
         stop_combat
     end
 
