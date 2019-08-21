@@ -2,7 +2,7 @@ require 'sequel'
 
 class Game
 
-    attr_accessor :mobiles
+    attr_accessor :mobiles, :mobile_count
 
     def initialize( ip, port )
 
@@ -23,6 +23,8 @@ class Game
         @areas = []
         @helps = []
         @starting_room = nil
+
+        @mobile_count = {}
 
         @db = Sequel.mysql2( :host => sql_host, :username => sql_username, :password => sql_password, :database => "redemption" )
         setup_game
@@ -147,12 +149,13 @@ class Game
     def reset
         @base_mob_resets.each do |reset_id, reset_data|
             reset = @mob_resets[reset_id]
-            if @mob_data[ reset[:mobileVnum] ]
-                mob_count = @mobiles.select { |m| m.vnum == reset[:mobileVnum] }.count
-                if mob_count < reset[:roomMax]
+            if @mob_data[ reset[:mobileVnum] ]                
+                if @mobile_count[ reset[:mobileVnum] ].to_i < reset[:roomMax]
                     mob = load_mob( reset[:mobileVnum], @rooms_hash[ reset[:roomVnum] ] )
                     @mobiles.push mob
 
+                    @mobile_count[ reset[:mobileVnum] ] = @mobile_count[ reset[:mobileVnum] ].to_i + 1
+                    
                     # inventory
                     @inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:itemVnum] ]

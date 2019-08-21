@@ -158,6 +158,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         @inventory = []
         @equipment 
         @game.mobiles.delete( self )
+        @game.mobile_count[ @vnum ] = [0, (@game.mobile_count[ vnum ].to_i - 1)].max
         stop_combat
     end
 
