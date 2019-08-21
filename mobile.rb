@@ -9,6 +9,7 @@ class Mobile < GameObject
         @keywords = data[:keywords]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
+        @full_description = data[ :full_description ]
         @affects = []
         
         @level = data[:level] || 1
@@ -179,6 +180,10 @@ class Mobile < GameObject
 
     def long
         @long_description
+    end
+
+    def full
+        @full_description
     end
 
     def wear( args )

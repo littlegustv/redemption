@@ -255,11 +255,12 @@ class Game
 
         @mob_data = @db[:mobilebase].as_hash(:vnum)
         @item_data = @db[:itembase].as_hash(:vnum)
-        @weapon_data = @db[:ItemWeapon].as_hash(:vnum)
-        @dice_data = @db[:ItemDice].as_hash(:vnum)
+        @weapon_data = @db[:ItemWeapon].as_hash(:itemVnum)
+        @dice_data = @db[:ItemDice].as_hash(:itemVnum)
 
         mob_resets = @db[:resetmobile].as_hash(:id)
         inventory_resets = @db[:resetinventoryitem].as_hash(:id)
+        equipment_resets = @db[:resetequippeditem].as_hash(:id)
         base_resets = @db[:resetbase].as_hash(:id)
         base_mob_resets = base_resets.select{ |key, value| value[:type] == "mobile" }
         
@@ -276,13 +277,21 @@ class Game
                             item = load_item( item_reset[:itemVnum], nil )
                             mob.inventory.push item                            
                         else
-                            puts "[Item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}"
+                            puts "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{base_resets[item_reset_id][:area]}"
+                        end
+                    end
+
+                    #equipment
+                    equipment_resets.select{ |id, equipment_reset| equipment_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
+                        if @item_data[ item_reset[:itemVnum] ]
+                            item = load_item( item_reset[:itemVnum], nil )
+                            mob.equipment[ item.wear_location.to_sym ] = item
+                        else
+                            puts "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{base_resets[item_reset_id][:area]}"
                         end
                     end
 
                     #containers ???
-
-                    #equipment
                     
                 else
                     puts "[Mob not found] RESET ID: #{reset[:id]}, MOB VNUM: #{reset[:mobileVnum]}"
