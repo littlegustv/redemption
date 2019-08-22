@@ -1,8 +1,8 @@
 class Room < GameObject
 
-    attr_accessor :exits, :area
+    attr_accessor :exits, :area, :continent
 
-    def initialize( name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
+    def initialize( name, description, sector, area, flags, hp_regen, mana_regen, continent, game, exits = {} )
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
         @exits.each do | direction, room |
             if not exits[ direction ].nil?
@@ -15,18 +15,18 @@ class Room < GameObject
         @flags = flags
         @hp_regen = hp_regen
         @mana_regen = mana_regen
+        @continent = continent
         super name, game
     end
 
     def show( looker )
         if looker.can_see? self
-            %Q(
-#{ @name }
-#{ @description }
-
-[Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]
-#{ @game.target({ :room => self, :not => looker, type: ["Player", "Mobile", "Item", "Weapon"], visible_to: looker }).map{ |t| "#{t.long}" }.join("\n") }
-        )
+            "#{ @name }\n" +
+            "#{ @description }\n" +
+            "\n" +
+            "[Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]" +
+            @game.target({ :room => self, :not => looker, type: ["Item", "Weapon"], visible_to: looker }).map{ |t| "\n      #{t.long}" }.join +
+            @game.target({ :room => self, :not => looker, type: ["Player", "Mobile"], visible_to: looker }).map{ |t| "\n#{t.long}" }.join
         else
             "You can't see a thing!"
         end

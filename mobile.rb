@@ -5,6 +5,7 @@ class Mobile < GameObject
     def initialize( data, game, room )
         @game = game
         @attacking
+        @lag = 0
         @room = room
         @attack_speed = 1
         @keywords = data[:keywords]
@@ -34,7 +35,7 @@ class Mobile < GameObject
         {
             light: nil,
             finger_1: nil,
-            finger_2: nil,            
+            finger_2: nil,
             neck_1: nil,
             neck_2: nil,
             torso: nil,
@@ -102,7 +103,7 @@ class Mobile < GameObject
                 output m, [@attacking]
                 @attacking.output t, [self]
                 broadcast r, target({ not: [ self, @attacking ], room: @room }), [self, @attacking]
-                @attacking.damage( damage, self )                
+                @attacking.damage( damage, self )
                 break if @attacking.nil?
             end
         end
@@ -156,7 +157,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
 )
         killer.inventory += @inventory + @equipment.values.reject(&:nil?)
         @inventory = []
-        @equipment 
+        @equipment
         @game.mobiles.delete( self )
         stop_combat
     end
@@ -172,6 +173,16 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
             @game.do_command self, "look"
             # cmd_look
         end
+    end
+
+    def move_to_room( room )
+        @room = room
+        @game.do_command self, "look"
+    end
+
+    def recall
+        room = @game.recall_room( @room.continent )
+        move_to_room( room )
     end
 
     def condition

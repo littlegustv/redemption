@@ -12,7 +12,7 @@ class Command
 
     def execute( actor, args )
         attempt( actor, args )
-        actor.lag = @lag
+        actor.lag += @lag
     end
 
     def attempt( actor, args )
@@ -75,8 +75,10 @@ class Help < Command
     end
 
     def attempt( actor, args )
+        if args.count == 0
+            args.push("summary")
+        end
         matches = []
-
         @helps.each do |help|
             valid_help = true
             args.each do |arg|
@@ -112,11 +114,11 @@ class Look < Command
     def attempt( actor, args )
         if args.length <= 0
             actor.output actor.room.show( actor )
-        elsif ( target = actor.target({ 
-            room: actor.room, 
-            keyword: args.first.gsub(/\A(\d+)\./, ""), 
-            type: ["Mobile"], 
-            visible_to: actor, 
+        elsif ( target = actor.target({
+            room: actor.room,
+            keyword: args.first.gsub(/\A(\d+)\./, ""),
+            type: ["Mobile"],
+            visible_to: actor,
             offset: args.first.match(/\A\d+\./).to_s.to_i
         }).first )
             actor.output %Q(
@@ -162,7 +164,7 @@ class Kill < Command
             actor.start_combat kill_target
             kill_target.start_combat actor
         else
-            actor.output "I can't find anyone with that name #{args}"
+            actor.output "I can't find anyone with that name."
         end
     end
 end
@@ -189,7 +191,7 @@ class Peek < Command
                 actor.output "#{target} is carrying:\n#{target.inventory.map(&:to_s).join("\n")}"
             else
                 actor.output "#{target} is carrying:\nNothing."
-            end            
+            end
         else
             actor.output "You cannot seem to catch a glimpse."
         end
@@ -263,5 +265,29 @@ class Unblind < Command
     def attempt( actor, args )
         actor.output "You can now see again."
         actor.affects.delete "blind"
+    end
+end
+
+class Recall < Command
+    def attempt( actor, args )
+        actor.recall
+    end
+end
+
+class GoTo < Command
+
+    def initialize( keywords, game )
+        @game = game
+        super( keywords, 0, Position::SLEEP )
+    end
+
+    def attempt( actor, args )
+        area = @game.area_with_name( args.join(" ") )
+        room = @game.first_room_in_area( area ) if area
+        if !area || !room
+            actor.output "Nothing by that name."
+            return
+        end
+        actor.move_to_room( room )
     end
 end

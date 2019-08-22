@@ -51,7 +51,7 @@ class Player < Mobile
     def send_to_client
         if @buffer.length > 0
             lines = @buffer.split("\n", 1 + @scroll)
-            @delayed_buffer = (lines.count > @scroll ? lines.pop : "")
+            @delayed_buffer = (lines.count > @scroll ? lines.pop : @delayed_buffer)
             out = lines.join("\n\r")
             @client.puts color_replace( out )
             @buffer = ""

@@ -157,7 +157,7 @@ class Game
                     @inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:itemVnum] ]
                             item = load_item( item_reset[:itemVnum], nil )
-                            mob.inventory.push item                            
+                            mob.inventory.push item
                         else
                             puts "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{@base_resets[item_reset_id][:area]}"
                         end
@@ -184,7 +184,7 @@ class Game
 
                     #containers ???
                 end
-                
+
             else
                 puts "[Mob not found] RESET ID: #{reset[:id]}, MOB VNUM: #{reset[:mobileVnum]}"
             end
@@ -284,15 +284,15 @@ class Game
 
         # create a room_row[:vnum] hash, create rooms
         @rooms_hash = {}
-        areas_hash = {}
+        @areas_hash = {}
 
         room_rows.each do |row|
 
-        	area = areas_hash[row[:area]] || Area.new( row[:area], row[:continent], self )
-        	areas_hash[row[:area]] = area
+        	area = @areas_hash[row[:area]] || Area.new( row[:area], row[:continent], self )
+        	@areas_hash[row[:area]] = area
         	@areas.push area
 
-            @rooms.push Room.new( row[:name], row[:description], row[:sector], area, row[:flags].to_s.split(" "), row[:hp].to_i, row[:mana].to_i, self )
+            @rooms.push Room.new( row[:name], row[:description], row[:sector], area, row[:flags].to_s.split(" "), row[:hp].to_i, row[:mana].to_i, row[:continent], self )
             @rooms_hash[row[:vnum]] = @rooms.last
             if row[:vnum] == 31000
                 @starting_room = @rooms.last
@@ -320,13 +320,13 @@ class Game
         # @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
         @base_resets = @db[:resetbase].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
-        
+
         reset
 
         puts( "Mob Data and Resets loaded from database.")
 
-        areas_hash.each do | area_name, area |
-            areas_hash[ area_name ] = @rooms.select{ | room | room.area == area }
+        @areas_hash.each do | area_name, area |
+            @areas_hash[ area_name ] = @rooms.select{ | room | room.area == area }
         end
 
         @helps = @db[:HelpBase].all
@@ -372,6 +372,22 @@ class Game
             Blind.new( ["blind"] ),
             Unblind.new( ["unblind"] ),
             Peek.new( ["peek"] ),
+            Recall.new( ["/", "recall"] ),
+            GoTo.new( ["goto"], self ),
     	]
     end
+
+    def recall_room( continent )
+        room = (continent == "terra" ? @rooms_hash[3001] : @rooms_hash[31000])
+        return room
+    end
+
+    def area_with_name( name )
+        @areas.select { |area| area.name.fuzzy_match( name ) }.first
+    end
+
+    def first_room_in_area( area )
+        @areas_hash[area.name].first
+    end
+
 end
