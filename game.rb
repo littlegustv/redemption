@@ -339,7 +339,7 @@ class Game
     end
 
     def do_command( actor, cmd, args = [] )
-    	@commands.each do | command |
+        @commands.each do | command |
     		if command.check( cmd )
     			command.execute( actor, args )
     			return

@@ -27,7 +27,11 @@ class Player < Mobile
     end
 
     def output( message, objects = [] )
-        @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n".capitalize_first
+        if objects.count > 0
+            @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n".capitalize_first
+        else
+            @buffer += "#{message}\n".capitalize_first
+        end
     end
 
     def delayed_output

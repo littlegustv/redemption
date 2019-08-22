@@ -60,7 +60,7 @@ class Mobile < GameObject
     end
 
     def do_command( input )
-        cmd, args = input.split " ", 2
+        cmd, args = input.sanitize.split " ", 2
         @game.do_command( self, cmd, args.to_s.split(" ") )
     end
 

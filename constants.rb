@@ -10,6 +10,10 @@ class String
 	def capitalize_first
 		slice(0, 1).to_s.capitalize + slice(1..-1).to_s
 	end
+
+    def sanitize
+        self.gsub(/[\%\[\]\^]/, "")
+    end
 end
 
 module Position
