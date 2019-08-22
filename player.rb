@@ -8,7 +8,7 @@ class Player < Mobile
         @client = client
         @thread = thread
         @commands = []
-        super({ keywords: [name], short_description: name, long_description: "#{name} the Master Rune Maker is here." }, game, room)
+        super({ keywords: [name], short_description: name, long_description: "#{name} the Master Rune Maker is here.", race: "Troll" }, game, room)
     end
 
     def input_loop

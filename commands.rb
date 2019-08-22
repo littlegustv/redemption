@@ -291,3 +291,25 @@ class GoTo < Command
         actor.move_to_room( room )
     end
 end
+
+class Score < Command
+    def attempt( actor, args )
+        actor.output actor.score
+    end
+end
+
+class Inspect < Command
+    def attempt( actor, args )
+        if ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: ["Mobile"], visible_to: actor }).first )
+            actor.output target.score
+        end
+    end
+end
+
+class Lore < Command
+    def attempt( actor, args )
+        if ( target = ( actor.inventory + actor.equipment.values ).reject(&:nil?).select { |item| item.fuzzy_match( args.first.to_s ) && actor.can_see?(item) }.first )
+            actor.output target.lore
+        end
+    end
+end

@@ -13,13 +13,40 @@ class Mobile < GameObject
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
+        @race = data[ :race ]
+        @class = "Zealot"
+        @experience = 0
+        @experience_to_level = 1000
+        @quest_points = 0
+        @quest_points_to_remort = 1000
+        @alignment = data[ :alignment ].to_i
+        @gold = (data[:wealth].to_i / 1000).floor
+        @silver = data[:wealth].to_i - (@gold * 1000)
+        @wimpy = 0
+
+        @stats = {
+            str: 13,
+            con: 13,
+            int: 13,
+            wis: 13,
+            dex: 13,
+            hitroll: data[:hitroll] || rand(5...7),
+            damroll: data[:damage] || 20
+        }
+
         @affects = []
 
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
-        @maxhitpoints = @hitpoints
-        @hitroll = data[:hitroll] || rand(5...7)
-        @damroll = data[:damage] || 20
+        @basehitpoints = @hitpoints
+
+        @manapoints = data[:manapoints] || 100
+        @basemanapoints = @manapoints
+
+        @movepoints = data[:movepoints] || 100
+        @basemovepoints = @movepoints
+
+
         @damage_range = data[:damage_range] || [ 2, 12 ]
         @noun = data[:attack] || ["entangle", "grep", "strangle", "pierce", "smother", "flaming bite"].sample
         @armor_class = data[:armor_class] || [0, 0, 0, 0]
@@ -187,7 +214,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def condition
-        percent = ( 100 * @hitpoints ) / @maxhitpoints
+        percent = ( 100 * @hitpoints ) / maxhitpoints
         if (percent >= 100)
             return "#{self} is in excellent condition.\n"
         elsif (percent >= 90)
@@ -217,9 +244,9 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
 
     def damage_rating
         if @equipment[:wield]
-            @equipment[:wield].damage + @damroll
+            @equipment[:wield].damage + stat(:damroll)
         else
-            rand(@damage_range[0]...@damage_range[1]).to_i + @damroll
+            rand(@damage_range[0]...@damage_range[1]).to_i + stat(:damroll)
         end
     end
 
@@ -274,6 +301,67 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         else
             true
         end
+    end
+
+    def carry_max
+        51
+    end
+
+    def weight_max
+        251
+    end
+
+    def maxhitpoints
+        @basehitpoints
+    end
+
+    def maxmanapoints
+        @basemanapoints
+    end
+
+    def maxmovepoints
+        @basemovepoints
+    end
+
+    def stat(key)
+        @stats[key].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+)
+    end
+
+    def armor(index)
+        @armor_class[index].to_i
+    end
+
+    def score
+%Q(
+#{@short_description}
+Member of clan Kenshi
+---------------------------------- Info ---------------------------------
+Level:     #{@level.to_s.ljust(26)} Age:       17 - 0(0) hours
+Race:      #{@race.ljust(26)} Sex:       male
+Class:     #{@class.ljust(26)} Deity:     Gabriel
+Alignment: #{@alignment.to_s.ljust(26)} Deity Points: 0
+Pracs:     N/A                        Trains:    N/A
+Exp:       #{"#{@experience} (#{@experience_to_level}/lvl)".ljust(26)} Next Level: #{@experience_to_level - @experience}
+Quest Points: #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
+Carrying:  #{ "#{@inventory.count} of #{carry_max}".ljust(26) } Weight:    #{ @inventory.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
+Gold:      #{ @gold.to_s.ljust(26) } Silver:    #{ @silver.to_s }
+Claims Remaining: N/A
+---------------------------------- Stats --------------------------------
+Hp:        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".ljust(26)} Mana:      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
+Movement:  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".ljust(26)} Wimpy:     #{@wimpy}
+Str:       #{"#{stat(:str)}(#{@stats[:str]}) of 23".ljust(26)} Con:       #{stat(:con)}(#{@stats[:con]}) of 23
+Int:       #{"#{stat(:int)}(#{@stats[:int]}) of 23".ljust(26)} Wis:       #{stat(:wis)}(#{@stats[:wis]}) of 23
+Dex:       #{ stat(:dex) }(#{ @stats[:dex] }) of 23
+HitRoll:   #{ stat(:hitroll).to_s.ljust(26)} DamRoll:   #{ stat(:damroll) }
+DamResist: #{ stat(:damresist).to_s.ljust(26) } MagicDam:  #{ stat(:magicdam) }
+AttackSpd: #{ stat(:attackspeed) }
+--------------------------------- Armour --------------------------------
+Pierce:    #{ armor( 0 ).to_s.ljust(26) } Bash:      #{ armor( 1 ) }
+Slash:     #{ armor( 2 ).to_s.ljust(26) } Magic:     #{ armor( 3 ) }
+------------------------- Condition and Affects -------------------------
+You are Ruthless.
+You are #{Position::STRINGS[ @position ]}.
+)
     end
 
 end

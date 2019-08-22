@@ -48,7 +48,28 @@ class Game
 
                 name = nil
                 while name.nil?
-                    client.puts "By what name do you wish to be known?\n\r"
+                    client.puts %Q(
+For all those who have sinned, there lies...
+
+REDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDE
+MPTIONREDEMPTIONREDEMPTIONRE           PTIONREDEMPTIONREDEMPTION
+REDEMPTIONREDEMPTIONREDM      @@@@@@@       TIONREDEMTIONREDMETI
+NIONREDEMPTIONREDEMPT    @@@@       @@@@     ONTIONREDEMPTIONRED
+EMPTIONREDEMPTIONRE     @@@    @@@@     @@     EPTIONREDEMPTIONR
+EDEMPTIONREDEMPTIO     @@@    @@@@@@     @@     EDEMPTIONREDEMPT
+IONREDEMPTIONREDE     @@@     @@@@@@    @@@     IONREADEMPTIONRE
+EMPTIONREDEMPTIO       @@@    @@@@@@   @@@       EDEMPTIONREDEMP
+TIONREDEMPTIONR         @@@@   @@@@  @@@@         MPTIONREDEMPTI
+ONREDMEPTIONREDE  ^      @@@@@@@@@@@@@@@   ^     MTIONREDEMPTION
+NTIONREDEMTIONRE    ^^     @@@@@@@@@@@@ ^  ^^ ^  MPTIONREDEMPTIO
+REDEMEPTIONREDEMP   ^^  ^^  @@@@@@@@@@   ^^ ^   IONREDEMPTIONRED
+REDEMPTIONREDEMPT   ^ ^^ ^  @@@@@@@@@     ^^ ^  NREDEMPTIONREDEM
+EMPTIONREDEMPTIONR   ^^ ^   @@@@@@@@@     ^^   PTIONREDEMTIONRED
+NREDEIPTIONREDEMPTI  ^^^^   @@@@@@@@@   ^^^^  TIONREDEMPTIONREDE
+REDEMPTIONREDEMPTIONR                        EDEMPTIONREDEMPTION
+EMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPT
+
+By what name do you wish to be known?)
                     name = client.gets.chomp.to_s
 
                     if name.length <= 2
@@ -174,9 +195,6 @@ class Game
                                 slot = "#{item.wear_location}#{modifier}".to_sym
                                 if mob.equipment.key?( slot ) and mob.equipment[slot] == nil
                                     mob.equipment[ slot ] = item
-                                    if modifier == "_2"
-                                        puts "Found multi-slot item #{mob} #{mob.room} #{item} #{slot}"
-                                    end
                                     break
                                 end
                             end
@@ -212,7 +230,8 @@ class Game
                 #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
                 hp_range: [500, 1000],
                 # mana: row[:manaRange].split("-").map(&:to_i).first,
-                mana: row[:mana].to_i,
+                manapoints: dice( row[:manaDiceCount].to_i, row[:manaDiceSides].to_i ) + row[:manaDiceBonus].to_i,
+                movepoints: 100,
                 #damage_range: row[:damageRange].split("-").map(&:to_i),
                 damage_range: [10, 20],
                 damage: row[:damage].to_i,
@@ -247,8 +266,14 @@ class Game
             cost: row[:cost].to_i,
             type: row[:type],
             level: row[:level].to_i,
-            wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", "")
+            wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", ""),
+            material: row[:material],
+            extraFlags: row[:extraFlags],
+            modifiers: {}
         }
+        @item_modifiers[ vnum ].to_a.each do |modifier|
+            data[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
+        end
         if row[:type] == "weapon"
             weapon_info = @weapon_data[ vnum ]
             dice_info = @dice_data[ vnum ]
@@ -288,6 +313,8 @@ class Game
         # create a room_row[:vnum] hash, create rooms
         @rooms_hash = {}
         @areas_hash = {}
+
+        @item_modifiers = @db[:ItemModifier].to_hash_groups(:itemVnum)
 
         room_rows.each do |row|
 
@@ -377,6 +404,9 @@ class Game
             Peek.new( ["peek"] ),
             Recall.new( ["/", "recall"] ),
             GoTo.new( ["goto"], self ),
+            Score.new( ["score"] ),
+            Inspect.new( ["inspect"] ),
+            Lore.new( ["lore"] ),
     	]
     end
 

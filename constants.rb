@@ -21,6 +21,13 @@ module Position
     REST = 1
     STAND = 2
     FIGHT = 3
+
+    STRINGS = [
+        "sleeping",
+        "resting",
+        "standing",
+        "fighting"
+    ]
 end
 
 module Constants
