@@ -61,7 +61,7 @@ class Mobile < GameObject
     end
 
     def do_command( input )
-        cmd, args = input.split " ", 2
+        cmd, args = input.sanitize.split " ", 2
         @game.do_command( self, cmd, args.to_s.split(" ") )
     end
 
@@ -159,6 +159,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         @inventory = []
         @equipment
         @game.mobiles.delete( self )
+        @game.mobile_count[ @vnum ] = [0, (@game.mobile_count[ vnum ].to_i - 1)].max
         stop_combat
     end
 
