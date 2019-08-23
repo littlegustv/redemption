@@ -44,7 +44,7 @@ class Player < Mobile
     end
 
     def prompt
-        "{c<#{@hitpoints}/500hp>{x"
+        "{c<#{@hitpoints}/#{maxhitpoints}hp #{@manapoints}/#{maxmanapoints}mp #{@movepoints}/#{maxmovepoints}mv>{x"
     end
 
     def color_replace( message )

@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects
+    attr_accessor :room, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level
 
     def initialize( data, game, room )
         @game = game
@@ -31,7 +31,7 @@ class Mobile < GameObject
             wis: 13,
             dex: 13,
             hitroll: data[:hitroll] || rand(5...7),
-            damroll: data[:damage] || 20
+            damroll: data[:damage] || 50
         }
 
         @affects = []
@@ -174,10 +174,33 @@ class Mobile < GameObject
 )
     end
 
+    def levelup
+        if @experience > @experience_to_level
+            @experience = (@experience - @experience_to_level)
+            @level += 1
+            @basehitpoints += 20
+            @basemanapoints += 10
+            @basemovepoints += 10
+            "\n\rYou raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices."
+        else
+            ""
+        end
+    end
+
+    def xp( target )
+        dlevel = [target.level - @level, -10].max
+        base_xp = dlevel <= 5 ? Constants::EXPERIENCE_SCALE[dlevel] : ( 180 + 12 * (dlevel - 5 ))
+        base_xp *= 10  / ( @level + 4 ) if @level < 6
+        base_xp = rand(base_xp..(5 * base_xp / 4))
+        @experience = @experience.to_i + base_xp.to_i
+        message = "You receive #{base_xp} experience points." + levelup
+    end
+
     def die( killer )
+        experience_message = killer.xp( self )
         killer.output %Q(
 #{self.to_s.capitalize} is DEAD!!
-You receive 0 experience points.
+#{experience_message}
 #{self.to_s.capitalize}'s head is shattered, and her brains splash all over you.
 #{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.join("\n")}
 You offer your victory to Gabriel who rewards you with 1 deity points.

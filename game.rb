@@ -407,6 +407,7 @@ By what name do you wish to be known?)
             Score.new( ["score"] ),
             Inspect.new( ["inspect"] ),
             Lore.new( ["lore"] ),
+            Consider.new( ["con"] ),
     	]
     end
 
