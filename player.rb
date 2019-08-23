@@ -75,6 +75,9 @@ class Player < Mobile
         stop_combat
     end
 
+    def who
+        "[#{@level.to_s.rjust(2)} #{@race.ljust(7)} #{@class.rjust(7)}] #{@short_description}"
+    end
 
     def quit
         Thread.kill( @thread )
