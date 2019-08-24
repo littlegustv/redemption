@@ -350,8 +350,8 @@ By what name do you wish to be known?)
         @mob_resets = @db[:resetmobile].as_hash(:id)
         @inventory_resets = @db[:resetinventoryitem].as_hash(:id)
         @equipment_resets = @db[:resetequippeditem].as_hash(:id)
-        @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
-        # @base_resets = @db[:resetbase].as_hash(:id)
+        # @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
+        @base_resets = @db[:resetbase].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
 
         reset
@@ -404,14 +404,16 @@ By what name do you wish to be known?)
             Wear.new( ["wear", "hold", "wield"] ),
             Remove.new( ["remove"] ),
             Blind.new( ["blind"] ),
-            Unblind.new( ["unblind"] ),
             Peek.new( ["peek"] ),
             Recall.new( ["/", "recall"] ),
             GoTo.new( ["goto"], self ),
             Score.new( ["score"] ),
             Inspect.new( ["inspect"] ),
             Lore.new( ["lore"] ),
-            Consider.new( ["con"] ),
+            Consider.new( ["consider"] ),
+            Affects.new( ["affects"] ),
+            Quicken.new( ["quicken"], 0.5 ),
+            Berserk.new( ["berserk"], 0.5 ),
     	]
     end
 

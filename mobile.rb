@@ -1,13 +1,12 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level
+    attr_accessor :room, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects
 
     def initialize( data, game, room )
         @game = game
         @attacking
         @lag = 0
         @room = room
-        @attack_speed = 1
         @keywords = data[:keywords]
         @vnum = data[ :vnum ]
         @short_description = data[ :short_description ]
@@ -31,7 +30,8 @@ class Mobile < GameObject
             wis: 13,
             dex: 13,
             hitroll: data[:hitroll] || rand(5...7),
-            damroll: data[:damage] || 50
+            damroll: data[:damage] || 50,
+            attack_speed: 1,
         }
 
         @affects = []
@@ -84,6 +84,7 @@ class Mobile < GameObject
     end
 
     def update( elapsed )
+        @affects.each { |aff| aff.update( elapsed ) }
         super elapsed
     end
 
@@ -119,7 +120,7 @@ class Mobile < GameObject
             to_me = []
             to_target = []
             to_room = []
-            @attack_speed.times do |attack|
+            stat( :attack_speed ).times do |attack|
                 hit_chance = ( attack_rating - @attacking.defense_rating( @equipment[:wield] ? @equipment[:wield].element : "bash" ) ).clamp( 5, 95 )
                 if rand(0...100) < hit_chance
                     damage = damage_rating
@@ -318,8 +319,12 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         end
     end
 
+    def affected?( key )
+        @affects.select{ |affect| affect.check(key) }.count > 0
+    end
+
     def can_see? target
-        if @affects.include? "blind"
+        if affected? "blind"
             false
         else
             true
@@ -347,7 +352,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def stat(key)
-        @stats[key].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+)
+        @stats[key].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+) + @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
     end
 
     def armor(index)
@@ -377,7 +382,7 @@ Int:       #{"#{stat(:int)}(#{@stats[:int]}) of 23".ljust(26)} Wis:       #{stat
 Dex:       #{ stat(:dex) }(#{ @stats[:dex] }) of 23
 HitRoll:   #{ stat(:hitroll).to_s.ljust(26)} DamRoll:   #{ stat(:damroll) }
 DamResist: #{ stat(:damresist).to_s.ljust(26) } MagicDam:  #{ stat(:magicdam) }
-AttackSpd: #{ stat(:attackspeed) }
+AttackSpd: #{ stat(:attack_speed) }
 --------------------------------- Armour --------------------------------
 Pierce:    #{ (-1 * armor( 0 )).to_s.ljust(26) } Bash:      #{ -1 * armor( 1 ) }
 Slash:     #{ (-1 * armor( 2 )).to_s.ljust(26) } Magic:     #{ -1 * armor( 3 ) }

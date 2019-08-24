@@ -86,12 +86,13 @@ class Player < Mobile
         @game.disconnect @short_description
     end
 
-    def update( elasped )
+    def update( elapsed )
     	if @lag > 0
-    		@lag -= elasped
+    		@lag -= elapsed
     	elsif @commands.length > 0
     		do_command @commands.shift
     	end
+        super( elapsed )
     end
 
 end

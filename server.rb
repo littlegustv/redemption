@@ -8,5 +8,6 @@ require_relative 'room'
 require_relative 'mobile'
 require_relative 'item'
 require_relative 'player'
+require_relative 'affect'
 
 game = Game.new( ARGV[0], ARGV[1] || 4000 )

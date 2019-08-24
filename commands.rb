@@ -273,15 +273,12 @@ end
 
 class Blind < Command
     def attempt( actor, args )
-        actor.output "You have been blinded!"
-        actor.affects.push "blind"
-    end
-end
-
-class Unblind < Command
-    def attempt( actor, args )
-        actor.output "You can now see again."
-        actor.affects.delete "blind"
+        if not actor.affected? "blind"
+            actor.output "You have been blinded!"
+            actor.affects.push( AffectBlind.new( actor, ["blind"], 30, { hitroll: -5 } ) )
+        else
+            actor.output "You are already blind!"
+        end
     end
 end
 
@@ -350,6 +347,35 @@ class Consider < Command
             else
                 actor.output "Death will thank you for your gift.";
             end
+        end
+    end
+end
+
+class Affects < Command
+    def attempt( actor, args )
+        actor.output %Q(
+You are affected by the following spells:
+#{ actor.affects.map(&:summary).join("\n") }
+        )
+    end
+end
+
+class Quicken < Command
+    def attempt( actor, args )
+        if not actor.affected? "haste"
+            actor.affects.push AffectHaste.new( actor, ["quicken", "haste"], 120, { dex: 5, attack_speed: 1 } )
+        else
+            actor.output "You are already moving as fast as you can!"
+        end
+    end
+end
+
+class Berserk < Command
+    def attempt( actor, args )
+        if not actor.affected? "berserk"
+            actor.affects.push AffectBerserk.new( actor, ["berserk"], 60, { damroll: 10, hitroll: 10 } )
+        else
+            actor.output "You are already pretty mad."
         end
     end
 end
