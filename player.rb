@@ -69,7 +69,7 @@ class Player < Mobile
         end
     end
 
-    def die
+    def die( killer )
         output "You have been KILLED!"
         broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
         stop_combat

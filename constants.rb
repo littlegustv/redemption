@@ -32,6 +32,10 @@ end
 
 module Constants
 
+    WEAPON_ELEMENTS = [
+        "pierce", "bash", "slash", "magic"
+    ]
+
     FPS = 60
     ROUND = 60				# 60 frames, 1 second
     TICK = 60 * 60			# 60 * 60 frames, 1 minute

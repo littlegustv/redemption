@@ -269,17 +269,19 @@ By what name do you wish to be known?)
             wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", ""),
             material: row[:material],
             extraFlags: row[:extraFlags],
-            modifiers: {}
+            modifiers: {},
+            ac: @ac_data[ vnum ].to_h.values[1..4]
         }
         @item_modifiers[ vnum ].to_a.each do |modifier|
             data[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
-        end
+        end        
         if row[:type] == "weapon"
             weapon_info = @weapon_data[ vnum ]
             dice_info = @dice_data[ vnum ]
             if weapon_info and dice_info
                 weapon_data = {
                     noun: weapon_info[:noun],
+                    genre: weapon_info[:type],
                     flags: weapon_info[:flags].split(" "),
                     element: weapon_info[:element],
                     dice_sides: dice_info[:sides].to_i,
@@ -315,6 +317,7 @@ By what name do you wish to be known?)
         @areas_hash = {}
 
         @item_modifiers = @db[:ItemModifier].to_hash_groups(:itemVnum)
+        @ac_data = @db[:itemac].to_hash(:itemVnum)        
 
         room_rows.each do |row|
 
@@ -347,8 +350,8 @@ By what name do you wish to be known?)
         @mob_resets = @db[:resetmobile].as_hash(:id)
         @inventory_resets = @db[:resetinventoryitem].as_hash(:id)
         @equipment_resets = @db[:resetequippeditem].as_hash(:id)
-        # @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
-        @base_resets = @db[:resetbase].as_hash(:id)
+        @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
+        # @base_resets = @db[:resetbase].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
 
         reset

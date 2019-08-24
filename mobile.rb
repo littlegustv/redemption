@@ -120,7 +120,7 @@ class Mobile < GameObject
             to_target = []
             to_room = []
             @attack_speed.times do |attack|
-                hit_chance = ( attack_rating - @attacking.defense_rating ).clamp( 5, 95 )
+                hit_chance = ( attack_rating - @attacking.defense_rating( @equipment[:wield] ? @equipment[:wield].element : "bash" ) ).clamp( 5, 95 )
                 if rand(0...100) < hit_chance
                     damage = damage_rating
                 else
@@ -261,8 +261,8 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         (15 + (@level * 3 / 2))
     end
 
-    def defense_rating
-        ( -1  * @armor_class[0] - 100 ) / 5
+    def defense_rating( element )
+        ( -1  * @armor_class[ Constants::WEAPON_ELEMENTS.index( element ) || 0 ] - 100 ) / 5
     end
 
     def damage_rating
@@ -351,7 +351,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def armor(index)
-        @armor_class[index].to_i
+        @armor_class[index].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.armor( index ).to_i }.reduce(0, :+)
     end
 
     def score
@@ -379,8 +379,8 @@ HitRoll:   #{ stat(:hitroll).to_s.ljust(26)} DamRoll:   #{ stat(:damroll) }
 DamResist: #{ stat(:damresist).to_s.ljust(26) } MagicDam:  #{ stat(:magicdam) }
 AttackSpd: #{ stat(:attackspeed) }
 --------------------------------- Armour --------------------------------
-Pierce:    #{ armor( 0 ).to_s.ljust(26) } Bash:      #{ armor( 1 ) }
-Slash:     #{ armor( 2 ).to_s.ljust(26) } Magic:     #{ armor( 3 ) }
+Pierce:    #{ (-1 * armor( 0 )).to_s.ljust(26) } Bash:      #{ -1 * armor( 1 ) }
+Slash:     #{ (-1 * armor( 2 )).to_s.ljust(26) } Magic:     #{ -1 * armor( 3 ) }
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
 You are #{Position::STRINGS[ @position ]}.

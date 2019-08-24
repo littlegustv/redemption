@@ -14,7 +14,9 @@ class Item < GameObject
         @material = data[:material]
         @extraFlags = data[:extraFlags]
         @modifiers = data[:modifiers]
-   
+
+        @ac = data[:ac] || [0,0,0,0]
+
         @room = room
         @game = game
     end
@@ -33,6 +35,10 @@ class Item < GameObject
 
     def modifier( key )
         return @modifiers[ key ].to_i
+    end
+
+    def armor( index )
+        @ac[ index ].to_i
     end
 
 =begin
@@ -72,7 +78,7 @@ end
 
 class Weapon < Item
 
-	attr_accessor :noun
+	attr_accessor :noun, :element
 
 	def initialize( data, game, room )
 		super data, game, room
@@ -85,7 +91,7 @@ class Weapon < Item
 	end
 
 	def damage
-		@dice_count.to_i.times.collect { |i| rand(1...@dice_sides.to_i) }.sum
+		@game.dice( @dice_count, @dice_sides )
 	end
 
 end
