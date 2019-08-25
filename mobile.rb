@@ -115,6 +115,11 @@ class Mobile < GameObject
         end
     end
 
+    # all this does right now is regen some HP
+    def tick
+        @hitpoints = [@hitpoints + 50, maxhitpoints].min
+    end
+
     def combat
         if @attacking
             to_me = []

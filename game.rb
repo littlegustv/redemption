@@ -111,6 +111,10 @@ By what name do you wish to be known?)
                     combat
                 end
 
+                if @clock % Constants::TICK == 0
+                    tick
+                end
+
                 if @clock % Constants::RESET == 0
                     reset
                 end
@@ -165,6 +169,13 @@ By what name do you wish to be known?)
     def disconnect( name )
         @players.delete( name )
         broadcast "#{name} has disconnected.", target
+    end
+
+    def tick
+        broadcast "{MMud newbies 'Hi everyone! It's a tick!!'{x", target
+        ( @players.values + @mobiles).each do | entity |
+            entity.tick
+        end
     end
 
     def reset

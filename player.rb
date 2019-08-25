@@ -73,6 +73,10 @@ class Player < Mobile
         output "You have been KILLED!"
         broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
         stop_combat
+        room = @game.recall_room( @room.continent )
+        move_to_room( room )
+        @hitpoints = 10
+        @position = Position::REST
     end
 
     def who
