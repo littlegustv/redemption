@@ -425,6 +425,7 @@ By what name do you wish to be known?)
             Affects.new( ["affects"] ),
             Quicken.new( ["quicken"], 0.5 ),
             Berserk.new( ["berserk"], 0.5 ),
+            Poison.new( ["poison"] ),
     	]
     end
 

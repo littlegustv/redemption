@@ -373,9 +373,19 @@ end
 class Berserk < Command
     def attempt( actor, args )
         if not actor.affected? "berserk"
-            actor.affects.push AffectBerserk.new( actor, ["berserk"], 60, { damroll: 10, hitroll: 10 } )
+            actor.affects.push AffectBerserk.new( actor, ["berserk"], 60, { damroll: 10, hitroll: 10 }, 1 )
         else
             actor.output "You are already pretty mad."
         end
     end
+end
+
+class Poison < Command
+    def attempt( actor, args )
+        if not actor.affected? "poison"
+            actor.affects.push AffectPoison.new( actor, ["poison"], 180, { str: -1 }, 10 )
+        else
+            actor.output "You are already poisoned."
+        end
+    end 
 end

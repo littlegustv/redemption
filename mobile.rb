@@ -117,7 +117,11 @@ class Mobile < GameObject
 
     # all this does right now is regen some HP
     def tick
-        @hitpoints = [@hitpoints + 50, maxhitpoints].min
+        regen 50
+    end
+
+    def regen( n )
+        @hitpoints = [@hitpoints + n, maxhitpoints].min
     end
 
     def combat
