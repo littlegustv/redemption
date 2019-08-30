@@ -23,8 +23,7 @@ end
 
 class CommandGoTo < Command
 
-    def initialize( game )
-        @game = game
+    def initialize
         super({
             keywords: ["goto"],
         })
@@ -32,11 +31,7 @@ class CommandGoTo < Command
 
     def attempt( actor, cmd, args )
         area_target = actor.target({keyword: args.first.to_s, type: ["Area"]}).first
-        puts "#{area_target}"
         room_target = area_target.rooms.first if area_target
-        puts "#{room_target}"
-        # area = @game.area_with_name( args.join(" ") )
-        # room = @game.first_room_in_area( area ) if area
         if !area_target || !room_target
             actor.output "Nothing by that name."
             return
