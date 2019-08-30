@@ -3,10 +3,10 @@ require_relative 'command.rb'
 class CommandSay < Command
 
     def initialize
-        @keywords = ["say", "'"]
-        @priority = 100
-        @lag = 0
-        @position = Position::REST
+        super({
+            keywords: ["say", "'"],
+            position: Position::REST
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -23,10 +23,9 @@ end
 class CommandScore < Command
 
     def initialize
-        @keywords = ["score"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["score"],
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -37,10 +36,10 @@ end
 class CommandSleep < Command
 
     def initialize
-        @keywords = ["sleep"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["sleep"],
+            usable_while_fighting: false
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -48,7 +47,7 @@ class CommandSleep < Command
         when Position::SLEEP
             actor.output "You are already asleep."
         when Position::REST, Position::STAND
-            actor.output "You lie down and go to sleep."
+            actor.output "You go to sleep."
             actor.broadcast "%s lies down and goes to sleep.", actor.target( { :not => actor, :room => actor.room }), [actor]
         else
             actor.output "You can't quite get comfortable enough."
@@ -60,10 +59,9 @@ end
 class CommandStand < Command
 
     def initialize
-        @keywords = ["stand"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["stand"],
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -71,14 +69,16 @@ class CommandStand < Command
         when Position::SLEEP
             actor.output "You wake and stand up."
             actor.broadcast "%s wakes and stands up.", actor.target( { :not => actor, :room => actor.room }), [actor]
+            actor.position = Position::STAND
+            actor.look_room
         when Position::REST
             actor.output "You stand up."
             actor.broadcast "%s stands up.", actor.target( { :not => actor, :room => actor.room }), [actor]
+            actor.position = Position::STAND
         when Position::STAND
             actor.output "You are already standing."
         else
             actor.output "You can't quite get comfortable enough."
         end
-        actor.position = Position::STAND
     end
 end

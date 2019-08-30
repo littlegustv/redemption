@@ -231,9 +231,13 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
             output "You leave #{direction}."
             @room = @room.exits[ direction.to_sym ]
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self]
-            @game.do_command self, "look"
+            look_room
             # cmd_look
         end
+    end
+
+    def look_room
+        @game.do_command self, "look"
     end
 
     def move_to_room( room )

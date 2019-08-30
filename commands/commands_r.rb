@@ -3,10 +3,10 @@ require_relative 'command.rb'
 class CommandRecall < Command
 
     def initialize
-        @keywords = ["recall", "/"]
-        @priority = 100
-        @lag = 0
-        @position = Position::STAND
+        super({
+            keywords: ["recall", "/"],
+            position: Position::STAND
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -17,10 +17,10 @@ end
 class CommandRemove < Command
 
     def initialize
-        @keywords = ["remove"]
-        @priority = 100
-        @lag = 0
-        @position = Position::REST
+        super({
+            keywords: ["remove"],
+            position: Position::REST
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -31,10 +31,11 @@ end
 class CommandRest < Command
 
     def initialize
-        @keywords = ["sit", "rest"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["sit", "rest"],
+            position: Position::SLEEP,
+            usable_while_fighting: false
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -42,14 +43,16 @@ class CommandRest < Command
         when Position::SLEEP
             actor.output "You wake up and rest."
             actor.broadcast "%s wakes up and begins to rest.", actor.target( { :not => actor, :room => actor.room }), [actor]
+            actor.position = Position::REST
+            actor.look_room
         when Position::REST
             actor.output "You are already resting."
         when Position::STAND
             actor.output "You sit down and rest."
             actor.broadcast "%s sits down and rests.", actor.target( { :not => actor, :room => actor.room }), [actor]
+            actor.position = Position::REST
         else
             actor.output "You can't quite get comfortable enough."
         end
-        actor.position = Position::REST
     end
 end

@@ -3,10 +3,10 @@ require_relative 'command.rb'
 class CommandQui < Command
 
     def initialize
-        @keywords = ["qui"]
-        @priority = 200
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["qui"],
+            priority: 201
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -18,10 +18,11 @@ end
 class CommandQuicken < Command
 
     def initialize
-        @keywords = ["quicken"]
-        @priority = 100
-        @lag = 0.5
-        @position = Position::SLEEP
+        super({
+            keywords: ["quicken"],
+            lag: 0.5,
+            position: Position::STAND
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -37,10 +38,11 @@ end
 class CommandQuit < Command
 
     def initialize
-        @keywords = ["quit"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["quit"],
+            priority: 200,
+            usable_while_fighting: false
+        })
     end
 
     def attempt( actor, cmd, args )

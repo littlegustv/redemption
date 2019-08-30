@@ -3,6 +3,10 @@ require_relative 'command.rb'
 class CommandYell < Command
 
     def initialize
+        super({
+            keywords: ["yell"],
+            position: Position::REST
+        })
         @keywords = ["yell"]
         @priority = 100
         @lag = 0

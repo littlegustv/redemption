@@ -3,10 +3,13 @@ require_relative 'command.rb'
 class CommandMove < Command
 
     def initialize
-        @keywords = ["north", "east", "south", "west", "up", "down"]
-        @priority = 200
-        @lag = 0.5
-        @position = Position::STAND
+        super({
+            keywords: ["north", "east", "south", "west", "up", "down"],
+            priority: 1000,
+            lag: 0.25,
+            usable_while_fighting: false,
+            position: Position::STAND
+        })
     end
 
     def attempt( actor, cmd, args )

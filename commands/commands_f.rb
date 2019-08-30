@@ -3,10 +3,11 @@ require_relative 'command.rb'
 class CommandFlee < Command
 
     def initialize
-        @keywords = ["flee"]
-        @priority = 100
-        @lag = 0.5
-        @position = Position::SLEEP
+        super({
+            keywords: ["flee"],
+            lag: 0.5,
+            position: Position::STAND
+        })
     end
 
     def attempt( actor, cmd, args )

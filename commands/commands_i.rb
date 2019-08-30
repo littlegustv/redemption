@@ -3,10 +3,10 @@ require_relative 'command.rb'
 class CommandInspect < Command
 
     def initialize
-        @keywords = ["inspect"]
-        @priority = 100
-        @lag = 0
-        @position = Position::REST
+        super({
+            keywords: ["inspect"],
+            position: Position::REST
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -19,10 +19,9 @@ end
 class CommandInventory < Command
 
     def initialize
-        @keywords = ["inventory"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["inventory"],
+        })
     end
 
     def attempt( actor, cmd, args )

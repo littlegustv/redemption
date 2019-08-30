@@ -4,10 +4,9 @@ class CommandHelp < Command
 
     def initialize( helps )
         @helps = helps
-        @keywords = ["help"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["help"],
+        })
     end
 
     def attempt( actor, cmd, args )

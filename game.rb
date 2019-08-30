@@ -416,6 +416,7 @@ By what name do you wish to be known?)
             CommandRest.new,
             CommandSay.new,
             CommandScore.new,
+            CommandSleep.new,
             CommandStand.new,
             CommandWear.new,
             CommandWhere.new,

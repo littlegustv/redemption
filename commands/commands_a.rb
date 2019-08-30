@@ -3,10 +3,9 @@ require_relative 'command.rb'
 class CommandAffects < Command
 
     def initialize
-        @keywords = ["affects"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["affects"],
+        })
     end
 
     def attempt( actor, cmd, args )

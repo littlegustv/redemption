@@ -2,11 +2,16 @@ class Command
 
     attr_reader :priority
 
-    def initialize(  )
+    def initialize( options )
         @priority = 100
         @keywords = ["CommandDefault"]
         @lag = 0
+        @starts_combat = false
+        @usable_while_fighting = true
         @position = Position::SLEEP
+        options.each do |key, value|
+            self.instance_variable_set("@#{key}", value)
+        end
     end
 
     def check( cmd )
@@ -14,7 +19,7 @@ class Command
     end
 
     def execute( actor, cmd, args )
-        if actor.position < @position
+        if actor.position < @position # Check position
             case actor.position
             when Position::SLEEP
                 actor.output "In your dreams, or what?"
@@ -23,6 +28,10 @@ class Command
             else
                 actor.output "You can't quite get comfortable enough."
             end
+            return
+        end
+        if actor.position >= Position::FIGHT && !@usable_while_fighting
+            actor.output "No way! You're still fighting!"
             return
         end
 

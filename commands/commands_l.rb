@@ -3,10 +3,11 @@ require_relative 'command.rb'
 class CommandLook < Command
 
     def initialize
-        @keywords = ["look"]
-        @priority = 200
-        @lag = 0
-        @position = Position::REST
+        super({
+            keywords: ["look"],
+            priority: 200,
+            position: Position::REST
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -33,10 +34,10 @@ end
 class CommandLore < Command
 
     def initialize
-        @keywords = ["lore"]
-        @priority = 100
-        @lag = 0
-        @position = Position::REST
+        super({
+            keywords: ["lore"],
+            position: Position::REST
+        })
     end
 
     def attempt( actor, cmd, args )

@@ -3,10 +3,10 @@ require_relative 'command.rb'
 class CommandGet < Command
 
     def initialize
-        @keywords = ["get", "take"]
-        @priority = 100
-        @lag = 0
-        @position = Position::REST
+        super({
+            keywords: ["get", "take"],
+            position: Position::REST
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -25,10 +25,9 @@ class CommandGoTo < Command
 
     def initialize( game )
         @game = game
-        @keywords = ["goto"]
-        @priority = 100
-        @lag = 0
-        @position = Position::SLEEP
+        super({
+            keywords: ["goto"],
+        })
     end
 
     def attempt( actor, cmd, args )

@@ -3,10 +3,11 @@ require_relative 'command.rb'
 class CommandBerserk < Command
 
     def initialize
-        @keywords = ["berserk"]
-        @priority = 100
-        @lag = 0.5
-        @position = Position::STAND
+        super({
+            keywords: ["berserk"],
+            lag: 0.5,
+            position: Position::STAND
+        })
     end
 
     def attempt( actor, cmd, args )
@@ -21,10 +22,11 @@ end
 class CommandBlind < Command
 
     def initialize
-        @keywords = ["blind"]
-        @priority = 100
-        @lag = 0.5
-        @position = Position::STAND
+        super({
+            keywords: ["blind"],
+            lag: 0.5,
+            position: Position::STAND
+        })
     end
 
     def attempt( actor, cmd, args )
