@@ -3,17 +3,20 @@ require_relative 'command.rb'
 class CommandKill < Command
 
     def initialize
-
         super({
             keywords: ["kill", "hit"],
             lag: 0.5,
             starts_combat: true,
-            usable_while_fighting: false,
             position: Position::STAND,
         })
     end
 
     def attempt( actor, cmd, args )
+        keyword = @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.first
+        if args.length <= 0
+            actor.output "Who did you want to #{keyword}?"
+            return
+        end
         if actor.position < Position::STAND
             actor.output "You have to stand up first."
         elsif actor.position >= Position::FIGHT

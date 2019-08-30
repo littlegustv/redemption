@@ -38,7 +38,7 @@ class CommandSleep < Command
     def initialize
         super({
             keywords: ["sleep"],
-            usable_while_fighting: false
+            usable_in_combat: false
         })
     end
 

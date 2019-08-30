@@ -31,12 +31,16 @@ class CommandGoTo < Command
     end
 
     def attempt( actor, cmd, args )
-        area = @game.area_with_name( args.join(" ") )
-        room = @game.first_room_in_area( area ) if area
-        if !area || !room
+        area_target = actor.target({keyword: args.first.to_s, type: ["Area"]}).first
+        puts "#{area_target}"
+        room_target = area_target.rooms.first if area_target
+        puts "#{room_target}"
+        # area = @game.area_with_name( args.join(" ") )
+        # room = @game.first_room_in_area( area ) if area
+        if !area_target || !room_target
             actor.output "Nothing by that name."
             return
         end
-        actor.move_to_room( room )
+        actor.move_to_room( room_target )
     end
 end

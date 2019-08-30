@@ -41,7 +41,7 @@ class CommandQuit < Command
         super({
             keywords: ["quit"],
             priority: 200,
-            usable_while_fighting: false
+            usable_in_combat: false
         })
     end
 

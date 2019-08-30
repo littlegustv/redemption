@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :room, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects
+    attr_accessor :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects
 
     def initialize( data, game, room )
         @game = game

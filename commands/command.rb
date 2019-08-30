@@ -7,7 +7,7 @@ class Command
         @keywords = ["CommandDefault"]
         @lag = 0
         @starts_combat = false
-        @usable_while_fighting = true
+        @usable_in_combat = true
         @position = Position::SLEEP
         options.each do |key, value|
             self.instance_variable_set("@#{key}", value)
@@ -30,7 +30,7 @@ class Command
             end
             return
         end
-        if actor.position >= Position::FIGHT && !@usable_while_fighting
+        if actor.position >= Position::FIGHT && !@usable_in_combat
             actor.output "No way! You're still fighting!"
             return
         end

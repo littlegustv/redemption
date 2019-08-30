@@ -34,7 +34,7 @@ class CommandRest < Command
         super({
             keywords: ["sit", "rest"],
             position: Position::SLEEP,
-            usable_while_fighting: false
+            usable_in_combat: false
         })
     end
 

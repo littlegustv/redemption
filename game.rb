@@ -152,8 +152,16 @@ By what name do you wish to be known?)
     end
 
     def target( query = {} )
-        targets = @players.values + @items + @mobiles
-        targets = targets.select { |t| query[:type].to_a.include? t.class.to_s }			                        if query[:type]
+        targets = []
+        if query[:type].nil?
+            targets = @areas + @players.values + @items + @mobiles
+        else
+            targets += @areas              if query[:type].to_a.include? "Area"
+            targets += @players.values     if query[:type].to_a.include? "Player"
+            targets += @items              if query[:type].to_a.include? "Item"
+            targets += @mobiles            if query[:type].to_a.include? "Mobile"
+        end
+
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
         # fix me: figure out a good way of getting the area for objects that are not directly in a room
@@ -320,23 +328,40 @@ By what name do you wish to be known?)
 
         # connect to database
 
-        room_rows = @db[:RoomBase]
-        exit_rows = @db[:RoomExit]
+        room_rows = @db[:RoomBase].all
+        exit_rows = @db[:RoomExit].all
+        area_rows = @db[:AreaBase].all
+
+        areas_hash = {}
+        # create area objects
+        area_rows.each do |row|
+            @areas.push Area.new(
+                {
+                    name: row[:name],
+                    continent: row[:continent],
+                    age: row[:age],
+                    builders: row[:builders],
+                    credits: row[:credits],
+                    questable: row[:questable],
+                    security: row[:security],
+                    vnumStart: row[:vnumStart],
+                    vnumEnd: row[:vnumEnd],
+                    control: row[:control]
+                },
+                self
+            )
+            areas_hash[row[:name]] = @areas.last
+        end
 
         # create a room_row[:vnum] hash, create rooms
         @rooms_hash = {}
-        @areas_hash = {}
 
         @item_modifiers = @db[:ItemModifier].to_hash_groups(:itemVnum)
         @ac_data = @db[:itemac].to_hash(:itemVnum)
 
         room_rows.each do |row|
 
-        	area = @areas_hash[row[:area]] || Area.new( row[:area], row[:continent], self )
-        	@areas_hash[row[:area]] = area
-        	@areas.push area
-
-            @rooms.push Room.new( row[:name], row[:description], row[:sector], area, row[:flags].to_s.split(" "), row[:hp].to_i, row[:mana].to_i, row[:continent], self )
+            @rooms.push Room.new( row[:name], row[:description], row[:sector], areas_hash[row[:area]], row[:flags].to_s.split(" "), row[:hp].to_i, row[:mana].to_i, row[:continent], self )
             @rooms_hash[row[:vnum]] = @rooms.last
             if row[:vnum] == 31000
                 @starting_room = @rooms.last
@@ -369,8 +394,8 @@ By what name do you wish to be known?)
 
         puts( "Mob Data and Resets loaded from database.")
 
-        @areas_hash.each do | area_name, area |
-            @areas_hash[ area_name ] = @rooms.select{ | room | room.area == area }
+        @areas.each do | area |
+            area.set_rooms (@rooms.select{ | room | room.area == area })
         end
 
         @helps = @db[:HelpBase].all
@@ -433,10 +458,6 @@ By what name do you wish to be known?)
 
     def area_with_name( name )
         @areas.select { |area| area.name.fuzzy_match( name ) }.first
-    end
-
-    def first_room_in_area( area )
-        @areas_hash[area.name].first
     end
 
 end

@@ -7,7 +7,7 @@ class CommandMove < Command
             keywords: ["north", "east", "south", "west", "up", "down"],
             priority: 1000,
             lag: 0.25,
-            usable_while_fighting: false,
+            usable_in_combat: false,
             position: Position::STAND
         })
     end

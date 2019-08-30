@@ -1,6 +1,6 @@
 class GameObject
 
-    attr_accessor :name, :keywords
+    attr_accessor :name, :keywords, :room
 
     def initialize( name, game )
         @name = name

@@ -1,6 +1,6 @@
 class Item < GameObject
 
-	attr_accessor :room, :wear_location, :weight
+	attr_accessor :wear_location, :weight
 
     def initialize( data, game, room )
         @short_description = data[:short_description]
@@ -71,7 +71,7 @@ Keywords '#{ @keywords.join(' ') }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
 Extra flags: #{ @extraFlags }
 #{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
-)        
+)
     end
 
 end
