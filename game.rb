@@ -31,7 +31,7 @@ class Game
 
         make_commands
 
-        puts( "Redemption is ready to rock on port #{port}!\n" )
+        puts( "Redemption is ready to rock on port #{port}!" )
 
         @start_time = Time.now
         @interval = 0
@@ -181,13 +181,13 @@ By what name do you wish to be known?)
     def reset
         @base_mob_resets.each do |reset_id, reset_data|
             reset = @mob_resets[reset_id]
-            if @mob_data[ reset[:mobileVnum] ]                
+            if @mob_data[ reset[:mobileVnum] ]
                 if @mobile_count[ reset[:mobileVnum] ].to_i < reset[:roomMax]
                     mob = load_mob( reset[:mobileVnum], @rooms_hash[ reset[:roomVnum] ] )
                     @mobiles.push mob
 
                     @mobile_count[ reset[:mobileVnum] ] = @mobile_count[ reset[:mobileVnum] ].to_i + 1
-                    
+
                     # inventory
                     @inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:itemVnum] ]
@@ -285,7 +285,7 @@ By what name do you wish to be known?)
         }
         @item_modifiers[ vnum ].to_a.each do |modifier|
             data[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
-        end        
+        end
         if row[:type] == "weapon"
             weapon_info = @weapon_data[ vnum ]
             dice_info = @dice_data[ vnum ]
@@ -328,7 +328,7 @@ By what name do you wish to be known?)
         @areas_hash = {}
 
         @item_modifiers = @db[:ItemModifier].to_hash_groups(:itemVnum)
-        @ac_data = @db[:itemac].to_hash(:itemVnum)        
+        @ac_data = @db[:itemac].to_hash(:itemVnum)
 
         room_rows.each do |row|
 
@@ -380,52 +380,48 @@ By what name do you wish to be known?)
     end
 
     def do_command( actor, cmd, args = [] )
-        @commands.each do | command |
-    		if command.check( cmd )
-    			command.execute( actor, args )
-    			return
-    		end
-    	end
+        matches = @commands.select { |command| command.check( cmd ) }.sort_by(&:priority)
+        if matches.any?
+            matches.last.execute( actor, cmd, args )
+            return
+        end
     	actor.output "Huh?"
     end
 
     def make_commands
     	@commands = [
-    		Command.new( [""] ),
-    		Down.new( ["down"], 0.5 ),
-    		Up.new( ["up"], 0.5 ),
-    		East.new( ["east"], 0.5 ),
-    		West.new( ["west"], 0.5 ),
-    		North.new( ["north"], 0.5 ),
-    		South.new( ["south"], 0.5 ),
-            Who.new( ["who"] ),
-            Where.new( ["where"] ),
-    		Help.new( ["help"], @helps ),
-    		Qui.new( ["qui"] ),
-    		Quit.new( ["quit"] ),
-    		Look.new( ["look"] ),
-            Say.new( ["say", "'"] ),
-            Yell.new( ["yell"] ),
-    		Kill.new( ["hit", "kill"], 0.5 ),
-    		Flee.new( ["flee"], 0.5 ),
-    		Get.new( ["get", "take"] ),
-    		Drop.new( ["drop"] ),
-            Inventory.new( ["inventory"] ),
-            Equipment.new( ["equipment"] ),
-            Wear.new( ["wear", "hold", "wield"] ),
-            Remove.new( ["remove"] ),
-            Blind.new( ["blind"] ),
-            Peek.new( ["peek"] ),
-            Recall.new( ["/", "recall"] ),
-            GoTo.new( ["goto"], self ),
-            Score.new( ["score"] ),
-            Inspect.new( ["inspect"] ),
-            Lore.new( ["lore"] ),
-            Consider.new( ["consider"] ),
-            Affects.new( ["affects"] ),
-            Quicken.new( ["quicken"], 0.5 ),
-            Berserk.new( ["berserk"], 0.5 ),
-            Poison.new( ["poison"] ),
+            CommandAffects.new,
+            CommandBerserk.new,
+            CommandBlind.new,
+            CommandConsider.new,
+    		CommandDrop.new,
+            CommandEquipment.new,
+    		CommandFlee.new,
+    		CommandGet.new,
+            CommandGoTo.new( self ),
+    		CommandHelp.new( @helps ),
+            CommandInspect.new,
+            CommandInventory.new,
+    		CommandKill.new,
+    		CommandLook.new,
+            CommandLore.new,
+            CommandMove.new,
+            CommandPeek.new,
+            CommandPoison.new,
+    		CommandQui.new,
+            CommandQuicken.new,
+    		CommandQuit.new,
+            CommandRecall.new,
+            CommandRemove.new,
+            CommandRest.new,
+            CommandSay.new,
+            CommandScore.new,
+            CommandStand.new,
+            CommandWear.new,
+            CommandWhere.new,
+    		CommandWhitespace.new,
+            CommandWho.new,
+            CommandYell.new,
     	]
     end
 
