@@ -40,7 +40,7 @@ class CommandWhitespace < Command
     def initialize
         super({
             keywords: [""],
-            priority: 1000,
+            priority: 99999,
         })
     end
 

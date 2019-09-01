@@ -423,7 +423,7 @@ By what name do you wish to be known?)
             CommandEquipment.new,
     		CommandFlee.new,
     		CommandGet.new,
-            CommandGoTo.new( self ),
+            CommandGoTo.new,
     		CommandHelp.new( @helps ),
             CommandInspect.new,
             CommandInventory.new,

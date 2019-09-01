@@ -152,7 +152,9 @@ class Mobile < GameObject
 
     def hit( damage )
         decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-        texts = ["Your #{decorators[2]} #{noun} #{decorators[1]} %s [#{damage}]", "%s's' #{decorators[2]} #{noun} #{decorators[1]} you", "%s's' #{decorators[2]} #{noun} #{decorators[1]} %s"]
+        texts = ["Your #{decorators[2]} #{noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]",
+                 "%s's #{decorators[2]} #{noun} #{decorators[1]} you#{decorators[3]}",
+                 "%s's #{decorators[2]} #{noun} #{decorators[1]} %s#{decorators[3]} "]
     end
 
     def damage( damage, attacker )
