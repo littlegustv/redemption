@@ -11,11 +11,13 @@ class CommandDrop < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( target = actor.inventory.select { |item| item.fuzzy_match( args.first.to_s ) && actor.can_see?(item) }.first )
-            target.room = actor.room
-            actor.inventory.delete target
-            actor.output "You drop #{target}."
-            actor.broadcast "%s drops %s.", actor.target({ not: actor, room: actor.room, type: "Player" }), [actor, target]
+        if ( targets = actor.target({ inventory: actor.inventory }.merge( parse( args.first.to_s ))) )
+            targets.each do |target|
+                target.room = actor.room
+                actor.inventory.delete target
+                actor.output "You drop #{target}."
+                actor.broadcast "%s drops %s.", actor.target({ not: actor, room: actor.room, type: "Player" }), [actor, target]
+            end
         else
             actor.output "You don't have that."
         end

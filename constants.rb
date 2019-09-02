@@ -4,7 +4,7 @@ class String
 	end
 
 	def fuzzy_match( arg )
-		self.match(/\A#{arg}.*\z/i)
+        arg.to_a.all? { |a| self.match(/\A#{a}.*\z/i) }        
 	end
 
 	def capitalize_first

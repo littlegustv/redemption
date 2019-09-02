@@ -153,6 +153,7 @@ By what name do you wish to be known?)
 
     def target( query = {} )
         targets = []
+        
         if query[:type].nil?
             targets = @areas + @players.values + @items + @mobiles
         else
@@ -162,6 +163,7 @@ By what name do you wish to be known?)
             targets += @mobiles            if query[:type].to_a.include? "Mobile"
         end
 
+        targets = query[:inventory]                                                                                 if query[:inventory]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
         # fix me: figure out a good way of getting the area for objects that are not directly in a room
@@ -170,7 +172,13 @@ By what name do you wish to be known?)
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
         targets = targets[0...query[:limit].to_i]                                                                   if query[:limit]
-        targets = [ targets[ query[:offset] ] ]                                                                     if query[:offset]
+
+        unless query[:offset] == 'all' or query[:quantity] == 'all'
+            offset = [0, query[:offset].to_i - 1].max
+            quantity = [1, query[:quantity].to_i].max
+            targets = targets[ offset...offset+quantity ]
+        end
+
         return targets
     end
 

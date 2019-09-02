@@ -18,6 +18,14 @@ class Command
         @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.any?
     end
 
+    def parse( arg )
+        {
+            offset: arg.match(/(\d+|all)\./).to_a.last,
+            quantity: arg.match(/(\d+|all)\*/).to_a.last,
+            keyword: arg.match(/((\d+|all).)?'?([a-zA-Z\s]+)'?/).to_a.last.to_s.split
+        }
+    end
+
     def execute( actor, cmd, args )
         if actor.position < @position # Check position
             case actor.position
