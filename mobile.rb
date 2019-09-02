@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects
+    attr_accessor :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects, :group, :in_group
 
     def initialize( data, game, room )
         @game = game
@@ -22,6 +22,9 @@ class Mobile < GameObject
         @gold = (data[:wealth].to_i / 1000).floor
         @silver = data[:wealth].to_i - (@gold * 1000)
         @wimpy = 0
+
+        @group = []
+        @in_group = nil
 
         @stats = {
             str: 13,
@@ -86,6 +89,50 @@ class Mobile < GameObject
     def update( elapsed )
         @affects.each { |aff| aff.update( elapsed ) }
         super elapsed
+    end
+
+    def remove_from_group
+      self.output "You leave #{self.in_group}'s group."
+      self.in_group.output "#{self} leaves your group."
+
+      self.in_group.group.delete self
+      puts "#{self.in_group.group.length} others in group."
+      self.in_group = nil
+    end
+
+    def add_to_group( leader )
+      self.output "You join #{leader}'s group."
+      leader.output "#{self} joins your group."
+
+      self.in_group = leader
+      leader.group.push self
+      puts "#{leader.group.length} others in group."
+    end
+
+    def group_info
+      group_string = ""
+
+      if self.group.any?
+        group_string += "Your group:\n\r\n\r"
+        group_string += self.group_desc + "\n\r"
+        self.group.each do |target|
+          group_string += target.group_desc + "\n\r"
+        end
+      elsif !self.in_group.nil?
+        group_string += "#{self.in_group}'s group:\n\r\n\r"
+        group_string += self.in_group.group_desc + "\n\r"
+        self.in_group.group.each do |target|
+          group_string += target.group_desc + "\n\r"
+        end
+      else
+        group_string = "You're not in a group."
+      end
+
+      group_string
+    end
+
+    def group_desc
+      self.who
     end
 
     def do_command( input )
