@@ -8,7 +8,13 @@ class Player < Mobile
         @client = client
         @thread = thread
         @commands = []
-        super({ keywords: [name], short_description: name, long_description: "#{name} the Master Rune Maker is here.", race: "Troll" }, game, room)
+        super({ 
+          keywords: [name], 
+          short_description: name, 
+          long_description: "#{name} the Master Rune Maker is here.", 
+          race: "Troll",
+          charclass: RunistClass.new
+        }, game, room)
     end
 
     def input_loop
@@ -80,7 +86,7 @@ class Player < Mobile
     end
 
     def who
-        "[#{@level.to_s.rjust(2)} #{@race.ljust(7)} #{@class.rjust(7)}] #{@short_description}"
+        "[#{@level.to_s.rjust(2)} #{@race.ljust(7)} #{@charclass.classname.rjust(7)}] #{@short_description}"
     end
 
     def quit
