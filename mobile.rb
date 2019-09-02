@@ -302,7 +302,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def wear( args )
-        if ( targets = target({ inventory: inventory, visible_to: self }.merge( args.first.to_s.to_query )) )
+        if ( targets = target({ list: inventory, visible_to: self }.merge( args.first.to_s.to_query )) )
             targets.each do |target|
                 slot_name = target.wear_location
                 worn = false
@@ -328,7 +328,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def unwear( args )
-        if ( targets = target({ equipment: equipment.values, visible_to: self }.merge( args.first.to_s.to_query ) ) )
+        if ( targets = target({ list: equipment.values, visible_to: self }.merge( args.first.to_s.to_query ) ) )
             targets.each do |target|
                 @inventory.push target
                 @equipment[ @equipment.key(target) ] = nil

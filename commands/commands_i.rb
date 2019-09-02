@@ -10,8 +10,10 @@ class CommandInspect < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: ["Mobile"], visible_to: actor }).first )
+        if ( target = actor.target({ room: actor.room, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
             actor.output target.score
+        else
+            actor.output "You don't see anyone like that here."
         end
     end
 end

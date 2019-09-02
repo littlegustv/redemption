@@ -163,8 +163,7 @@ By what name do you wish to be known?)
             targets += @mobiles            if query[:type].to_a.include? "Mobile"
         end
 
-        targets = query[:inventory]                                                                                 if query[:inventory]
-        targets = query[:equipment].reject(&:nil?)                                                                  if query[:equipment]
+        targets = query[:list].reject(&:nil?)                                                                       if query[:list]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
         # fix me: figure out a good way of getting the area for objects that are not directly in a room
@@ -395,8 +394,8 @@ By what name do you wish to be known?)
         @mob_resets = @db[:resetmobile].as_hash(:id)
         @inventory_resets = @db[:resetinventoryitem].as_hash(:id)
         @equipment_resets = @db[:resetequippeditem].as_hash(:id)
-        @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
-        # @base_resets = @db[:resetbase].as_hash(:id)
+        # @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
+        @base_resets = @db[:resetbase].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
 
         reset

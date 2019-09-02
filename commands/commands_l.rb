@@ -13,20 +13,14 @@ class CommandLook < Command
     def attempt( actor, cmd, args )
         if args.length <= 0
             actor.output actor.room.show( actor )
-        elsif ( target = actor.target({
-            room: actor.room,
-            keyword: args.first.gsub(/\A(\d+)\./, ""),
-            type: ["Mobile"],
-            visible_to: actor,
-            offset: args.first.match(/\A\d+\./).to_s.to_i
-        }).first )
-            actor.output %Q(
-#{target.full}
+        elsif ( target = actor.target({ room: actor.room, type: ["Mobile"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            actor.output %Q(#{target.full}
 #{target.condition}
 
 #{target} is using:
-#{target.show_equipment}
-            )
+#{target.show_equipment})
+        else
+            actor.output "You don't see anyone like that here."
         end
     end
 end
@@ -45,8 +39,10 @@ class CommandLore < Command
             actor.output "What did you want to lore?"
             return
         end
-        if ( target = ( actor.inventory + actor.equipment.values ).reject(&:nil?).select { |item| item.fuzzy_match( args.first.to_s ) && actor.can_see?(item) }.first )
+        if (target = actor.target({ list: actor.inventory + actor.equipment.values, visible_to: actor }.merge( args.first.to_s.to_query ).merge({ quantity: 1 })).to_a.first)
             actor.output target.lore
+        else
+            actor.output "You can't find it."
         end
     end
 end

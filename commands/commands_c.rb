@@ -10,7 +10,7 @@ class CommandConsider < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( target = actor.target({ room: actor.room, keyword: args.first.to_s, type: ["Mobile"], visible_to: actor }).first )
+        if ( target = actor.target({ room: actor.room, type: ["Mobile"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
             case  target.level - actor.level
             when -51..-10
                 actor.output "You can kill #{target} naked and weaponless."
@@ -27,6 +27,8 @@ class CommandConsider < Command
             else
                 actor.output "Death will thank you for your gift.";
             end
+        else
+            actor.output "You don't see anyone like that here."
         end
     end
 
