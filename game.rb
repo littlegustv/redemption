@@ -163,7 +163,7 @@ By what name do you wish to be known?)
             targets += @mobiles            if query[:type].to_a.include? "Mobile"
         end
 
-        targets = query[:inventory]                                                                                 if query[:inventory]
+        targets = query[:list].reject(&:nil?)                                                                       if query[:list]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
         # fix me: figure out a good way of getting the area for objects that are not directly in a room

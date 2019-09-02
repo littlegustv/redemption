@@ -56,7 +56,7 @@ class CommandGet < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( targets = actor.target({ room: actor.room, type: ["Item", "Weapon"], visible_to: actor }.merge( parse( args.first.to_s ) ) ) )
+        if ( targets = actor.target({ room: actor.room, type: ["Item", "Weapon"], visible_to: actor }.merge( args.first.to_s.to_query ) ) )
             targets.each do | target |
                 target.room = nil
                 actor.inventory.push target

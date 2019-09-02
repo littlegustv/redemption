@@ -21,7 +21,8 @@ module Constants
     FPS = 60
     ROUND = 60				# 60 frames, 1 second
     TICK = 60 * 60			# 60 * 60 frames, 1 minute
-    RESET = 3 * 60 * 60		# 3 * 60 * 60 frames, 3 minutes
+    RESET = 3 * 60 * 60     # 3 * 60 * 60 frames, 3 minutes
+    # RESET = 3 * 10 * 60     # fast resets for testing
 
     DAMAGE_DECORATORS = {
 		0 => ['miss', 'misses', 'clumsy', '.'],

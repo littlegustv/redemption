@@ -137,7 +137,7 @@ class Mobile < GameObject
 
     def do_command( input )
         cmd, args = input.sanitize.split " ", 2
-        @game.do_command( self, cmd, args.to_s.split(" ") )
+        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first) )
     end
 
     def start_combat( attacker )
@@ -349,35 +349,40 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def wear( args )
-        if ( target = @inventory.select { |item| item.fuzzy_match( args[0].to_s ) && can_see?(item) }.first )
-            slot_name = target.wear_location
-            ["", "_1", "_2"].each do | modifier |
-                slot = "#{slot_name}#{modifier}".to_sym
-                if @equipment.keys.include? slot
-                    if ( old = @equipment[ slot ] )
-                        @inventory.push old
-                        output "You stop wearing #{old}"
+        if ( targets = target({ list: inventory, visible_to: self }.merge( args.first.to_s.to_query )) )
+            targets.each do |target|
+                slot_name = target.wear_location
+                worn = false
+                ["", "_1", "_2"].each do | modifier |
+                    slot = "#{slot_name}#{modifier}".to_sym
+                    if @equipment.keys.include? slot
+                        if ( old = @equipment[ slot ] )
+                            @inventory.push old
+                            output "You stop wearing #{old}"
+                        end
+                        @equipment[ slot ] = target
+                        @inventory.delete target
+                        output "You wear #{target} '#{ slot_name }'"
+                        worn = true
+                        break
                     end
-                    @equipment[ slot ] = target
-                    @inventory.delete target
-                    output "You wear #{target} '#{ slot_name }'"
-                    return
                 end
+                output "You can't wear something '#{ slot_name }'" if not worn
             end
-            output "You can't wear something '#{ slot_name }'"
         else
             output "You don't have any '#{args[0]}'"
         end
     end
 
     def unwear( args )
-        if ( slot = @equipment.select { |slot, item| (item.nil? ? false : item.fuzzy_match( args[0].to_s )) && can_see?(item) }.keys.first )
-            target = @equipment[ slot ]
-            @inventory.push target
-            @equipment[ slot ] = nil
-            output "You stop wearing #{ target }"
+        if ( targets = target({ list: equipment.values, visible_to: self }.merge( args.first.to_s.to_query ) ) )
+            targets.each do |target|
+                @inventory.push target
+                @equipment[ @equipment.key(target) ] = nil
+                output "You stop wearing #{ target }"
+            end
         else
-            output "You don't have any '#{args[0]}'"
+            output "You aren't wearing any '#{args[0]}'"
         end
     end
 
