@@ -1,5 +1,28 @@
 require_relative 'command.rb'
 
+class CommandGroup < Command
+  def initialize
+    super({
+      keywords: ["group"],
+      position: Position::REST
+    })
+  end
+
+  def attempt( actor, cmd, args )
+    if ( target = actor.target({
+        type: ["Player"],
+        visible_to: actor,
+        keyword: args.first.to_s,
+        not: actor
+      }).first )
+
+      actor.output "You tried to group with #{target}."
+    else
+      actor.output "You can't find them."
+    end
+  end
+end
+
 class CommandGet < Command
 
     def initialize
