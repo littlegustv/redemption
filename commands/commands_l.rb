@@ -1,5 +1,24 @@
 require_relative 'command.rb'
 
+class CommandLeave < Command
+  def initialize
+    super({
+      keywords: ["leave"],
+      position: Position::REST
+    })
+  end
+
+  def attempt( actor, cmd, args )
+    if actor.group.any?
+      actor.output "You can't leave the group, you're the leader!"
+    elsif actor.in_group.nil?
+      actor.output "You're not in a group."
+    else
+      actor.remove_from_group
+    end
+  end
+end
+
 class CommandLook < Command
 
     def initialize
