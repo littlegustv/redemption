@@ -43,7 +43,11 @@ class GameObject
     end
 
     def fuzzy_match( query )
-        @keywords.select{ |keyword| keyword.fuzzy_match( query ) }.any?
+        query.to_a.all?{ |q| 
+            @keywords.any?{ |keyword| 
+                keyword.fuzzy_match( q )
+            }
+        }  
     end
 
     def can_see?
