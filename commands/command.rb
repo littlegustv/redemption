@@ -9,9 +9,8 @@ class Command
         @starts_combat = false
         @usable_in_combat = true
         @position = Position::SLEEP
-        options.each do |key, value|
-            self.instance_variable_set("@#{key}", value)
-        end
+        
+        instance_options_try(options)
     end
 
     def check( cmd )

@@ -13,7 +13,7 @@ class Mobile < GameObject
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
         @race = data[ :race ]
-        @class = "Zealot"
+        @charclass = data[ :charclass ].nil? ? PlayerClass.new({}) : RunistClass.new
         @experience = 0
         @experience_to_level = 1000
         @quest_points = 0
@@ -381,7 +381,7 @@ Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
 Level:     #{@level.to_s.ljust(26)} Age:       17 - 0(0) hours
 Race:      #{@race.ljust(26)} Sex:       male
-Class:     #{@class.ljust(26)} Deity:     Gabriel
+Class:     #{@charclass.classname.ljust(26)} Deity:     Gabriel
 Alignment: #{@alignment.to_s.ljust(26)} Deity Points: 0
 Pracs:     N/A                        Trains:    N/A
 Exp:       #{"#{@experience} (#{@experience_to_level}/lvl)".ljust(26)} Next Level: #{@experience_to_level - @experience}

@@ -1,21 +1,3 @@
-class String
-	def to_a
-		[ self ]
-	end
-
-	def fuzzy_match( arg )
-        arg.to_a.all? { |a| self.match(/\A#{a}.*\z/i) }        
-	end
-
-	def capitalize_first
-		slice(0, 1).to_s.capitalize + slice(1..-1).to_s
-	end
-
-    def sanitize
-        self.gsub(/[\%\[\]\^]/, "")
-    end
-end
-
 module Position
     SLEEP = 0
     REST = 1
