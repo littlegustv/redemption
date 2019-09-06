@@ -30,15 +30,16 @@ class Command
             else
                 actor.output "You can't quite get comfortable enough."
             end
-            return
+            return false
         end
         if actor.position >= Position::FIGHT && !@usable_in_combat
             actor.output "No way! You're still fighting!"
-            return
+            return false
         end
 
         attempt( actor, cmd, args )
         actor.lag += @lag
+        return true
     end
 
     def attempt( actor, cmd, args )

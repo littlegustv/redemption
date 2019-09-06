@@ -484,14 +484,26 @@ Which alignment (G/N/E)?)
     end
 
     def do_command( actor, cmd, args = [] )
-        matches = ( 
-            @commands.select { |command| command.check( cmd ) } +
-            @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
-        ).sort_by(&:priority)
+        puts "DEBUG: #{cmd} #{args}"
+        if 'cast'.fuzzy_match( cmd )
+            spell_name = args.shift
+            puts "matched cast, #{spell_name}"
+            matches = @spells.select{ |spell| 
+                puts "Checking #{spell.to_s} #{spell_name}"
+                spell.check( spell_name ) && actor.knows( spell.to_s ) 
+            }.sort_by(&:priority)
+        else
+            matches = ( 
+                @commands.select { |command| command.check( cmd ) } +
+                @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
+            ).sort_by(&:priority)
+        end
+
         if matches.any?
+            puts "marches found #{matches.last}"
             matches.last.execute( actor, cmd, args )
             return
-        end
+        end        
     	actor.output "Huh?"
     end
 
@@ -541,7 +553,7 @@ Which alignment (G/N/E)?)
             SkillLivingStone.new,
         ]
         @spells = [
-            # SpellHurricane.new,
+            SpellHurricane.new,
         ]
     end
 
