@@ -4,7 +4,7 @@ class CommandQui < Command
 
     def initialize
         super()
-
+        @name = "qui"
         @keywords = ["qui"]
         @priority = 201
     end
@@ -19,6 +19,7 @@ class CommandQuicken < Command
 
     def initialize
         super
+        @name = "quicken"
         @keywords = ["quicken"]
         @lag = 0.5
         @position = Position::STAND
@@ -38,6 +39,7 @@ class CommandQuit < Command
 
     def initialize
         super
+        @name = "quit"
         @keywords = ["quit"]
         @priority = 200
         @usable_in_combat = false

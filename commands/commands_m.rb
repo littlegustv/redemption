@@ -4,7 +4,7 @@ class CommandMove < Command
 
     def initialize
         super()
-
+        @name = "move"
         @keywords = ["north", "east", "south", "west", "up", "down"]
         @priority = 1000
         @lag = 0.25

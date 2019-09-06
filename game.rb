@@ -8,6 +8,19 @@ class Game
         @races = ["Human", "Elf", "Dwarf", "Giant", "Hatchling", "Sliver", "Troll", "Gargoyle", "Kirre", "Marid"]
         @classes = ["mage", "conjurer", "enchanter", "invoker", "cleric", "druid", "warrior", "paladin", "ranger", "thief", "runist", "monk", "artificer"]
 
+        # eventually load these from the database
+        @race_skills = {
+            Elf: ["sword", "sneak"],
+            Dwarf: ["berserk", "axe"],
+            Giant: ["fast healing", "bash", "bashdoor"],
+            Hatchling: ["enhanced damage", "hand to hand",],
+            Sliver: ["hand to hand"],
+            Troll: ["regeneration", "axe"],
+            Gargoyle: ["living stone", "polearm", "enhanced damage"],
+            Kirre: ["whip", "disarm" ],
+            Marid: ["flail", "essence", "hurricane"],
+        }
+
         puts "Opening server on #{port}"
         if ip
             @server = TCPServer.open( ip, port )
@@ -72,6 +85,7 @@ EMPTIONREDEMPTIONR   ^^ ^   @@@@@@@@@     ^^   PTIONREDEMTIONRED
 NREDEIPTIONREDEMPTI  ^^^^   @@@@@@@@@   ^^^^  TIONREDEMPTIONREDE
 REDEMPTIONREDEMPTIONR                        EDEMPTIONREDEMPTION
 EMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPT
+
 )
         name = nil
         client.puts "By what name do you wish to be known?"
@@ -95,7 +109,7 @@ The following races are available:
 #{@races.map{ |race| race.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n")}
 
 What is your race (help for more information)?)
-            race = client.gets.chomp.to_s
+            race = client.gets.chomp.to_s.capitalize_first
 
             unless @races.include? race
                 puts "You must choose a valid race!"
@@ -123,7 +137,7 @@ Select a class
             client.puts %Q(
 You may be good, neutral, or evil.
 Which alignment (G/N/E)?)
-            case client.gets.chomp.to_s
+            case client.gets.chomp.to_s.capitalize
             when "G"
                 alignment = 1000
             when "N"
@@ -459,8 +473,15 @@ Which alignment (G/N/E)?)
         puts ( "Helpfiles loaded from database." )
     end
 
+    def skills( race )
+        @race_skills[ race.to_sym ].to_a
+    end
+
     def do_command( actor, cmd, args = [] )
-        matches = @commands.select { |command| command.check( cmd ) }.sort_by(&:priority)
+        matches = ( 
+            @commands.select { |command| command.check( cmd ) } +
+            @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
+        ).sort_by(&:priority)
         if matches.any?
             matches.last.execute( actor, cmd, args )
             return
@@ -470,42 +491,52 @@ Which alignment (G/N/E)?)
 
     def make_commands
     	@commands = [
-        CommandAffects.new,
-        CommandBerserk.new,
-        CommandBlind.new,
-        CommandConsider.new,
-        CommandDrop.new,
-        CommandEquipment.new,
-        CommandFlee.new,
-        CommandGet.new,
-        CommandGoTo.new,
-        CommandGroup.new,
-        CommandHelp.new( @helps.values ),
-        CommandInspect.new,
-        CommandInventory.new,
-        CommandKill.new,
-        CommandLeave.new,
-        CommandLook.new,
-        CommandLore.new,
-        CommandMove.new,
-        CommandPeek.new,
-        CommandPoison.new,
-        CommandQui.new,
-        CommandQuicken.new,
-        CommandQuit.new,
-        CommandRecall.new,
-        CommandRemove.new,
-        CommandRest.new,
-        CommandSay.new,
-        CommandScore.new,
-        CommandSleep.new,
-        CommandStand.new,
-        CommandWear.new,
-        CommandWhere.new,
-        CommandWhitespace.new,
-        CommandWho.new( @continents.values ),
-        CommandYell.new,
-    	]
+            CommandAffects.new,
+            CommandBlind.new,
+            CommandConsider.new,
+            CommandDrop.new,
+            CommandEquipment.new,
+            CommandFlee.new,
+            CommandGet.new,
+            CommandGoTo.new,
+            CommandGroup.new,
+            CommandHelp.new( @helps.values ),
+            CommandInspect.new,
+            CommandInventory.new,
+            CommandKill.new,
+            CommandLeave.new,
+            CommandLook.new,
+            CommandLore.new,
+            CommandMove.new,
+            CommandPeek.new,
+            CommandPoison.new,
+            CommandQui.new,
+            CommandQuicken.new,
+            CommandQuit.new,
+            CommandRecall.new,
+            CommandRemove.new,
+            CommandRest.new,
+            CommandSay.new,
+            CommandScore.new,
+            CommandSkills.new,
+            CommandSleep.new,
+            CommandStand.new,
+            CommandWear.new,
+            CommandWhere.new,
+            CommandWhitespace.new,
+            CommandWho.new( @continents.values ),
+            CommandYell.new,
+    	]        
+        @skills = [
+            SkillSneak.new,
+            SkillBerserk.new,
+            SkillBash.new,
+            SkillDisarm.new,
+            SkillLivingStone.new,
+        ]
+        @spells = [
+            # SpellHurricane.new,
+        ]
     end
 
     def recall_room( continent )

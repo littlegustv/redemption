@@ -3,7 +3,7 @@ require_relative 'command.rb'
 class CommandLeave < Command
     def initialize
         super()
-
+        @name = "leave"
         @keywords = ["leave"]
         @position = Position::REST
     end
@@ -23,6 +23,7 @@ class CommandLook < Command
 
     def initialize
         super
+        @name = "look"
         @keywords = ["look"]
         @priority = 200
         @position = Position::REST
@@ -47,6 +48,7 @@ class CommandLore < Command
 
     def initialize
         super
+        @name = "lore"        
         @keywords = ["lore"]
         @position = Position::REST
     end

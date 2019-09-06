@@ -3,7 +3,7 @@ require_relative 'command.rb'
 class CommandGroup < Command
     def initialize
         super()
-
+        @name = "group"
         @keywords = ["group"]
         @position = Position::REST
     end
@@ -50,7 +50,7 @@ class CommandGet < Command
 
     def initialize
         super()
-
+        @name = "get"
         @keywords = ["get", "take"]
         @position = Position::REST
     end
@@ -73,7 +73,7 @@ class CommandGoTo < Command
 
     def initialize
         super()
-
+        @name = "goto"
         @keywords = ["goto"]
     end
 
