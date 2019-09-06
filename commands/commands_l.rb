@@ -47,7 +47,7 @@ class CommandLore < Command
 
     def initialize
         super
-        @keywords = ["lore"],
+        @keywords = ["lore"]
         @position = Position::REST
     end
 
