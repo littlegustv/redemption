@@ -3,9 +3,9 @@ require_relative 'command.rb'
 class CommandEquipment < Command
 
     def initialize
-        super({
-            keywords: ["equipment"],
-        })
+        super()
+
+        @keywords = ["equipment"]
     end
 
     def attempt( actor, cmd, args )

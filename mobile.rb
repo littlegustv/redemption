@@ -8,7 +8,7 @@ class Mobile < GameObject
         @lag = 0
         @room = room
         @keywords = data[:keywords]
-        @vnum = data[ :vnum ]
+        @id = data[ :id ]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]

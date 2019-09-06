@@ -3,10 +3,10 @@ require_relative 'command.rb'
 class CommandWear < Command
 
     def initialize
-        super({
-            keywords: ["wear", "hold", "wield"],
-            position: Position::REST
-        })
+        super()
+()
+        @keywords = ["wear", "hold", "wield"]
+        @position = Position::REST
     end
 
     def attempt( actor, cmd, args )
@@ -18,10 +18,9 @@ end
 class CommandWhere < Command
 
     def initialize
-        super({
-            keywords: ["where"],
-            position: Position::REST
-        })
+        super()
+        @keywords = ["where"]
+        @position = Position::REST
     end
 
     def attempt( actor, cmd, args )
@@ -38,10 +37,9 @@ end
 class CommandWhitespace < Command
 
     def initialize
-        super({
-            keywords: [""],
-            priority: 99999,
-        })
+        super()
+        @keywords = [""]
+        @priority = 99999
     end
 
     def attempt( actor, cmd, args )
@@ -52,25 +50,22 @@ end
 
 class CommandWho < Command
 
-    def initialize
-        super({
-            keywords: ["who"],
-            priority: 200,
-        })
+    def initialize(continents)
+        super()
+        @keywords = ["who"]
+        @priority = 200
+        @continents = continents
     end
 
     def attempt( actor, cmd, args )
         targets = actor.target( { type: "Player", visible_to: actor } )
-        actor.output %Q(
-----==== Characters on Terra ====----
-
-#{ targets.select{ |t| t.room.continent == "terra" }.map(&:who).join("\n") }
-
-----==== Characters on Dominia ====----
-
-#{ targets.select{ |t| t.room.continent == "dominia" }.map(&:who).join("\n") }
-
-Players found: #{targets.count})
+        out = ""
+        @continents.each do |continent|
+            out += "----==== Characters #{continent.preposition} #{continent.name} ====----\n"
+            out += "\n#{ targets.select{ |t| t.room.continent == continent }.map(&:who).join("\n")}\n\n"
+        end
+        out += "Players found: #{targets.count}"
+        actor.output(out)
     end
 
 end

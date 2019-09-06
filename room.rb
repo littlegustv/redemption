@@ -2,7 +2,7 @@ class Room < GameObject
 
     attr_accessor :exits, :area, :continent
 
-    def initialize( name, description, sector, area, flags, hp_regen, mana_regen, continent, game, exits = {} )
+    def initialize( name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
         @exits.each do | direction, room |
             if not exits[ direction ].nil?
@@ -15,7 +15,8 @@ class Room < GameObject
         @flags = flags
         @hp_regen = hp_regen
         @mana_regen = mana_regen
-        @continent = continent
+        @continent = area.continent
+
         super name, game
     end
 

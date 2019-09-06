@@ -3,14 +3,12 @@ require_relative 'command.rb'
 class CommandYell < Command
 
     def initialize
-        super({
-            keywords: ["yell"],
-            position: Position::REST
-        })
+        super()
+
         @keywords = ["yell"]
+        @position = Position::REST
         @priority = 100
         @lag = 0
-        @position = Position::REST
     end
 
     def attempt( actor, cmd, args )

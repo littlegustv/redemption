@@ -3,10 +3,10 @@ require_relative 'command.rb'
 class CommandRecall < Command
 
     def initialize
-        super({
-            keywords: ["recall", "/"],
-            position: Position::STAND
-        })
+        super()
+
+        @keywords = ["recall", "/"]
+        @position = Position::STAND
     end
 
     def attempt( actor, cmd, args )
@@ -17,10 +17,9 @@ end
 class CommandRemove < Command
 
     def initialize
-        super({
-            keywords: ["remove"],
-            position: Position::REST
-        })
+        super
+        @keywords = ["remove"]
+        @position = Position::REST
     end
 
     def attempt( actor, cmd, args )
@@ -31,11 +30,10 @@ end
 class CommandRest < Command
 
     def initialize
-        super({
-            keywords: ["sit", "rest"],
-            position: Position::SLEEP,
-            usable_in_combat: false
-        })
+        super
+        @keywords = ["sit", "rest"]
+        @position = Position::SLEEP
+        @usable_in_combat = false
     end
 
     def attempt( actor, cmd, args )

@@ -20,9 +20,10 @@ class Game
         @players = Hash.new
         @items = []
         @mobiles = []
-        @rooms = []
-        @areas = []
-        @helps = []
+        @rooms = Hash.new
+        @areas = Hash.new
+        @helps = Hash.new
+        @continents = Hash.new
         @starting_room = nil
 
         @mobile_count = {}
@@ -204,11 +205,11 @@ Which alignment (G/N/E)?)
 
     def target( query = {} )
         targets = []
-        
+
         if query[:type].nil?
-            targets = @areas + @players.values + @items + @mobiles
+            targets = @areas.values + @players.values + @items + @mobiles
         else
-            targets += @areas              if query[:type].to_a.include? "Area"
+            targets += @areas.values       if query[:type].to_a.include? "Area"
             targets += @players.values     if query[:type].to_a.include? "Player"
             targets += @items              if query[:type].to_a.include? "Item"
             targets += @mobiles            if query[:type].to_a.include? "Mobile"
@@ -248,27 +249,27 @@ Which alignment (G/N/E)?)
     def reset
         @base_mob_resets.each do |reset_id, reset_data|
             reset = @mob_resets[reset_id]
-            if @mob_data[ reset[:mobileVnum] ]
-                if @mobile_count[ reset[:mobileVnum] ].to_i < reset[:roomMax]
-                    mob = load_mob( reset[:mobileVnum], @rooms_hash[ reset[:roomVnum] ] )
+            if @mob_data[ reset[:mobile_id] ]
+                if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max]
+                    mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
                     @mobiles.push mob
 
-                    @mobile_count[ reset[:mobileVnum] ] = @mobile_count[ reset[:mobileVnum] ].to_i + 1
+                    @mobile_count[ reset[:mobile_id] ] = @mobile_count[ reset[:mobile_id] ].to_i + 1
 
                     # inventory
-                    @inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
-                        if @item_data[ item_reset[:itemVnum] ]
-                            item = load_item( item_reset[:itemVnum], nil )
+                    @inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
+                        if @item_data[ item_reset[:item_id] ]
+                            item = load_item( item_reset[:item_id], nil )
                             mob.inventory.push item
                         else
-                            puts "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{@base_resets[item_reset_id][:area]}"
+                            puts "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@areas[@base_resets[item_reset_id][:area_id]]}"
                         end
                     end
 
                     #equipment
-                    @equipment_resets.select{ |id, equipment_reset| equipment_reset[:parent] == reset_id }.each do | item_reset_id, item_reset |
-                        if @item_data[ item_reset[:itemVnum] ]
-                            item = load_item( item_reset[:itemVnum], nil )
+                    @equipment_resets.select{ |id, equipment_reset| equipment_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
+                        if @item_data[ item_reset[:item_id] ]
+                            item = load_item( item_reset[:item_id], nil )
                             ["", "_1", "_2"].each do | modifier |
                                 slot = "#{item.wear_location}#{modifier}".to_sym
                                 if mob.equipment.key?( slot ) and mob.equipment[slot] == nil
@@ -277,7 +278,7 @@ Which alignment (G/N/E)?)
                                 end
                             end
                         else
-                            puts "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM VNUM: #{item_reset[:itemVnum]}, AREA: #{@base_resets[item_reset_id][:area]}"
+                            puts "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_resets[item_reset_id][:area_id]}"
                         end
                     end
 
@@ -285,46 +286,46 @@ Which alignment (G/N/E)?)
                 end
 
             else
-                puts "[Mob not found] RESET ID: #{reset[:id]}, MOB VNUM: #{reset[:mobileVnum]}"
+                puts "[Mob not found] RESET ID: #{reset[:id]}, MOB ID: #{reset[:mobile_id]}"
             end
         end
     end
 
-    def load_mob( vnum, room )
-        row = @mob_data[ vnum ]
+    def load_mob( id, room )
+        row = @mob_data[ id ]
         Mobile.new( {
-                vnum: vnum,
+                id: id,
                 keywords: row[:keywords].split(" "),
-                short_description: row[:shortDesc],
-                long_description: row[:longDesc],
-                full_description: row[:fullDesc],
+                short_description: row[:short_desc],
+                long_description: row[:long_desc],
+                full_description: row[:full_desc],
                 race: row[:race],
-                action_flags: row[:actFlags],
-                affect_flags: row[:affFlags],
+                action_flags: row[:act_flags],
+                affect_flags: row[:aff_flags],
                 alignment: row[:align].to_i,
                 # mobgroup??
-                hitroll: row[:hitroll].to_i,
-                hitpoints: dice( row[:hpDiceCount].to_i, row[:hpDiceSides].to_i ) + row[:hpDiceBonus].to_i,
+                hitroll: row[:hit_roll].to_i,
+                hitpoints: dice( row[:hp_dice_count].to_i, row[:hp_dice_sides].to_i ) + row[:hp_dice_bonus].to_i,
                 #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
                 hp_range: [500, 1000],
                 # mana: row[:manaRange].split("-").map(&:to_i).first,
-                manapoints: dice( row[:manaDiceCount].to_i, row[:manaDiceSides].to_i ) + row[:manaDiceBonus].to_i,
+                manapoints: dice( row[:mana_dice_count].to_i, row[:mana_dice_sides].to_i ) + row[:mana_dice_bonus].to_i,
                 movepoints: 100,
                 #damage_range: row[:damageRange].split("-").map(&:to_i),
                 damage_range: [10, 20],
                 damage: row[:damage].to_i,
-                damage_type: row[:handToHandNoun].split(" ").first, # pierce, slash, none, etc.
-                armor_class: [row[:acPierce], row[:acBash], row[:acSlash], row[:acMagic]],
-                offensive_flags: row[:offFlags],
-                immune_flags: row[:immFlags],
-                resist_flags: row[:resFlags],
-                vulnerable_flags: row[:vulnFlags],
-                starting_position: row[:startPos],
-                default_position: row[:defaultPos],
+                damage_type: row[:hand_to_hand_noun].split(" ").first, # pierce, slash, none, etc.
+                armor_class: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
+                offensive_flags: row[:off_flags],
+                immune_flags: row[:imm_flags],
+                resist_flags: row[:res_flags],
+                vulnerable_flags: row[:vuln_flags],
+                starting_position: row[:start_position],
+                default_position: row[:default_position],
                 sex: row[:sex],
                 wealth: row[:wealth].to_i,
-                form_flags: row[:formFlags],
-                parts: row[:partFlags],
+                form_flags: row[:form_flags],
+                parts: row[:part_flags],
                 size: row[:size],
                 material: row[:material],
                 level: row[:level]
@@ -334,40 +335,39 @@ Which alignment (G/N/E)?)
         )
     end
 
-    def load_item( vnum, room )
-        row = @item_data[ vnum ]
+    def load_item( id, room )
+        row = @item_data[ id ]
         data = {
-            short_description: row[:shortDesc],
-            long_description: row[:longDesc],
+            short_description: row[:short_desc],
+            long_description: row[:long_desc],
             keywords: row[:keywords].split(" "),
             weight: row[:weight].to_i,
             cost: row[:cost].to_i,
             type: row[:type],
             level: row[:level].to_i,
-            wear_location: row[:wearFlags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", ""),
+            wear_location: row[:wear_flags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", ""),
             material: row[:material],
-            extraFlags: row[:extraFlags],
+            extraFlags: row[:extra_flags],
             modifiers: {},
-            ac: @ac_data[ vnum ].to_h.values[1..4]
+            ac: @ac_data[ id ].to_h.values[1..4]
         }
-        @item_modifiers[ vnum ].to_a.each do |modifier|
+        @item_modifiers[ id ].to_a.each do |modifier|
             data[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
         end
         if row[:type] == "weapon"
-            weapon_info = @weapon_data[ vnum ]
-            dice_info = @dice_data[ vnum ]
-            if weapon_info and dice_info
+            weapon_info = @weapon_data[ id ]
+            if weapon_info
                 weapon_data = {
                     noun: weapon_info[:noun],
                     genre: weapon_info[:type],
                     flags: weapon_info[:flags].split(" "),
                     element: weapon_info[:element],
-                    dice_sides: dice_info[:sides].to_i,
-                    dice_count: dice_info[:count].to_i
+                    dice_sides: weapon_info[:dice_sides].to_i,
+                    dice_count: weapon_info[:dice_count].to_i
                 }
                 item = Weapon.new( data.merge( weapon_data ), self, room )
             else
-                puts "[Weapon and/or Dice data not found] ITEM VNUM: #{vnum}"
+                puts "[Weapon and/or Dice data not found] ITEM ID: #{id}"
                 item = Item.new( data, self, room )
             end
         else
@@ -385,80 +385,82 @@ Which alignment (G/N/E)?)
     # temporary content-creation
     def setup_game
 
-        # connect to database
+        continent_rows = @db[:continent_base].all
+        continent_rows.each do |row|
+            @continents[row[:id]] = Continent.new(row, self)
+        end
 
-        room_rows = @db[:RoomBase].all
-        exit_rows = @db[:RoomExit].all
-        area_rows = @db[:AreaBase].all
-
-        areas_hash = {}
         # create area objects
+        area_rows = @db[:area_base].all
         area_rows.each do |row|
-            @areas.push Area.new(
+            @areas[row[:id]] = Area.new(
                 {
+                    id: row[:id],
                     name: row[:name],
-                    continent: row[:continent],
+                    continent: @continents[row[:continent_id]],
                     age: row[:age],
                     builders: row[:builders],
                     credits: row[:credits],
                     questable: row[:questable],
+                    gateable: row[:gateable],
                     security: row[:security],
-                    vnumStart: row[:vnumStart],
-                    vnumEnd: row[:vnumEnd],
                     control: row[:control]
                 },
                 self
             )
-            areas_hash[row[:name]] = @areas.last
         end
 
-        # create a room_row[:vnum] hash, create rooms
-        @rooms_hash = {}
+        # create rooms
+        @item_modifiers = @db[:item_modifier].to_hash_groups(:item_id)
+        @ac_data = @db[:item_armor].to_hash(:item_id)
 
-        @item_modifiers = @db[:ItemModifier].to_hash_groups(:itemVnum)
-        @ac_data = @db[:itemac].to_hash(:itemVnum)
-
+        room_rows = @db[:room_base].all
         room_rows.each do |row|
-
-            @rooms.push Room.new( row[:name], row[:description], row[:sector], areas_hash[row[:area]], row[:flags].to_s.split(" "), row[:hp].to_i, row[:mana].to_i, row[:continent], self )
-            @rooms_hash[row[:vnum]] = @rooms.last
-            if row[:vnum] == 31000
-                @starting_room = @rooms.last
-            end
-
+            @rooms[row[:id]] = Room.new(
+                row[:name],
+                row[:description],
+                row[:sector],
+                @areas[row[:area_id]],
+                row[:flags].to_s.split(" "),
+                row[:hp_regen].to_i,
+                row[:mana_regen].to_i,
+                self
+            )
         end
+
+
+        @starting_room = @rooms[@db[:continent_base].to_hash(:id)[2][:starting_room_id]]
 
         # assign each exit to its room in the hash (if the destination exists)
+        exit_rows = @db[:room_exit].all
         exit_rows.each do |exit|
-            if @rooms_hash.key?(exit[:roomVnum]) && @rooms_hash.key?(exit[:toVnum])
-                @rooms_hash[exit[:roomVnum]].exits[exit[:direction].to_sym] = @rooms_hash[exit[:toVnum]]
+            if @rooms[exit[:room_id]] && @rooms[exit[:to_room_id]]
+                @rooms[exit[:room_id]].exits[exit[:direction].to_sym] = @rooms[exit[:to_room_id]]
             end
         end
 
         puts ( "Rooms loaded from database." )
 
-        @mob_data = @db[:mobilebase].as_hash(:vnum)
-        @item_data = @db[:itembase].as_hash(:vnum)
-        @weapon_data = @db[:ItemWeapon].as_hash(:itemVnum)
-        @dice_data = @db[:ItemDice].as_hash(:itemVnum)
+        @mob_data = @db[:mobile_base].as_hash(:id)
+        @item_data = @db[:item_base].as_hash(:id)
+        @weapon_data = @db[:item_weapon].as_hash(:item_id)
 
-        @mob_resets = @db[:resetmobile].as_hash(:id)
-        @inventory_resets = @db[:resetinventoryitem].as_hash(:id)
-        @equipment_resets = @db[:resetequippeditem].as_hash(:id)
-        @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
-        # @base_resets = @db[:resetbase].as_hash(:id)
+        @mob_resets = @db[:reset_mobile].as_hash(:reset_id)
+        @inventory_resets = @db[:reset_inventory_item].as_hash(:reset_id)
+        @equipment_resets = @db[:reset_equipped_item].as_hash(:reset_id)
+        # @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
+        @base_resets = @db[:reset_base].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
-
         reset
 
         puts( "Mob Data and Resets loaded from database.")
 
-        @areas.each do | area |
-            area.set_rooms (@rooms.select{ | room | room.area == area })
+        @areas.values.each do | area |
+            area.set_rooms (@rooms.values.select{ | room | room.area == area })
         end
 
-        @helps = @db[:HelpBase].all
-        @helps.each { |help| help[:keywords] = help[:keywords].split(" ") }
+        @helps = @db[:help_base].as_hash(:id)
+        @helps.each { |id, help| help[:keywords] = help[:keywords].split(" ") }
 
         puts ( "Helpfiles loaded from database." )
     end
@@ -484,7 +486,7 @@ Which alignment (G/N/E)?)
         CommandGet.new,
         CommandGoTo.new,
         CommandGroup.new,
-        CommandHelp.new( @helps ),
+        CommandHelp.new( @helps.values ),
         CommandInspect.new,
         CommandInventory.new,
         CommandKill.new,
@@ -507,18 +509,13 @@ Which alignment (G/N/E)?)
         CommandWear.new,
         CommandWhere.new,
         CommandWhitespace.new,
-        CommandWho.new,
+        CommandWho.new( @continents.values ),
         CommandYell.new,
     	]
     end
 
     def recall_room( continent )
-        room = (continent == "terra" ? @rooms_hash[3001] : @rooms_hash[31000])
-        return room
-    end
-
-    def area_with_name( name )
-        @areas.select { |area| area.name.fuzzy_match( name ) }.first
+        return @rooms[continent.recall_room_id]
     end
 
 end
