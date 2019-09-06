@@ -1,6 +1,6 @@
 class Player < Mobile
 
-    def initialize( name, game, room, client, thread )
+    def initialize( data, game, room, client, thread )
         @buffer = ""
         @delayed_buffer = ""
         @scroll = 40
@@ -9,11 +9,12 @@ class Player < Mobile
         @thread = thread
         @commands = []
         super({ 
-          keywords: [name], 
-          short_description: name, 
-          long_description: "#{name} the Master Rune Maker is here.", 
-          race: "Troll",
-          charclass: RunistClass.new
+          keywords: [data[:name]], 
+          short_description: data[:name], 
+          long_description: "#{data[:name]} the Master Rune Maker is here.", 
+          race: data[:race],
+          alignment: data[:alignment],
+          charclass: RunistClass.new,
         }, game, room)
     end
 

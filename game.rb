@@ -5,7 +5,8 @@ class Game
     attr_accessor :mobiles, :mobile_count
 
     def initialize( ip, port )
-
+        @races = ["Human", "Elf", "Dwarf", "Giant", "Hatchling", "Sliver", "Troll", "Gargoyle", "Kirre", "Marid"]
+        @classes = ["mage", "conjurer", "enchanter", "invoker", "cleric", "druid", "warrior", "paladin", "ranger", "thief", "runist", "monk", "artificer"]
 
         puts "Opening server on #{port}"
         if ip
@@ -45,10 +46,13 @@ class Game
         # each client runs on its own thread as well
         loop do
             thread = Thread.start(@server.accept) do |client|
+                login client, thread
+            end
+        end
+    end
 
-                name = nil
-                while name.nil?
-                    client.puts %Q(
+    def login( client, thread )
+        client.puts %Q(
 For all those who have sinned, there lies...
 
 REDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDE
@@ -68,27 +72,74 @@ EMPTIONREDEMPTIONR   ^^ ^   @@@@@@@@@     ^^   PTIONREDEMTIONRED
 NREDEIPTIONREDEMPTI  ^^^^   @@@@@@@@@   ^^^^  TIONREDEMPTIONREDE
 REDEMPTIONREDEMPTIONR                        EDEMPTIONREDEMPTION
 EMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPT
+)
+        name = nil
+        client.puts "By what name do you wish to be known?"
+        while name.nil?
+            name = client.gets.chomp.to_s
 
-By what name do you wish to be known?)
-                    name = client.gets.chomp.to_s
-
-                    if name.length <= 2
-                        client.puts "Your name must be at least three characters.\n\r"
-                        name = nil
-                    elsif @players.has_key? name
-                        client.puts "That name is already in use, try another.\n\r"
-                        name = nil
-                    else
-                        client.puts "Welcome, #{name}."
-                        broadcast "#{name} has joined the world.", target
-                        @players[name] = Player.new( name, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
-                        client.puts "Users Online: [#{ @players.keys.join(', ') }]\n\r"
-                        @players[name].input_loop
-                    end
-                end
-
+            if name.length <= 2
+                client.puts "Your name must be at least three characters.\n\r"
+                name = nil
+            elsif @players.has_key? name
+                client.puts "That name is already in use, try another.\n\r"
+                name = nil
+            else
             end
         end
+
+        race = nil
+        while race.nil?
+            client.puts %Q(
+The following races are available:
+#{@races.map{ |race| race.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n")}
+
+What is your race (help for more information)?)
+            race = client.gets.chomp.to_s
+
+            unless @races.include? race
+                puts "You must choose a valid race!"
+                race = nil
+            end
+        end
+
+        charclass = nil
+        while charclass.nil?
+            client.puts %Q(
+Select a class
+---------------
+#{@classes.join("\n")}
+:)
+            charclass = client.gets.chomp.to_s
+
+            unless @classes.include? charclass
+                puts "Invalid class!"
+                charclass = nil
+            end
+        end
+
+        alignment = nil
+        while alignment.nil?
+            client.puts %Q(
+You may be good, neutral, or evil.
+Which alignment (G/N/E)?)
+            case client.gets.chomp.to_s
+            when "G"
+                alignment = 1000
+            when "N"
+                alignment = 0
+            when "E"
+                alignment = -1000
+            else
+                client.puts "Please type G N or E OMG!"
+            end
+        end
+
+        client.puts "Welcome, #{name}."
+        broadcast "#{name} has joined the world.", target
+        @players[name] = Player.new( { alignment: alignment, name: name, race: race, charclass: charclass }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
+        client.puts "Users Online: [#{ @players.keys.join(', ') }]\n\r"
+        @players[name].input_loop
     end
 
     def game_loop
@@ -394,8 +445,8 @@ By what name do you wish to be known?)
         @mob_resets = @db[:resetmobile].as_hash(:id)
         @inventory_resets = @db[:resetinventoryitem].as_hash(:id)
         @equipment_resets = @db[:resetequippeditem].as_hash(:id)
-        # @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
-        @base_resets = @db[:resetbase].as_hash(:id)
+        @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
+        # @base_resets = @db[:resetbase].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
 
         reset
