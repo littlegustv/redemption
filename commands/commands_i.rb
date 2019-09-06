@@ -4,7 +4,7 @@ class CommandInspect < Command
 
     def initialize
         super()
-
+        @name = "inspect"
         @keywords = ["inspect"]
         @position = Position::REST
     end
@@ -22,7 +22,7 @@ class CommandInventory < Command
 
     def initialize
         super()
-
+        @name = "inventory"
         @keywords = ["inventory"]
     end
 

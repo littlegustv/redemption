@@ -6,13 +6,18 @@ class Command
         @priority = 100
         @keywords = ["CommandDefault"]
         @lag = 0
+        @name = "defaultcommand"
         @starts_combat = false
         @usable_in_combat = true
-        @position = Position::SLEEP
+        @position = Position::SLEEP        
     end
 
     def check( cmd )
         @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.any?
+    end
+
+    def to_s
+        @name
     end
 
     def execute( actor, cmd, args )

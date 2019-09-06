@@ -4,7 +4,7 @@ class CommandPeek < Command
 
     def initialize
         super()
-
+        @name = "peek"
         @keywords = ["peek"]
         @position = Position::REST
     end
@@ -27,7 +27,7 @@ class CommandPoison < Command
 
     def initialize
         super()
-
+        @name = "poison"
         @keywords = ["poison"]
         @position = Position::STAND
     end

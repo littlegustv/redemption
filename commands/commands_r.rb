@@ -4,7 +4,7 @@ class CommandRecall < Command
 
     def initialize
         super()
-
+        @name = "recall"
         @keywords = ["recall", "/"]
         @position = Position::STAND
     end
@@ -18,6 +18,7 @@ class CommandRemove < Command
 
     def initialize
         super
+        @name = "remove"
         @keywords = ["remove"]
         @position = Position::REST
     end
@@ -31,6 +32,7 @@ class CommandRest < Command
 
     def initialize
         super
+        @name = "sit"
         @keywords = ["sit", "rest"]
         @position = Position::SLEEP
         @usable_in_combat = false

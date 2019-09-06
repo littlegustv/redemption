@@ -4,7 +4,7 @@ class CommandSay < Command
 
     def initialize
         super()
-
+        @name = "say"
         @keywords = ["say", "'"]
         @position = Position::REST
     end
@@ -24,6 +24,7 @@ class CommandScore < Command
 
     def initialize
         super
+        @name = "score"
         @keywords = ["score"]
     end
 
@@ -32,10 +33,27 @@ class CommandScore < Command
     end
 end
 
+class CommandSkills < Command
+
+    def initialize
+        super
+        @name = "skills"
+        @keywords = ["skills"]
+    end
+
+    def attempt( actor, cmd, args )
+        actor.output %Q(Skills:
+Level  1: #{ actor.skills.each_slice(2).map{ |row| "#{row[0].ljust(18)} 100%      #{row[1].ljust(18)} 100%" }.join("\n" + " "*10)}
+        )
+    end
+
+end
+
 class CommandSleep < Command
 
     def initialize
         super
+        @name = "sleep"
         @keywords = ["sleep"]
         @usable_in_combat = false
     end
@@ -58,6 +76,7 @@ class CommandStand < Command
 
     def initialize
         super
+        @name = "stand"        
         @keywords = ["stand"]
     end
 

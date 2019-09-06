@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects, :group, :in_group
+    attr_accessor :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects, :group, :in_group, :skills
 
     def initialize( data, game, room )
         @game = game
@@ -13,6 +13,7 @@ class Mobile < GameObject
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
         @race = data[ :race ]
+        @skills = @game.skills( @race )
         @charclass = data[ :charclass ].nil? ? PlayerClass.new({}) : RunistClass.new
         @experience = 0
         @experience_to_level = 1000
@@ -49,7 +50,6 @@ class Mobile < GameObject
         @movepoints = data[:movepoints] || 100
         @basemovepoints = @movepoints
 
-
         @damage_range = data[:damage_range] || [ 2, 12 ]
         @noun = data[:attack] || ["entangle", "grep", "strangle", "pierce", "smother", "flaming bite"].sample
         @armor_class = data[:armor_class] || [0, 0, 0, 0]
@@ -59,6 +59,10 @@ class Mobile < GameObject
         @inventory = []
         @equipment = empty_equipment_set
         @game = game
+    end
+
+    def knows( skill_name )
+        @skills.include? skill_name
     end
 
     def empty_equipment_set
@@ -197,11 +201,12 @@ class Mobile < GameObject
         @equipment[:wield] ? @equipment[:wield].noun : @noun
     end
 
-    def hit( damage )
+    def hit( damage, custom_noun = nil )
+        hit_noun = custom_noun.nil? ? noun : custom_noun
         decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-        texts = ["Your #{decorators[2]} #{noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]",
-                 "%s's #{decorators[2]} #{noun} #{decorators[1]} you#{decorators[3]}",
-                 "%s's #{decorators[2]} #{noun} #{decorators[1]} %s#{decorators[3]} "]
+        texts = ["Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]",
+                 "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}",
+                 "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} "]
     end
 
     def damage( damage, attacker )
@@ -276,10 +281,10 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         if @room.exits[ direction.to_sym ].nil?
             output "There is no exit [#{direction}]."
         else
-            broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self]
+            broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
             output "You leave #{direction}."
             @room = @room.exits[ direction.to_sym ]
-            broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self]
+            broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
             look_room
             # cmd_look
         end

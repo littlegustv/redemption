@@ -4,7 +4,7 @@ class CommandDrop < Command
 
     def initialize
         super()
-
+        @name = "drop"
         @keywords = ["drop"]
         @lag = 0.5
         @position = Position::REST

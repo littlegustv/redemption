@@ -4,7 +4,7 @@ class CommandConsider < Command
 
     def initialize
         super()
-
+        @name = "consider"
         @keywords = ["consider"]
         @position = Position::REST
     end

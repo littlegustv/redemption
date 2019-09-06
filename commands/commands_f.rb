@@ -4,7 +4,7 @@ class CommandFlee < Command
 
     def initialize
         super()
-
+        @name = "flee"
         @keywords = ["flee"]
         @lag = 0.5
         @position = Position::STAND

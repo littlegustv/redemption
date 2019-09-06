@@ -4,7 +4,7 @@ class CommandYell < Command
 
     def initialize
         super()
-
+        @name = "yell"
         @keywords = ["yell"]
         @position = Position::REST
         @priority = 100

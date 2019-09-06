@@ -4,7 +4,7 @@ class CommandWear < Command
 
     def initialize
         super()
-()
+        @name = "wear"
         @keywords = ["wear", "hold", "wield"]
         @position = Position::REST
     end
@@ -19,6 +19,7 @@ class CommandWhere < Command
 
     def initialize
         super()
+        @name = "where"
         @keywords = ["where"]
         @position = Position::REST
     end
@@ -38,6 +39,7 @@ class CommandWhitespace < Command
 
     def initialize
         super()
+        @name = "whitespace"
         @keywords = [""]
         @priority = 99999
     end
@@ -52,6 +54,7 @@ class CommandWho < Command
 
     def initialize(continents)
         super()
+        @name = "who"
         @keywords = ["who"]
         @priority = 200
         @continents = continents

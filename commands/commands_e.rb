@@ -4,7 +4,7 @@ class CommandEquipment < Command
 
     def initialize
         super()
-
+        @name = "equipment"
         @keywords = ["equipment"]
     end
 
