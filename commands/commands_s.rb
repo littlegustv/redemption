@@ -3,10 +3,10 @@ require_relative 'command.rb'
 class CommandSay < Command
 
     def initialize
-        super({
-            keywords: ["say", "'"],
-            position: Position::REST
-        })
+        super()
+
+        @keywords = ["say", "'"]
+        @position = Position::REST
     end
 
     def attempt( actor, cmd, args )
@@ -23,9 +23,8 @@ end
 class CommandScore < Command
 
     def initialize
-        super({
-            keywords: ["score"],
-        })
+        super
+        @keywords = ["score"]
     end
 
     def attempt( actor, cmd, args )
@@ -36,10 +35,9 @@ end
 class CommandSleep < Command
 
     def initialize
-        super({
-            keywords: ["sleep"],
-            usable_in_combat: false
-        })
+        super
+        @keywords = ["sleep"]
+        @usable_in_combat = false
     end
 
     def attempt( actor, cmd, args )
@@ -59,9 +57,8 @@ end
 class CommandStand < Command
 
     def initialize
-        super({
-            keywords: ["stand"],
-        })
+        super
+        @keywords = ["stand"]
     end
 
     def attempt( actor, cmd, args )

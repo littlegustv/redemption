@@ -3,12 +3,12 @@ require_relative 'command.rb'
 class CommandKill < Command
 
     def initialize
-        super({
-            keywords: ["kill", "hit"],
-            lag: 0.5,
-            starts_combat: true,
-            position: Position::STAND,
-        })
+        super()
+
+        @keywords = ["kill", "hit"]
+        @lag = 0.5
+        @starts_combat = true
+        @position = Position::STAND
     end
 
     def attempt( actor, cmd, args )

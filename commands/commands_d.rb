@@ -3,11 +3,11 @@ require_relative 'command.rb'
 class CommandDrop < Command
 
     def initialize
-        super({
-            keywords: ["drop"],
-            lag: 0.5,
-            position: Position::REST
-        })
+        super()
+
+        @keywords = ["drop"]
+        @lag = 0.5
+        @position = Position::REST
     end
 
     def attempt( actor, cmd, args )

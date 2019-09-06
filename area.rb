@@ -1,16 +1,15 @@
 class Area < GameObject
 
-    attr_reader :continent, :rooms, :age, :builders, :credits, :questable, :security, :vnumStart, :vnumEnd, :control
+    attr_reader :continent, :rooms, :age, :builders, :credits, :gateable, :questable, :security, :control
 
 	def initialize( data, game )
 		@continent = data[:continent]
         @age = data[:age]
         @builders = data[:builders]
         @credits = data[:credits]
+        @gateable = data[:gateable]
         @questable = data[:questable]
         @security = data[:security]
-        @vnumStart = data[:vnumStart]
-        @vnumEnd = data[:vnumEnd]
         @control = data[:control]
         @rooms = []
 		super data[:name], game

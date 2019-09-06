@@ -1,58 +1,58 @@
 require_relative 'command.rb'
 
 class CommandGroup < Command
-  def initialize
-    super({
-      keywords: ["group"],
-      position: Position::REST
-    })
-  end
+    def initialize
+        super()
 
-  def attempt( actor, cmd, args )
-    # Display group status
-
-    if args.empty?
-      actor.output actor.group_info
-      return
+        @keywords = ["group"]
+        @position = Position::REST
     end
 
-    # Check if already in a group
+    def attempt( actor, cmd, args )
+        # Display group status
 
-    unless actor.in_group.nil?
-      actor.output "You're already in a group."
-      return
+        if args.empty?
+            actor.output actor.group_info
+            return
+        end
+
+        # Check if already in a group
+
+        unless actor.in_group.nil?
+            actor.output "You're already in a group."
+            return
+        end
+
+        # Look for a target
+
+        if ( target = actor.target({
+            type: ["Player"],
+            visible_to: actor,
+            keyword: args.first.to_s,
+            not: actor
+        }).first )
+
+        if actor.group.include? target
+            target.remove_from_group
+        elsif target.in_group.nil? and target.group.empty?
+            target.add_to_group(actor)
+        else
+            actor.output "They're already in a group."
+        end
+
+        else
+            actor.output "You can't find them."
+        end
     end
-
-    # Look for a target
-
-    if ( target = actor.target({
-        type: ["Player"],
-        visible_to: actor,
-        keyword: args.first.to_s,
-        not: actor
-      }).first )
-
-      if actor.group.include? target
-        target.remove_from_group
-      elsif target.in_group.nil? and target.group.empty?
-        target.add_to_group(actor)
-      else
-        actor.output "They're already in a group."
-      end
-
-    else
-      actor.output "You can't find them."
-    end
-  end
 end
 
 class CommandGet < Command
 
     def initialize
-        super({
-            keywords: ["get", "take"],
-            position: Position::REST
-        })
+        super()
+
+        @keywords = ["get", "take"]
+        @position = Position::REST
     end
 
     def attempt( actor, cmd, args )
@@ -72,9 +72,9 @@ end
 class CommandGoTo < Command
 
     def initialize
-        super({
-            keywords: ["goto"],
-        })
+        super()
+
+        @keywords = ["goto"]
     end
 
     def attempt( actor, cmd, args )

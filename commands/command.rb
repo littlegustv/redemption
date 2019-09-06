@@ -2,15 +2,13 @@ class Command
 
     attr_reader :priority
 
-    def initialize( options )
+    def initialize
         @priority = 100
         @keywords = ["CommandDefault"]
         @lag = 0
         @starts_combat = false
         @usable_in_combat = true
         @position = Position::SLEEP
-        
-        instance_options_try(options)
     end
 
     def check( cmd )
