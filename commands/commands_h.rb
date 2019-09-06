@@ -4,7 +4,7 @@ class CommandHelp < Command
 
     def initialize( helps )
         super()
-()
+        
         @keywords = ["help"]
         @helps = helps
     end

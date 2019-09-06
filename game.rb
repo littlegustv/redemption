@@ -36,8 +36,7 @@ class Game
         puts( "Redemption is ready to rock on port #{port}!" )
 
         @start_time = Time.now
-        @interval = 0
-        @clock = 0
+        @frame_count = 0
 
         # game update loop runs on a single thread
         Thread.start do
@@ -145,32 +144,27 @@ Which alignment (G/N/E)?)
 
     def game_loop
         loop do
-            new_time = Time.now
-            dt = new_time - @start_time
-            @start_time = new_time
+            @frame_count += 1
 
-            @interval += dt
-            # each update FRAME
-            if @interval > ( 1.0 / Constants::FPS )
-                @interval = 0
-                @clock += 1
-
-                update( 1.0 / Constants::FPS )
-                send_to_client
-
-                # each combat ROUND
-                if @clock % Constants::ROUND == 0
-                    combat
-                end
-
-                if @clock % Constants::TICK == 0
-                    tick
-                end
-
-                if @clock % Constants::RESET == 0
-                    reset
-                end
+            # each combat ROUND
+            if @frame_count % Constants::ROUND == 0
+                combat
             end
+
+            if @frame_count % Constants::TICK == 0
+                tick
+            end
+
+            if @frame_count % Constants::RESET == 0
+                reset
+            end
+
+            update( 1.0 / Constants::FPS )
+            send_to_client
+
+            # Sleep until the next frame
+            sleep_time = (1.0 / Constants::FPS)
+            sleep(sleep_time)
         end
     end
 
