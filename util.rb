@@ -28,9 +28,9 @@ class String
   end
 
   def to_query
-    if self == "all" 
+    if self == "all"
         { offset: 0, quantity: "all", keyword: [""] }
-    else 
+    else
         {
             offset: self.match(/(\d+|all)\./).to_a.last,
             quantity: self.match(/(\d+|all)\*/).to_a.last,
@@ -39,4 +39,8 @@ class String
     end
   end
 
+end
+
+def dice( count, sides )
+    count.times.collect{ rand(1..sides) }.sum
 end

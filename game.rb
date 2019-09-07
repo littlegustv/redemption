@@ -5,22 +5,26 @@ class Game
     attr_accessor :mobiles, :mobile_count
 
     def initialize( ip, port )
-        @races = ["Human", "Elf", "Dwarf", "Giant", "Hatchling", "Sliver", "Troll", "Gargoyle", "Kirre", "Marid"]
-        @classes = ["mage", "conjurer", "enchanter", "invoker", "cleric", "druid", "warrior", "paladin", "ranger", "thief", "runist", "monk", "artificer"]
+
+        @players = Hash.new
+        @items = []
+        @item_data = Hash.new
+        @mobiles = []
+        @mobile_data = Hash.new
+        @mobile_count = {}
+        @rooms = Hash.new
+        @areas = Hash.new
+        @helps = Hash.new
+        @continents = Hash.new
+        @game_settings = Hash.new
+        @starting_room = nil
+        @start_time = Time.now
+        @frame_count = 0
+
+        @race_data = []
+        @class_data = []
 
         # eventually load these from the database
-        @race_skills = {
-            Elf: ["sword", "sneak"],
-            Dwarf: ["berserk", "axe"],
-            Giant: ["fast healing", "bash", "bashdoor"],
-            Hatchling: ["enhanced damage", "hand to hand",],
-            Sliver: ["hand to hand"],
-            Troll: ["regeneration", "axe"],
-            Gargoyle: ["living stone", "polearm", "enhanced damage"],
-            Kirre: ["whip", "disarm" ],
-            Marid: ["flail", "essence", "hurricane"],
-        }
-
         puts "Opening server on #{port}"
         if ip
             @server = TCPServer.open( ip, port )
@@ -29,27 +33,12 @@ class Game
         end
 
         sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
-
-        @players = Hash.new
-        @items = []
-        @mobiles = []
-        @rooms = Hash.new
-        @areas = Hash.new
-        @helps = Hash.new
-        @continents = Hash.new
-        @starting_room = nil
-
-        @mobile_count = {}
-
         @db = Sequel.mysql2( :host => sql_host, :username => sql_username, :password => sql_password, :database => "redemption" )
         setup_game
 
         make_commands
 
         puts( "Redemption is ready to rock on port #{port}!" )
-
-        @start_time = Time.now
-        @frame_count = 0
 
         # game update loop runs on a single thread
         Thread.start do
@@ -65,28 +54,7 @@ class Game
     end
 
     def login( client, thread )
-        client.puts %Q(
-For all those who have sinned, there lies...
-
-REDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDE
-MPTIONREDEMPTIONREDEMPTIONRE           PTIONREDEMPTIONREDEMPTION
-REDEMPTIONREDEMPTIONREDM      @@@@@@@       TIONREDEMTIONREDMETI
-NIONREDEMPTIONREDEMPT    @@@@       @@@@     ONTIONREDEMPTIONRED
-EMPTIONREDEMPTIONRE     @@@    @@@@     @@     EPTIONREDEMPTIONR
-EDEMPTIONREDEMPTIO     @@@    @@@@@@     @@     EDEMPTIONREDEMPT
-IONREDEMPTIONREDE     @@@     @@@@@@    @@@     IONREADEMPTIONRE
-EMPTIONREDEMPTIO       @@@    @@@@@@   @@@       EDEMPTIONREDEMP
-TIONREDEMPTIONR         @@@@   @@@@  @@@@         MPTIONREDEMPTI
-ONREDMEPTIONREDE  ^      @@@@@@@@@@@@@@@   ^     MTIONREDEMPTION
-NTIONREDEMTIONRE    ^^     @@@@@@@@@@@@ ^  ^^ ^  MPTIONREDEMPTIO
-REDEMEPTIONREDEMP   ^^  ^^  @@@@@@@@@@   ^^ ^   IONREDEMPTIONRED
-REDEMPTIONREDEMPT   ^ ^^ ^  @@@@@@@@@     ^^ ^  NREDEMPTIONREDEM
-EMPTIONREDEMPTIONR   ^^ ^   @@@@@@@@@     ^^   PTIONREDEMTIONRED
-NREDEIPTIONREDEMPTI  ^^^^   @@@@@@@@@   ^^^^  TIONREDEMPTIONREDE
-REDEMPTIONREDEMPTIONR                        EDEMPTIONREDEMPTION
-EMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPT
-
-)
+        client.puts @game_settings[:login_splash]
         name = nil
         client.puts "By what name do you wish to be known?"
         while name.nil?
@@ -103,31 +71,40 @@ EMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPTIONREDEMPT
         end
 
         race = nil
+        player_race_data = @race_data.select{ |key, value| value[:player_race] == 1 }
+        player_race_names = player_race_data.keys
         while race.nil?
+
             client.puts %Q(
 The following races are available:
-#{@races.map{ |race| race.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n")}
+#{player_race_names.map{ |name| name.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n")}
 
 What is your race (help for more information)?)
-            race = client.gets.chomp.to_s.capitalize_first
-
-            unless @races.include? race
-                puts "You must choose a valid race!"
+            race_input = client.gets.chomp
+            race_matches = player_race_names.select{ |name| name.fuzzy_match(race_input) }
+            if race_matches.any?
+                race = @race_data[race_matches.first]
+            else
+                client.puts "You must choose a valid race!"
                 race = nil
             end
         end
 
         charclass = nil
+        class_names = @class_data.keys
         while charclass.nil?
             client.puts %Q(
 Select a class
 ---------------
-#{@classes.join("\n")}
+#{class_names.join("\n")}
 :)
-            charclass = client.gets.chomp.to_s
-
-            unless @classes.include? charclass
-                puts "Invalid class!"
+            charclass =
+            class_input = client.gets.chomp.to_s
+            class_matches = class_names.select{ |name| name.fuzzy_match(class_input) }
+            if class_matches.any?
+                charclass = @class_data[class_matches.first]
+            else
+                client.puts "Invalid class!"
                 charclass = nil
             end
         end
@@ -205,10 +182,6 @@ Which alignment (G/N/E)?)
         targets.each do | player |
             player.output( message, objects )
         end
-    end
-
-    def dice( count, sides )
-        count.times.collect{ rand(1..sides) }.sum
     end
 
     def target( query = {} )
@@ -307,12 +280,12 @@ Which alignment (G/N/E)?)
                 short_description: row[:short_desc],
                 long_description: row[:long_desc],
                 full_description: row[:full_desc],
-                race: row[:race],
+                race: @race_data[row[:race]] || {name: row[:race]},
                 action_flags: row[:act_flags],
                 affect_flags: row[:aff_flags],
                 alignment: row[:align].to_i,
                 # mobgroup??
-                hitroll: row[:hit_roll].to_i,
+                hitroll: row[:hitroll].to_i,
                 hitpoints: dice( row[:hp_dice_count].to_i, row[:hp_dice_sides].to_i ) + row[:hp_dice_bonus].to_i,
                 #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
                 hp_range: [500, 1000],
@@ -322,7 +295,7 @@ Which alignment (G/N/E)?)
                 #damage_range: row[:damageRange].split("-").map(&:to_i),
                 damage_range: [10, 20],
                 damage: row[:damage].to_i,
-                damage_type: row[:hand_to_hand_noun].split(" ").first, # pierce, slash, none, etc.
+                damage_type: row[:hand_to_hand_noun].split("").first, # pierce, slash, none, etc.
                 armor_class: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
                 offensive_flags: row[:off_flags],
                 immune_flags: row[:imm_flags],
@@ -390,8 +363,24 @@ Which alignment (G/N/E)?)
         end
     end
 
-    # temporary content-creation
     def setup_game
+
+        @game_settings = @db[:game_settings].all.first
+        @race_data = @db[:race_base].to_hash(:name)
+        @race_data.each do |key, value|
+            value[:skills] = value[:skills].split(",")
+            value[:spells] = value[:spells].split(",")
+            value[:immune_flags] = value[:immune_flags].split(",")
+            value[:resist_flags] = value[:resist_flags].split(",")
+            value[:vuln_flags] = value[:vuln_flags].split(",")
+            value[:part_flags] = value[:part_flags].split(",")
+            value[:form_flags] = value[:form_flags].split(",")
+        end
+        @class_data = @db[:class_base].to_hash(:name)
+        @class_data.each do |key, value|
+            value[:skills] = value[:skills].split(",")
+            value[:spells] = value[:spells].split(",")
+        end
 
         continent_rows = @db[:continent_base].all
         continent_rows.each do |row|
@@ -473,12 +462,8 @@ Which alignment (G/N/E)?)
         puts ( "Helpfiles loaded from database." )
     end
 
-    def skills( race )
-        @race_skills[ race.to_sym ].to_a
-    end
-
     def do_command( actor, cmd, args = [] )
-        matches = ( 
+        matches = (
             @commands.select { |command| command.check( cmd ) } +
             @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
         ).sort_by(&:priority)
@@ -526,7 +511,7 @@ Which alignment (G/N/E)?)
             CommandWhitespace.new,
             CommandWho.new( @continents.values ),
             CommandYell.new,
-    	]        
+    	]
         @skills = [
             SkillSneak.new,
             SkillBerserk.new,
