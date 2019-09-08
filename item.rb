@@ -36,10 +36,6 @@ class Item < GameObject
         return @modifiers[ key ].to_i
     end
 
-    # def armor( index )
-    #     @ac[ index ].to_i
-    # end
-
 =begin
 Object 'A Quicksilver Katar named "Eye-Sting"' is of type weapon. [Clanner Only]
 Description: A punch dagger made of quicksilver is here.

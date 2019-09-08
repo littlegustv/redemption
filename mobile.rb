@@ -219,25 +219,40 @@ class Mobile < GameObject
         @equipment[:wield] ? @equipment[:wield].noun : @noun
     end
 
-    def elemental_effect( target, element, noun )
-        case element
-        when "flooding"
-            target.output "You are enveloped in water and start to drown!"
-            target.broadcast "%s is enveloped in water by #{noun}!", target({ not: target, room: @room }), [target]
-            if rand(1..10) <= Constants::ELEMENTAL_CHANCE
+    def elemental_flag( flag, weapon )
+        texts = Constants::ELEMENTAL_EFFECTS[ flag ]
+        output texts[0]
+        broadcast texts[1], target({ not: target, room: @room }), [target, weapon]
+    end
+
+    def elemental_effect( target, element )
+        if rand(1..10) <= Constants::ELEMENTAL_CHANCE
+            case element
+            when "flooding"
                 target.broadcast "%s coughes and chokes on the water.", target({ not: target, room: @room }), [target]
                 target.output "You cough and choke on the water."
-                target.affects.push( AffectSlow.new( target, ["flooding", "slow"], 30, { attack_speed: -1, dex: -1 } ) )
-            end
-        when "shocking"
-            target.output "You are struck by crackling lightning!"
-            target.broadcast "%s is shocked by #{noun}'s crackling lightning!", target({not: target, room: @room}), [target]
-            if rand(1..10) <= Constants::ELEMENTAL_CHANCE
+                target.affects.push( Affect.new( target, ["flooding", "slow"], 30, { attack_speed: -1, dex: -1 } ) )
+            when "shocking"
                 target.broadcast "%s jerks and twitches from the shock!", target({ not: target, room: @room }), [target]
                 target.output "Your muscles stop responding."
-                target.affects.push( AffectStun.new( target, ["shocking", "stun"], 30, { success: -25 } ) )
+                target.affects.push( Affect.new( target, ["shocking", "stun"], 30, { success: -10 } ) )
+            when "corrosive"
+                target.broadcast "%s flesh burns away, revealing vital areas!", target({ not: target, room: @room }), [target]
+                target.output "Chunks of your flesh melt away, exposing vital areas!"
+                target.affects.push( Affect.new( target, ["corrosive"], 30, { ac_pierce: -10, ac_slash: -10, ac_bash: -10 } ) )
+            when "poison"
+                target.broadcast "%s looks very ill.", target({ not: target, room: @room }), [target]
+                target.output "You feel poison coursing through your veins."
+                target.affects.push( AffectPoison.new( target, ["poison"], 30, { con: -1 } ) )
+            when "fire"
+                target.broadcast "%s is blinded by smoke!", target({ not: target, room: @room }), [target]
+                target.output "Your eyes tear up from smoke...you can't see a thing!"
+                target.affects.push( AffectBlind.new( target, ["smoke", "blind"], 30, { hitroll: -5 } ) )
+            when "cold"
+                target.broadcast "%s turns blue and shivers.", target({ not: target, room: @room }), [target]
+                target.output "A chill sinks deep into your bones."
+                target.affects.push( Affect.new( target, ["cold"], 30, { str: -2 } ) )
             end
-        else
         end
     end
 
@@ -251,8 +266,8 @@ class Mobile < GameObject
         target.output "%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]
         broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]        
 
-        elemental_effect( target, element, noun )
-        elemental_effect( target, element, noun ) if knows "essence"
+        elemental_effect( target, element )
+        elemental_effect( target, element ) if knows "essence"
 
         target.damage( damage, self )
     end

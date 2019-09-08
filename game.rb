@@ -538,6 +538,10 @@ Which alignment (G/N/E)?)
         @spells = [
             SpellHurricane.new,
             SpellLightningBolt.new,
+            SpellAcidBlast.new,
+            SpellBlastOfRot.new,
+            SpellIceBolt.new,
+            SpellPyrotechnics.new,
         ]
     end
 

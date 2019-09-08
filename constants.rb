@@ -14,10 +14,8 @@ end
 
 module Constants
 
-    WEAPON_ELEMENTS = [
-        "pierce", "bash", "slash", "magic"
-    ]
-
+    # chance (out of ten) of an elemental flag effect
+    
     ELEMENTAL_CHANCE = 3
 
     FPS = 30
@@ -80,6 +78,11 @@ module Constants
         130 => ["<! VAPORIZES !>", " completely", "!"],
         149 => ["<<< ERADICATES >>>", "", "!"],
         150 => ["does {RUNSPEAKABLE{x things to", "", "!!"],
+    }
+
+    ELEMENTAL_EFFECTS = {
+        "shocking" => [ "You are struck by crackling lightning!", "%s is shocked by %s's crackling lightning!" ],
+        "flooding" => [ "You are enveloped in water and start to drown!", "%s is enveloped in water by %s!" ],
     }
 
     PARTS = [

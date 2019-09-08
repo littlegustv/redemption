@@ -14,7 +14,7 @@ class Affect
     end
 
     def start
-        @target.output "Affect has started: #{@duration} seconds remain."
+        # @target.output "Affect has started: #{@duration} seconds remain."
     end
 
     def update( elapsed )
@@ -34,7 +34,7 @@ class Affect
     end
 
     def complete
-        @target.output "Affect has worn off."
+        # @target.output "Affect has worn off."
     end
 
     def check( key )
