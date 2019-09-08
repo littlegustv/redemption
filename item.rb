@@ -15,8 +15,7 @@ class Item < GameObject
         @extraFlags = data[:extraFlags]
         @modifiers = data[:modifiers].merge( data[:ac] )
         # @ac = data[:ac] || [0,0,0,0]
-        puts @modifiers
-
+   
         @room = room
         @game = game
     end
@@ -37,9 +36,9 @@ class Item < GameObject
         return @modifiers[ key ].to_i
     end
 
-    def armor( index )
-        @ac[ index ].to_i
-    end
+    # def armor( index )
+    #     @ac[ index ].to_i
+    # end
 
 =begin
 Object 'A Quicksilver Katar named "Eye-Sting"' is of type weapon. [Clanner Only]

@@ -43,10 +43,10 @@ class Mobile < GameObject
             hitroll: data[:hitroll] || rand(5...7),
             damroll: data[:damage] || 50,
             attack_speed: 1,
-            armor_pierce: data[:armor_class].to_a[0].to_i,
-            armor_bash: data[:armor_class].to_a[1].to_i,
-            armor_slash: data[:armor_class].to_a[2].to_i,
-            armor_magic: data[:armor_class].to_a[3].to_i,
+            ac_pierce: data[:ac].to_a[0].to_i,
+            ac_bash: data[:ac].to_a[1].to_i,
+            ac_slash: data[:ac].to_a[2].to_i,
+            ac_magic: data[:ac].to_a[3].to_i,
         }
         if @class
 
@@ -521,8 +521,8 @@ HitRoll:   #{ stat(:hitroll).to_s.ljust(26)} DamRoll:   #{ stat(:damroll) }
 DamResist: #{ stat(:damresist).to_s.ljust(26) } MagicDam:  #{ stat(:magicdam) }
 AttackSpd: #{ stat(:attack_speed) }
 --------------------------------- Armour --------------------------------
-Pierce:    #{ (-1 * stat(:armor_pierce)).to_s.ljust(26) } Bash:      #{ -1 * stat(:armor_bash) }
-Slash:     #{ (-1 * stat(:armor_slash)).to_s.ljust(26) } Magic:     #{ -1 * stat(:armor_magic) }
+Pierce:    #{ (-1 * stat(:ac_pierce)).to_s.ljust(26) } Bash:      #{ -1 * stat(:ac_bash) }
+Slash:     #{ (-1 * stat(:ac_slash)).to_s.ljust(26) } Magic:     #{ -1 * stat(:ac_magic) }
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
 You are #{Position::STRINGS[ @position ]}.

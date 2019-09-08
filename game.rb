@@ -295,7 +295,7 @@ Which alignment (G/N/E)?)
                 damage_range: [10, 20],
                 damage: row[:damage].to_i,
                 damage_type: row[:hand_to_hand_noun].split("").first, # pierce, slash, none, etc.
-                armor_class: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
+                ac: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
                 offensive_flags: row[:off_flags],
                 immune_flags: row[:imm_flags],
                 resist_flags: row[:res_flags],
@@ -444,8 +444,8 @@ Which alignment (G/N/E)?)
         @mob_resets = @db[:reset_mobile].as_hash(:reset_id)
         @inventory_resets = @db[:reset_inventory_item].as_hash(:reset_id)
         @equipment_resets = @db[:reset_equipped_item].as_hash(:reset_id)
-        # @base_resets = @db[:resetbase].where( area: "Shandalar" ).as_hash(:id)
-        @base_resets = @db[:reset_base].as_hash(:id)
+        @base_resets = @db[:reset_base].where( area_id: 17 ).as_hash(:id)
+        # @base_resets = @db[:reset_base].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
         reset
 
