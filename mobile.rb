@@ -158,9 +158,9 @@ class Mobile < GameObject
     end
 
     def start_combat( attacker )
-        # if they are already fighting you, i.e. they started it
         @position = Position::FIGHT
-        if attacker && attacker.attacking == self
+        # if we are already fighting them, ignore
+        if attacker && attacker.attacking == self && @attacking != attacking
             do_command "yell 'Help I am being attacked by #{attacker}!'"
         end
         if @attacking.nil?
@@ -212,6 +212,16 @@ class Mobile < GameObject
 
     def noun
         @equipment[:wield] ? @equipment[:wield].noun : @noun
+    end
+
+    def magic_hit( target, damage, noun = "spell", element = "spell" )
+        self.start_combat( target )
+        target.start_combat( self )
+        decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+        output "Your #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", [target]
+        target.output "%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]
+        broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]
+        target.damage( damage, self )
     end
 
     def hit( damage, custom_noun = nil )
@@ -442,6 +452,11 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
 
     def armor(index)
         @armor_class[index].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.armor( index ).to_i }.reduce(0, :+)
+    end
+
+    def cast( spell, args )
+        @casting = spell
+        @casting_args = args
     end
 
     def score

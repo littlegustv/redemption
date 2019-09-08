@@ -64,14 +64,36 @@ class Spell < Command
 		translation.downcase
 	end
 
-	def execute( actor, cmd, args )
+	def cast( actor, spell, args )
 		if not actor.use_mana( @mana )
-			actor.output "You don't have enough mana"		
-		elsif super( actor, cmd, args )
+			actor.output "You don't have enough mana"
+		else
 			actor.output "You utter the words '#{translate( @name )}'"
 			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, room: actor.room, type: ["Mobile", "Player"] }), [actor]
-		else
+			actor.lag += @lag        
+			actor.cast( self, args )
 		end
 	end
+
+    def execute( actor, cmd, args )
+        if actor.position < @position # Check position
+            case actor.position
+            when Position::SLEEP
+                actor.output "In your dreams, or what?"
+            when Position::REST
+                actor.output "Nah... You feel too relaxed..."
+            else
+                actor.output "You can't quite get comfortable enough."
+            end
+            return false
+        end
+        if actor.position >= Position::FIGHT && !@usable_in_combat
+            actor.output "No way! You're still fighting!"
+            return false
+        end
+
+        attempt( actor, cmd, args )
+        return true
+    end
 
 end

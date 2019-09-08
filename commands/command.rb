@@ -1,6 +1,6 @@
 class Command
 
-    attr_reader :priority
+    attr_reader :priority, :name
 
     def initialize
         @priority = 100

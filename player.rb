@@ -98,11 +98,15 @@ class Player < Mobile
     end
 
     def update( elapsed )
-    	if @lag > 0
-    		@lag -= elapsed
-    	elsif @commands.length > 0
-    		do_command @commands.shift
-    	end
+        if @lag > 0
+            @lag -= elapsed
+        elsif @casting
+            @casting.execute( self, @casting.name, @casting_args )
+            @casting = nil
+            @casting_args = []
+        elsif @commands.length > 0
+            do_command @commands.shift
+        end
         super( elapsed )
     end
 

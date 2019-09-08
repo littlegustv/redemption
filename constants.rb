@@ -52,6 +52,34 @@ module Constants
 		150 => ['do UNSPEAKABLE things to', 'does UNSPEAKABLE things to', 'ultimate', '!']
     }
 
+    MAGIC_DAMAGE_DECORATORS = {
+        0 => ["misses", "", "."],
+        4 => ["scratches", "", "."],
+        8 => ["grazes"," slightly","."],
+        12 => ["hits", " squarely", "."],
+        16 => ["injures", "", "."],
+        20 => ["wounds", " badly", "."],
+        25 => ["mauls", "", "!"],
+        30 => ["maims", "", "!"],
+        35 => ["decimates", "", "!"],
+        40 => ["devastates", ", leaving a hole", "!"],
+        45 => ["MUTILATES", " severely", "!"],
+        50 => ["DISEMBOWELS", ", causing bleeding", "!"],
+        55 => ["DISMEMBERS", ", blood flows", "!"],
+        60 => ["MANGLES", ", bringing screams", "!"],
+        65 => ["** DEMOLISHES **", " with skill", "!"],
+        70 => ["*** CRIPPLES ***", " for life", "!"],
+        75 => ["*= WRECKS =*", "", "!"],
+        80 => ["=*= BLASTS =*=", ", charring flesh", "!"],
+        90 => ["=== ANNIHILATES ===", "", "!"],
+        100 => ["=== OBLITERATES ===", "", "!"],
+        110 => [">> DESTROYS <<", " almost completely", "!"],
+        120 => [">>> MASSACRES <<<", " like a lamb at slaughter", "!"],
+        130 => ["<! VAPORIZES !>", " completely", "!"],
+        149 => ["<<< ERADICATES >>>", "", "!"],
+        150 => ["does {RUNSPEAKABLE{x things to", "", "!!"],
+    }
+
     PARTS = [
     	"brains"
     ]

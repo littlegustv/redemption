@@ -467,17 +467,25 @@ Which alignment (G/N/E)?)
             matches = @spells.select{ |spell| 
                 spell.check( spell_name ) && actor.knows( spell.to_s ) 
             }.sort_by(&:priority)
+
+            if matches.any?
+                matches.last.cast( actor, cmd, args )
+                return
+            else
+                actor.output "You don't have any spells of that name."
+            end
         else
             matches = ( 
                 @commands.select { |command| command.check( cmd ) } +
                 @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
             ).sort_by(&:priority)
+            
+            if matches.any?
+                matches.last.execute( actor, cmd, args )
+                return
+            end
         end
 
-        if matches.any?
-            matches.last.execute( actor, cmd, args )
-            return
-        end        
     	actor.output "Huh?"
     end
 
