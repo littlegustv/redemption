@@ -6,7 +6,7 @@ class SpellHurricane < Spell
         super()
         @name = "hurricane"
         @keywords = ["hurricane"]
-        @lag = 0.4
+        @lag = 0.4        
         @position = Position::STAND
     end
 

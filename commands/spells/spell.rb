@@ -53,6 +53,11 @@ class Spell < Command
 		"z" => "k",
 	}
 
+	def initialize
+		super()
+		@mana = 10
+	end
+
 	def translate( name )
 		translation = name
 		@@syllables.each{ |key, value| translation = translation.gsub(key, value.upcase) }
@@ -60,8 +65,13 @@ class Spell < Command
 	end
 
 	def execute( actor, cmd, args )
-	    actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ room: actor.room, type: ["Mobile", "Player"] }), [actor]
-		super
+		if not actor.use_mana( @mana )
+			actor.output "You don't have enough mana"		
+		elsif super( actor, cmd, args )
+			actor.output "You utter the words '#{translate( @name )}'"
+			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, room: actor.room, type: ["Mobile", "Player"] }), [actor]
+		else
+		end
 	end
 
 end

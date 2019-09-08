@@ -8,10 +8,10 @@ class Player < Mobile
         @client = client
         @thread = thread
         @commands = []
-        super({ 
-          keywords: [data[:name]], 
-          short_description: data[:name], 
-          long_description: "#{data[:name]} the Master Rune Maker is here.", 
+        super({
+          keywords: [data[:name]],
+          short_description: data[:name],
+          long_description: "#{data[:name]} the Master Rune Maker is here.",
           race: data[:race],
           alignment: data[:alignment],
           charclass: RunistClass.new,
@@ -37,7 +37,7 @@ class Player < Mobile
         if objects.count > 0
             @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n".capitalize_first
         else
-            @buffer += "#{message}\n".capitalize_first
+            @buffer += "#{ message }\n".capitalize_first
         end
     end
 
@@ -87,7 +87,7 @@ class Player < Mobile
     end
 
     def who
-        "[#{@level.to_s.rjust(2)} #{@race.ljust(7)} #{@charclass.classname.rjust(7)}] #{@short_description}"
+        "[#{@level.to_s.rjust(2)} #{@race_name.ljust(7)} #{@charclass.classname.rjust(7)}] #{@short_description}"
     end
 
     def quit

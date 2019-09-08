@@ -91,7 +91,7 @@ class Weapon < Item
 	end
 
 	def damage
-		@game.dice( @dice_count, @dice_sides )
+        dice( @dice_count, @dice_sides )
 	end
 
 end

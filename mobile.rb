@@ -12,8 +12,10 @@ class Mobile < GameObject
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
-        @race = data[ :race ]
-        @skills = @game.skills( @race )
+        @race_name = data[ :race ][:name]
+        @class = data[ :class ]
+        @skills = data.dig(:race, :skills) || []
+        @spells = data.dig(:race, :spells) || []
         @charclass = data[ :charclass ].nil? ? PlayerClass.new({}) : RunistClass.new
         @experience = 0
         @experience_to_level = 1000
@@ -26,17 +28,24 @@ class Mobile < GameObject
 
         @group = []
         @in_group = nil
-
         @stats = {
-            str: 13,
-            con: 13,
-            int: 13,
-            wis: 13,
-            dex: 13,
+            str: data.dig(:race, :str) || 13,
+            con: data.dig(:race, :con) || 13,
+            int: data.dig(:race, :int) || 13,
+            wis: data.dig(:race, :wis) || 13,
+            dex: data.dig(:race, :dex) || 13,
+            max_str: data.dig(:race, :max_str) || 23,
+            max_con: data.dig(:race, :max_con) || 23,
+            max_int: data.dig(:race, :max_int) || 23,
+            max_wis: data.dig(:race, :max_wis) || 23,
+            max_dex: data.dig(:race, :max_dex) || 23,
             hitroll: data[:hitroll] || rand(5...7),
             damroll: data[:damage] || 50,
             attack_speed: 1,
         }
+        if @class
+
+        end
 
         @affects = []
 
@@ -62,7 +71,7 @@ class Mobile < GameObject
     end
 
     def knows( skill_name )
-        @skills.include? skill_name
+        (@skills + @spells).include? skill_name
     end
 
     def empty_equipment_set
@@ -93,6 +102,10 @@ class Mobile < GameObject
     def update( elapsed )
         @affects.each { |aff| aff.update( elapsed ) }
         super elapsed
+    end
+
+    def use_mana( n )
+        n <= @manapoints ? (@manapoints -= n) : false
     end
 
     def remove_from_group
@@ -437,7 +450,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
 Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
 Level:     #{@level.to_s.ljust(26)} Age:       17 - 0(0) hours
-Race:      #{@race.ljust(26)} Sex:       male
+Race:      #{@race_name.ljust(26)} Sex:       male
 Class:     #{@charclass.classname.ljust(26)} Deity:     Gabriel
 Alignment: #{@alignment.to_s.ljust(26)} Deity Points: 0
 Pracs:     N/A                        Trains:    N/A

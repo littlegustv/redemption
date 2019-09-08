@@ -18,10 +18,10 @@ module Constants
         "pierce", "bash", "slash", "magic"
     ]
 
-    FPS = 60
-    ROUND = 60				# 60 frames, 1 second
-    TICK = 60 * 60			# 60 * 60 frames, 1 minute
-    RESET = 3 * 60 * 60     # 3 * 60 * 60 frames, 3 minutes
+    FPS = 30
+    ROUND = FPS * 1		    # 1 second
+    TICK = FPS * 60			# 1 minute
+    RESET = FPS * 3 * 60    # 3 minutes
     # RESET = 3 * 10 * 60     # fast resets for testing
 
     DAMAGE_DECORATORS = {
