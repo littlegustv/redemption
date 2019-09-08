@@ -18,6 +18,8 @@ module Constants
         "pierce", "bash", "slash", "magic"
     ]
 
+    ELEMENTAL_CHANCE = 3
+
     FPS = 30
     ROUND = FPS * 1		    # 1 second
     TICK = FPS * 60			# 1 minute

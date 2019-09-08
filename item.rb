@@ -13,9 +13,9 @@ class Item < GameObject
         @wear_location = data[:wear_location]
         @material = data[:material]
         @extraFlags = data[:extraFlags]
-        @modifiers = data[:modifiers]
-
-        @ac = data[:ac] || [0,0,0,0]
+        @modifiers = data[:modifiers].merge( data[:ac] )
+        # @ac = data[:ac] || [0,0,0,0]
+        puts @modifiers
 
         @room = room
         @game = game

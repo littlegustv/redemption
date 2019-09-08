@@ -101,9 +101,15 @@ class Player < Mobile
         if @lag > 0
             @lag -= elapsed
         elsif @casting
-            @casting.execute( self, @casting.name, @casting_args )
-            @casting = nil
-            @casting_args = []
+            if rand(1..100) <= stat(:success)
+                @casting.execute( self, @casting.name, @casting_args )
+                @casting = nil
+                @casting_args = []
+            else
+                output "You lost your concentration."
+                @casting = nil
+                @casting_args = []
+            end
         elsif @commands.length > 0
             do_command @commands.shift
         end

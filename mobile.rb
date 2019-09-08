@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects, :group, :in_group, :skills
+    attr_accessor :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects, :group, :in_group, :skills, :spells
 
     def initialize( data, game, room )
         @game = game
@@ -15,7 +15,7 @@ class Mobile < GameObject
         @race_name = data[ :race ][:name]
         @class = data[ :class ]
         @skills = data.dig(:race, :skills) || []
-        @spells = data.dig(:race, :spells) || []
+        @spells = ( data.dig(:race, :spells) || [] ) + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
         @charclass = data[ :charclass ].nil? ? PlayerClass.new({}) : RunistClass.new
         @experience = 0
         @experience_to_level = 1000
@@ -29,6 +29,7 @@ class Mobile < GameObject
         @group = []
         @in_group = nil
         @stats = {
+            success: 100,
             str: data.dig(:race, :str) || 13,
             con: data.dig(:race, :con) || 13,
             int: data.dig(:race, :int) || 13,
@@ -42,6 +43,10 @@ class Mobile < GameObject
             hitroll: data[:hitroll] || rand(5...7),
             damroll: data[:damage] || 50,
             attack_speed: 1,
+            armor_pierce: data[:armor_class].to_a[0].to_i,
+            armor_bash: data[:armor_class].to_a[1].to_i,
+            armor_slash: data[:armor_class].to_a[2].to_i,
+            armor_magic: data[:armor_class].to_a[3].to_i,
         }
         if @class
 
@@ -61,7 +66,7 @@ class Mobile < GameObject
 
         @damage_range = data[:damage_range] || [ 2, 12 ]
         @noun = data[:attack] || ["entangle", "grep", "strangle", "pierce", "smother", "flaming bite"].sample
-        @armor_class = data[:armor_class] || [0, 0, 0, 0]
+        # @armor_class = data[:armor_class] || [0, 0, 0, 0]
         @parts = data[:parts] || Constants::PARTS
 
         @position = Position::STAND
@@ -157,12 +162,16 @@ class Mobile < GameObject
         @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first) )
     end
 
+    # When mobile is attacked, respond automatically unless already in combat targeting someone else
+    # 
+    # When calling 'start_combat', call it first for the 'victim', then for the attacker
+
     def start_combat( attacker )
-        @position = Position::FIGHT
-        # if we are already fighting them, ignore
-        if attacker && attacker.attacking == self && @attacking != attacking
+        # only the one being attacked
+        if attacker.attacking != self && @attacking != attacker
             do_command "yell 'Help I am being attacked by #{attacker}!'"
         end
+        @position = Position::FIGHT
         if @attacking.nil?
             @attacking = attacker
         end
@@ -171,9 +180,9 @@ class Mobile < GameObject
     def stop_combat
         @attacking = nil
         @position = Position::STAND
-        target({ attacking: self, type: ["Mobile", "Player"] }).each do |t|
+        target({ quantity: "all", attacking: self, type: ["Mobile", "Player"] }).each do |t|
             t.attacking = nil
-            if target({ attacking: t, type: ["Mobile", "Player"] }).empty?
+            if target({ quantity: "all", attacking: t, type: ["Mobile", "Player"] }).empty?
                 t.position = Position::STAND
             end
         end
@@ -200,11 +209,7 @@ class Mobile < GameObject
                 else
                     damage = 0
                 end
-                m, t, r = hit damage
-                output m, [@attacking]
-                @attacking.output t, [self]
-                broadcast r, target({ not: [ self, @attacking ], room: @room }), [self, @attacking]
-                @attacking.damage( damage, self )
+                hit damage
                 break if @attacking.nil?
             end
         end
@@ -214,22 +219,54 @@ class Mobile < GameObject
         @equipment[:wield] ? @equipment[:wield].noun : @noun
     end
 
+    def elemental_effect( target, element, noun )
+        case element
+        when "flooding"
+            target.output "You are enveloped in water and start to drown!"
+            target.broadcast "%s is enveloped in water by #{noun}!", target({ not: target, room: @room }), [target]
+            if rand(1..10) <= Constants::ELEMENTAL_CHANCE
+                target.broadcast "%s coughes and chokes on the water.", target({ not: target, room: @room }), [target]
+                target.output "You cough and choke on the water."
+                target.affects.push( AffectSlow.new( target, ["flooding", "slow"], 30, { attack_speed: -1, dex: -1 } ) )
+            end
+        when "shocking"
+            target.output "You are struck by crackling lightning!"
+            target.broadcast "%s is shocked by #{noun}'s crackling lightning!", target({not: target, room: @room}), [target]
+            if rand(1..10) <= Constants::ELEMENTAL_CHANCE
+                target.broadcast "%s jerks and twitches from the shock!", target({ not: target, room: @room }), [target]
+                target.output "Your muscles stop responding."
+                target.affects.push( AffectStun.new( target, ["shocking", "stun"], 30, { success: -25 } ) )
+            end
+        else
+        end
+    end
+
     def magic_hit( target, damage, noun = "spell", element = "spell" )
-        self.start_combat( target )
         target.start_combat( self )
+        self.start_combat( target )
+
         decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+        
         output "Your #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", [target]
         target.output "%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]
-        broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]
+        broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]        
+
+        elemental_effect( target, element, noun )
+        elemental_effect( target, element, noun ) if knows "essence"
+
         target.damage( damage, self )
     end
 
-    def hit( damage, custom_noun = nil )
-        hit_noun = custom_noun.nil? ? noun : custom_noun
+    def hit( damage, custom_noun = nil, target = nil )
+        hit_noun = custom_noun || noun
+        target = target || @attacking
         decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-        texts = ["Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]",
-                 "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}",
-                 "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} "]
+        
+        output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target]
+        target.output "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}", [self]
+        broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
+        
+        target.damage( damage, self )        
     end
 
     def damage( damage, attacker )
@@ -353,7 +390,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def defense_rating( element )
-        ( -1  * @armor_class[ Constants::WEAPON_ELEMENTS.index( element ) || 0 ] - 100 ) / 5
+        ( -1 * stat( "armor_#{element}".to_sym ) - 100 ) / 5
     end
 
     def damage_rating
@@ -450,9 +487,9 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         @stats[key].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+) + @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
     end
 
-    def armor(index)
-        @armor_class[index].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.armor( index ).to_i }.reduce(0, :+)
-    end
+    # def armor(index)
+    #     @armor_class[index].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.armor( index ).to_i }.reduce(0, :+)
+    # end
 
     def cast( spell, args )
         @casting = spell
@@ -484,8 +521,8 @@ HitRoll:   #{ stat(:hitroll).to_s.ljust(26)} DamRoll:   #{ stat(:damroll) }
 DamResist: #{ stat(:damresist).to_s.ljust(26) } MagicDam:  #{ stat(:magicdam) }
 AttackSpd: #{ stat(:attack_speed) }
 --------------------------------- Armour --------------------------------
-Pierce:    #{ (-1 * armor( 0 )).to_s.ljust(26) } Bash:      #{ -1 * armor( 1 ) }
-Slash:     #{ (-1 * armor( 2 )).to_s.ljust(26) } Magic:     #{ -1 * armor( 3 ) }
+Pierce:    #{ (-1 * stat(:armor_pierce)).to_s.ljust(26) } Bash:      #{ -1 * stat(:armor_bash) }
+Slash:     #{ (-1 * stat(:armor_slash)).to_s.ljust(26) } Magic:     #{ -1 * stat(:armor_magic) }
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
 You are #{Position::STRINGS[ @position ]}.

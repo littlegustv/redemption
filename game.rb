@@ -329,7 +329,7 @@ Which alignment (G/N/E)?)
             material: row[:material],
             extraFlags: row[:extra_flags],
             modifiers: {},
-            ac: @ac_data[ id ].to_h.values[1..4]
+            ac: @ac_data[ id ].to_h.reject{ |k, v| [:id, :item_id].include?(k) }
         }
         @item_modifiers[ id ].to_a.each do |modifier|
             data[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
@@ -519,6 +519,7 @@ Which alignment (G/N/E)?)
             CommandSay.new,
             CommandScore.new,
             CommandSkills.new,
+            CommandSpells.new,
             CommandSleep.new,
             CommandStand.new,
             CommandWear.new,
@@ -536,6 +537,7 @@ Which alignment (G/N/E)?)
         ]
         @spells = [
             SpellHurricane.new,
+            SpellLightningBolt.new,
         ]
     end
 
