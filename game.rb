@@ -340,7 +340,7 @@ Which alignment (G/N/E)?)
                 weapon_data = {
                     noun: weapon_info[:noun],
                     genre: weapon_info[:type],
-                    flags: weapon_info[:flags].split(" "),
+                    flags: weapon_info[:flags].split(","),
                     element: weapon_info[:element],
                     dice_sides: weapon_info[:dice_sides].to_i,
                     dice_count: weapon_info[:dice_count].to_i
@@ -444,8 +444,8 @@ Which alignment (G/N/E)?)
         @mob_resets = @db[:reset_mobile].as_hash(:reset_id)
         @inventory_resets = @db[:reset_inventory_item].as_hash(:reset_id)
         @equipment_resets = @db[:reset_equipped_item].as_hash(:reset_id)
-        @base_resets = @db[:reset_base].where( area_id: 17 ).as_hash(:id)
-        # @base_resets = @db[:reset_base].as_hash(:id)
+        # @base_resets = @db[:reset_base].where( area_id: [17, 23] ).as_hash(:id)
+        @base_resets = @db[:reset_base].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
         reset
 
@@ -505,6 +505,7 @@ Which alignment (G/N/E)?)
             CommandInventory.new,
             CommandKill.new,
             CommandLeave.new,
+            CommandLoadItem.new,
             CommandLook.new,
             CommandLore.new,
             CommandMove.new,

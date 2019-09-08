@@ -19,6 +19,25 @@ class CommandLeave < Command
     end
 end
 
+class CommandLoadItem < Command
+    def initialize
+        super
+        @name = "loaditem"
+        @keywords = ["loaditem"]
+        @priority = 1
+        @position = Position::REST
+    end
+
+    def attempt( actor, cmd, args )
+        if args.length <= 0
+            actor.output "Syntax: loaditem <id>"
+        else
+            item = actor.game.load_item( args.first.to_i, actor.room )
+            actor.broadcast "Loaded item: #{item}", actor.target({ room: actor.room })
+        end
+    end
+end
+
 class CommandLook < Command
 
     def initialize

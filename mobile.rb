@@ -1,6 +1,6 @@
 class Mobile < GameObject
 
-    attr_accessor :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects, :group, :in_group, :skills, :spells
+    attr_accessor :game, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects, :group, :in_group, :skills, :spells
 
     def initialize( data, game, room )
         @game = game
@@ -210,7 +210,9 @@ class Mobile < GameObject
                     damage = 0
                 end
                 hit damage
-                break if @attacking.nil?
+                return if @attacking.nil?
+                weapon_flags if damage > 0
+                return if @attacking.nil?                
             end
         end
     end
@@ -219,39 +221,48 @@ class Mobile < GameObject
         @equipment[:wield] ? @equipment[:wield].noun : @noun
     end
 
-    def elemental_flag( flag, weapon )
-        texts = Constants::ELEMENTAL_EFFECTS[ flag ]
-        output texts[0]
-        broadcast texts[1], target({ not: target, room: @room }), [target, weapon]
+    def weapon_flags
+        ( flags = ( @equipment[:wield] ? @equipment[:wield].flags : [] ) ).each do |flag|
+            if ( texts = Constants::ELEMENTAL_EFFECTS[ flag ] )
+                @attacking.output texts[0], [self]
+                @attacking.broadcast texts[1], target({ not: @attacking, room: @room }), [ @attacking, @equipment[:wield] ]
+                elemental_effect( @attacking, flag )
+                @attacking.damage( 10, self )
+                return if @attacking.nil?
+            end
+        end
     end
 
     def elemental_effect( target, element )
         if rand(1..10) <= Constants::ELEMENTAL_CHANCE
             case element
             when "flooding"
-                target.broadcast "%s coughes and chokes on the water.", target({ not: target, room: @room }), [target]
-                target.output "You cough and choke on the water."
+                target.broadcast "{b%s coughes and chokes on the water.{x", target({ not: target, room: @room }), [target]
+                target.output "{bYou cough and choke on the water.{x"
                 target.affects.push( Affect.new( target, ["flooding", "slow"], 30, { attack_speed: -1, dex: -1 } ) )
             when "shocking"
-                target.broadcast "%s jerks and twitches from the shock!", target({ not: target, room: @room }), [target]
-                target.output "Your muscles stop responding."
+                target.broadcast "{y%s jerks and twitches from the shock!{x", target({ not: target, room: @room }), [target]
+                target.output "{yYour muscles stop responding.{x"
                 target.affects.push( Affect.new( target, ["shocking", "stun"], 30, { success: -10 } ) )
             when "corrosive"
-                target.broadcast "%s flesh burns away, revealing vital areas!", target({ not: target, room: @room }), [target]
-                target.output "Chunks of your flesh melt away, exposing vital areas!"
+                target.broadcast "{g%s flesh burns away, revealing vital areas!{x", target({ not: target, room: @room }), [target]
+                target.output "{gChunks of your flesh melt away, exposing vital areas!{x"
                 target.affects.push( Affect.new( target, ["corrosive"], 30, { ac_pierce: -10, ac_slash: -10, ac_bash: -10 } ) )
             when "poison"
-                target.broadcast "%s looks very ill.", target({ not: target, room: @room }), [target]
-                target.output "You feel poison coursing through your veins."
+                target.broadcast "{m%s looks very ill.{x", target({ not: target, room: @room }), [target]
+                target.output "{mYou feel poison coursing through your veins.{x"
                 target.affects.push( AffectPoison.new( target, ["poison"], 30, { con: -1 } ) )
-            when "fire"
-                target.broadcast "%s is blinded by smoke!", target({ not: target, room: @room }), [target]
-                target.output "Your eyes tear up from smoke...you can't see a thing!"
-                target.affects.push( AffectBlind.new( target, ["smoke", "blind"], 30, { hitroll: -5 } ) )
-            when "cold"
-                target.broadcast "%s turns blue and shivers.", target({ not: target, room: @room }), [target]
-                target.output "A chill sinks deep into your bones."
-                target.affects.push( Affect.new( target, ["cold"], 30, { str: -2 } ) )
+            when "flaming"
+                # fire blind doesn't stack
+                if not target.affected? "blind"
+                    target.broadcast "{r%s is blinded by smoke!{x", target({ not: target, room: @room }), [target]
+                    target.output "{rYour eyes tear up from smoke...you can't see a thing!{x"
+                    target.affects.push( AffectBlind.new( target, ["smoke", "blind"], 30, { hitroll: -5 } ) )
+                end
+            when "frost"
+                target.broadcast "{C%s turns blue and shivers.{x", target({ not: target, room: @room }), [target]
+                target.output "{CA chill sinks deep into your bones.{x"
+                target.affects.push( Affect.new( target, ["frost"], 30, { str: -2 } ) )
             end
         end
     end

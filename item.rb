@@ -73,7 +73,7 @@ end
 
 class Weapon < Item
 
-	attr_accessor :noun, :element
+	attr_accessor :noun, :element, :flags
 
 	def initialize( data, game, room )
 		super data, game, room

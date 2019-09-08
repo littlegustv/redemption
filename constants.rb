@@ -81,8 +81,11 @@ module Constants
     }
 
     ELEMENTAL_EFFECTS = {
-        "shocking" => [ "You are struck by crackling lightning!", "%s is shocked by %s's crackling lightning!" ],
-        "flooding" => [ "You are enveloped in water and start to drown!", "%s is enveloped in water by %s!" ],
+        "shocking" => [ "You are shocked by %s.", "%s is struck by lightning from %s." ],
+        "flooding" => [ "You are smothered in water from %s.", "%s is smothered in water from %s." ],
+        "flaming" => [ "%s sears your flesh.", "%s is burned by %s." ],
+        "frost" => [ "The cold touch of %s surrounds you with ice.", "%s is frozen by %s." ],
+        "corrosive" => [ "Your flesh is dissolved by %s.", "%s's flesh is dissolved by %s." ],
     }
 
     PARTS = [
