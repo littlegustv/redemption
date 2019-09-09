@@ -3,10 +3,11 @@ require_relative 'command.rb'
 class CommandRecall < Command
 
     def initialize
-        super()
-        @name = "recall"
-        @keywords = ["recall", "/"]
-        @position = Position::STAND
+        super(
+            name: "recall",
+            keywords: ["recall", "/"],
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -17,10 +18,11 @@ end
 class CommandRemove < Command
 
     def initialize
-        super
-        @name = "remove"
-        @keywords = ["remove"]
-        @position = Position::REST
+        super(
+            name: "remove",
+            keywords: ["remove"],
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -31,11 +33,12 @@ end
 class CommandRest < Command
 
     def initialize
-        super
-        @name = "sit"
-        @keywords = ["sit", "rest"]
-        @position = Position::SLEEP
-        @usable_in_combat = false
+        super(
+            name: "sit",
+            keywords: ["sit", "rest"],
+            position: Position::SLEEP,
+            usable_in_combat: false
+        )
     end
 
     def attempt( actor, cmd, args )

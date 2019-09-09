@@ -3,11 +3,12 @@ require_relative 'command.rb'
 class CommandBlind < Command
 
     def initialize
-        super()
-        @name = "blind"
-        @keywords = ["blind"]
-        @lag = 0.4
-        @position = Position::STAND
+        super(
+            name: "blind",
+            keywords: ["blind"],
+            lag: 0.4,
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )

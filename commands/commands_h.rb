@@ -3,9 +3,10 @@ require_relative 'command.rb'
 class CommandHelp < Command
 
     def initialize( helps )
-        super()
-        @name = "help"
-        @keywords = ["help"]
+        super(
+            name: "help",
+            keywords: ["help"],
+        )
         @helps = helps
     end
 

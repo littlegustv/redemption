@@ -3,10 +3,11 @@ require_relative 'command.rb'
 class CommandPeek < Command
 
     def initialize
-        super()
-        @name = "peek"
-        @keywords = ["peek"]
-        @position = Position::REST
+        super(
+            name: "peek",
+            keywords: ["peek"],
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -26,10 +27,11 @@ end
 class CommandPoison < Command
 
     def initialize
-        super()
-        @name = "poison"
-        @keywords = ["poison"]
-        @position = Position::STAND
+        super(
+            name: "poison",
+            keywords: ["poison"],
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )

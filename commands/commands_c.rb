@@ -3,10 +3,11 @@ require_relative 'command.rb'
 class CommandConsider < Command
 
     def initialize
-        super()
-        @name = "consider"
-        @keywords = ["consider"]
-        @position = Position::REST
+        super(
+            name: "consider",
+            keywords: ["consider"],
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )

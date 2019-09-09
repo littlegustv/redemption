@@ -2,10 +2,11 @@ require_relative 'command.rb'
 
 class CommandLeave < Command
     def initialize
-        super()
-        @name = "leave"
-        @keywords = ["leave"]
-        @position = Position::REST
+        super(
+            name: "leave",
+            keywords: ["leave"],
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -21,11 +22,12 @@ end
 
 class CommandLoadItem < Command
     def initialize
-        super
-        @name = "loaditem"
-        @keywords = ["loaditem"]
-        @priority = 1
-        @position = Position::REST
+        super(
+            name: "loaditem",
+            keywords: ["loaditem"],
+            priority: 1,
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -41,11 +43,12 @@ end
 class CommandLook < Command
 
     def initialize
-        super
-        @name = "look"
-        @keywords = ["look"]
-        @priority = 200
-        @position = Position::REST
+        super(
+            name: "look",
+            keywords: ["look"],
+            priority: 200,
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -66,10 +69,11 @@ end
 class CommandLore < Command
 
     def initialize
-        super
-        @name = "lore"        
-        @keywords = ["lore"]
-        @position = Position::REST
+        super(
+            name: "lore",
+            keywords: ["lore"],
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )

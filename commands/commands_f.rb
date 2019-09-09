@@ -3,11 +3,12 @@ require_relative 'command.rb'
 class CommandFlee < Command
 
     def initialize
-        super()
-        @name = "flee"
-        @keywords = ["flee"]
-        @lag = 0.5
-        @position = Position::STAND
+        super(
+            name: "flee",
+            keywords: ["flee"],
+            lag: 0.5,
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )

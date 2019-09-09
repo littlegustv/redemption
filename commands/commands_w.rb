@@ -3,10 +3,11 @@ require_relative 'command.rb'
 class CommandWear < Command
 
     def initialize
-        super()
-        @name = "wear"
-        @keywords = ["wear", "hold", "wield"]
-        @position = Position::REST
+        super(
+            name: "wear",
+            keywords: ["wear", "hold", "wield"],
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -18,10 +19,11 @@ end
 class CommandWhere < Command
 
     def initialize
-        super()
-        @name = "where"
-        @keywords = ["where"]
-        @position = Position::REST
+        super(
+            name: "where",
+            keywords: ["where"],
+            position: Position::REST
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -38,10 +40,11 @@ end
 class CommandWhitespace < Command
 
     def initialize
-        super()
-        @name = "whitespace"
-        @keywords = [""]
-        @priority = 99999
+        super(
+            name: "whitespace",
+            keywords: [""],
+            priority: 99999
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -53,10 +56,11 @@ end
 class CommandWho < Command
 
     def initialize(continents)
-        super()
-        @name = "who"
-        @keywords = ["who"]
-        @priority = 200
+        super(
+            name: "who",
+            keywords: ["who"],
+            priority: 200
+        )
         @continents = continents
     end
 

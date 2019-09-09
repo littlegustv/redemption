@@ -2,14 +2,22 @@ class Command
 
     attr_reader :priority, :name
 
-    def initialize
-        @priority = 100
-        @keywords = ["CommandDefault"]
-        @lag = 0
-        @name = "defaultcommand"
-        @starts_combat = false
-        @usable_in_combat = true
-        @position = Position::SLEEP        
+    def initialize(
+        name: "defaultcommand",
+        priority: 100,
+        keywords: ["defaultcommand"],
+        lag: 0,
+        starts_combat: false,
+        usable_in_combat: true,
+        position: Position::SLEEP
+    )
+        @priority = priority
+        @keywords = keywords
+        @lag = lag
+        @name = name
+        @starts_combat = starts_combat
+        @usable_in_combat = usable_in_combat
+        @position = position
     end
 
     def check( cmd )
