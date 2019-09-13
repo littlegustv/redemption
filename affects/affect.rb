@@ -1,6 +1,6 @@
 class Affect
 
-    attr_reader :name, :priority, :application_type, :source
+    attr_reader :name, :priority, :application_type, :source, :modifiers, :duration
 
     def initialize( target, keywords, duration, modifiers = {}, period = 60 )
         @target = target
@@ -60,9 +60,13 @@ class Affect
         @duration.to_i
     end
 
-    
+    # Combine modifiers from a new affect and renew duration of this affect to
+    # the longer duration of the two
     def stack(new_affect)
-
+        new_affect.modifiers.each do |stat, bonus|
+            @modifiers[stat] = bonus + (@modifiers[stat] || 0)
+        end
+        @duration = [@duration.to_i, new_affect.duration.to_i].max
     end
 
 end
