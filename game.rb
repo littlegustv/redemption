@@ -71,7 +71,7 @@ class Game
         end
 
         race = nil
-        player_race_data = @race_data.select{ |key, value| value[:player_race] == 1 }
+        player_race_data = @race_data.select{ |key, value| value[:player_race] == 1 && value[:starter_race] == 1 }
         player_race_names = player_race_data.keys
         while race.nil?
 
@@ -462,37 +462,40 @@ Which alignment (G/N/E)?)
     end
 
     def do_command( actor, cmd, args = [] )
-        if 'cast'.fuzzy_match( cmd )
-            spell_name = args.shift
-            matches = @spells.select{ |spell| 
-                spell.check( spell_name ) && actor.knows( spell.to_s ) 
-            }.sort_by(&:priority)
 
-            if matches.any?
-                matches.last.cast( actor, cmd, args )
-                return
-            else
-                actor.output "You don't have any spells of that name."
-            end
-        else
-            matches = ( 
-                @commands.select { |command| command.check( cmd ) } +
-                @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
-            ).sort_by(&:priority)
-            
-            if matches.any?
-                matches.last.execute( actor, cmd, args )
-                return
-            end
+        matches = (
+            @commands.select { |command| command.check( cmd ) } +
+            @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
+        ).sort_by(&:priority)
+
+        if matches.any?
+            matches.last.execute( actor, cmd, args )
+            return
         end
 
     	actor.output "Huh?"
     end
 
     def make_commands
-    	@commands = [
+        @skills = [
+            SkillSneak.new,
+            SkillBerserk.new,
+            SkillBash.new,
+            SkillDisarm.new,
+            SkillLivingStone.new,
+        ]
+        @spells = [
+            SpellHurricane.new,
+            SpellLightningBolt.new,
+            SpellAcidBlast.new,
+            SpellBlastOfRot.new,
+            SpellIceBolt.new,
+            SpellPyrotechnics.new,
+        ]
+        @commands = [
             CommandAffects.new,
             CommandBlind.new,
+            CommandCast.new(@spells),
             CommandConsider.new,
             CommandDrop.new,
             CommandEquipment.new,
@@ -528,21 +531,6 @@ Which alignment (G/N/E)?)
             CommandWhitespace.new,
             CommandWho.new( @continents.values ),
             CommandYell.new,
-    	]
-        @skills = [
-            SkillSneak.new,
-            SkillBerserk.new,
-            SkillBash.new,
-            SkillDisarm.new,
-            SkillLivingStone.new,
-        ]
-        @spells = [
-            SpellHurricane.new,
-            SpellLightningBolt.new,
-            SpellAcidBlast.new,
-            SpellBlastOfRot.new,
-            SpellIceBolt.new,
-            SpellPyrotechnics.new,
         ]
     end
 

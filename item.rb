@@ -15,7 +15,7 @@ class Item < GameObject
         @extraFlags = data[:extraFlags]
         @modifiers = data[:modifiers].merge( data[:ac] )
         # @ac = data[:ac] || [0,0,0,0]
-   
+
         @room = room
         @game = game
     end
@@ -67,6 +67,10 @@ Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material
 Extra flags: #{ @extraFlags }
 #{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
 )
+    end
+
+    def fire_event(event, data)
+
     end
 
 end

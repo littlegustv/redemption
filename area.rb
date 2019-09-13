@@ -19,4 +19,8 @@ class Area < GameObject
         @rooms = rooms
     end
 
+    def fire_event(event, data)
+
+    end
+
 end

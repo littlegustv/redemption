@@ -33,4 +33,8 @@ class Room < GameObject
         end
     end
 
+    def fire_event(event, data)
+
+    end
+
 end

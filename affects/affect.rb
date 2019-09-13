@@ -1,6 +1,6 @@
 class Affect
 
-    attr_accessor :name
+    attr_reader :name, :priority, :application_type, :source
 
     def initialize( target, keywords, duration, modifiers = {}, period = 60 )
         @target = target
@@ -10,6 +10,13 @@ class Affect
         @duration = duration
         @clock = 0
         @modifiers = modifiers
+        @priority = 100
+        @permanent = false
+        @application_type = :global_overwrite   # :global_overwrite, :global_stack, :global_single,
+                                                # :source_overwrite, :source_stack, :source_single
+        @source = nil
+
+
         start
     end
 
@@ -51,6 +58,11 @@ class Affect
 
     def duration
         @duration.to_i
+    end
+
+    
+    def stack(new_affect)
+
     end
 
 end

@@ -1,9 +1,9 @@
 class Mobile < GameObject
 
-    attr_accessor :game, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :affects, :group, :in_group, :skills, :spells
+    attr_accessor :game, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group, :skills, :spells
 
     def initialize( data, game, room )
-        @game = game
+        super("unnamed mob", game)
         @attacking
         @lag = 0
         @room = room
@@ -51,8 +51,6 @@ class Mobile < GameObject
         if @class
 
         end
-
-        @affects = []
 
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
@@ -163,7 +161,7 @@ class Mobile < GameObject
     end
 
     # When mobile is attacked, respond automatically unless already in combat targeting someone else
-    # 
+    #
     # When calling 'start_combat', call it first for the 'victim', then for the attacker
 
     def start_combat( attacker )
@@ -212,7 +210,7 @@ class Mobile < GameObject
                 hit damage
                 return if @attacking.nil?
                 weapon_flags if damage > 0
-                return if @attacking.nil?                
+                return if @attacking.nil?
             end
         end
     end
@@ -272,10 +270,10 @@ class Mobile < GameObject
         self.start_combat( target )
 
         decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-        
+
         output "Your #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", [target]
         target.output "%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]
-        broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]        
+        broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]
 
         elemental_effect( target, element )
         elemental_effect( target, element ) if knows "essence"
@@ -287,12 +285,13 @@ class Mobile < GameObject
         hit_noun = custom_noun || noun
         target = target || @attacking
         decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-        
+
         output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target]
         target.output "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}", [self]
         broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
-        
-        target.damage( damage, self )        
+
+        target.damage( damage, self )
+        fire_event(:event_on_hit, {})
     end
 
     def damage( damage, attacker )
@@ -553,6 +552,23 @@ Slash:     #{ (-1 * stat(:ac_slash)).to_s.ljust(26) } Magic:     #{ -1 * stat(:a
 You are Ruthless.
 You are #{Position::STRINGS[ @position ]}.
 )
+    end
+
+    def fire_event(event, data)
+        @room&.listeners[event]&.each do |responder, method|
+            responder.send method, data
+        end
+        @room&.area&.listeners[event]&.each do |responder, method|
+            responder.send method, data
+        end
+        @listeners[event]&.each do |responder, method|
+            responder.send method, data
+        end
+        @equipment.each do |slot, item|
+            item&.listeners&.each do |responder, method|
+                responder.send method, data
+            end
+        end
     end
 
 end

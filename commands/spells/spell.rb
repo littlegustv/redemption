@@ -54,7 +54,7 @@ class Spell < Command
 	}
 
 	def initialize
-		super()
+		super
 		@mana = 10
 	end
 
@@ -70,7 +70,7 @@ class Spell < Command
 		else
 			actor.output "You utter the words '#{translate( @name )}'"
 			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, room: actor.room, type: ["Mobile", "Player"] }), [actor]
-			actor.lag += @lag        
+			actor.lag += @lag
 			actor.cast( self, args )
 		end
 	end
