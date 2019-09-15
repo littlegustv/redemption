@@ -3,6 +3,7 @@ require 'sequel'
 class Game
 
     attr_accessor :mobiles, :mobile_count
+    attr_reader :race_data
 
     def initialize( ip, port )
 
@@ -33,7 +34,7 @@ class Game
         end
 
         sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
-        @db = Sequel.mysql2( :host => sql_host, :username => sql_username, :password => sql_password, :database => "redemption" )
+        @db = Sequel.mysql2( :host => sql_host, :port => sql_port, :username => sql_username, :password => sql_password, :database => "redemption" )
         setup_game
 
         make_commands

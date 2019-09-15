@@ -242,30 +242,30 @@ class Mobile < GameObject
             when "flooding"
                 target.broadcast "{b%s coughes and chokes on the water.{x", target({ not: target, room: @room }), [target]
                 target.output "{bYou cough and choke on the water.{x"
-                target.affects.push( Affect.new( target, ["flooding", "slow"], 30, { attack_speed: -1, dex: -1 } ) )
+                target.apply_affect(Affect.new( name: "flooding", keywords: ["flooding", "slow"], source: self, target: target, level: self.level, duration: 30, modifiers: { attack_speed: -1, dex: -1 }))                
             when "shocking"
                 target.broadcast "{y%s jerks and twitches from the shock!{x", target({ not: target, room: @room }), [target]
                 target.output "{yYour muscles stop responding.{x"
-                target.affects.push( Affect.new( target, ["shocking", "stun"], 30, { success: -10 } ) )
+                target.apply_affect( Affect.new( name: "shocking", target: target, source: self, keywords: ["shocking", "stun"], duration: 30, modifiers: { success: -10 }, level: self.level ) )
             when "corrosive"
                 target.broadcast "{g%s flesh burns away, revealing vital areas!{x", target({ not: target, room: @room }), [target]
                 target.output "{gChunks of your flesh melt away, exposing vital areas!{x"
-                target.affects.push( Affect.new( target, ["corrosive"], 30, { ac_pierce: -10, ac_slash: -10, ac_bash: -10 } ) )
+                target.apply_affect( Affect.new( name: "corrosive", source: self, target: target, keywords: ["corrosive"], duration: 30, modifiers: { ac_pierce: -10, ac_slash: -10, ac_bash: -10 }, level: self.level ) )
             when "poison"
                 target.broadcast "{m%s looks very ill.{x", target({ not: target, room: @room }), [target]
                 target.output "{mYou feel poison coursing through your veins.{x"
-                target.affects.push( AffectPoison.new( target, ["poison"], 30, { con: -1 } ) )
+                target.apply_affect( AffectPoison.new( target: target, source: self, level: self.level ) )
             when "flaming"
                 # fire blind doesn't stack
                 if not target.affected? "blind"
                     target.broadcast "{r%s is blinded by smoke!{x", target({ not: target, room: @room }), [target]
                     target.output "{rYour eyes tear up from smoke...you can't see a thing!{x"
-                    target.affects.push( AffectBlind.new( target, ["smoke", "blind"], 30, { hitroll: -5 } ) )
+                    target.apply_affect( AffectBlind.new( target: target, source: self, level: self.level ) )
                 end
             when "frost"
                 target.broadcast "{C%s turns blue and shivers.{x", target({ not: target, room: @room }), [target]
                 target.output "{CA chill sinks deep into your bones.{x"
-                target.affects.push( Affect.new( target, ["frost"], 30, { str: -2 } ) )
+                target.apply_affect( Affect.new( name: "frost", target: target, source: self, keywords: ["frost"], duration: 30, modifiers: { str: -2 }, level: self.level ) )
             end
         end
     end
@@ -335,7 +335,18 @@ class Mobile < GameObject
             @basehitpoints += 20
             @basemanapoints += 10
             @basemovepoints += 10
-            "\n\rYou raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices."
+            "\n\rYou raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices." + hatch
+        else
+            ""
+        end
+    end
+
+    def hatch
+        if  @level == 2 && @race_name == "hatchling"
+            @race_name = Constants::HATCHLING_MESSAGES.keys.sample
+            @skills += @game.race_data.dig( @race_name.to_sym, :skills ).to_a
+            @spells += @game.race_data.dig( @race_name.to_sym, :spells ).to_a
+            "\n\r#{Constants::HATCHLING_MESSAGES[ @race_name ].join("\n\r")}"
         else
             ""
         end

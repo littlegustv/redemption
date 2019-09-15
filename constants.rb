@@ -80,6 +80,14 @@ module Constants
         150 => ["does {RUNSPEAKABLE{x things to", "", "!!"],
     }
 
+    HATCHLING_MESSAGES = {
+        "black dragon" => [ "You feel acid course through your veins.", "Black wings unfold off your back.", "Saliva turned acid drips from your maw." ], 
+        "blue dragon" => [ "The sky clouds over and lightning crackles in the distance.", "Energy ripples, and your entire body vibrates with each pulse.", "Your scales harden into blue metallic plates." ], 
+        "green dragon" => [ "A stench crawls its way up your nasal passage.", "Poison seeps through your body and clouds your eyes.", "Your green tail lashes about behind you, with fearsome power." ],
+        "red dragon" => [ "A powerful heat rolls up your back, and fills your eyes.", "Red claws stab the air frantically as the burning fills your brain.", "The burning subsides and your new red coat of scales clank together." ], 
+        "white dragon" => [ "White wings fold up off your body and you test the air with them.", "Breath burns out of your maw, spilling the burning cold frost into the air.", "Your white hind claws cause the ground to harden and freeze." ]
+    }
+
     ELEMENTAL_EFFECTS = {
         "shocking" => [ "You are shocked by %s.", "%s is struck by lightning from %s." ],
         "flooding" => [ "You are smothered in water from %s.", "%s is smothered in water from %s." ],

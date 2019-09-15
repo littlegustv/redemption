@@ -1,6 +1,6 @@
 class Item < GameObject
 
-	attr_accessor :wear_location, :weight
+	attr_accessor :wear_location, :weight, :room
 
     def initialize( data, game, room )
         super(data[:short_description], game)
