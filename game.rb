@@ -199,7 +199,7 @@ Which alignment (G/N/E)?)
         targets = query[:list].reject(&:nil?)                                                                       if query[:list]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
-        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }                          if query[:area]
+        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }   if query[:area]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
@@ -536,6 +536,21 @@ Which alignment (G/N/E)?)
 
     def recall_room( continent )
         return @rooms[continent.recall_room_id]
+    end
+
+    # Send an event to a list of objects
+    # +fire_event(:event_test, {}, self)+
+    # +fire_event(:event_on_hit, data, self, @room, @room.area, equipment.values)+
+    def fire_event(event, data, *objects)
+        objects.each do |object|
+            if object.kind_of?(Array)
+                object.reject(&:nil?).each do |subobject|
+                    subobject.event(event, data)
+                end
+            elsif object.kind_of?(GameObject)
+                object.event(event, data)
+            end
+        end
     end
 
 end

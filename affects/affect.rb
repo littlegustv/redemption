@@ -2,38 +2,65 @@ class Affect
 
     attr_reader :name, :priority, :application_type, :source, :modifiers, :duration
 
-    def initialize( target, keywords, duration, modifiers = {}, period = 60 )
+    def initialize(
+        source:,
+        target:,
+        keywords:,
+        name:,
+        level:,
+        duration: 0,
+        modifiers: {},
+        period: nil,
+        priority: 100,
+        application_type: :global_overwrite,
+        permanent: false
+    )
+        @source = source
         @target = target
         @keywords = keywords
-        @period = period
-        @name = @keywords.first
+        @name = name
+        @level = level
         @duration = duration
-        @clock = 0
         @modifiers = modifiers
-        @priority = 100
-        @permanent = false
-        @application_type = :global_overwrite   # :global_overwrite, :global_stack, :global_single,
-                                                # :source_overwrite, :source_stack, :source_single
-        @source = nil
+        @priority = priority
+        @period = period
+        @application_type = application_type   # :global_overwrite, :global_stack, :global_single,
+                                               # :source_overwrite, :source_stack, :source_single
+        @permanent = permanent
+        @clock = 0
+    end
 
+    # override this method to add event listeners - Make sure you remove them in +unhook+!
+    def hook
+    end
 
-        start
+    # override this method to clear event listeners
+    def unhook
     end
 
     def start
         # @target.output "Affect has started: #{@duration} seconds remain."
     end
 
+    def refresh
+        @target.output "Your #{@name} is refreshed!"
+    end
+
     def update( elapsed )
-        @duration -= elapsed
-        @clock += elapsed
-        if @clock >= @period
-            periodic
-            @clock = 0
-        end
-        if @duration <= 0
-            @target.affects.delete self
-            complete
+        if !@permanent
+            @duration -= elapsed
+            if @period
+                @clock += elapsed
+                if @clock >= @period
+                    periodic
+                    @clock = 0
+                end
+            end
+            if @duration <= 0
+                unhook
+                @target.affects.delete self
+                complete
+            end
         end
     end
 
@@ -68,5 +95,12 @@ class Affect
         end
         @duration = [@duration.to_i, new_affect.duration.to_i].max
     end
+
+    # Check to see if this affect shares any common ancestors with another, ignoring superclasses
+    # above and including Affect
+    def shares_ancestors_with?(affect)
+        intersection = affect.class.ancestors & self.class.ancestors      # get the intersection of ancestors of the two classes
+        return !intersection.slice(0, intersection.index(Affect)).empty?  # slice the array elements preceding Affect: these will be common ancestors
+    end                                                                   # if this array is empty after the slice, then there are no common ancestors
 
 end

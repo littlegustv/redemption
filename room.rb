@@ -1,6 +1,6 @@
 class Room < GameObject
 
-    attr_accessor :exits, :area, :continent
+    attr_accessor :exits, :area, :continent, :mobiles, :players
 
     def initialize( name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
@@ -16,7 +16,8 @@ class Room < GameObject
         @hp_regen = hp_regen
         @mana_regen = mana_regen
         @continent = area.continent
-
+        @mobiles = []
+        @players = []
         super name, game
     end
 
@@ -31,10 +32,6 @@ class Room < GameObject
         else
             "You can't see a thing!"
         end
-    end
-
-    def fire_event(event, data)
-
     end
 
 end

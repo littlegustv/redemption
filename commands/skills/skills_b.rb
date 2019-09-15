@@ -53,7 +53,7 @@ class SkillBerserk < Command
 
     def attempt( actor, cmd, args )
         if not actor.affected? "berserk"
-            actor.affects.push AffectBerserk.new( actor, ["berserk"], 60, { damroll: 10, hitroll: 10 }, 1 )
+            actor.apply_affect(AffectBerserk.new(source: actor, target: actor, level: actor.level))
         else
             actor.output "You are already pretty mad."
         end

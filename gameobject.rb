@@ -1,7 +1,7 @@
 class GameObject
 
-    attr_accessor :name, :keywords, :room, :affects, :uuid
-    attr_reader :listeners
+    attr_accessor :name, :keywords, :affects
+    attr_reader :listeners, :uuid, :room
 
     @@next_uuid = 1
 
@@ -76,8 +76,18 @@ class GameObject
         @listeners[event].delete(responder)
     end
 
-    def fire_event(event, data)
+    def event(event, data)
+        if !@listeners[event]
+            return
+        end
+        @listeners[event]&.each do |responder, method|
+            responder.send method, data
+        end
+    end
 
+    # Returns true if the GameObject is affected by an Affect with a matching keyword
+    def affected?( key )
+        @affects.select{ |affect| affect.check(key) }.count > 0
     end
 
     ##
@@ -85,18 +95,28 @@ class GameObject
     # +new_affect+:: The new affect to be applied
     #
     def apply_affect(new_affect)
-        existing_affects = affects.select { |a| a.class.ancestors.include?(new_affect.class) }
+        existing_affects = @affects.select { |a| a.shares_ancestors_with?(new_affect) }
         type = new_affect.application_type
         if [:source_overwrite, :source_stack, :source_single].include?(type)
             existing_affects.select! { |a| a.source == new_affect.source }
         end
+        if existing_affects.length > 1 # This shouldn't ever happen, I don't think!
+            puts "Multiple pre-existing affects in apply_effect on affect #{affect} belonging to #{self}"
+        end
         if !existing_affects.empty?
             case type
             when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
-                existing_affects.each { |a| delete_affect(a) }
+
+                existing_affects.each do |a|
+                    a.unhook
+                    affects.delete(a)
+                end
                 affects.push(new_affect)
+                new_affect.hook
+                new_affect.refresh
             when :global_stack, :source_stack                      # stack with existing affect
                 existing_affects.first.stack(new_affect)
+                existing_affects.first.refresh
             when :global_single, :source_single                    # do nothing, already applied
                 return
             else
@@ -105,12 +125,9 @@ class GameObject
             end
         else
             affects.push(new_affect)
+            new_affect.hook
+            new_affect.start
         end
-    end
-
-    def delete_affect(affect)
-        affect.complete
-        affects.delete(affect)
     end
 
 end

@@ -3,6 +3,7 @@ class Item < GameObject
 	attr_accessor :wear_location, :weight
 
     def initialize( data, game, room )
+        super(data[:short_description], game)
         @short_description = data[:short_description]
         @keywords = data[:keywords]
         @level = data[:level]
@@ -17,7 +18,6 @@ class Item < GameObject
         # @ac = data[:ac] || [0,0,0,0]
 
         @room = room
-        @game = game
     end
 
     def to_s
@@ -67,10 +67,6 @@ Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material
 Extra flags: #{ @extraFlags }
 #{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
 )
-    end
-
-    def fire_event(event, data)
-
     end
 
 end

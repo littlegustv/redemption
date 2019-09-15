@@ -29,7 +29,7 @@ class CommandQuicken < Command
 
     def attempt( actor, cmd, args )
         if not actor.affected? "haste"
-            actor.affects.push AffectHaste.new( actor, ["quicken", "haste"], 120, { dex: 5, attack_speed: 1 } )
+            actor.apply_affect(AffectHaste.new(source: actor, target: actor, level: actor.level))
         else
             actor.output "You are already moving as fast as you can!"
         end

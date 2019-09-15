@@ -36,7 +36,7 @@ class CommandPoison < Command
 
     def attempt( actor, cmd, args )
         if not actor.affected? "poison"
-            actor.affects.push AffectPoison.new( actor, ["poison"], 180, { str: -1 }, 10 )
+            actor.apply_affect(AffectPoison.new(source: actor, target: actor, level: actor.level))
         else
             actor.output "You are already poisoned."
         end

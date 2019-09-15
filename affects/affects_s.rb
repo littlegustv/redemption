@@ -1,6 +1,19 @@
 require_relative 'affect.rb'
 
 class AffectSneak < Affect
+
+    def initialize(source:, target:, level:)
+        super(
+            source: source,
+            target: target,
+            keywords: ["sneak"],
+            name: "sneak",
+            level:  level,
+            duration: level.to_i * 60,
+            modifiers: { none: 0 }
+        )
+    end
+
     def start
         @target.output "You attempt to move silently."
     end
@@ -10,7 +23,20 @@ class AffectSneak < Affect
     end
 end
 
-class AffectSlow < Affect    
+class AffectSlow < Affect
+
+    def initialize(source:, target:, level:)
+        super(
+            source: source,
+            target: target,
+            keywords: ["slow"],
+            name: "slow",
+            level:  level,
+            duration: 60,
+            modifiers: { attack_speed: -1 }
+        )
+    end
+
     def start
         @target.output "You find yourself moving more slowly."
     end
@@ -20,7 +46,20 @@ class AffectSlow < Affect
     end
 end
 
-class AffectStun < Affect    
+class AffectStun < Affect
+
+    def initialize(source:, target:, level:)
+        super(
+            source: source,
+            target: target,
+            keywords: ["stun"],
+            name: "stun",
+            level:  level,
+            duration: 60,
+            modifiers: { none: 0 }
+        )
+    end
+
     def start
         @target.output "You are stunned but will probably recover."
     end

@@ -1,6 +1,8 @@
 class Mobile < GameObject
 
-    attr_accessor :game, :vnum, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group, :skills, :spells
+    attr_accessor :game, :id, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group, :skills, :spells
+
+    attr_reader :game, :room
 
     def initialize( data, game, room )
         super("unnamed mob", game)
@@ -165,6 +167,9 @@ class Mobile < GameObject
     # When calling 'start_combat', call it first for the 'victim', then for the attacker
 
     def start_combat( attacker )
+        if attacker.room != @room
+            return
+        end
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker
             do_command "yell 'Help I am being attacked by #{attacker}!'"
@@ -291,7 +296,7 @@ class Mobile < GameObject
         broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
 
         target.damage( damage, self )
-        fire_event(:event_on_hit, {})
+        @game.fire_event(:event_on_hit, {}, self, @room, @room.area, equipment.values)
     end
 
     def damage( damage, attacker )
@@ -358,7 +363,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         @inventory = []
         @equipment
         @game.mobiles.delete( self )
-        @game.mobile_count[ @vnum ] = [0, (@game.mobile_count[ vnum ].to_i - 1)].max
+        @game.mobile_count[ @id ] = [0, (@game.mobile_count[ id ].to_i - 1)].max
         stop_combat
     end
 
@@ -371,7 +376,6 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
             @room = @room.exits[ direction.to_sym ]
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
             look_room
-            # cmd_look
         end
     end
 
@@ -380,7 +384,9 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def move_to_room( room )
+        @room&.mobiles&.delete(self)
         @room = room
+        @room.mobiles.push(self)
         @game.do_command self, "look"
     end
 
@@ -476,16 +482,11 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
         end
     end
 
-    def affected?( key )
-        @affects.select{ |affect| affect.check(key) }.count > 0
-    end
-
     def can_see? target
-        if affected? "blind"
-            false
-        else
-            true
-        end
+        return true if target == self
+        data = {chance: 100, target: target}
+        @game.fire_event(:event_try_see, data, self, @room, @room.area, equipment.values)
+        return !(dice(1, 100) > data[:chance])
     end
 
     def carry_max
@@ -552,23 +553,6 @@ Slash:     #{ (-1 * stat(:ac_slash)).to_s.ljust(26) } Magic:     #{ -1 * stat(:a
 You are Ruthless.
 You are #{Position::STRINGS[ @position ]}.
 )
-    end
-
-    def fire_event(event, data)
-        @room&.listeners[event]&.each do |responder, method|
-            responder.send method, data
-        end
-        @room&.area&.listeners[event]&.each do |responder, method|
-            responder.send method, data
-        end
-        @listeners[event]&.each do |responder, method|
-            responder.send method, data
-        end
-        @equipment.each do |slot, item|
-            item&.listeners&.each do |responder, method|
-                responder.send method, data
-            end
-        end
     end
 
 end

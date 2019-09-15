@@ -1,6 +1,20 @@
 require_relative 'affect.rb'
 
 class AffectPoison < Affect
+
+    def initialize(source:, target:, level:)
+        super(
+            source: source,
+            target: target,
+            keywords: ["poison"],
+            name: "poison",
+            level:  level,
+            duration: 180,
+            modifiers: { str: -1 },
+            period: 10
+        )
+    end
+
     def start
         @target.output "You feel very sick."
     end
