@@ -562,11 +562,15 @@ You are #{Position::STRINGS[ @position ]}.)
     end
 
     def skills
-        return @skills + @game.race_data.dig(@race_id, :skills).to_a + @game.class_data.dig(@class_id, :skills).to_a
+        return @skills | @game.race_data.dig(@race_id, :skills).to_a | @game.class_data.dig(@class_id, :skills).to_a
     end
 
     def spells
-        return @spells + @game.race_data.dig(@race_id, :spells).to_a + @game.class_data.dig(@class_id, :spells).to_a
+        return @spells | @game.race_data.dig(@race_id, :spells).to_a | @game.class_data.dig(@class_id, :spells).to_a
+    end
+
+    def set_race_id
+        
     end
 
 end
