@@ -3,7 +3,7 @@ require 'sequel'
 class Game
 
     attr_accessor :mobiles, :mobile_count
-    attr_reader :race_data
+    attr_reader :race_data, :class_data
 
     def initialize( ip, port )
 
@@ -71,10 +71,10 @@ class Game
             end
         end
 
-        race = nil
+        race_id = nil
         player_race_data = @race_data.select{ |key, value| value[:player_race] == 1 && value[:starter_race] == 1 }
-        player_race_names = player_race_data.keys
-        while race.nil?
+        player_race_names = player_race_data.map{ |key, value| value[:name] }
+        while race_id.nil?
 
             client.puts %Q(
 The following races are available:
@@ -84,29 +84,27 @@ What is your race (help for more information)?)
             race_input = client.gets.chomp
             race_matches = player_race_names.select{ |name| name.fuzzy_match(race_input) }
             if race_matches.any?
-                race = @race_data[race_matches.first]
+                race_id = @race_data.select{ |key, value| value[:name] == race_matches.first}.first[0]
             else
                 client.puts "You must choose a valid race!"
-                race = nil
             end
         end
 
-        charclass = nil
-        class_names = @class_data.keys
-        while charclass.nil?
+        class_id = nil
+        start_class_data = @class_data.select{ |key, value| value[:starter_class] == 1 }
+        class_names = start_class_data.map{ |key, value| value[:name] }
+        while class_id.nil?
             client.puts %Q(
 Select a class
 ---------------
 #{class_names.join("\n")}
 :)
-            charclass =
             class_input = client.gets.chomp.to_s
             class_matches = class_names.select{ |name| name.fuzzy_match(class_input) }
             if class_matches.any?
-                charclass = @class_data[class_matches.first]
+                class_id = @class_data.select{ |key, value| value[:name] == class_matches.first}.first[0]
             else
                 client.puts "Invalid class!"
-                charclass = nil
             end
         end
 
@@ -129,8 +127,9 @@ Which alignment (G/N/E)?)
 
         client.puts "Welcome, #{name}."
         broadcast "#{name} has joined the world.", target
-        @players[name] = Player.new( { alignment: alignment, name: name, race: race, charclass: charclass }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
-        client.puts "Users Online: [#{ @players.keys.join(', ') }]\n\r"
+        @players[name] = Player.new( { alignment: alignment, name: name, race_id: race_id, class_id: class_id }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
+
+        @players[name].look_room
         @players[name].input_loop
     end
 
@@ -274,15 +273,20 @@ Which alignment (G/N/E)?)
 
     def load_mob( id, room )
         row = @mob_data[ id ]
-        Mobile.new( {
+        race_matches = @race_data.select{ |k, v| v[:name] == row[:race] }
+        race_id = 0
+        if race_matches.any?
+            race_id = race_matches.first[0]
+        end
+        mob = Mobile.new( {
                 id: id,
                 keywords: row[:keywords].split(" "),
                 short_description: row[:short_desc],
                 long_description: row[:long_desc],
                 full_description: row[:full_desc],
-                race: @race_data[row[:race]] || {name: row[:race]},
+                race_id: race_id,
                 action_flags: row[:act_flags],
-                affect_flags: row[:aff_flags],
+                affect_flags: row[:affect_flags],
                 alignment: row[:align].to_i,
                 # mobgroup??
                 hitroll: row[:hitroll].to_i,
@@ -298,8 +302,8 @@ Which alignment (G/N/E)?)
                 damage_type: row[:hand_to_hand_noun].split("").first, # pierce, slash, none, etc.
                 ac: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
                 offensive_flags: row[:off_flags],
-                immune_flags: row[:imm_flags],
-                resist_flags: row[:res_flags],
+                immune_flags: row[:immune_flags],
+                resist_flags: row[:resist_flags],
                 vulnerable_flags: row[:vuln_flags],
                 starting_position: row[:start_position],
                 default_position: row[:default_position],
@@ -314,6 +318,7 @@ Which alignment (G/N/E)?)
             self,
             room
         )
+        return mob
     end
 
     def load_item( id, room )
@@ -366,17 +371,18 @@ Which alignment (G/N/E)?)
     def setup_game
 
         @game_settings = @db[:game_settings].all.first
-        @race_data = @db[:race_base].to_hash(:name)
+        @race_data = @db[:race_base].to_hash(:id)
         @race_data.each do |key, value|
             value[:skills] = value[:skills].split(",")
             value[:spells] = value[:spells].split(",")
+            value[:affect_flags] = value[:affect_flags].split(",")
             value[:immune_flags] = value[:immune_flags].split(",")
             value[:resist_flags] = value[:resist_flags].split(",")
             value[:vuln_flags] = value[:vuln_flags].split(",")
             value[:part_flags] = value[:part_flags].split(",")
             value[:form_flags] = value[:form_flags].split(",")
         end
-        @class_data = @db[:class_base].to_hash(:name)
+        @class_data = @db[:class_base].to_hash(:id)
         @class_data.each do |key, value|
             value[:skills] = value[:skills].split(",")
             value[:spells] = value[:spells].split(",")
@@ -439,6 +445,16 @@ Which alignment (G/N/E)?)
         puts ( "Rooms loaded from database." )
 
         @mob_data = @db[:mobile_base].as_hash(:id)
+        @mob_data.each do |key, value|
+            value[:affect_flags] = value[:affect_flags].split(",")
+            value[:off_flags] = value[:off_flags].split(",")
+            value[:act_flags] = value[:act_flags].split(",")
+            value[:immune_flags] = value[:immune_flags].split(",")
+            value[:resist_flags] = value[:resist_flags].split(",")
+            value[:vuln_flags] = value[:vuln_flags].split(",")
+            value[:part_flags] = value[:part_flags].split(",")
+            value[:form_flags] = value[:form_flags].split(",")
+        end
         @item_data = @db[:item_base].as_hash(:id)
         @weapon_data = @db[:item_weapon].as_hash(:item_id)
 

@@ -13,7 +13,8 @@ class Affect
         period: nil,
         priority: 100,
         application_type: :global_overwrite,
-        permanent: false
+        permanent: false,
+        hidden: false
     )
         @source = source
         @target = target
@@ -27,7 +28,9 @@ class Affect
         @application_type = application_type   # :global_overwrite, :global_stack, :global_single,
                                                # :source_overwrite, :source_stack, :source_single
         @permanent = permanent
+        @hidden = hidden
         @clock = 0
+        @conditions = []
     end
 
     # override this method to add event listeners - Make sure you remove them in +unhook+!
@@ -47,20 +50,18 @@ class Affect
     end
 
     def update( elapsed )
-        if !@permanent
-            @duration -= elapsed
-            if @period
-                @clock += elapsed
-                if @clock >= @period
-                    periodic
-                    @clock = 0
-                end
+        if @period
+            @clock += elapsed
+            if @clock >= @period
+                periodic
+                @clock = 0
             end
-            if @duration <= 0
-                unhook
-                @target.affects.delete self
-                complete
-            end
+        end
+        @duration -= elapsed if !@permanent
+        if (@duration <= 0 && !@permanent) || (@conditions.length > 0 && @conditions.map { |condition| condition.evaluate }.include?(false))
+            unhook
+            @target.affects.delete self
+            complete
         end
     end
 
@@ -80,11 +81,15 @@ class Affect
     end
 
     def summary
-%Q(Spell: #{@name.ljust(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} for #{ duration } hours" }.join("\n" + (" " * 24) + " : ") } )
+%Q(Spell: #{@name.ljust(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") } )
     end
 
-    def duration
-        @duration.to_i
+    def duration_string
+        if @permanent
+            return "permanently"
+        else
+            return "for #{@duration.to_i} hours"
+        end
     end
 
     # Combine modifiers from a new affect and renew duration of this affect to
@@ -102,5 +107,39 @@ class Affect
         intersection = affect.class.ancestors & self.class.ancestors      # get the intersection of ancestors of the two classes
         return !intersection.slice(0, intersection.index(Affect)).empty?  # slice the array elements preceding Affect: these will be common ancestors
     end                                                                   # if this array is empty after the slice, then there are no common ancestors
+
+end
+
+# The AffectCondition is an object that an +Affect+ can evaluate at each +update+ to determine whether or not     <br>
+# the +Affect+ should clear itself. When added to an +Affect+'s +conditions+ array, the affect will clear itself  <br>
+# upon finding any condition to be false.
+#                                                                               # evaluates as:
+#     AffectCondition.new(some_mobile, [:room], :==, some_room, [])             # some_mobile.room == some_room
+#     AffectCondition.new(some_mobile, [:room, :area], :==, some_room, [:area]) # some_mobile.room.area == some_room.area
+#
+class AffectCondition
+
+    # Creates a new instance.
+    # +l_object+:: Base object on the lefthand side of the operator
+    # +l_symbols+:: Any methods to call on l_object at each +evaluate+
+    # +operator+:: The comparison operator
+    # +r_object+:: Base object on the righthand side of the operator
+    # +r_symbols+:: Any methods to call on r_object at each +evaluate+
+    def initialize(l_object, l_symbols, operator, r_object, r_symbols)
+        @l_object = l_object
+        @l_symbols = l_symbols
+        @operator = operator
+        @r_object = r_object
+        @r_symbols = r_symbols
+    end
+
+    # The affect will call this in +update+
+    def evaluate
+        l = @l_object
+        @l_symbols.each { |symbol| l = l.send(symbol) }
+        r = @r_object
+        @r_symbols.each { |symbol| r = r.send(symbol) }
+        return l.send(@operator, r)
+    end
 
 end

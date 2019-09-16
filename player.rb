@@ -12,9 +12,9 @@ class Player < Mobile
           keywords: [data[:name]],
           short_description: data[:name],
           long_description: "#{data[:name]} the Master Rune Maker is here.",
-          race: data[:race],
+          race_id: data[:race_id],
           alignment: data[:alignment],
-          charclass: RunistClass.new,
+          class_id: data[:class_id]
         }, game, room)
     end
 
@@ -61,18 +61,18 @@ class Player < Mobile
 
     def send_to_client
         if @buffer.length > 0
+            @buffer += @attacking.condition if @attacking
             lines = @buffer.split("\n", 1 + @scroll)
             @delayed_buffer = (lines.count > @scroll ? lines.pop : @delayed_buffer)
             out = lines.join("\n\r")
-            @client.puts color_replace( out )
-            @buffer = ""
-
-            @client.puts color_replace( @attacking.condition ) if @attacking
             if @delayed_buffer.length == 0
-                @client.puts color_replace( "\n#{prompt}" )
+                out += "\n\r#{prompt}"
             else
-                @client.puts( "\n\r[Hit Return to continue]")
+                out += "\n\r\n\r[Hit Return to continue]"
             end
+
+            @client.print color_replace( "\n"+ out )
+            @buffer = ""
         end
     end
 
@@ -91,10 +91,6 @@ class Player < Mobile
         move_to_room( room )
         @hitpoints = 10
         @position = Position::REST
-    end
-
-    def who
-        "[#{@level.to_s.rjust(2)} #{@race_name.ljust(7)} #{@charclass.classname.rjust(7)}] #{@short_description}"
     end
 
     def quit
