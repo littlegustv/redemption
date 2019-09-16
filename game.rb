@@ -2,7 +2,7 @@ require 'sequel'
 
 class Game
 
-    attr_accessor :mobiles, :mobile_count
+    attr_accessor :mobiles, :mobile_count, :items
     attr_reader :race_data, :class_data
 
     def initialize( ip, port )
@@ -161,7 +161,7 @@ Which alignment (G/N/E)?)
 
     # eventually, this will handle all game logic
     def update( elapsed )
-        ( @players.values + @mobiles).each do | entity |
+        ( @players.values + @mobiles + @items ).each do | entity |
             entity.update elapsed
         end
     end
@@ -197,6 +197,7 @@ Which alignment (G/N/E)?)
         end
 
         targets = query[:list].reject(&:nil?)                                                                       if query[:list]
+        targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
         targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }   if query[:area]
@@ -500,6 +501,10 @@ Which alignment (G/N/E)?)
             SkillBash.new,
             SkillDisarm.new,
             SkillLivingStone.new,
+            SkillDirtKick.new,
+            SkillKick.new,
+            SkillTrip.new,
+            SkillPaintPower.new,
         ]
         @spells = [
             SpellHurricane.new,
@@ -508,6 +513,9 @@ Which alignment (G/N/E)?)
             SpellBlastOfRot.new,
             SpellIceBolt.new,
             SpellPyrotechnics.new,
+            SpellDestroyTattoo.new,
+            SpellBurstRune.new,
+            SpellBladeRune.new,
         ]
         @commands = [
             CommandAffects.new,

@@ -85,7 +85,7 @@ class Mobile < GameObject
     end
 
     def knows( skill_name )
-        (@skills + @spells).include? skill_name
+        (skills + spells).include? skill_name
     end
 
     def empty_equipment_set
@@ -280,13 +280,15 @@ class Mobile < GameObject
     end
 
     def magic_hit( target, damage, noun = "spell", element = "spell" )
-        target.start_combat( self )
-        self.start_combat( target )
+        if target != self
+            target.start_combat( self )
+            self.start_combat( target )
+        end
 
         decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
 
         output "Your #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", [target]
-        target.output "%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]
+        target.output("%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]) unless target == self
         broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]
 
         elemental_effect( target, element )
@@ -398,8 +400,12 @@ class Mobile < GameObject
     end
 
     def recall
+        output "You pray for transportation!"
+        broadcast "%s prays for transportation!", target({ room: @room, not: self, quantity: "all" }), [self]
+        broadcast "%s disappears!", target({ room: @room, not: self, quantity: "all" }), [self]
         room = @game.recall_room( @room.continent )
         move_to_room( room )
+        broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self, quantity: "all" }), [self]
     end
 
     def condition

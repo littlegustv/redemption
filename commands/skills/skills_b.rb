@@ -1,6 +1,6 @@
 require_relative 'skill.rb'
 
-class SkillBash < Command
+class SkillBash < Skill
 
     def initialize
         super()
@@ -29,19 +29,15 @@ class SkillBash < Command
     end
 
     def do_bash( actor, target )
-        m, t, r = actor.hit 100, "bash"
         actor.output "You slam into %s, and send him flying!", [target]
-        actor.output m, [target]
         target.output "%s sends you flying with a powerful bash!", [actor]
-        target.output t, [actor]
-        actor.broadcast "%s sends %s flying with a powerful bash!", actor.target({ not: [ actor, target ], room: actor.room }), [actor, target]
-        actor.broadcast r, actor.target({ not: [ actor, target ], room: actor.room }), [actor, target]
-        target.damage( 100, actor )
-        target.lag += 0.5
+        actor.broadcast "%s sends %s flying with a powerful bash!", actor.target({ quantity: "all", not: [ actor, target ], room: actor.room }), [actor, target]
+        actor.hit 100, "bash", target
+        target.lag += 0.5        
     end
 end
 
-class SkillBerserk < Command
+class SkillBerserk < Skill
 
     def initialize
         super()

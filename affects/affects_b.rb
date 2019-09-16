@@ -32,6 +32,35 @@ class AffectBerserk < Affect
     end
 end
 
+class AffectBladeRune < Affect
+
+    @@TYPES = [
+        [ "The weapon begins to move faster.", { attack_speed: 1 } ],
+        [ "The weapon becomes armor-piercing.", { hitroll: 20 } ],
+        # [ "The weapon will deflect incoming attacks.", { none: 0 } ],
+        # [ "The weapon becomes more accurate.", { none: 0 } ],
+        [ "The weapon surrounds you with a glowing aura.", { ac_pierce: -20, ac_bash: -20, ac_slash: -20 } ],
+        [ "The weapon is endowed with killing dweomers.", { damroll: 10 } ]
+    ]
+
+    def initialize(source:, target:, level:)
+        super(
+            source: source,
+            target: target,
+            keywords: ["blade rune"],
+            name: "blade rune",
+            level:  level,
+            duration: 60            
+        )
+        @message, @modifiers = @@TYPES.sample
+    end
+
+    def start
+        @source.output "You empower the weapon with a blade rune!"
+        @source.output @message
+    end
+end
+
 class AffectBlind < Affect
 
     def initialize(source:, target:, level:)
@@ -66,4 +95,56 @@ class AffectBlind < Affect
         data[:chance] *= 0
     end
 
+end
+
+class AffectBurstRune < Affect
+
+    @@ELEMENTS = [
+        ["flooding", "Your weapon carries the {Dstrength{x of the {Btides!{x", "A {Dblack{x and {Bblue{x rune appears."],
+        ["corrosive", "Your attack explodes into {Gcorrosive {Bacid{x!", "A {Ggreen{x and {Bblue{x rune appears."],
+        ["frost", "The air is {Wtinged{x with {Bfrost{x as you strike!", "A {Bblue{x and {Wwhite{x rune appears."],
+        ["poison", "Your weapon discharges a {Gvirulent {Dspray!{x", "A {Ggreen{x and {Dblack{x rune appears."],
+        ["shocking", "You strike with the force of a {Ythunder {Bbolt!{x", "A {Ygold{x and {Bblue{x rune appears."],
+        ["flaming", "A {Wblast{x of {Rflames{x explodes from your weapon!", "A {Rred{x and {Wwhite{x rune appears."]
+    ]
+
+    def initialize(source:, target:, level:)
+        super(
+            source: source,
+            target: target,
+            keywords: ["burst rune"],
+            name: "burst rune",
+            level:  level,
+            duration: 60            
+        )
+        @element, @hit, @message = @@ELEMENTS.sample
+        @noun = "elemental charged strike"
+    end
+
+    def hook
+        @target.add_event_listener(:event_on_hit, self, :do_burst_rune)
+    end
+
+    def unhook
+        @target.delete_event_listener(:event_on_hit, self)
+    end
+
+    def do_burst_rune(data)
+        if @source.attacking && rand(0..100) < 50
+            @source.output @hit
+            @source.magic_hit( @source.attacking, 100, @noun, @element) 
+        end
+    end
+
+    def start
+        @source.output "You empower the weapon with an elemental burst rune!"
+        @source.output @message
+    end
+
+    def complete
+    end
+
+    def summary
+        "Spell: burst rune adds #{@element} elemental charged strike for #{@duration} seconds"
+    end
 end
