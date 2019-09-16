@@ -402,8 +402,12 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def recall
+        output "You pray for transportation!"
+        broadcast "%s prays for transportation!", target({ room: @room, not: self, quantity: "all" }), [self]
+        broadcast "%s disappears!", target({ room: @room, not: self, quantity: "all" }), [self]
         room = @game.recall_room( @room.continent )
         move_to_room( room )
+        broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self, quantity: "all" }), [self]
     end
 
     def condition

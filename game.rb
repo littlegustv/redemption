@@ -484,6 +484,9 @@ Which alignment (G/N/E)?)
             SkillBash.new,
             SkillDisarm.new,
             SkillLivingStone.new,
+            SkillDirtKick.new,
+            SkillKick.new,
+            SkillTrip.new,
         ]
         @spells = [
             SpellHurricane.new,
