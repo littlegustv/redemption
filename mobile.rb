@@ -1,24 +1,25 @@
 class Mobile < GameObject
 
-    attr_accessor :game, :id, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group, :skills, :spells
+    attr_accessor :id, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group, :race_id
 
     attr_reader :game, :room
 
     def initialize( data, game, room )
-        super("unnamed mob", game)
+        super(data[ :short_description ], game)
         @attacking
         @lag = 0
         @room = room
+        @room.mobiles.push(self)
         @keywords = data[:keywords]
         @id = data[ :id ]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
-        @race_name = data[ :race ][:name]
+        @race_id = data[ :race_id ]
         @class = data[ :class ]
-        @skills = data.dig(:race, :skills) || []
-        @spells = ( data.dig(:race, :spells) || [] ) + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
-        @charclass = data[ :charclass ].nil? ? PlayerClass.new({}) : RunistClass.new
+        @skills = []
+        @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
+        @class_id = data[ :class_id ]
         @experience = 0
         @experience_to_level = 1000
         @quest_points = 0
@@ -30,18 +31,19 @@ class Mobile < GameObject
 
         @group = []
         @in_group = nil
+
         @stats = {
             success: 100,
-            str: data.dig(:race, :str) || 13,
-            con: data.dig(:race, :con) || 13,
-            int: data.dig(:race, :int) || 13,
-            wis: data.dig(:race, :wis) || 13,
-            dex: data.dig(:race, :dex) || 13,
-            max_str: data.dig(:race, :max_str) || 23,
-            max_con: data.dig(:race, :max_con) || 23,
-            max_int: data.dig(:race, :max_int) || 23,
-            max_wis: data.dig(:race, :max_wis) || 23,
-            max_dex: data.dig(:race, :max_dex) || 23,
+            str: 0,
+            con: 0,
+            int: 0,
+            wis: 0,
+            dex: 0,
+            max_str: 0,
+            max_con: 0,
+            max_int: 0,
+            max_wis: 0,
+            max_dex: 0,
             hitroll: data[:hitroll] || rand(5...7),
             damroll: data[:damage] || 50,
             attack_speed: 1,
@@ -52,6 +54,14 @@ class Mobile < GameObject
         }
         if @class
 
+        end
+
+        affect_flags = data[:affect_flags] || @game.race_data[@race_id][:affect_flags]
+
+        affect_flags.each do |flag|
+            if flag == "hatchling"
+                apply_affect(AffectHatchling.new(source: self, target: self, level: 0, race_data: @game.race_data))
+            end
         end
 
         @level = data[:level] || 1
@@ -72,7 +82,6 @@ class Mobile < GameObject
         @position = Position::STAND
         @inventory = []
         @equipment = empty_equipment_set
-        @game = game
     end
 
     def knows( skill_name )
@@ -114,47 +123,47 @@ class Mobile < GameObject
     end
 
     def remove_from_group
-      self.output "You leave #{self.in_group}'s group."
-      self.in_group.output "#{self} leaves your group."
+        self.output "You leave #{self.in_group}'s group."
+        self.in_group.output "#{self} leaves your group."
 
-      self.in_group.group.delete self
-      puts "#{self.in_group.group.length} others in group."
-      self.in_group = nil
+        self.in_group.group.delete self
+        puts "#{self.in_group.group.length} others in group."
+        self.in_group = nil
     end
 
     def add_to_group( leader )
-      self.output "You join #{leader}'s group."
-      leader.output "#{self} joins your group."
+        self.output "You join #{leader}'s group."
+        leader.output "#{self} joins your group."
 
-      self.in_group = leader
-      leader.group.push self
-      puts "#{leader.group.length} others in group."
+        self.in_group = leader
+        leader.group.push self
+        puts "#{leader.group.length} others in group."
     end
 
     def group_info
-      group_string = ""
+        group_string = ""
 
-      if self.group.any?
-        group_string += "Your group:\n\r\n\r"
-        group_string += self.group_desc + "\n\r"
-        self.group.each do |target|
-          group_string += target.group_desc + "\n\r"
+        if self.group.any?
+            group_string += "Your group:\n\r\n\r"
+            group_string += self.group_desc + "\n\r"
+            self.group.each do |target|
+                group_string += target.group_desc + "\n\r"
+            end
+        elsif !self.in_group.nil?
+            group_string += "#{self.in_group}'s group:\n\r\n\r"
+            group_string += self.in_group.group_desc + "\n\r"
+            self.in_group.group.each do |target|
+                group_string += target.group_desc + "\n\r"
+            end
+        else
+            group_string = "You're not in a group."
         end
-      elsif !self.in_group.nil?
-        group_string += "#{self.in_group}'s group:\n\r\n\r"
-        group_string += self.in_group.group_desc + "\n\r"
-        self.in_group.group.each do |target|
-          group_string += target.group_desc + "\n\r"
-        end
-      else
-        group_string = "You're not in a group."
-      end
 
-      group_string
+        group_string
     end
 
     def group_desc
-      self.who
+        self.who
     end
 
     def do_command( input )
@@ -242,7 +251,7 @@ class Mobile < GameObject
             when "flooding"
                 target.broadcast "{b%s coughes and chokes on the water.{x", target({ not: target, room: @room }), [target]
                 target.output "{bYou cough and choke on the water.{x"
-                target.apply_affect(Affect.new( name: "flooding", keywords: ["flooding", "slow"], source: self, target: target, level: self.level, duration: 30, modifiers: { attack_speed: -1, dex: -1 }))                
+                target.apply_affect(Affect.new( name: "flooding", keywords: ["flooding", "slow"], source: self, target: target, level: self.level, duration: 30, modifiers: { attack_speed: -1, dex: -1 }))
             when "shocking"
                 target.broadcast "{y%s jerks and twitches from the shock!{x", target({ not: target, room: @room }), [target]
                 target.output "{yYour muscles stop responding.{x"
@@ -328,28 +337,14 @@ class Mobile < GameObject
 )
     end
 
-    def levelup
-        if @experience > @experience_to_level
-            @experience = (@experience - @experience_to_level)
-            @level += 1
-            @basehitpoints += 20
-            @basemanapoints += 10
-            @basemovepoints += 10
-            "\n\rYou raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices." + hatch
-        else
-            ""
-        end
-    end
-
-    def hatch
-        if  @level == 2 && @race_name == "hatchling"
-            @race_name = Constants::HATCHLING_MESSAGES.keys.sample
-            @skills += @game.race_data.dig( @race_name.to_sym, :skills ).to_a
-            @spells += @game.race_data.dig( @race_name.to_sym, :spells ).to_a
-            "\n\r#{Constants::HATCHLING_MESSAGES[ @race_name ].join("\n\r")}"
-        else
-            ""
-        end
+    def level_up
+        @experience = (@experience - @experience_to_level)
+        @level += 1
+        @basehitpoints += 20
+        @basemanapoints += 10
+        @basemovepoints += 10
+        output "You raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices."
+        @game.fire_event(:event_on_level_up, {level: @level}, self, @room, @room.area, equipment.values)
     end
 
     def xp( target )
@@ -358,18 +353,17 @@ class Mobile < GameObject
         base_xp *= 10  / ( @level + 4 ) if @level < 6
         base_xp = rand(base_xp..(5 * base_xp / 4))
         @experience = @experience.to_i + base_xp.to_i
-        message = "You receive #{base_xp} experience points." + levelup
+        output "You receive #{base_xp} experience points."
+        if @experience > @experience_to_level
+            level_up
+        end
     end
 
     def die( killer )
-        experience_message = killer.xp( self )
-        killer.output %Q(
-#{self.to_s.capitalize} is DEAD!!
-#{experience_message}
-#{self.to_s.capitalize}'s head is shattered, and her brains splash all over you.
-#{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.join("\n")}
-You offer your victory to Gabriel who rewards you with 1 deity points.
-)
+        broadcast "%s is DEAD!!", target({ :not => self, :room => @room }), [self]
+        killer.xp( self )
+        broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]
+        killer.output "#{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.push("You offer your victory to Gabriel who rewards you with 1 deity points.").join("\n")}"
         killer.inventory += @inventory + @equipment.values.reject(&:nil?)
         @inventory = []
         @equipment
@@ -383,15 +377,17 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
             output "There is no exit [#{direction}]."
         else
             broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
-            output "You leave #{direction}."
-            @room = @room.exits[ direction.to_sym ]
+            move_to_room(@room.exits[direction.to_sym])
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
-            look_room
         end
     end
 
     def look_room
         @game.do_command self, "look"
+    end
+
+    def who
+        "[#{@level.to_s.rjust(2)} #{@game.race_data.dig(@race_id, :display_name).ljust(7)} #{@game.class_data.dig(@class_id, :name).capitalize.rjust(7)}] #{@short_description}"
     end
 
     def move_to_room( room )
@@ -500,8 +496,8 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     def can_see? target
         return true if target == self
         data = {chance: 100, target: target}
-        @game.fire_event(:event_try_see, data, self, @room, @room.area, equipment.values)
-        return !(dice(1, 100) > data[:chance])
+        @game.fire_event(:event_try_can_see, data, self, @room, @room.area, equipment.values)
+        return dice(1, 100) <= data[:chance]
     end
 
     def carry_max
@@ -525,7 +521,7 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def stat(key)
-        @stats[key].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+) + @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
+        (@game.race_data[@race_id][key] || 0) + @stats[key].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+) + @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
     end
 
     # def armor(index)
@@ -538,36 +534,43 @@ You offer your victory to Gabriel who rewards you with 1 deity points.
     end
 
     def score
-%Q(
-#{@short_description}
+    race_hash = @game.race_data[@race_id]
+%Q(#{@short_description}
 Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
-Level:     #{@level.to_s.ljust(26)} Age:       17 - 0(0) hours
-Race:      #{@race_name.ljust(26)} Sex:       male
-Class:     #{@charclass.classname.ljust(26)} Deity:     Gabriel
-Alignment: #{@alignment.to_s.ljust(26)} Deity Points: 0
-Pracs:     N/A                        Trains:    N/A
-Exp:       #{"#{@experience} (#{@experience_to_level}/lvl)".ljust(26)} Next Level: #{@experience_to_level - @experience}
-Quest Points: #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
-Carrying:  #{ "#{@inventory.count} of #{carry_max}".ljust(26) } Weight:    #{ @inventory.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
-Gold:      #{ @gold.to_s.ljust(26) } Silver:    #{ @silver.to_s }
-Claims Remaining: N/A
+{cLevel:{x     #{@level.to_s.ljust(26)} {cAge:{x       17 - 0(0) hours
+{cRace:{x      #{@game.race_data.dig(@race_id, :name).to_s.ljust(26)} {cSex:{x       male
+{cClass:{x     #{@game.class_data.dig(@class_id, :name).to_s.ljust(26)} {cDeity:{x     Gabriel
+{cAlignment:{x #{@alignment.to_s.ljust(26)} {cDeity Points:{x 0
+{cPracs:{x     N/A                        {cTrains:{x    N/A
+{cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".ljust(26)} {cNext Level:{x #{@experience_to_level - @experience}
+{cQuest Points:{x #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
+{cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".ljust(26) } {cWeight:{x    #{ @inventory.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
+{cGold:{x      #{ @gold.to_s.ljust(26) } {cSilver:{x    #{ @silver.to_s }
+{cClaims Remaining:{x N/A
 ---------------------------------- Stats --------------------------------
-Hp:        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".ljust(26)} Mana:      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
-Movement:  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".ljust(26)} Wimpy:     #{@wimpy}
-Str:       #{"#{stat(:str)}(#{@stats[:str]}) of 23".ljust(26)} Con:       #{stat(:con)}(#{@stats[:con]}) of 23
-Int:       #{"#{stat(:int)}(#{@stats[:int]}) of 23".ljust(26)} Wis:       #{stat(:wis)}(#{@stats[:wis]}) of 23
-Dex:       #{ stat(:dex) }(#{ @stats[:dex] }) of 23
-HitRoll:   #{ stat(:hitroll).to_s.ljust(26)} DamRoll:   #{ stat(:damroll) }
-DamResist: #{ stat(:damresist).to_s.ljust(26) } MagicDam:  #{ stat(:magicdam) }
-AttackSpd: #{ stat(:attack_speed) }
+{cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".ljust(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
+{cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".ljust(26)} {cWimpy:{x     #{@wimpy}
+{cStr:{x       #{"#{@stats[:str]+race_hash[:str]}(#{stat(:str)}) of #{@stats[:max_str]+race_hash[:max_str]}".ljust(26)} {cCon:{x       #{@stats[:con]+race_hash[:con]}(#{stat(:con)}) of #{@stats[:max_con]+race_hash[:max_con]}
+{cInt:{x       #{"#{@stats[:int]+race_hash[:int]}(#{stat(:int)}) of #{@stats[:max_int]+race_hash[:max_int]}".ljust(26)} {cWis:{x       #{@stats[:wis]+race_hash[:wis]}(#{stat(:wis)}) of #{@stats[:max_wis]+race_hash[:max_wis]}
+{cDex:{x       #{ @stats[:dex]+race_hash[:dex]}(#{stat(:dex)}) of #{@stats[:max_dex]+race_hash[:max_dex]}
+{cHitRoll:{x   #{ stat(:hitroll).to_s.ljust(26)} {cDamRoll:{x   #{ stat(:damroll) }
+{cDamResist:{x #{ stat(:damresist).to_s.ljust(26) } {cMagicDam:{x  #{ stat(:magicdam) }
+{cAttackSpd:{x #{ stat(:attack_speed) }
 --------------------------------- Armour --------------------------------
-Pierce:    #{ (-1 * stat(:ac_pierce)).to_s.ljust(26) } Bash:      #{ -1 * stat(:ac_bash) }
-Slash:     #{ (-1 * stat(:ac_slash)).to_s.ljust(26) } Magic:     #{ -1 * stat(:ac_magic) }
+{cPierce:{x    #{ (-1 * stat(:ac_pierce)).to_s.ljust(26) } {cBash:{x      #{ -1 * stat(:ac_bash) }
+{cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.ljust(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
-You are #{Position::STRINGS[ @position ]}.
-)
+You are #{Position::STRINGS[ @position ]}.)
+    end
+
+    def skills
+        return @skills + @game.race_data.dig(@race_id, :skills).to_a + @game.class_data.dig(@class_id, :skills).to_a
+    end
+
+    def spells
+        return @spells + @game.race_data.dig(@race_id, :spells).to_a + @game.class_data.dig(@class_id, :spells).to_a
     end
 
 end

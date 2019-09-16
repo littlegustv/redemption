@@ -47,11 +47,11 @@ class AffectBlind < Affect
     end
 
     def hook
-        @target.add_event_listener(:event_try_see, self, :do_blindness)
+        @target.add_event_listener(:event_try_can_see, self, :do_blindness)
     end
 
     def unhook
-        @target.delete_event_listener(:event_try_see, self)
+        @target.delete_event_listener(:event_try_can_see, self)
     end
 
     def start

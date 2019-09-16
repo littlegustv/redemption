@@ -85,7 +85,8 @@ class GameObject
         end
     end
 
-    # Returns true if the GameObject is affected by an Affect with a matching keyword
+    # Returns true if the GameObject is affected by an Affect with a matching keyword.
+    # Exact match only!
     def affected?( key )
         @affects.select{ |affect| affect.check(key) }.count > 0
     end
@@ -106,7 +107,6 @@ class GameObject
         if !existing_affects.empty?
             case type
             when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
-
                 existing_affects.each do |a|
                     a.unhook
                     affects.delete(a)
