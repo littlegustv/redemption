@@ -1,6 +1,6 @@
 class Item < GameObject
 
-	attr_accessor :wear_location, :weight, :room
+	attr_accessor :wear_location, :weight, :room, :type
 
     def initialize( data, game, room )
         super(data[:short_description], game)
@@ -127,21 +127,17 @@ class Tattoo < Item
 
     def initialize( runist, slot )
         super({ 
-            # short_description: "A tattoo.",
-            keywords: ["tattoo"],
             level: runist.level,
             weight: 0,
             cost: 0,
-            # long_description: "A tattoo (long description).",
             type: "tattoo",
             wear_location: slot.gsub(/\_\d/, ""),
             material: "tattoo",
             extraFlags: "noremove",
-            # modifiers: { str: 10 },
             ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
         }.merge( paint ), runist.game, nil)
         @runist = runist
-        @duration = 10.0 * runist.level
+        @duration = 60.0 * runist.level
         @slot = slot
         @game.items.push self
     end
@@ -150,10 +146,15 @@ class Tattoo < Item
         super(elapsed)
         @duration -= elapsed
         if @duration <= 0 && @runist.equipment[ @slot.to_sym ] == self
-            @runist.output "Your tattoo crumbles into dust."
-            @runist.equipment[ @slot.to_sym ] = nil
-            @game.items.delete self
+            destroy
         end
+    end
+
+    def destroy( damage = false )
+        @runist.magic_hit(@runist, 100, "burning flesh", "flaming") if damage
+        @runist.output "Your tattoo crumbles into dust." if not damage
+        @runist.equipment[ @slot.to_sym ] = nil
+        @game.items.delete self
     end
 
     def lore
@@ -163,9 +164,17 @@ Tattoo will last for another #{ @duration.to_i } hours.
     end
 
     def paint
-        key = @@stats.sample
-        @brilliant = rand(0..10) > 5
-        return { modifiers: { key => rand( @@greater[key][:min]..@@greater[key][:max] ) }, short_description: "a tattoo of a #{@@greater[key][:adjective]} #{@@greater[key][:noun]}", long_description: "a tattoo of a #{@@greater[key][:adjective]} #{@@greater[key][:noun]}" }
+        modifiers = {}
+        noun = nil
+        adjectives = []
+        ( count = rand(1..4) ).times do |i|
+            key = @@stats.sample
+            modifiers[ key ] = modifiers[ key ].to_i + rand(@@greater[key][:min]..@@greater[key][:max])
+            noun = @@greater[key][:noun] if i == 0
+            adjectives.push( @@greater[key][:adjective] ) if i > 0
+        end
+        @brilliant = ( count >=3 )
+        return { keywords: ["tattoo", noun] + adjectives, modifiers: modifiers, long_description: "a tattoo of a #{ adjectives.uniq.join(", ") } #{ noun }", short_description: "a tattoo of a #{ adjectives.uniq.join(", ") } #{ noun }"}
     end
 
 end

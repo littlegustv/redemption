@@ -280,13 +280,15 @@ class Mobile < GameObject
     end
 
     def magic_hit( target, damage, noun = "spell", element = "spell" )
-        target.start_combat( self )
-        self.start_combat( target )
+        if target != self
+            target.start_combat( self )
+            self.start_combat( target )
+        end
 
         decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
 
         output "Your #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", [target]
-        target.output "%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]
+        target.output("%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]) unless target == self
         broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]
 
         elemental_effect( target, element )

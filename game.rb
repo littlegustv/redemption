@@ -197,6 +197,7 @@ Which alignment (G/N/E)?)
         end
 
         targets = query[:list].reject(&:nil?)                                                                       if query[:list]
+        targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
         targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }   if query[:area]
@@ -512,6 +513,7 @@ Which alignment (G/N/E)?)
             SpellBlastOfRot.new,
             SpellIceBolt.new,
             SpellPyrotechnics.new,
+            SpellDestroyTattoo.new,
         ]
         @commands = [
             CommandAffects.new,

@@ -18,8 +18,7 @@ class SkillPaintPower < Skill
     		actor.output "You carefully paint a magical tattoo on your #{ slot.gsub(/\_\d/, "") }."
     		actor.broadcast "%s carefully paints a magical tattoo on their #{ slot.gsub(/\_\d/, "") }.", actor.target({ room: actor.room, quantity: "all", not: actor }), [actor]
     		actor.output "{YThe tattoo sparkles brilliantly!{x" if tattoo.brilliant
-    		actor.output "You have painted the following tattoo:"
-    		actor.output tattoo.lore
+    		actor.output "You have painted the following tattoo: #{tattoo.lore}"
     		actor.equipment[ slot.to_sym ] = tattoo
     	else
     		actor.output "You don't have an empty equipment slot there."
