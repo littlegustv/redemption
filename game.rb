@@ -2,7 +2,7 @@ require 'sequel'
 
 class Game
 
-    attr_accessor :mobiles, :mobile_count
+    attr_accessor :mobiles, :mobile_count, :items
     attr_reader :race_data, :class_data
 
     def initialize( ip, port )
@@ -161,7 +161,7 @@ Which alignment (G/N/E)?)
 
     # eventually, this will handle all game logic
     def update( elapsed )
-        ( @players.values + @mobiles).each do | entity |
+        ( @players.values + @mobiles + @items ).each do | entity |
             entity.update elapsed
         end
     end
@@ -461,8 +461,8 @@ Which alignment (G/N/E)?)
         @mob_resets = @db[:reset_mobile].as_hash(:reset_id)
         @inventory_resets = @db[:reset_inventory_item].as_hash(:reset_id)
         @equipment_resets = @db[:reset_equipped_item].as_hash(:reset_id)
-        # @base_resets = @db[:reset_base].where( area_id: [17, 23] ).as_hash(:id)
-        @base_resets = @db[:reset_base].as_hash(:id)
+        @base_resets = @db[:reset_base].where( area_id: [17, 23] ).as_hash(:id)
+        # @base_resets = @db[:reset_base].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
         reset
 
@@ -503,6 +503,7 @@ Which alignment (G/N/E)?)
             SkillDirtKick.new,
             SkillKick.new,
             SkillTrip.new,
+            SkillPaintPower.new,
         ]
         @spells = [
             SpellHurricane.new,

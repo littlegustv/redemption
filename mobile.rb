@@ -85,7 +85,7 @@ class Mobile < GameObject
     end
 
     def knows( skill_name )
-        (@skills + @spells).include? skill_name
+        (skills + spells).include? skill_name
     end
 
     def empty_equipment_set

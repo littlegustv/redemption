@@ -90,3 +90,82 @@ class Weapon < Item
 	end
 
 end
+
+class Tattoo < Item
+
+    attr_reader :brilliant
+
+    @@stats = [ :wis, :int, :con, :dex, :str, :damroll, :hitroll ]
+
+    @@lesser = {
+        wis: { min: 1, max: 1, noun: "fairy", adjective: "wise" },
+        int: { min: 1, max: 1, noun: "wizard", adjective: "smart" },
+        con: { min: 1, max: 1, noun: "stallion", adjective: "tough" },
+        dex: { min: 1, max: 1, noun: "fox", adjective: "agile" },
+        str: { min: 1, max: 1, noun: "bear", adjective: "muscular" },
+        damroll: { min: 1, max: 1, noun: "blade", adjective: "powerful" },
+        hitroll: { min: 1, max: 1, noun: "eyeball", adjective: "focused" },
+        hitpoints: { min: 10, max: 10, noun: "sun", adjective: "bloody" },
+        manapoints: { min: 10, max: 10, noun: "moon", adjective: "glowing" },
+        saves: { min: -1, max: -1, noun: "shield", adjective: "guardian" },
+        age: { min: 10, max: 10, noun: "turtle", adjective: "aging" },
+    }
+
+    @@greater = {
+        wis: { min: 1, max: 4,  noun: "unicorn", adjective: "sage" },
+        int: { min: 1, max: 4, noun: "sphinx", adjective: "brilliant" },
+        con: { min: 1, max: 4, noun: "gorgon", adjective: "resilient" },
+        dex: { min: 1, max: 4, noun: "wyvern", adjective: "flying" },
+        str: { min: 1, max: 4, noun: "titan", adjective: "red" },
+        damroll: { min: 1, max: 4, noun: "warlord", adjective: "flaming" },
+        hitroll: { min: 1, max: 4, noun: "archer", adjective: "precise" },
+        hitpoints: { min: 10, max: 40, noun: "gryphon", adjective: "huge" },
+        manapoints: { min: 10, max: 40, noun: "dragon", adjective: "pulsating" },
+        saves: { min: 1, max: 5, noun: "pentagram", adjective: "sealed" },
+        age: { min: 10, max: 30, noun: "hourglass", adjective: "ancient" },
+    }
+
+    def initialize( runist, slot )
+        super({ 
+            # short_description: "A tattoo.",
+            keywords: ["tattoo"],
+            level: runist.level,
+            weight: 0,
+            cost: 0,
+            # long_description: "A tattoo (long description).",
+            type: "tattoo",
+            wear_location: slot.gsub(/\_\d/, ""),
+            material: "tattoo",
+            extraFlags: "noremove",
+            # modifiers: { str: 10 },
+            ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
+        }.merge( paint ), runist.game, nil)
+        @runist = runist
+        @duration = 10.0 * runist.level
+        @slot = slot
+        @game.items.push self
+    end
+
+    def update(elapsed)
+        super(elapsed)
+        @duration -= elapsed
+        if @duration <= 0 && @runist.equipment[ @slot.to_sym ] == self
+            @runist.output "Your tattoo crumbles into dust."
+            @runist.equipment[ @slot.to_sym ] = nil
+            @game.items.delete self
+        end
+    end
+
+    def lore
+        super + %Q(
+Tattoo will last for another #{ @duration.to_i } hours.
+        )
+    end
+
+    def paint
+        key = @@stats.sample
+        @brilliant = rand(0..10) > 5
+        return { modifiers: { key => rand( @@greater[key][:min]..@@greater[key][:max] ) }, short_description: "a tattoo of a #{@@greater[key][:adjective]} #{@@greater[key][:noun]}", long_description: "a tattoo of a #{@@greater[key][:adjective]} #{@@greater[key][:noun]}" }
+    end
+
+end

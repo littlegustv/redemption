@@ -29,14 +29,10 @@ class SkillTrip < Skill
     end
 
     def do_trip( actor, target )
-        m, t, r = actor.hit 5, "trip"        
         actor.output "You trip %s and %s goes down!", [target, target]
-        actor.output m, [target]
         target.output "%s trips you and you go down!", [actor]
-        target.output t, [actor]
         actor.broadcast "%s trips %s, sending them to the ground.", actor.target({ quantity: "all", not: [ actor, target ], room: actor.room }), [actor, target]
-        actor.broadcast r, actor.target({ not: [ actor, target ], room: actor.room }), [actor, target]
-        target.damage( 5, actor )
+		actor.hit 5, "trip", target
         target.apply_affect(Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }))
     end
 end

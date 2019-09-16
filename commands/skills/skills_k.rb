@@ -29,10 +29,6 @@ class SkillKick < Command
     end
 
     def do_bash( actor, target )
-        m, t, r = actor.hit 50, "kick"
-        actor.output m, [target]
-        target.output t, [actor]
-        actor.broadcast r, actor.target({ not: [ actor, target ], room: actor.room }), [actor, target]
-        target.damage( 50, actor )
+        target.hit 50, "kick", target
     end
 end
