@@ -66,7 +66,7 @@ Keywords '#{ @keywords.join(' ') }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
 Extra flags: #{ @extraFlags }
 #{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
-)
+) +  affects.map(&:summary).join("\n") 
     end
 
 end

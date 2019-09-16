@@ -32,6 +32,35 @@ class AffectBerserk < Affect
     end
 end
 
+class AffectBladeRune < Affect
+
+    @@TYPES = [
+        [ "The weapon begins to move faster.", { attack_speed: 1 } ],
+        [ "The weapon becomes armor-piercing.", { hitroll: 20 } ],
+        # [ "The weapon will deflect incoming attacks.", { none: 0 } ],
+        # [ "The weapon becomes more accurate.", { none: 0 } ],
+        [ "The weapon surrounds you with a glowing aura.", { ac_pierce: -20, ac_bash: -20, ac_slash: -20 } ],
+        [ "The weapon is endowed with killing dweomers.", { damroll: 10 } ]
+    ]
+
+    def initialize(source:, target:, level:)
+        super(
+            source: source,
+            target: target,
+            keywords: ["blade rune"],
+            name: "blade rune",
+            level:  level,
+            duration: 60            
+        )
+        @message, @modifiers = @@TYPES.sample
+    end
+
+    def start
+        @source.output "You empower the weapon with a blade rune!"
+        @source.output @message
+    end
+end
+
 class AffectBlind < Affect
 
     def initialize(source:, target:, level:)
@@ -113,5 +142,9 @@ class AffectBurstRune < Affect
     end
 
     def complete
+    end
+
+    def summary
+        "Spell: burst rune adds #{@element} elemental charged strike for #{@duration} seconds"
     end
 end
