@@ -514,6 +514,7 @@ Which alignment (G/N/E)?)
             SpellIceBolt.new,
             SpellPyrotechnics.new,
             SpellDestroyTattoo.new,
+            SpellBurstRune.new,
         ]
         @commands = [
             CommandAffects.new,
