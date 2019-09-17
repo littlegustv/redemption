@@ -504,6 +504,7 @@ Which alignment (G/N/E)?)
             SkillKick.new,
             SkillTrip.new,
             SkillPaintPower.new,
+            SkillZeal.new,
         ]
         @spells = [
             SpellHurricane.new,

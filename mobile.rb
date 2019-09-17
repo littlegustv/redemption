@@ -221,9 +221,11 @@ class Mobile < GameObject
                 else
                     damage = 0
                 end
-                hit damage
+                data = { damage: damage, source: self, target: attacking }
+                @game.fire_event( :event_calculate_damage, data, self )
+                hit data[:damage]
                 return if @attacking.nil?
-                weapon_flags if damage > 0
+                weapon_flags if data[:damage] > 0
                 return if @attacking.nil?
             end
         end
@@ -410,8 +412,12 @@ class Mobile < GameObject
         broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self, quantity: "all" }), [self]
     end
 
+    def condition_percent
+        (( 100 * @hitpoints ) / maxhitpoints).to_i
+    end
+
     def condition
-        percent = ( 100 * @hitpoints ) / maxhitpoints
+        percent = condition_percent
         if (percent >= 100)
             return "#{self} is in excellent condition.\n"
         elsif (percent >= 90)

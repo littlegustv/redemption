@@ -98,7 +98,7 @@ class CommandStand < Command
     def initialize
         super(
             name: "stand",
-            keywords: ["stand"],
+            keywords: ["stand", "wake"],
             priority: 200
         )
     end
