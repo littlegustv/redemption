@@ -28,3 +28,27 @@ class SpellAcidBlast < Spell
     	end
     end
 end
+
+class SpellAlarmRune < Spell
+
+    def initialize
+        super()
+        @name = "alarm rune"
+        @keywords = ["alarm rune"]
+        @lag = 0.25
+        @position = Position::STAND
+    end
+
+    def attempt( actor, cmd, args )
+        if actor.affected? "alarm rune"
+            actor.output "You already sense others."
+        elsif actor.room.affected? "alarm rune"
+            actor.output "This room is already being sensed."
+        else
+            actor.output "You place an alarm rune on the ground, increasing your senses."
+            actor.broadcast "%s places a strange rune on the ground.", actor.target({ room: actor.room, not: actor }), [actor]
+            actor.room.apply_affect( AffectAlarmRune.new( source: actor, target: actor.room, level: actor.level ) )
+            actor.apply_affect( Affect.new( name: "alarm rune", keywords: [], source: actor, target: actor, level: actor.level, duration: 120, modifiers: { none: 0 } ) )
+        end
+    end
+end

@@ -36,22 +36,20 @@ class SpellDestroyRune < Spell
         @position = Position::STAND
     end
 
-    def cast( actor, cmd, args )
-    	if args.first.nil? && actor.attacking.nil?
-    		actor.output "Cast the spell on what now?"
-    	else
-	    	super
-	    end
-    end
-
     def attempt( actor, cmd, args )
     	if args.first.nil?
-    		# in-room affects
+    		if actor.room.affected? "rune"
+                actor.room.remove_affect( "rune" )
+                actor.broadcast "The runes present in this room begin fade.", actor.target({ room: actor.room })
+            else
+                actor.output "There are no runes found."
+            end
     	elsif ( target = actor.target({ list: actor.equipment.values.reject(&:nil?) + actor.inventory, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
-    		if target.affected?("burst rune") || target.affected?("blade_rune")
+    		if target.affected?("rune")
     			actor.output "The runes on %s slowly fade out of existence.", [target]
-    			target.remove_affect( "burst rune" )
-    			target.remove_affect( "blade rune" )
+    			target.remove_affect( "rune" )
+            else
+                actor.output "%s is not runed.", [target]
     		end
     	end
     end

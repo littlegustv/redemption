@@ -379,8 +379,10 @@ class Mobile < GameObject
             output "There is no exit [#{direction}]."
         else
             broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
+            # @game.fire_event( :event_mobile_exit, { mobile: self }, self, @room )
             move_to_room(@room.exits[direction.to_sym])
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
+            @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room )
         end
     end
 

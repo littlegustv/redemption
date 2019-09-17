@@ -47,7 +47,7 @@ class AffectBladeRune < Affect
         super(
             source: source,
             target: target,
-            keywords: ["blade rune"],
+            keywords: ["blade rune", "rune"],
             name: "blade rune",
             level:  level,
             duration: 60            
@@ -112,7 +112,7 @@ class AffectBurstRune < Affect
         super(
             source: source,
             target: target,
-            keywords: ["burst rune"],
+            keywords: ["burst rune", "rune"],
             name: "burst rune",
             level:  level,
             duration: 60            

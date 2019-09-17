@@ -516,6 +516,9 @@ Which alignment (G/N/E)?)
             SpellDestroyRune.new,
             SpellBurstRune.new,
             SpellBladeRune.new,
+            SpellFireRune.new,
+            SpellShackleRune.new,
+            SpellAlarmRune.new,
         ]
         @commands = [
             CommandAffects.new,
