@@ -36,6 +36,10 @@ class Item < GameObject
         return @modifiers[ key ].to_i
     end
 
+    def update(elapsed)
+        @affects.each{ |affect| affect.update(elapsed) }
+    end
+
 =begin
 Object 'A Quicksilver Katar named "Eye-Sting"' is of type weapon. [Clanner Only]
 Description: A punch dagger made of quicksilver is here.
@@ -137,7 +141,7 @@ class Tattoo < Item
             ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
         }.merge( paint ), runist.game, nil)
         @runist = runist
-        @duration = 60.0 * runist.level
+        @duration = 600.0 * runist.level
         @slot = slot
         @game.items.push self
     end
@@ -159,7 +163,7 @@ class Tattoo < Item
 
     def lore
         super + %Q(
-Tattoo will last for another #{ @duration.to_i } hours.
+Tattoo will last for another #{ @duration.to_i } seconds.
         )
     end
 

@@ -145,6 +145,6 @@ class AffectBurstRune < Affect
     end
 
     def summary
-        "Spell: burst rune adds #{@element} elemental charged strike for #{@duration} seconds"
+        "Spell: burst rune adds #{@element} elemental charged strike for #{@duration.to_i} seconds"
     end
 end

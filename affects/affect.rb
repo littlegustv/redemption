@@ -88,7 +88,7 @@ class Affect
         if @permanent
             return "permanently"
         else
-            return "for #{@duration.to_i} hours"
+            return "for #{@duration.to_i} seconds"
         end
     end
 

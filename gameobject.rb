@@ -130,4 +130,14 @@ class GameObject
         end
     end
 
+    ##
+    # Remove all affects by a given keyword
+    # +term+:: The keyword to match
+    # 
+    def remove_affect(term)
+        list = @affects.select{ |a| a.check( term )  }
+        @affects -= list
+        list.each(&:unhook)        
+    end
+
 end
