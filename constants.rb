@@ -15,14 +15,14 @@ end
 module Constants
 
     # chance (out of ten) of an elemental flag effect
-    
+
     ELEMENTAL_CHANCE = 3
 
     FPS = 30
     ROUND = FPS * 1		    # 1 second
     TICK = FPS * 60			# 1 minute
     RESET = FPS * 3 * 60    # 3 minutes
-    # RESET = 3 * 10 * 60     # fast resets for testing
+    RESET = FPS * 4        # fast resets for testing
 
     DAMAGE_DECORATORS = {
 		0 => ['miss', 'misses', 'clumsy', '.'],
@@ -80,14 +80,6 @@ module Constants
         150 => ["does {RUNSPEAKABLE{x things to", "", "!!"],
     }
 
-    HATCHLING_MESSAGES = {
-        "black dragon" => [ "You feel acid course through your veins.", "Black wings unfold off your back.", "Saliva turned acid drips from your maw." ], 
-        "blue dragon" => [ "The sky clouds over and lightning crackles in the distance.", "Energy ripples, and your entire body vibrates with each pulse.", "Your scales harden into blue metallic plates." ], 
-        "green dragon" => [ "A stench crawls its way up your nasal passage.", "Poison seeps through your body and clouds your eyes.", "Your green tail lashes about behind you, with fearsome power." ],
-        "red dragon" => [ "A powerful heat rolls up your back, and fills your eyes.", "Red claws stab the air frantically as the burning fills your brain.", "The burning subsides and your new red coat of scales clank together." ], 
-        "white dragon" => [ "White wings fold up off your body and you test the air with them.", "Breath burns out of your maw, spilling the burning cold frost into the air.", "Your white hind claws cause the ground to harden and freeze." ]
-    }
-
     ELEMENTAL_EFFECTS = {
         "shocking" => [ "You are shocked by %s.", "%s is struck by lightning from %s." ],
         "flooding" => [ "You are smothered in water from %s.", "%s is smothered in water from %s." ],
@@ -141,5 +133,84 @@ module Constants
         ["{X", "\033[39m"],
         ["{~", "{"]
     ]
+
+    COMMAND_CLASSES = [
+        CommandAffects,
+        CommandBlind,
+        CommandCast,
+        CommandConsider,
+        CommandDrop,
+        CommandEquipment,
+        CommandFlee,
+        CommandGet,
+        CommandGoTo,
+        CommandGroup,
+        CommandHelp,
+        CommandInspect,
+        CommandInventory,
+        CommandKill,
+        CommandLeave,
+        CommandLoadItem,
+        CommandLook,
+        CommandLore,
+        CommandMove,
+        CommandPeek,
+        CommandPoison,
+        CommandQui,
+        CommandQuicken,
+        CommandQuit,
+        CommandRecall,
+        CommandRemove,
+        CommandRest,
+        CommandSay,
+        CommandScore,
+        CommandSkills,
+        CommandSpells,
+        CommandSleep,
+        CommandStand,
+        CommandWear,
+        CommandWhere,
+        CommandWhitespace,
+        CommandWho,
+        CommandYell,
+    ]
+
+    SKILL_CLASSES = [
+        SkillSneak,
+        SkillBerserk,
+        SkillBash,
+        SkillDisarm,
+        SkillLivingStone,
+        SkillDirtKick,
+        SkillKick,
+        SkillTrip,
+        SkillPaintPower,
+    ]
+
+    SPELL_CLASSES = [
+        SpellAcidBlast,
+        SpellBladeRune,
+        SpellBlastOfRot,
+        SpellBurstRune,
+        SpellDestroyTattoo,
+        SpellHurricane,
+        SpellIceBolt,
+        SpellLightningBolt,
+        SpellPyrotechnics,
+    ]
+
+    AFFECT_CLASS_HASH = {
+        "berserk":              AffectBerserk,
+        "blade rune":           AffectBladeRune,
+        "blind":                AffectBlind,
+        "burst rune":           AffectBurstRune,
+        "haste":                AffectHaste,
+        "hatchling":            AffectHatchling,
+        "living stone":         AffectLivingStone,
+        "poison":               AffectPoison,
+        "slow":                 AffectSlow,
+        "sneak":                AffectSneak,
+        "stun":                 AffectStun
+    }
 
 end

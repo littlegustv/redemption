@@ -3,7 +3,7 @@ require 'sequel'
 class Game
 
     attr_accessor :mobiles, :mobile_count, :items
-    attr_reader :race_data, :class_data
+    attr_reader :race_data, :class_data, :affect_hash, :helps, :spells, :continents
 
     def initialize( ip, port )
 
@@ -24,6 +24,10 @@ class Game
 
         @race_data = []
         @class_data = []
+        @commands = []
+        @skills = []
+        @spells = []
+        @affect_hash = {}
 
         # eventually load these from the database
         puts "Opening server on #{port}"
@@ -81,7 +85,7 @@ The following races are available:
 #{player_race_names.map{ |name| name.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n")}
 
 What is your race (help for more information)?)
-            race_input = client.gets.chomp
+            race_input = client.gets.chomp || ""
             race_matches = player_race_names.select{ |name| name.fuzzy_match(race_input) }
             if race_matches.any?
                 race_id = @race_data.select{ |key, value| value[:name] == race_matches.first}.first[0]
@@ -200,7 +204,7 @@ Which alignment (G/N/E)?)
         targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
-        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }   if query[:area]
+        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }                          if query[:area]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
@@ -231,7 +235,7 @@ Which alignment (G/N/E)?)
         @base_mob_resets.each do |reset_id, reset_data|
             reset = @mob_resets[reset_id]
             if @mob_data[ reset[:mobile_id] ]
-                if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max]
+                if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
                     @mobiles.push mob
 
@@ -387,6 +391,7 @@ Which alignment (G/N/E)?)
         @class_data.each do |key, value|
             value[:skills] = value[:skills].split(",")
             value[:spells] = value[:spells].split(",")
+            value[:affect_flags] = value[:affect_flags].split(",")
         end
 
         continent_rows = @db[:continent_base].all
@@ -495,68 +500,15 @@ Which alignment (G/N/E)?)
     end
 
     def make_commands
-        @skills = [
-            SkillSneak.new,
-            SkillBerserk.new,
-            SkillBash.new,
-            SkillDisarm.new,
-            SkillLivingStone.new,
-            SkillDirtKick.new,
-            SkillKick.new,
-            SkillTrip.new,
-            SkillPaintPower.new,
-        ]
-        @spells = [
-            SpellHurricane.new,
-            SpellLightningBolt.new,
-            SpellAcidBlast.new,
-            SpellBlastOfRot.new,
-            SpellIceBolt.new,
-            SpellPyrotechnics.new,
-            SpellDestroyTattoo.new,
-            SpellBurstRune.new,
-            SpellBladeRune.new,
-        ]
-        @commands = [
-            CommandAffects.new,
-            CommandBlind.new,
-            CommandCast.new(@spells),
-            CommandConsider.new,
-            CommandDrop.new,
-            CommandEquipment.new,
-            CommandFlee.new,
-            CommandGet.new,
-            CommandGoTo.new,
-            CommandGroup.new,
-            CommandHelp.new( @helps.values ),
-            CommandInspect.new,
-            CommandInventory.new,
-            CommandKill.new,
-            CommandLeave.new,
-            CommandLoadItem.new,
-            CommandLook.new,
-            CommandLore.new,
-            CommandMove.new,
-            CommandPeek.new,
-            CommandPoison.new,
-            CommandQui.new,
-            CommandQuicken.new,
-            CommandQuit.new,
-            CommandRecall.new,
-            CommandRemove.new,
-            CommandRest.new,
-            CommandSay.new,
-            CommandScore.new,
-            CommandSkills.new,
-            CommandSpells.new,
-            CommandSleep.new,
-            CommandStand.new,
-            CommandWear.new,
-            CommandWhere.new,
-            CommandWhitespace.new,
-            CommandWho.new( @continents.values ),
-            CommandYell.new,
-        ]
+        Constants::SKILL_CLASSES.each do |skill_class|
+            @skills.push skill_class.new(self)
+        end
+        Constants::SPELL_CLASSES.each do |spell_class|
+            @spells.push spell_class.new(self)
+        end
+        Constants::COMMAND_CLASSES. each do |command_class|
+            @commands.push command_class.new(self)
+        end
     end
 
     def recall_room( continent )
@@ -564,8 +516,10 @@ Which alignment (G/N/E)?)
     end
 
     # Send an event to a list of objects
-    # +fire_event(:event_test, {}, self)+
-    # +fire_event(:event_on_hit, data, self, @room, @room.area, equipment.values)+
+    #
+    # Examples:
+    #  fire_event(:event_test, {}, some_mobile)
+    #  fire_event(:event_on_hit, data, some_mobile, some_room, some_room.area, some_mobile.equipment.values)
     def fire_event(event, data, *objects)
         objects.each do |object|
             if object.kind_of?(Array)

@@ -53,11 +53,6 @@ class Spell < Command
 		"z" => "k",
 	}
 
-	def initialize
-		super
-		@mana = 10
-	end
-
 	def translate( name )
 		translation = name
 		@@syllables.each{ |key, value| translation = translation.gsub(key, value.upcase) }
@@ -65,7 +60,7 @@ class Spell < Command
 	end
 
 	def cast( actor, spell, args )
-		if not actor.use_mana( @mana )
+		if not actor.use_mana( @mana_cost )
 			actor.output "You don't have enough mana"
 		else
 			actor.output "You utter the words '#{translate( @name )}'"

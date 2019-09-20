@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandFlee < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "flee",
             keywords: ["flee"],
             lag: 0.5,

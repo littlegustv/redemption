@@ -2,12 +2,14 @@ require_relative 'skill.rb'
 
 class SkillTrip < Skill
 
-    def initialize
-        super()
-        @name = "trip"
-        @keywords = ["trip"]
-        @lag = 2
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "trip",
+            keywords: ["trip"],
+            lag: 2,
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -33,6 +35,6 @@ class SkillTrip < Skill
         target.output "%s trips you and you go down!", [actor]
         actor.broadcast "%s trips %s, sending them to the ground.", actor.target({ quantity: "all", not: [ actor, target ], room: actor.room }), [actor, target]
 		actor.hit 5, "trip", target
-        target.apply_affect(Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }))
+        target.apply_affect(Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }, game: @game))
     end
 end

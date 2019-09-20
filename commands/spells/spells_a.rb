@@ -2,12 +2,15 @@ require_relative 'spell.rb'
 
 class SpellAcidBlast < Spell
 
-    def initialize
-        super()
-        @name = "acid blast"
-        @keywords = ["acid", "blast", "acid blast"]
-        @lag = 0.25
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "acid blast",
+            keywords: ["acid", "blast", "acid blast"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
     end
 
     def cast( actor, cmd, args )

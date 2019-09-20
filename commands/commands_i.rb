@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandInspect < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "inspect",
             keywords: ["inspect"],
             position: Position::REST
@@ -21,8 +22,9 @@ end
 
 class CommandInventory < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "inventory",
             keywords: ["inventory"]
         )

@@ -3,6 +3,7 @@ class Affect
     attr_reader :name, :priority, :application_type, :source, :modifiers, :duration
 
     def initialize(
+        game: game,
         source:,
         target:,
         keywords:,
@@ -16,6 +17,7 @@ class Affect
         permanent: false,
         hidden: false
     )
+        @game = game
         @source = source
         @target = target
         @keywords = keywords
@@ -59,10 +61,16 @@ class Affect
         end
         @duration -= elapsed if !@permanent
         if (@duration <= 0 && !@permanent) || (@conditions.length > 0 && @conditions.map { |condition| condition.evaluate }.include?(false))
-            unhook
-            @target.affects.delete self
-            complete
+            clear(call_complete: true)
         end
+    end
+
+    # Call this method to remove an affect from a GameObject.
+    # You may optionally specify whether :complete is called or not, defaulting to true.
+    def clear(call_complete: true)
+        unhook
+        @target.affects.delete self
+        complete if call_complete
     end
 
     def periodic
@@ -81,7 +89,11 @@ class Affect
     end
 
     def summary
-%Q(Spell: #{@name.ljust(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") } )
+        if @modifiers.length > 0
+            return "Spell: #{@name.ljust(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
+        else
+            return "Spell: #{@name}"
+        end
     end
 
     def duration_string

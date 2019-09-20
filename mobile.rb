@@ -1,21 +1,20 @@
 class Mobile < GameObject
 
-    attr_accessor :id, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group, :race_id
+    attr_accessor :id, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group
 
-    attr_reader :game, :room
+    attr_reader :game, :room, :race_id
 
     def initialize( data, game, room )
         super(data[ :short_description ], game)
         @attacking
         @lag = 0
-        @room = room
-        @room.mobiles.push(self)
         @keywords = data[:keywords]
         @id = data[ :id ]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
         @race_id = data[ :race_id ]
+        set_race_id(data[:race_id])
         @class = data[ :class ]
         @skills = []
         @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
@@ -56,13 +55,7 @@ class Mobile < GameObject
 
         end
 
-        affect_flags = data[:affect_flags] || @game.race_data[@race_id][:affect_flags]
-
-        affect_flags.each do |flag|
-            if flag == "hatchling"
-                apply_affect(AffectHatchling.new(source: self, target: self, level: 0, race_data: @game.race_data))
-            end
-        end
+        apply_affect_flags(data[:affect_flags].to_a)
 
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
@@ -82,6 +75,9 @@ class Mobile < GameObject
         @position = Position::STAND
         @inventory = []
         @equipment = empty_equipment_set
+
+        @room = room
+        @room.mobile_arrive(self)
     end
 
     def knows( skill_name )
@@ -251,30 +247,30 @@ class Mobile < GameObject
             when "flooding"
                 target.broadcast "{b%s coughes and chokes on the water.{x", target({ not: target, room: @room }), [target]
                 target.output "{bYou cough and choke on the water.{x"
-                target.apply_affect(Affect.new( name: "flooding", keywords: ["flooding", "slow"], source: self, target: target, level: self.level, duration: 30, modifiers: { attack_speed: -1, dex: -1 }))
+                target.apply_affect(Affect.new( name: "flooding", keywords: ["flooding", "slow"], source: self, target: target, level: self.level, duration: 30, modifiers: { attack_speed: -1, dex: -1 }, game: @game))
             when "shocking"
                 target.broadcast "{y%s jerks and twitches from the shock!{x", target({ not: target, room: @room }), [target]
                 target.output "{yYour muscles stop responding.{x"
-                target.apply_affect( Affect.new( name: "shocking", target: target, source: self, keywords: ["shocking", "stun"], duration: 30, modifiers: { success: -10 }, level: self.level ) )
+                target.apply_affect( Affect.new( name: "shocking", target: target, source: self, keywords: ["shocking", "stun"], duration: 30, modifiers: { success: -10 }, level: self.level, game: @game ) )
             when "corrosive"
                 target.broadcast "{g%s flesh burns away, revealing vital areas!{x", target({ not: target, room: @room }), [target]
                 target.output "{gChunks of your flesh melt away, exposing vital areas!{x"
-                target.apply_affect( Affect.new( name: "corrosive", source: self, target: target, keywords: ["corrosive"], duration: 30, modifiers: { ac_pierce: -10, ac_slash: -10, ac_bash: -10 }, level: self.level ) )
+                target.apply_affect( Affect.new( name: "corrosive", source: self, target: target, keywords: ["corrosive"], duration: 30, modifiers: { ac_pierce: -10, ac_slash: -10, ac_bash: -10 }, level: self.level, game: @game ) )
             when "poison"
                 target.broadcast "{m%s looks very ill.{x", target({ not: target, room: @room }), [target]
                 target.output "{mYou feel poison coursing through your veins.{x"
-                target.apply_affect( AffectPoison.new( target: target, source: self, level: self.level ) )
+                target.apply_affect( AffectPoison.new( target: target, source: self, level: self.level, game: @game ) )
             when "flaming"
                 # fire blind doesn't stack
                 if not target.affected? "blind"
                     target.broadcast "{r%s is blinded by smoke!{x", target({ not: target, room: @room }), [target]
                     target.output "{rYour eyes tear up from smoke...you can't see a thing!{x"
-                    target.apply_affect( AffectBlind.new( target: target, source: self, level: self.level ) )
+                    target.apply_affect( AffectBlind.new( target: target, source: self, level: self.level, game: @game ) )
                 end
             when "frost"
                 target.broadcast "{C%s turns blue and shivers.{x", target({ not: target, room: @room }), [target]
                 target.output "{CA chill sinks deep into your bones.{x"
-                target.apply_affect( Affect.new( name: "frost", target: target, source: self, keywords: ["frost"], duration: 30, modifiers: { str: -2 }, level: self.level ) )
+                target.apply_affect( Affect.new( name: "frost", target: target, source: self, keywords: ["frost"], duration: 30, modifiers: { str: -2 }, level: self.level, game: @game ) )
             end
         end
     end
@@ -393,9 +389,9 @@ class Mobile < GameObject
     end
 
     def move_to_room( room )
-        @room&.mobiles&.delete(self)
+        @room&.mobile_depart(self)
         @room = room
-        @room.mobiles.push(self)
+        @room.mobile_arrive(self)
         @game.do_command self, "look"
     end
 
@@ -553,9 +549,9 @@ Member of clan Kenshi
 ---------------------------------- Stats --------------------------------
 {cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".ljust(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
 {cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".ljust(26)} {cWimpy:{x     #{@wimpy}
-{cStr:{x       #{"#{@stats[:str]+race_hash[:str]}(#{stat(:str)}) of #{@stats[:max_str]+race_hash[:max_str]}".ljust(26)} {cCon:{x       #{@stats[:con]+race_hash[:con]}(#{stat(:con)}) of #{@stats[:max_con]+race_hash[:max_con]}
-{cInt:{x       #{"#{@stats[:int]+race_hash[:int]}(#{stat(:int)}) of #{@stats[:max_int]+race_hash[:max_int]}".ljust(26)} {cWis:{x       #{@stats[:wis]+race_hash[:wis]}(#{stat(:wis)}) of #{@stats[:max_wis]+race_hash[:max_wis]}
-{cDex:{x       #{ @stats[:dex]+race_hash[:dex]}(#{stat(:dex)}) of #{@stats[:max_dex]+race_hash[:max_dex]}
+#{score_stat("str")}#{score_stat("con")}
+#{score_stat("int")}#{score_stat("wis")}
+#{score_stat("dex")}
 {cHitRoll:{x   #{ stat(:hitroll).to_s.ljust(26)} {cDamRoll:{x   #{ stat(:damroll) }
 {cDamResist:{x #{ stat(:damresist).to_s.ljust(26) } {cMagicDam:{x  #{ stat(:magicdam) }
 {cAttackSpd:{x #{ stat(:attack_speed) }
@@ -567,6 +563,15 @@ You are Ruthless.
 You are #{Position::STRINGS[ @position ]}.)
     end
 
+    # Take a stat name as a string and convert it into a score-formatted output string.
+    #
+    #  score_stat("str")     # => Str:       14(14) of 23
+    def score_stat(stat_name)
+        stat = stat_name.to_sym
+        max_stat = "max_#{stat_name}".to_sym
+        return "{c#{stat_name.capitalize}:{x       #{"#{@stats[stat]+@game.race_data.dig(@race_id, stat).to_i}(#{stat(stat)}) of #{stat(max_stat)}".ljust(27)}"
+    end
+
     def skills
         return @skills | @game.race_data.dig(@race_id, :skills).to_a | @game.class_data.dig(@class_id, :skills).to_a
     end
@@ -575,8 +580,14 @@ You are #{Position::STRINGS[ @position ]}.)
         return @spells | @game.race_data.dig(@race_id, :spells).to_a | @game.class_data.dig(@class_id, :spells).to_a
     end
 
-    def set_race_id
-        
+    def set_race_id(new_race_id)
+        @race_id = new_race_id
+        affect_flags = @game.race_data[@race_id][:affect_flags]
+        apply_affect_flags(affect_flags)
+    end
+
+    def is_player?
+        return false
     end
 
 end

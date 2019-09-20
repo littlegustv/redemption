@@ -2,12 +2,14 @@ require_relative 'skill.rb'
 
 class SkillBash < Skill
 
-    def initialize
-        super()
-        @name = "bash"
-        @keywords = ["bash"]
-        @lag = 2
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "bash",
+            keywords: ["bash"],
+            lag: 2,
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )
@@ -33,23 +35,25 @@ class SkillBash < Skill
         target.output "%s sends you flying with a powerful bash!", [actor]
         actor.broadcast "%s sends %s flying with a powerful bash!", actor.target({ quantity: "all", not: [ actor, target ], room: actor.room }), [actor, target]
         actor.hit 100, "bash", target
-        target.lag += 0.5        
+        target.lag += 0.5
     end
 end
 
 class SkillBerserk < Skill
 
-    def initialize
-        super()
-        @name = "berserk"
-        @keywords = ["berserk"]
-        @lag = 0.5
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "berserk",
+            keywords: ["berserk"],
+            lag: 0.5,
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )
         if not actor.affected? "berserk"
-            actor.apply_affect(AffectBerserk.new(source: actor, target: actor, level: actor.level))
+            actor.apply_affect(AffectBerserk.new(source: actor, target: actor, level: actor.level, game: @game))
         else
             actor.output "You are already pretty mad."
         end

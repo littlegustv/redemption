@@ -2,14 +2,15 @@ require_relative 'command.rb'
 
 class CommandCast < Command
 
-    def initialize(spells)
+    def initialize(game)
         super(
+            game: game,
             name: "cast",
             keywords: ["cast"],
             position: Position::STAND,
             priority: 9999
         )
-        @spells = spells
+        @spells = game.spells
     end
 
     def attempt( actor, cmd, args )
@@ -34,8 +35,9 @@ end
 
 class CommandConsider < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "consider",
             keywords: ["consider"],
             position: Position::REST

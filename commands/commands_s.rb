@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandSay < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "say",
             keywords: ["say", "'"],
             position: Position::REST
@@ -23,8 +24,9 @@ end
 
 class CommandScore < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "score",
             keywords: ["score"]
         )
@@ -37,8 +39,9 @@ end
 
 class CommandSkills < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "skills",
             keywords: ["skills"]
         )
@@ -54,8 +57,9 @@ end
 
 class CommandSpells < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "spells",
             keywords: ["spells"]
         )
@@ -71,8 +75,9 @@ end
 
 class CommandSleep < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "sleep",
             keywords: ["sleep"],
             usable_in_combat: false
@@ -95,8 +100,9 @@ end
 
 class CommandStand < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "stand",
             keywords: ["stand"],
             priority: 200

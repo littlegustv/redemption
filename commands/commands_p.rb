@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandPeek < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "peek",
             keywords: ["peek"],
             position: Position::REST
@@ -26,8 +27,9 @@ end
 
 class CommandPoison < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "poison",
             keywords: ["poison"],
             position: Position::STAND
@@ -36,7 +38,7 @@ class CommandPoison < Command
 
     def attempt( actor, cmd, args )
         if not actor.affected? "poison"
-            actor.apply_affect(AffectPoison.new(source: actor, target: actor, level: actor.level))
+            actor.apply_affect(AffectPoison.new(source: actor, target: actor, level: actor.level, game: @game))
         else
             actor.output "You are already poisoned."
         end

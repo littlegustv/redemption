@@ -2,12 +2,15 @@ require_relative 'spell.rb'
 
 class SpellDestroyTattoo < Spell
 
-    def initialize
-        super()
-        @name = "destroy tattoo"
-        @keywords = ["destroy tattoo"]
-        @lag = 0.25
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "destroy tattoo",
+            keywords: ["destroy tattoo"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
     end
 
     def cast( actor, cmd, args )

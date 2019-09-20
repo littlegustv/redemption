@@ -119,4 +119,8 @@ class Player < Mobile
         super( elapsed )
     end
 
+    def is_player?
+        return true
+    end
+
 end

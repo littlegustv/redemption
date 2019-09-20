@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandDrop < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "drop",
             keywords: ["drop"],
             position: Position::REST

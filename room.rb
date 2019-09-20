@@ -1,6 +1,6 @@
 class Room < GameObject
 
-    attr_accessor :exits, :area, :continent, :mobiles, :players
+    attr_accessor :exits, :area, :continent, :mobiles, :players, :mobile_count
 
     def initialize( name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
@@ -18,6 +18,7 @@ class Room < GameObject
         @continent = area.continent
         @mobiles = []
         @players = []
+        @mobile_count = {}
         super name, game
     end
 
@@ -31,6 +32,26 @@ class Room < GameObject
             @game.target({ :room => self, :not => looker, type: ["Player", "Mobile"], visible_to: looker, quantity: 'all' }).map{ |t| "\n#{t.long}" }.join
         else
             "You can't see a thing!"
+        end
+    end
+
+    def mobile_arrive(mobile)
+        if mobile.is_player?
+            @players.push(mobile)
+        else
+            @mobiles.push(mobile)
+            @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i + 1
+            @mobile_count.delete[mobile_id] if @mobile_count[mobile.id] == 0
+        end
+    end
+
+    def mobile_depart(mobile)
+        if mobile.is_player?
+            @players.delete(mobile)
+        else
+            @mobiles.delete(mobile)
+            @mobile_count[mobile.id] = @mobile_count[mobile.id] - 1
+            @mobile_count.delete[mobile_id] if @mobile_count[mobile.id] == 0
         end
     end
 

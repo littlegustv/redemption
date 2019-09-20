@@ -2,14 +2,16 @@ require_relative 'spell.rb'
 
 class SpellPyrotechnics < Spell
 
-    def initialize
-        super()
-        @name = "pyrotechnics"
-        @keywords = ["pyrotechnics"]
-        @lag = 0.25
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "pyrotechnics",
+            keywords: ["pyrotechnics"],
+            lag: 0.25,
+            position: Position::STAND
+        )
     end
-
+    
     def cast( actor, cmd, args )
     	if args.first.nil? && actor.attacking.nil?
     		actor.output "Cast the spell on who, now?"

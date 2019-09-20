@@ -2,8 +2,9 @@ require_relative 'affect.rb'
 
 class AffectPoison < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["poison"],

@@ -107,10 +107,7 @@ class GameObject
         if !existing_affects.empty?
             case type
             when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
-                existing_affects.each do |a|
-                    a.unhook
-                    affects.delete(a)
-                end
+                existing_affects.each { |a| a.clear(call_complete: false) }
                 affects.push(new_affect)
                 new_affect.hook
                 new_affect.refresh
@@ -127,6 +124,16 @@ class GameObject
             affects.push(new_affect)
             new_affect.hook
             new_affect.start
+        end
+    end
+
+
+    def apply_affect_flags(flags)
+        flags.each do |flag|
+            affect_class = Constants::AFFECT_CLASS_HASH[flag.to_sym]
+            if affect_class
+                apply_affect(affect_class.new(source: self, target: self, level: 0, game: @game))
+            end
         end
     end
 

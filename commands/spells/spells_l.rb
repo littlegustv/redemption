@@ -2,12 +2,14 @@ require_relative 'spell.rb'
 
 class SpellLightningBolt < Spell
 
-    def initialize
-        super()
-        @name = "lightning bolt"
-        @keywords = ["lightning", "bolt", "lightning bolt"]
-        @lag = 0.25
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "lightning bolt",
+            keywords: ["lightning bolt"],
+            lag: 0.25,
+            position: Position::STAND
+        )
     end
 
     def cast( actor, cmd, args )

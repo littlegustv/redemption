@@ -2,8 +2,9 @@ require_relative 'affect.rb'
 
 class AffectSneak < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["sneak"],
@@ -25,8 +26,9 @@ end
 
 class AffectSlow < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["slow"],
@@ -48,8 +50,9 @@ end
 
 class AffectStun < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["stun"],

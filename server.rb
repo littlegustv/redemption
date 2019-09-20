@@ -1,5 +1,4 @@
 require 'socket'
-require_relative 'constants'
 require_relative 'util'
 require_relative 'commands/commands'
 require_relative 'game'
@@ -13,5 +12,6 @@ require_relative 'affects/affects'
 require_relative 'commands/spells/spells'
 require_relative 'commands/skills/skills'
 require_relative 'continent'
+require_relative 'constants'
 
 game = Game.new( ARGV[0], ARGV[1] || 4000 )

@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandQui < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "qui",
             keywords: ["qui"],
             priority: 201
@@ -18,8 +19,9 @@ end
 
 class CommandQuicken < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "quicken",
             keywords: ["quicken"],
             lag: 0.5,
@@ -29,7 +31,7 @@ class CommandQuicken < Command
 
     def attempt( actor, cmd, args )
         if not actor.affected? "haste"
-            actor.apply_affect(AffectHaste.new(source: actor, target: actor, level: actor.level))
+            actor.apply_affect(AffectHaste.new(source: actor, target: actor, level: actor.level, game: @game))
         else
             actor.output "You are already moving as fast as you can!"
         end
@@ -39,8 +41,9 @@ end
 
 class CommandQuit < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "quit",
             keywords: ["quit"],
             priority: 200,

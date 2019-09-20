@@ -4,12 +4,14 @@ class SkillPaintPower < Skill
 
 	@@slots = [ "torso", "head", "arms", "wrist_1", "wrist_2" ]
     
-    def initialize
-        super()
-        @name = "paint power"
-        @keywords = ["paint"]
-        @lag = 0.25
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "paint power",
+            keywords: ["paint"],
+            lag: 0.25,
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )
