@@ -28,10 +28,13 @@ class CommandInventory < Command
         )
     end
 
+    def categorize( type )
+        ["weapon", "armor"].include?(type) ? type : "other"
+    end
+
     def attempt( actor, cmd, args )
-        actor.output %Q(
-Inventory:
-#{ actor.inventory.map{ |i| "#{ actor.can_see?(i) ? i.to_s : i.to_someone }" }.join("\n") }
+        actor.output %Q(You are carrying:
+#{ actor.inventory.count <= 0 ? "     Nothing." : actor.inventory.group_by { |item| categorize( item.type ) }.map{ |type, list| "\n\r{c#{type}:{x\n\r#{list.map{ |i| "#{ actor.can_see?(i) ? i.to_s : i.to_someone }" }.join("\n\r")}" }.join("\n\r") }
         )
     end
 end
