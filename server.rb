@@ -1,4 +1,6 @@
 require 'socket'
+require 'weakref'
+require 'digest'
 require_relative 'util'
 require_relative 'commands/commands'
 require_relative 'game'

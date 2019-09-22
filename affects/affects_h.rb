@@ -11,7 +11,7 @@ class AffectHaste < Affect
             name: "haste",
             level:  level,
             duration: 120,
-            modifiers: {dex: [1, (level / 10).to_i].max, attack_speed: 1}
+            modifiers: {dex: [1, (level / 10).to_i].max, attack_speed: 1, str: 10}
         )
     end
 
@@ -47,7 +47,6 @@ class AffectHatchling < Affect
             hidden: true,
             application_type: :global_single
         )
-        @conditions.push( AffectCondition.new(@target, [:race_id], :==, @target.race_id, []) )
     end
 
     def hook

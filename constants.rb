@@ -14,6 +14,66 @@ end
 
 module Constants
 
+    module Element
+        NONE = 0
+        BASH = 1
+        PIERCE = 2
+        SLASH = 3
+        FIRE = 4
+        COLD = 5
+        LIGHTNING = 6
+        ACID = 7
+        POISON = 8
+        NEGATIVE = 9
+        HOLY = 10
+        ENERGY = 11
+        MENTAL = 12
+        DISEASE = 13
+        DROWNING = 14
+        LIGHT = 15
+        OTHER = 16
+        HARM = 17
+        CHARM = 18
+        SOUND = 19
+        RAIN = 20
+        VORPAL = 21
+
+        STRINGS = {
+            NONE => "none",
+            BASH => "bash",
+            PIERCE => "pierce",
+            SLASH => "slash",
+            FIRE => "fire",
+            COLD => "cold",
+            LIGHTNING => "lightning",
+            ACID => "acid",
+            POISON => "poison",
+            NEGATIVE => "negative",
+            HOLY => "holy",
+            ENERGY => "energy",
+            MENTAL => "mental",
+            DISEASE => "disease",
+            DROWNING => "drowning",
+            LIGHT => "light",
+            OTHER => "other",
+            HARM => "harm",
+            CHARM => "charm",
+            SOUND => "sound",
+            RAIN => "rain",
+            VORPAL => "vorpal"
+        }
+    end
+
+    module Damage
+        PHYSICAL = 0
+        MAGICAL = 1
+
+        STRINGS = {
+            PHYSICAL => "physical",
+            MAGICAL => "magic"
+        }
+    end
+
     # chance (out of ten) of an elemental flag effect
 
     ELEMENTAL_CHANCE = 3
@@ -22,7 +82,7 @@ module Constants
     ROUND = FPS * 1		    # 1 second
     TICK = FPS * 60			# 1 minute
     RESET = FPS * 3 * 60    # 3 minutes
-    RESET = FPS * 4        # fast resets for testing
+    # RESET = FPS * 4        # fast resets for testing
 
     DAMAGE_DECORATORS = {
 		0 => ['miss', 'misses', 'clumsy', '.'],
@@ -176,41 +236,49 @@ module Constants
     ]
 
     SKILL_CLASSES = [
-        SkillSneak,
-        SkillBerserk,
         SkillBash,
-        SkillDisarm,
-        SkillLivingStone,
+        SkillBerserk,
         SkillDirtKick,
+        SkillDisarm,
         SkillKick,
-        SkillTrip,
+        SkillLivingStone,
         SkillPaintPower,
+        SkillSneak,
+        SkillTrip,
+        SkillZeal,
     ]
 
     SPELL_CLASSES = [
         SpellAcidBlast,
+        SpellAlarmRune,
         SpellBladeRune,
         SpellBlastOfRot,
         SpellBurstRune,
+        SpellDestroyRune,
         SpellDestroyTattoo,
+        SpellFireRune,
         SpellHurricane,
         SpellIceBolt,
         SpellLightningBolt,
         SpellPyrotechnics,
+        SpellShackleRune,
     ]
 
     AFFECT_CLASS_HASH = {
-        "berserk":              AffectBerserk,
-        "blade rune":           AffectBladeRune,
-        "blind":                AffectBlind,
-        "burst rune":           AffectBurstRune,
-        "haste":                AffectHaste,
-        "hatchling":            AffectHatchling,
-        "living stone":         AffectLivingStone,
-        "poison":               AffectPoison,
-        "slow":                 AffectSlow,
-        "sneak":                AffectSneak,
-        "stun":                 AffectStun
+        "berserk" =>              AffectBerserk,
+        "blade rune" =>           AffectBladeRune,
+        "blind" =>                AffectBlind,
+        "burst rune" =>           AffectBurstRune,
+        "corrosive" =>            AffectCorrosive,
+        "flooding" =>             AffectFlooding,
+        "haste" =>                AffectHaste,
+        "hatchling" =>            AffectHatchling,
+        "living stone" =>         AffectLivingStone,
+        "poison" =>               AffectPoison,
+        "shocking" =>             AffectShocking,
+        "slow" =>                 AffectSlow,
+        "sneak" =>                AffectSneak,
+        "stun" =>                 AffectStun
     }
 
 end

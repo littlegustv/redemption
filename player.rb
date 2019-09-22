@@ -18,6 +18,16 @@ class Player < Mobile
         }, game, room)
     end
 
+    def reconnect( client, thread )
+        @client = client
+        @thread = thread
+        @active = true
+
+        @affects.each do |affect|
+            @game.add_affect(affect)
+        end
+    end
+
     def input_loop
         loop do
             raw = @client.gets
@@ -87,6 +97,9 @@ class Player < Mobile
         output "You have been KILLED!"
         broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
         stop_combat
+        @affects.each do |affect|
+            affect.clear(call_complete: false) if !affect.permanent
+        end
         room = @game.recall_room( @room.continent )
         move_to_room( room )
         @hitpoints = 10
@@ -98,6 +111,11 @@ class Player < Mobile
         @buffer = ""
         @client.close
         @game.disconnect @short_description
+        @room.remove_player(self)
+        @affects.each do |affect|
+            @game.remove_affect(affect)
+        end
+        @active = false
     end
 
     def update( elapsed )

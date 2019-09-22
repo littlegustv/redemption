@@ -32,6 +32,7 @@ class SkillDirtKick < Skill
 
     def initialize(game)
         super(
+            game: game,
             name: "dirt kick",
             keywords: ["blind", "dirt kick"],
             lag: 2,

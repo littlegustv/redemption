@@ -8,7 +8,6 @@ class CommandKill < Command
             name: "kill",
             keywords: ["kill", "hit"],
             lag: 0.5,
-            starts_combat: true,
             position: Position::STAND
         )
     end

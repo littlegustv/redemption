@@ -2,7 +2,7 @@ class Mobile < GameObject
 
     attr_accessor :id, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group
 
-    attr_reader :game, :room, :race_id
+    attr_reader :game, :room, :race_id, :active
 
     def initialize( data, game, room )
         super(data[ :short_description ], game)
@@ -13,9 +13,8 @@ class Mobile < GameObject
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
-        @race_id = data[ :race_id ]
         set_race_id(data[:race_id])
-        @class = data[ :class ]
+        set_class_id(data[:class_id])
         @skills = []
         @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
         @class_id = data[ :class_id ]
@@ -27,7 +26,7 @@ class Mobile < GameObject
         @gold = (data[:wealth].to_i / 1000).floor
         @silver = data[:wealth].to_i - (@gold * 1000)
         @wimpy = 0
-
+        @active = true
         @group = []
         @in_group = nil
 
@@ -51,9 +50,6 @@ class Mobile < GameObject
             ac_slash: data[:ac].to_a[2].to_i,
             ac_magic: data[:ac].to_a[3].to_i,
         }
-        if @class
-
-        end
 
         apply_affect_flags(data[:affect_flags].to_a)
 
@@ -110,7 +106,6 @@ class Mobile < GameObject
     end
 
     def update( elapsed )
-        @affects.each { |aff| aff.update( elapsed ) }
         super elapsed
     end
 
@@ -164,7 +159,7 @@ class Mobile < GameObject
 
     def do_command( input )
         cmd, args = input.sanitize.split " ", 2
-        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first) )
+        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
     end
 
     # When mobile is attacked, respond automatically unless already in combat targeting someone else
@@ -172,6 +167,9 @@ class Mobile < GameObject
     # When calling 'start_combat', call it first for the 'victim', then for the attacker
 
     def start_combat( attacker )
+        if !@active || !attacker.active
+            return
+        end
         if attacker.room != @room
             return
         end
@@ -206,7 +204,7 @@ class Mobile < GameObject
     end
 
     def combat
-        if @attacking
+        if @attacking && @active && @attacking.active
             to_me = []
             to_target = []
             to_room = []
@@ -217,9 +215,11 @@ class Mobile < GameObject
                 else
                     damage = 0
                 end
-                hit damage
+                data = { damage: damage, source: self, target: attacking }
+                @game.fire_event( :event_calculate_damage, data, self )
+                hit data[:damage]
                 return if @attacking.nil?
-                weapon_flags if damage > 0
+                weapon_flags if data[:damage] > 0
                 return if @attacking.nil?
             end
         end
@@ -245,32 +245,17 @@ class Mobile < GameObject
         if rand(1..10) <= Constants::ELEMENTAL_CHANCE
             case element
             when "flooding"
-                target.broadcast "{b%s coughes and chokes on the water.{x", target({ not: target, room: @room }), [target]
-                target.output "{bYou cough and choke on the water.{x"
-                target.apply_affect(Affect.new( name: "flooding", keywords: ["flooding", "slow"], source: self, target: target, level: self.level, duration: 30, modifiers: { attack_speed: -1, dex: -1 }, game: @game))
+                target.apply_affect(AffectFlooding.new(target: target, source: self, level: self.level, game: @game))
             when "shocking"
-                target.broadcast "{y%s jerks and twitches from the shock!{x", target({ not: target, room: @room }), [target]
-                target.output "{yYour muscles stop responding.{x"
-                target.apply_affect( Affect.new( name: "shocking", target: target, source: self, keywords: ["shocking", "stun"], duration: 30, modifiers: { success: -10 }, level: self.level, game: @game ) )
+                target.apply_affect(AffectShocking.new(target: target, source: self, level: self.level, game: @game))
             when "corrosive"
-                target.broadcast "{g%s flesh burns away, revealing vital areas!{x", target({ not: target, room: @room }), [target]
-                target.output "{gChunks of your flesh melt away, exposing vital areas!{x"
-                target.apply_affect( Affect.new( name: "corrosive", source: self, target: target, keywords: ["corrosive"], duration: 30, modifiers: { ac_pierce: -10, ac_slash: -10, ac_bash: -10 }, level: self.level, game: @game ) )
+                target.apply_affect(AffectCorrosive.new( target: target, source: self, level: self.level, game: @game))
             when "poison"
-                target.broadcast "{m%s looks very ill.{x", target({ not: target, room: @room }), [target]
-                target.output "{mYou feel poison coursing through your veins.{x"
                 target.apply_affect( AffectPoison.new( target: target, source: self, level: self.level, game: @game ) )
             when "flaming"
-                # fire blind doesn't stack
-                if not target.affected? "blind"
-                    target.broadcast "{r%s is blinded by smoke!{x", target({ not: target, room: @room }), [target]
-                    target.output "{rYour eyes tear up from smoke...you can't see a thing!{x"
-                    target.apply_affect( AffectBlind.new( target: target, source: self, level: self.level, game: @game ) )
-                end
+                target.apply_affect(AffectFireBlind.new(target: target, source: self, level: self.level, game: @game))
             when "frost"
-                target.broadcast "{C%s turns blue and shivers.{x", target({ not: target, room: @room }), [target]
-                target.output "{CA chill sinks deep into your bones.{x"
-                target.apply_affect( Affect.new( name: "frost", target: target, source: self, keywords: ["frost"], duration: 30, modifiers: { str: -2 }, level: self.level, game: @game ) )
+                target.apply_affect( AffectFrost.new(target: target, source: self, level: self.level, game: @game))
             end
         end
     end
@@ -283,7 +268,7 @@ class Mobile < GameObject
 
         decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
 
-        output "Your #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", [target]
+        output "Your #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", [target] if @room == target.room
         target.output("%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]) unless target == self
         broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]
 
@@ -298,17 +283,41 @@ class Mobile < GameObject
         target = target || @attacking
         decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
 
-        output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target]
+        output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target] if @room == target.room
         target.output "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}", [self]
         broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
 
         target.damage( damage, self )
-        @game.fire_event(:event_on_hit, {}, self, @room, @room.area, equipment.values)
+        data = { damage: damage, source: self, target: attacking }
+        @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment.values)
+    end
+
+    def anonymous_damage( damage, element = nil, magic = true, source = "Powerful magic" )
+        decorators = []
+        if magic
+            decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+            output "#{source} #{decorators[0]} you#{decorators[1]}#{decorators[2]}"
+            broadcast "#{source} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self], room: @room }), [self]
+            elemental_effect( self, element )
+        else
+            decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+            output "#{source} #{decorators[1]} you#{decorators[3]}"
+            broadcast "#{source} #{decorators[1]} %s#{decorators[3]}", target({ not: [self], room: @room }), [self]
+        end
+        damage(damage, nil)
     end
 
     def damage( damage, attacker )
         @hitpoints -= damage
         die( attacker ) if @hitpoints <= 0
+    end
+
+    def deal_damage(target:, damage:, element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL)
+
+    end
+
+    def receive_damage(source:, damage:, element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL)
+
     end
 
     def show_equipment
@@ -346,6 +355,9 @@ class Mobile < GameObject
     end
 
     def xp( target )
+        if !@active
+            return
+        end
         dlevel = [target.level - @level, -10].max
         base_xp = dlevel <= 5 ? Constants::EXPERIENCE_SCALE[dlevel] : ( 180 + 12 * (dlevel - 5 ))
         base_xp *= 10  / ( @level + 4 ) if @level < 6
@@ -358,16 +370,24 @@ class Mobile < GameObject
     end
 
     def die( killer )
+        if !@active
+            return
+        end
         broadcast "%s is DEAD!!", target({ :not => self, :room => @room }), [self]
-        killer.xp( self )
+        @affects.each do |affect|
+            affect.clear(call_complete: false)
+        end
+        killer.xp( self ) if killer
         broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]
-        killer.output "#{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.push("You offer your victory to Gabriel who rewards you with 1 deity points.").join("\n")}"
-        killer.inventory += @inventory + @equipment.values.reject(&:nil?)
+        killer.output "#{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.push("You offer your victory to Gabriel who rewards you with 1 deity points.").join("\n")}" if killer
+        killer.inventory += @inventory + @equipment.values.reject(&:nil?) if killer
         @inventory = []
         @equipment
         @game.mobiles.delete( self )
         @game.mobile_count[ @id ] = [0, (@game.mobile_count[ id ].to_i - 1)].max
         stop_combat
+        @active = false
+        @room = nil
     end
 
     def move( direction )
@@ -375,8 +395,10 @@ class Mobile < GameObject
             output "There is no exit [#{direction}]."
         else
             broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
+            # @game.fire_event( :event_mobile_exit, { mobile: self }, self, @room )
             move_to_room(@room.exits[direction.to_sym])
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
+            @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room )
         end
     end
 
@@ -404,8 +426,12 @@ class Mobile < GameObject
         broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self, quantity: "all" }), [self]
     end
 
+    def condition_percent
+        (( 100 * @hitpoints ) / maxhitpoints).to_i
+    end
+
     def condition
-        percent = ( 100 * @hitpoints ) / maxhitpoints
+        percent = condition_percent
         if (percent >= 100)
             return "#{self} is in excellent condition.\n"
         elsif (percent >= 90)
@@ -518,8 +544,30 @@ class Mobile < GameObject
         @basemovepoints
     end
 
+    # Returns the value of a stat for a given key.
+    # Adjusts
+    #
+    #  some_mobile.stat(:str)
+    #  some_mobile.stat(:max_wis)
+    #  some_mobile.stat(:damroll)
     def stat(key)
-        (@game.race_data[@race_id][key] || 0) + @stats[key].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+) + @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
+        stat = (@game.race_data[@race_id][key] || 0) + @stats[key].to_i
+        class_main_stat = @game.class_data.dig(@class_id, :main_stat).to_s
+        if key.to_s == class_main_stat # class main stat bonus
+            stat += 3
+        end
+        if key.to_s == "max_#{class_main_stat}" # class max main stat bonus
+            stat += 2
+        end
+        if [:max_str, :max_int, :max_dex, :max_con, :max_wis].include?(key) # limit max stats to 25
+            stat = [25, stat].min                                           # (before gear and affects are applied)
+        end
+        stat += @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+)
+        stat += @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
+        if [:str, :int, :dex, :con, :wis].include?(key)
+            stat = [stat("max_#{key}".to_sym), stat].min # limit stats by their max_stat
+        end
+        return stat
     end
 
     # def armor(index)
@@ -569,7 +617,11 @@ You are #{Position::STRINGS[ @position ]}.)
     def score_stat(stat_name)
         stat = stat_name.to_sym
         max_stat = "max_#{stat_name}".to_sym
-        return "{c#{stat_name.capitalize}:{x       #{"#{@stats[stat]+@game.race_data.dig(@race_id, stat).to_i}(#{stat(stat)}) of #{stat(max_stat)}".ljust(27)}"
+        base = @stats[stat]+@game.race_data.dig(@race_id, stat).to_i
+        base += 3 if @game.class_data.dig(@class_id, :main_stat) == stat_name
+        modified = stat(stat)
+        max = stat(max_stat)
+        return "{c#{stat_name.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".ljust(27)}"
     end
 
     def skills
@@ -582,8 +634,14 @@ You are #{Position::STRINGS[ @position ]}.)
 
     def set_race_id(new_race_id)
         @race_id = new_race_id
-        affect_flags = @game.race_data[@race_id][:affect_flags]
-        apply_affect_flags(affect_flags)
+        affect_flags = @game.race_data.dig(@race_id, :affect_flags)
+        apply_affect_flags(affect_flags) if affect_flags
+    end
+
+    def set_class_id(new_class_id)
+        @class_id = new_class_id
+        affect_flags = @game.class_data.dig(@class_id, :affect_flags)
+        apply_affect_flags(affect_flags) if affect_flags
     end
 
     def is_player?

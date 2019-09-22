@@ -24,7 +24,7 @@ class SpellBlastOfRot < Spell
     def attempt( actor, cmd, args )
     	if args.first.nil? && actor.attacking
     		actor.magic_hit( actor.attacking, 100, "blast of rot", "poison" )
-    	elsif ( target = actor.target({ not: actor, room: actor.room, type: ["Mobile", "Player"] }.merge( args.first.to_s.to_query )).first )
+    	elsif ( target = actor.target({ room: actor.room, type: ["Mobile", "Player"] }.merge( args.first.to_s.to_query )).first )
     		actor.magic_hit( target, 100, "blast of rot", "poison" )
     	else
     		actor.output "They aren't here."

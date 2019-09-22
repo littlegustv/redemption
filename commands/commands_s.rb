@@ -104,7 +104,7 @@ class CommandStand < Command
         super(
             game: game,
             name: "stand",
-            keywords: ["stand"],
+            keywords: ["stand", "wake"],
             priority: 200
         )
     end

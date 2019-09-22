@@ -19,4 +19,8 @@ class Area < GameObject
         @rooms = rooms
     end
 
+    def occupants
+        return @rooms.map { |room| room.occupants }.flatten
+    end
+
 end

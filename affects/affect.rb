@@ -1,9 +1,9 @@
 class Affect
-
-    attr_reader :name, :priority, :application_type, :source, :modifiers, :duration
+    attr_accessor :source
+    attr_reader :name, :priority, :application_type, :modifiers, :duration, :permanent, :hidden
 
     def initialize(
-        game: game,
+        game:,
         source:,
         target:,
         keywords:,
@@ -18,6 +18,7 @@ class Affect
         hidden: false
     )
         @game = game
+        # @source = (source != target && permanent) ? WeakRef.new(source) : source
         @source = source
         @target = target
         @keywords = keywords
@@ -31,6 +32,7 @@ class Affect
                                                # :source_overwrite, :source_stack, :source_single
         @permanent = permanent
         @hidden = hidden
+
         @clock = 0
         @conditions = []
     end
@@ -70,6 +72,7 @@ class Affect
     def clear(call_complete: true)
         unhook
         @target.affects.delete self
+        @game.remove_affect(self)
         complete if call_complete
     end
 
@@ -100,7 +103,7 @@ class Affect
         if @permanent
             return "permanently"
         else
-            return "for #{@duration.to_i} hours"
+            return "for #{@duration.to_i} seconds"
         end
     end
 
@@ -138,15 +141,18 @@ class AffectCondition
     # +r_object+:: Base object on the righthand side of the operator
     # +r_symbols+:: Any methods to call on r_object at each +evaluate+
     def initialize(l_object, l_symbols, operator, r_object, r_symbols)
-        @l_object = l_object
+        @l_object = (l_object.frozen?) ? l_object : WeakRef.new(l_object)
         @l_symbols = l_symbols
         @operator = operator
-        @r_object = r_object
+        @r_object = (r_object.frozen?) ? r_object : WeakRef.new(r_object)
         @r_symbols = r_symbols
     end
 
     # The affect will call this in +update+
     def evaluate
+        if (!@l_object.frozen? && !@l_object.weakref_alive?) || (!@r_object.frozen? && !@r_object.weakref_alive?)
+            return false
+        end
         l = @l_object
         @l_symbols.each { |symbol| l = l.send(symbol) }
         r = @r_object

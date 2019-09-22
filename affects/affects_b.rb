@@ -49,7 +49,7 @@ class AffectBladeRune < Affect
             game: game,
             source: source,
             target: target,
-            keywords: ["blade rune"],
+            keywords: ["blade rune", "rune"],
             name: "blade rune",
             level:  level,
             duration: 60
@@ -74,7 +74,8 @@ class AffectBlind < Affect
             name: "blind",
             level:  level,
             duration: 30,
-            modifiers: {hitroll: -5}
+            modifiers: {hitroll: -5},
+            application_type: :global_single
         )
     end
 
@@ -87,6 +88,7 @@ class AffectBlind < Affect
     end
 
     def start
+        @target.broadcast "%s is blinded!", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "You can't see a thing!"
     end
 
@@ -116,7 +118,7 @@ class AffectBurstRune < Affect
             game: game,
             source: source,
             target: target,
-            keywords: ["burst rune"],
+            keywords: ["burst rune", "rune"],
             name: "burst rune",
             level:  level,
             duration: 60
@@ -135,8 +137,8 @@ class AffectBurstRune < Affect
 
     def do_burst_rune(data)
         if @source.attacking && rand(0..100) < 50
-            @source.output @hit
-            @source.magic_hit( @source.attacking, 100, @noun, @element)
+            data[:source].output @hit
+            data[:source].magic_hit( @source.attacking, 100, @noun, @element)
         end
     end
 
@@ -149,6 +151,6 @@ class AffectBurstRune < Affect
     end
 
     def summary
-        "Spell: burst rune adds #{@element} elemental charged strike for #{@duration} seconds"
+        "Spell: burst rune adds #{@element} elemental charged strike for #{@duration.to_i} seconds"
     end
 end

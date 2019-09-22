@@ -28,3 +28,35 @@ class SpellDestroyTattoo < Spell
     	end
     end
 end
+
+class SpellDestroyRune < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "destroy rune",
+            keywords: ["destroy rune"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args )
+    	if args.first.nil?
+    		if actor.room.affected? "rune"
+                actor.room.remove_affect( "rune" )
+                actor.broadcast "The runes present in this room begin fade.", actor.target({ room: actor.room })
+            else
+                actor.output "There are no runes found."
+            end
+    	elsif ( target = actor.target({ list: actor.equipment.values.reject(&:nil?) + actor.inventory, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
+    		if target.affected?("rune")
+    			actor.output "The runes on %s slowly fade out of existence.", [target]
+    			target.remove_affect( "rune" )
+            else
+                actor.output "%s is not runed.", [target]
+    		end
+    	end
+    end
+end

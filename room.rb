@@ -55,4 +55,13 @@ class Room < GameObject
         end
     end
 
+    def occupants
+        return mobiles | players
+    end
+
+    def remove_player(player)
+        @players.delete(player)
+        @mobiles.delete(player)
+    end
+
 end

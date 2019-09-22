@@ -8,7 +8,6 @@ class Command
         priority: 100,
         keywords: ["defaultcommand"],
         lag: 0,
-        starts_combat: false,
         usable_in_combat: true,
         position: Position::SLEEP,
         hp_cost: 0,
@@ -20,7 +19,6 @@ class Command
         @keywords = keywords
         @lag = lag
         @name = name
-        @starts_combat = starts_combat
         @usable_in_combat = usable_in_combat
         @position = position
         @hp_cost = hp_cost
