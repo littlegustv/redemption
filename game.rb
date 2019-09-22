@@ -271,6 +271,14 @@ Which alignment (G/N/E)?)
                 puts "[Mob not found] RESET ID: #{reset[:id]}, MOB ID: #{reset[:mobile_id]}"
             end
         end
+
+        @base_room_item_resets.each do |reset_id, reset_data|
+            if ( reset = @room_item_resets[reset_id] )
+                load_item( reset[:item_id], @rooms[ reset[:room_id] ] )
+            else
+                puts ["Room item reset not found] RESET ID: #{reset_id}"]
+            end
+        end
     end
 
     def load_mob( id, room )
@@ -330,50 +338,54 @@ Which alignment (G/N/E)?)
     end
 
     def load_item( id, room )
-        row = @item_data[ id ]
-        data = {
-            id: id,
-            short_description: row[:short_desc],
-            long_description: row[:long_desc],
-            keywords: row[:keywords].split(" "),
-            weight: row[:weight].to_i,
-            cost: row[:cost].to_i,
-            type: row[:type],
-            level: row[:level].to_i,
-            wear_location: row[:wear_flags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", ""),
-            material: row[:material],
-            extraFlags: row[:extra_flags],
-            modifiers: {},
-            ac: @ac_data[ id ].to_h.reject{ |k, v| [:id, :item_id].include?(k) }
-        }
-        @item_modifiers[ id ].to_a.each do |modifier|
-            data[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
-        end
-        if row[:type] == "weapon"
-            weapon_info = @weapon_data[ id ]
-            if weapon_info
-                weapon_data = {
-                    noun: weapon_info[:noun],
-                    genre: weapon_info[:type],
-                    flags: weapon_info[:flags].split(","),
-                    element: weapon_info[:element],
-                    dice_sides: weapon_info[:dice_sides].to_i,
-                    dice_count: weapon_info[:dice_count].to_i
-                }
-                item = Weapon.new( data.merge( weapon_data ), self, room )
+        if ( row = @item_data[ id ] )
+            data = {
+                id: id,
+                short_description: row[:short_desc],
+                long_description: row[:long_desc],
+                keywords: row[:keywords].split(" "),
+                weight: row[:weight].to_i,
+                cost: row[:cost].to_i,
+                type: row[:type],
+                level: row[:level].to_i,
+                wear_location: row[:wear_flags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", ""),
+                wearFlags: row[:wear_flags].split(","),
+                material: row[:material],
+                extraFlags: row[:extra_flags],
+                modifiers: {},
+                ac: @ac_data[ id ].to_h.reject{ |k, v| [:id, :item_id].include?(k) }
+            }
+            @item_modifiers[ id ].to_a.each do |modifier|
+                data[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
+            end
+            if row[:type] == "weapon"
+                weapon_info = @weapon_data[ id ]
+                if weapon_info
+                    weapon_data = {
+                        noun: weapon_info[:noun],
+                        genre: weapon_info[:type],
+                        flags: weapon_info[:flags].split(","),
+                        element: weapon_info[:element],
+                        dice_sides: weapon_info[:dice_sides].to_i,
+                        dice_count: weapon_info[:dice_count].to_i
+                    }
+                    item = Weapon.new( data.merge( weapon_data ), self, room )
+                else
+                    puts "[Weapon and/or Dice data not found] ITEM ID: #{id}"
+                    item = Item.new( data, self, room )
+                end
             else
-                puts "[Weapon and/or Dice data not found] ITEM ID: #{id}"
                 item = Item.new( data, self, room )
             end
+            if item
+                @items.push item
+                return item
+            else
+                "[Item creation unsuccessful]"
+                return nil
+            end
         else
-            item = Item.new( data, self, room )
-        end
-        if item
-            @items.push item
-            return item
-        else
-            "[Item creation unsuccessful]"
-            return nil
+            puts "load_item [ITEM NOT FOUND] Item ID: #{ id }"
         end
     end
 
@@ -473,9 +485,12 @@ Which alignment (G/N/E)?)
         @mob_resets = @db[:reset_mobile].as_hash(:reset_id)
         @inventory_resets = @db[:reset_inventory_item].as_hash(:reset_id)
         @equipment_resets = @db[:reset_equipped_item].as_hash(:reset_id)
+        @room_item_resets = @db[:reset_room_item].as_hash(:reset_id)
+
         @base_resets = @db[:reset_base].where( area_id: [17, 23] ).as_hash(:id)
         # @base_resets = @db[:reset_base].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
+        @base_room_item_resets = @base_resets.select{ |key, value| value[:type] == "room_item" }
         reset
 
         puts( "Mob Data and Resets loaded from database.")

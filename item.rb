@@ -1,7 +1,7 @@
 class Item < GameObject
 
 	attr_accessor :wear_location, :weight, :room, :type
-    attr_reader :cost, :id
+    attr_reader :cost, :id, :wearFlags
 
     def initialize( data, game, room )
         super(data[:short_description], game)
@@ -16,6 +16,7 @@ class Item < GameObject
         @wear_location = data[:wear_location]
         @material = data[:material]
         @extraFlags = data[:extraFlags]
+        @wearFlags = data[:wearFlags]
         @modifiers = data[:modifiers].merge( data[:ac] )
         # @ac = data[:ac] || [0,0,0,0]
 

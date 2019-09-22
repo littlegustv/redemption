@@ -60,10 +60,14 @@ class CommandGet < Command
     def attempt( actor, cmd, args )
         if ( targets = actor.target({ room: actor.room, type: ["Item", "Weapon"], visible_to: actor }.merge( args.first.to_s.to_query ) ) )
             targets.each do | target |
-                target.room = nil
-                actor.inventory.push target
-                actor.output "You get #{ target }."
-                actor.broadcast "%s gets %s.", actor.target({ not: actor, room: actor.room, type: "Player" }), [actor, target]
+                if target.wearFlags.include? "take"
+                    target.room = nil
+                    actor.inventory.push target
+                    actor.output "You get #{ target }."
+                    actor.broadcast "%s gets %s.", actor.target({ not: actor, room: actor.room, type: "Player" }), [actor, target]
+                else
+                    actor.output "You can't take #{ target }"
+                end
             end
         else
             actor.output "You don't see that here."
