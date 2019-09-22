@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandWear < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "wear",
             keywords: ["wear", "hold", "wield"],
             position: Position::REST
@@ -18,8 +19,9 @@ end
 
 class CommandWhere < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "where",
             keywords: ["where"],
             position: Position::REST
@@ -39,8 +41,9 @@ end
 
 class CommandWhitespace < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "whitespace",
             keywords: [""],
             priority: 99999
@@ -55,19 +58,19 @@ end
 
 class CommandWho < Command
 
-    def initialize(continents)
+    def initialize(game)
         super(
+            game: game,
             name: "who",
             keywords: ["who"],
             priority: 200
         )
-        @continents = continents
     end
 
     def attempt( actor, cmd, args )
         targets = actor.target( { type: "Player", visible_to: actor, quantity: "all" } )
         out = ""
-        @continents.each do |continent|
+        @game.continents.values.each do |continent|
             out += "----==== Characters #{continent.preposition} #{continent.name} ====----\n"
             out += "\n#{ targets.select{ |t| t.room.continent == continent }.map(&:who).join("\n")}\n\n"
         end
@@ -79,7 +82,7 @@ end
 
 class CommandWorth < Command
 
-    def initialize
+    def initialize(game)
         super(
             name: "worth",
             keywords: ["worth"],

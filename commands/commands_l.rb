@@ -1,8 +1,9 @@
 require_relative 'command.rb'
 
 class CommandLeave < Command
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "leave",
             keywords: ["leave"],
             position: Position::REST
@@ -22,7 +23,7 @@ end
 
 class CommandList < Command
 
-    def initialize
+    def initialize(game)
         super(
             name: "list",
             keywords: ["list"],
@@ -47,8 +48,9 @@ class CommandList < Command
 end
 
 class CommandLoadItem < Command
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "loaditem",
             keywords: ["loaditem"],
             priority: 1,
@@ -68,8 +70,9 @@ end
 
 class CommandLook < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "look",
             keywords: ["look"],
             priority: 200,
@@ -94,8 +97,9 @@ end
 
 class CommandLore < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "lore",
             keywords: ["lore"],
             position: Position::REST

@@ -2,12 +2,14 @@ require_relative 'skill.rb'
 
 class SkillKick < Command
 
-    def initialize
-        super()
-        @name = "kick"
-        @keywords = ["kick"]
-        @lag = 1
-        @position = Position::STAND
+    def initialize(game)
+        super(
+            game: game,
+            name: "kick",
+            keywords: ["kick"],
+            lag: 1,
+            position: Position::STAND
+        )
     end
 
     def attempt( actor, cmd, args )

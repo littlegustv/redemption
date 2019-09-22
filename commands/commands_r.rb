@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandRecall < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "recall",
             keywords: ["recall", "/"],
             position: Position::STAND
@@ -17,8 +18,9 @@ end
 
 class CommandRemove < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "remove",
             keywords: ["remove"],
             position: Position::REST
@@ -32,8 +34,9 @@ end
 
 class CommandRest < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "sit",
             keywords: ["sit", "rest"],
             position: Position::SLEEP,

@@ -2,8 +2,9 @@ require_relative 'command.rb'
 
 class CommandMove < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "move",
             keywords: ["north", "east", "south", "west", "up", "down"],
             priority: 1000,

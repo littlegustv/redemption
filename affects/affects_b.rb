@@ -2,8 +2,9 @@ require_relative 'affect.rb'
 
 class AffectBerserk < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["berserk"],
@@ -43,14 +44,15 @@ class AffectBladeRune < Affect
         [ "The weapon is endowed with killing dweomers.", { damroll: 10 } ]
     ]
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["blade rune", "rune"],
             name: "blade rune",
             level:  level,
-            duration: 60            
+            duration: 60
         )
         @message, @modifiers = @@TYPES.sample
     end
@@ -63,15 +65,17 @@ end
 
 class AffectBlind < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["blind"],
             name: "blind",
             level:  level,
             duration: 30,
-            modifiers: {hitroll: -5}
+            modifiers: {hitroll: -5},
+            application_type: :global_single
         )
     end
 
@@ -84,6 +88,7 @@ class AffectBlind < Affect
     end
 
     def start
+        @target.broadcast "%s is blinded!", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "You can't see a thing!"
     end
 
@@ -108,14 +113,15 @@ class AffectBurstRune < Affect
         ["flaming", "A {Wblast{x of {Rflames{x explodes from your weapon!", "A {Rred{x and {Wwhite{x rune appears."]
     ]
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["burst rune", "rune"],
             name: "burst rune",
             level:  level,
-            duration: 60            
+            duration: 60
         )
         @element, @hit, @message = @@ELEMENTS.sample
         @noun = "elemental charged strike"
@@ -131,8 +137,8 @@ class AffectBurstRune < Affect
 
     def do_burst_rune(data)
         if @source.attacking && rand(0..100) < 50
-            @source.output @hit
-            @source.magic_hit( @source.attacking, 100, @noun, @element) 
+            data[:source].output @hit
+            data[:source].magic_hit( @source.attacking, 100, @noun, @element)
         end
     end
 

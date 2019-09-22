@@ -2,12 +2,13 @@ require_relative 'command.rb'
 
 class CommandHelp < Command
 
-    def initialize( helps )
+    def initialize(game)
         super(
+            game: game,
             name: "help",
             keywords: ["help"],
         )
-        @helps = helps
+        @helps = game.helps
     end
 
     def attempt( actor, cmd, args )

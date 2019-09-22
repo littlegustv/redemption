@@ -2,14 +2,15 @@ require_relative 'affect.rb'
 
 ##
 # In Original Redemption, shackle just increases the movement point cost.  For now, I have replaced it with some lag.
-# 
+#
 # Which is worse??
-# 
+#
 
 class AffectShackle < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["shackle"],
@@ -47,8 +48,9 @@ end
 
 class AffectShackleRune < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["shackle rune", "rune"],
@@ -75,7 +77,7 @@ class AffectShackleRune < Affect
         if data[:mobile] == @source # || rand(0..100) < 50
             data[:mobile].output "You sense the power of the room's rune and avoid it!"
         else
-            data[:mobile].apply_affect( AffectShackle.new(source: @source, target: data[:mobile], level: @source.level) )
+            data[:mobile].apply_affect( AffectShackle.new(source: @source, target: data[:mobile], level: @source.level, game: @game) )
         end
     end
 
@@ -83,8 +85,9 @@ end
 
 class AffectShopkeeper < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["shopkeeper"],
@@ -94,13 +97,39 @@ class AffectShopkeeper < Affect
             modifiers: { none: 0 }
         )
     end
+end
 
+class AffectShocking < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["shocking"],
+            name: "shocking",
+            level:  level,
+            duration: 6,
+            modifiers: {success: -10}
+        )
+    end
+
+    def start
+        @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, room: @target.room }), [@target]
+        @target.output "{yYour muscles stop responding.{x"
+    end
+
+    def refresh
+        @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, room: @target.room }), [@target]
+        @target.output "{yYour muscles stop responding.{x"
+    end
 end
 
 class AffectSneak < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["sneak"],
@@ -122,8 +151,9 @@ end
 
 class AffectSlow < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["slow"],
@@ -145,8 +175,9 @@ end
 
 class AffectStun < Affect
 
-    def initialize(source:, target:, level:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
             target: target,
             keywords: ["stun"],

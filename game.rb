@@ -3,11 +3,13 @@ require 'sequel'
 class Game
 
     attr_accessor :mobiles, :mobile_count, :items
-    attr_reader :race_data, :class_data
+    attr_reader :race_data, :class_data, :affects, :helps, :spells, :continents
 
     def initialize( ip, port )
 
+        @affects = []
         @players = Hash.new
+        @inactive_players = Hash.new
         @items = []
         @item_data = Hash.new
         @mobiles = []
@@ -18,12 +20,17 @@ class Game
         @helps = Hash.new
         @continents = Hash.new
         @game_settings = Hash.new
+
         @starting_room = nil
         @start_time = Time.now
         @frame_count = 0
 
         @race_data = []
         @class_data = []
+        @commands = []
+        @skills = []
+        @spells = []
+
 
         # eventually load these from the database
         puts "Opening server on #{port}"
@@ -59,15 +66,20 @@ class Game
         name = nil
         client.puts "By what name do you wish to be known?"
         while name.nil?
-            name = client.gets.chomp.to_s
-
+            name = client.gets.chomp.to_s.downcase.capitalize
             if name.length <= 2
                 client.puts "Your name must be at least three characters.\n\r"
                 name = nil
             elsif @players.has_key? name
                 client.puts "That name is already in use, try another.\n\r"
                 name = nil
-            else
+            elsif @inactive_players.has_key?(name) && @inactive_players[name].weakref_alive?
+                @players[name] = @inactive_players[name].__getobj__
+                @inactive_players.delete(name)
+                @players[name].reconnect(client, thread)
+                @players[name].look_room
+                @players[name].input_loop
+                return
             end
         end
 
@@ -78,10 +90,10 @@ class Game
 
             client.puts %Q(
 The following races are available:
-#{player_race_names.map{ |name| name.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n")}
+#{player_race_names.map{ |name| name.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}
 
 What is your race (help for more information)?)
-            race_input = client.gets.chomp
+            race_input = client.gets.chomp || ""
             race_matches = player_race_names.select{ |name| name.fuzzy_match(race_input) }
             if race_matches.any?
                 race_id = @race_data.select{ |key, value| value[:name] == race_matches.first}.first[0]
@@ -128,7 +140,6 @@ Which alignment (G/N/E)?)
         client.puts "Welcome, #{name}."
         broadcast "#{name} has joined the world.", target
         @players[name] = Player.new( { alignment: alignment, name: name, race_id: race_id, class_id: class_id }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
-
         @players[name].look_room
         @players[name].input_loop
     end
@@ -136,6 +147,12 @@ Which alignment (G/N/E)?)
     def game_loop
         loop do
             @frame_count += 1
+
+            # deal with inactive players that have been garbage collected
+            # p "#{@frame_count} #{@inactive_players.keys}" if @inactive_players.length > 0
+            @inactive_players.each do |name, player|
+                @inactive_players.delete(name) if !player.weakref_alive?
+            end
 
             # each combat ROUND
             if @frame_count % Constants::ROUND == 0
@@ -153,6 +170,8 @@ Which alignment (G/N/E)?)
             update( 1.0 / Constants::FPS )
             send_to_client
 
+            # GC.start
+
             # Sleep until the next frame
             sleep_time = (1.0 / Constants::FPS)
             sleep(sleep_time)
@@ -161,8 +180,8 @@ Which alignment (G/N/E)?)
 
     # eventually, this will handle all game logic
     def update( elapsed )
-        ( @players.values + @mobiles + @items ).each do | entity |
-            entity.update elapsed
+        ( @players.values + @mobiles + @items + @rooms.values + @areas.values ).each do | entity |
+            entity.update(elapsed)
         end
     end
 
@@ -201,7 +220,7 @@ Which alignment (G/N/E)?)
         targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
-        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }   if query[:area]
+        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }                          if query[:area]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
@@ -217,6 +236,7 @@ Which alignment (G/N/E)?)
     end
 
     def disconnect( name )
+        @inactive_players[name] = WeakRef.new(@players[name])
         @players.delete( name )
         broadcast "#{name} has disconnected.", target
     end
@@ -232,7 +252,7 @@ Which alignment (G/N/E)?)
         @base_mob_resets.each do |reset_id, reset_data|
             reset = @mob_resets[reset_id]
             if @mob_data[ reset[:mobile_id] ]
-                if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max]
+                if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
                     @mobiles.push mob
 
@@ -332,7 +352,7 @@ Which alignment (G/N/E)?)
         # "Shopkeeper behavior" is handled as an affect, which is currently used only as a kind of 'flag' for the buy/sell commands
         # 
         if not @shop_data[ id ].nil?
-            mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0 ) )
+            mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0, game: self ) )
         end
         return mob
     end
@@ -405,8 +425,9 @@ Which alignment (G/N/E)?)
         end
         @class_data = @db[:class_base].to_hash(:id)
         @class_data.each do |key, value|
-            value[:skills] = value[:skills].split(",")
-            value[:spells] = value[:spells].split(",")
+            value[:skills] = value[:skills].to_s.split(",")
+            value[:spells] = value[:spells].to_s.split(",")
+            value[:affect_flags] = value[:affect_flags].to_s.split(",")
         end
 
         continent_rows = @db[:continent_base].all
@@ -488,7 +509,7 @@ Which alignment (G/N/E)?)
         @room_item_resets = @db[:reset_room_item].as_hash(:reset_id)
 
         @base_resets = @db[:reset_base].where( area_id: [17, 23] ).as_hash(:id)
-        # @base_resets = @db[:reset_base].as_hash(:id)
+        @base_resets = @db[:reset_base].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
         @base_room_item_resets = @base_resets.select{ |key, value| value[:type] == "room_item" }
         reset
@@ -520,77 +541,15 @@ Which alignment (G/N/E)?)
     end
 
     def make_commands
-        @skills = [
-            SkillSneak.new,
-            SkillBerserk.new,
-            SkillBash.new,
-            SkillDisarm.new,
-            SkillLivingStone.new,
-            SkillDirtKick.new,
-            SkillKick.new,
-            SkillTrip.new,
-            SkillPaintPower.new,
-            SkillZeal.new,
-        ]
-        @spells = [
-            SpellHurricane.new,
-            SpellLightningBolt.new,
-            SpellAcidBlast.new,
-            SpellBlastOfRot.new,
-            SpellIceBolt.new,
-            SpellPyrotechnics.new,
-            SpellDestroyTattoo.new,
-            SpellDestroyRune.new,
-            SpellBurstRune.new,
-            SpellBladeRune.new,
-            SpellFireRune.new,
-            SpellShackleRune.new,
-            SpellAlarmRune.new,
-        ]
-        @commands = [
-            CommandAffects.new,
-            CommandBlind.new,
-            CommandCast.new(@spells),
-            CommandConsider.new,
-            CommandDrop.new,
-            CommandEquipment.new,
-            CommandFlee.new,
-            CommandGet.new,
-            CommandGoTo.new,
-            CommandGroup.new,
-            CommandHelp.new( @helps.values ),
-            CommandInspect.new,
-            CommandInventory.new,
-            CommandKill.new,
-            CommandLeave.new,
-            CommandLoadItem.new,
-            CommandLook.new,
-            CommandLore.new,
-            CommandMove.new,
-            CommandPeek.new,
-            CommandPoison.new,
-            CommandQui.new,
-            CommandQuicken.new,
-            CommandQuit.new,
-            CommandRecall.new,
-            CommandRemove.new,
-            CommandRest.new,
-            CommandSay.new,
-            CommandScore.new,
-            CommandSkills.new,
-            CommandSpells.new,
-            CommandSleep.new,
-            CommandStand.new,
-            CommandWear.new,
-            CommandWhere.new,
-            CommandWhitespace.new,
-            CommandWho.new( @continents.values ),
-            CommandYell.new,
-            CommandBuy.new,
-            CommandList.new,
-            CommandSell.new,
-            CommandWorth.new
-        ]
+        Constants::SKILL_CLASSES.each do |skill_class|
+            @skills.push skill_class.new(self)
+        end
+        Constants::SPELL_CLASSES.each do |spell_class|
+            @spells.push spell_class.new(self)
+        end
+        Constants::COMMAND_CLASSES. each do |command_class|
+            @commands.push command_class.new(self)
+        end
     end
 
     def recall_room( continent )
@@ -598,8 +557,10 @@ Which alignment (G/N/E)?)
     end
 
     # Send an event to a list of objects
-    # +fire_event(:event_test, {}, self)+
-    # +fire_event(:event_on_hit, data, self, @room, @room.area, equipment.values)+
+    #
+    # Examples:
+    #  fire_event(:event_test, {}, some_mobile)
+    #  fire_event(:event_on_hit, data, some_mobile, some_room, some_room.area, some_mobile.equipment.values)
     def fire_event(event, data, *objects)
         objects.each do |object|
             if object.kind_of?(Array)
@@ -610,6 +571,14 @@ Which alignment (G/N/E)?)
                 object.event(event, data)
             end
         end
+    end
+
+    def add_affect(affect)
+        @affects.push(affect)
+    end
+
+    def remove_affect(affect)
+        @affects.delete(affect)
     end
 
 end

@@ -1,7 +1,7 @@
 class GameObject
 
     attr_accessor :name, :keywords, :affects
-    attr_reader :listeners, :uuid, :room
+    attr_reader :listeners, :uuid, :room, :active
 
     @@next_uuid = 1
 
@@ -13,9 +13,11 @@ class GameObject
         @listeners = {}
         @uuid = @@next_uuid
         @@next_uuid += 1
+        @active = true
     end
 
     def update( elapsed )
+        @affects.each { |aff| aff.update( elapsed ) }
     end
 
     def output( message, objects = [] )
@@ -74,6 +76,17 @@ class GameObject
             return
         end
         @listeners[event].delete(responder)
+        if @listeners[event].empty?
+            @listeners.delete(event)
+        end
+    end
+
+    def clear_event_listeners
+        @listeners.each do |event, value|
+            value.each do |responder, method|
+                delete_event_listener(event, responder)
+            end
+        end
     end
 
     def event(event, data)
@@ -95,7 +108,7 @@ class GameObject
     # Apply a new affect according to its application type
     # +new_affect+:: The new affect to be applied
     #
-    def apply_affect(new_affect)
+    def apply_affect(new_affect, silent = false)
         existing_affects = @affects.select { |a| a.shares_ancestors_with?(new_affect) }
         type = new_affect.application_type
         if [:source_overwrite, :source_stack, :source_single].include?(type)
@@ -107,37 +120,51 @@ class GameObject
         if !existing_affects.empty?
             case type
             when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
-                existing_affects.each do |a|
-                    a.unhook
-                    affects.delete(a)
-                end
+                existing_affects.each { |a| a.clear(call_complete: false) }
                 affects.push(new_affect)
                 new_affect.hook
-                new_affect.refresh
+                new_affect.refresh if !silent
+                @game.add_affect(new_affect)
             when :global_stack, :source_stack                      # stack with existing affect
                 existing_affects.first.stack(new_affect)
-                existing_affects.first.refresh
+                existing_affects.first.refresh if !silent
             when :global_single, :source_single                    # do nothing, already applied
-                return
+                return false
             else
                 puts "unknown application type #{affect.application_type} in apply_affect on affect #{affect} belonging to #{self}"
-                return
+                return false
             end
         else
             affects.push(new_affect)
             new_affect.hook
-            new_affect.start
+            new_affect.start if !silent
+            @game.add_affect(new_affect)
         end
+        return true
     end
 
+    # Applies an group of affects from an array of strings, matching the strings as keys for
+    # AFFECT_CLASS_HASH in constants.rb
+    #  some_mobile.apply_affect_flags(["infravision", "hatchling", "flying"])
+    #
+    def apply_affect_flags(flags)
+        flags.each do |flag|
+            affect_class = Constants::AFFECT_CLASS_HASH[flag]
+            apply_affect(affect_class.new(source: self, target: self, level: 0, game: @game)) if affect_class
+        end
+    end
     ##
     # Remove all affects by a given keyword
     # +term+:: The keyword to match
-    # 
+    #
     def remove_affect(term)
         list = @affects.select{ |a| a.check( term )  }
-        @affects -= list
-        list.each(&:unhook)        
+        list.each do |affect|
+            list.clear(call_complete: true)
+        end
+        #
+        # @affects -= list
+        # list.each(&:unhook)
     end
 
 end

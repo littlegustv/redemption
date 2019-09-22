@@ -2,12 +2,12 @@ require_relative 'command.rb'
 
 class CommandKill < Command
 
-    def initialize
+    def initialize(game)
         super(
+            game: game,
             name: "kill",
             keywords: ["kill", "hit"],
             lag: 0.5,
-            starts_combat: true,
             position: Position::STAND
         )
     end
