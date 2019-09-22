@@ -41,6 +41,7 @@ class CommandSell < Command
 
     def initialize(game)
         super(
+            game: game,
             name: "sell",
             keywords: ["sell"],
             lag: 0,
@@ -64,7 +65,7 @@ class CommandSell < Command
             end
         else
             actor.output "You can't do that here."
-        end        
+        end
     end
 
 end

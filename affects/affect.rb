@@ -18,7 +18,7 @@ class Affect
         hidden: false
     )
         @game = game
-        # @source = (source != target && permanent) ? WeakRef.new(source) : source
+        # @source = (source != target && permanent) ? WeakRef.new(source) : source   # should things that give other things perma_affects last forever??
         @source = source
         @target = target
         @keywords = keywords
@@ -122,6 +122,11 @@ class Affect
         intersection = affect.class.ancestors & self.class.ancestors      # get the intersection of ancestors of the two classes
         return !intersection.slice(0, intersection.index(Affect)).empty?  # slice the array elements preceding Affect: these will be common ancestors
     end                                                                   # if this array is empty after the slice, then there are no common ancestors
+
+    # used when loading a saved player
+    def overwrite_modifiers(modifiers)
+        @modifiers = modifiers
+    end
 
 end
 

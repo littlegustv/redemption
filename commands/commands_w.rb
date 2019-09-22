@@ -84,6 +84,7 @@ class CommandWorth < Command
 
     def initialize(game)
         super(
+            game: game,
             name: "worth",
             keywords: ["worth"],
             priority: 200,

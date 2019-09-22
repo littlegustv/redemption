@@ -25,6 +25,7 @@ class CommandList < Command
 
     def initialize(game)
         super(
+            game: game,
             name: "list",
             keywords: ["list"],
             lag: 0,
@@ -35,7 +36,7 @@ class CommandList < Command
     def attempt( actor, cmd, args )
         ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper" ) ).each do |shopkeeper|
             actor.output %Q(#{shopkeeper}:
-#{'-'*shopkeeper.to_s.length}          
+#{'-'*shopkeeper.to_s.length}
 [Lv Price Qty] Item
 #{ shopkeeper.inventory.map(&:to_store_listing).join("\n\r") }
 )

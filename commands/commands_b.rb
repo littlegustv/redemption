@@ -26,6 +26,7 @@ class CommandBuy < Command
 
     def initialize(game)
         super(
+            game: game,
             name: "buy",
             keywords: ["buy"],
             lag: 0,
