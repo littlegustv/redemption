@@ -20,6 +20,32 @@ class CommandLeave < Command
     end
 end
 
+class CommandList < Command
+
+    def initialize
+        super(
+            name: "list",
+            keywords: ["list"],
+            lag: 0,
+            position: Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args )
+        ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper" ) ).each do |shopkeeper|
+            actor.output %Q(#{shopkeeper}:
+#{'-'*shopkeeper.to_s.length}          
+[Lv Price Qty] Item
+#{ shopkeeper.inventory.map(&:to_store_listing).join("\n\r") }
+)
+        end
+        if shopkeepers.length <= 0
+            actor.output "You can't do that here."
+        end
+    end
+
+end
+
 class CommandLoadItem < Command
     def initialize
         super(

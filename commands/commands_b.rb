@@ -20,3 +20,33 @@ class CommandBlind < Command
         end
     end
 end
+
+class CommandBuy < Command
+
+    def initialize
+        super(
+            name: "buy",
+            keywords: ["buy"],
+            lag: 0,
+            position: Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args )
+        ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper" ) ).each do |shopkeeper|
+            if ( purchase = ( actor.target({ list: shopkeeper.inventory }.merge( args.first.to_s.to_query )) ).first )
+                if actor.spend( purchase.cost )
+                    actor.output( "You buy #{purchase} for #{ purchase.to_price }." )
+                    actor.inventory.push actor.game.load_item( purchase.id, nil )
+                    return
+                else
+                    shopkeeper.do_command "say You can't afford to buy #{ purchase }"
+                    return
+                end
+            end
+        end.empty? and begin
+            actor.output "You can't do that here."
+        end
+    end
+
+end

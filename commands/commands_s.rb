@@ -35,6 +35,38 @@ class CommandScore < Command
     end
 end
 
+class CommandSell < Command
+
+    def initialize
+        super(
+            name: "sell",
+            keywords: ["sell"],
+            lag: 0,
+            position: Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args )
+        if ( shopkeeper = actor.target({ list: actor.room.mobiles, affect: "shopkeeper", quantity: "all" }).first )
+            if ( sale = actor.target({ list: actor.inventory }.merge( args.first.to_s.to_query ) ).first )
+                if shopkeeper.spend( sale.cost )
+                    shopkeeper.inventory.push sale
+                    actor.inventory.delete sale
+                    actor.earn( sale.cost )
+                    actor.output( "You sell #{sale} for #{ sale.to_price }." )
+                else
+                    shopkeeper.do_command "say I'm afraid I don't have enough wealth to buy #{ sale }"
+                end
+            else
+                actor.output "You don't have that."
+            end
+        else
+            actor.output "You can't do that here."
+        end        
+    end
+
+end
+
 class CommandSkills < Command
 
     def initialize

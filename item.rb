@@ -1,9 +1,11 @@
 class Item < GameObject
 
 	attr_accessor :wear_location, :weight, :room, :type
+    attr_reader :cost, :id
 
     def initialize( data, game, room )
         super(data[:short_description], game)
+        @id = data[:id]
         @short_description = data[:short_description]
         @keywords = data[:keywords]
         @level = data[:level]
@@ -26,6 +28,16 @@ class Item < GameObject
 
     def to_someone
         "something"
+    end
+
+    def to_store_listing
+        "[#{@level.to_s.rjust(2)} #{@cost.to_s.rjust(5)} -- ] #{@short_description}"
+    end
+
+    def to_price
+        gold = ( @cost / 1000 ).floor
+        silver = ( @cost - gold * 1000 )
+        gold > 0 ? "#{ gold } gold and #{ silver } silver" : "#{ silver } silver"
     end
 
     def long

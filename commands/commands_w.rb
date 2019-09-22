@@ -76,3 +76,20 @@ class CommandWho < Command
     end
 
 end
+
+class CommandWorth < Command
+
+    def initialize
+        super(
+            name: "worth",
+            keywords: ["worth"],
+            priority: 200,
+            lag: 0
+        )
+    end
+
+    def attempt( actor, cmd, args )
+        actor.output "You have #{actor.to_worth}"
+    end
+
+end

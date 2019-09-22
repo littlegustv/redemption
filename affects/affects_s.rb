@@ -81,6 +81,22 @@ class AffectShackleRune < Affect
 
 end
 
+class AffectShopkeeper < Affect
+
+    def initialize(source:, target:, level:)
+        super(
+            source: source,
+            target: target,
+            keywords: ["shopkeeper"],
+            name: "shopkeeper",
+            level: 0,
+            permanent: true,
+            modifiers: { none: 0 }
+        )
+    end
+
+end
+
 class AffectSneak < Affect
 
     def initialize(source:, target:, level:)

@@ -25,8 +25,7 @@ class Mobile < GameObject
         @quest_points = 0
         @quest_points_to_remort = 1000
         @alignment = data[ :alignment ].to_i
-        @gold = (data[:wealth].to_i / 1000).floor
-        @silver = data[:wealth].to_i - (@gold * 1000)
+        @wealth = data[:wealth].to_i
         @wimpy = 0
 
         @group = []
@@ -86,6 +85,32 @@ class Mobile < GameObject
 
     def knows( skill_name )
         (skills + spells).include? skill_name
+    end
+
+    def gold
+        ( @wealth / 1000 ).floor
+    end
+
+    def silver
+        ( @wealth - gold * 1000 )
+    end
+
+    def to_worth
+        gold > 0 ? "#{ gold } gold and #{ silver } silver" : "#{ silver } silver"
+    end
+
+    def earn( n )
+        @wealth += n
+    end
+
+    def spend( n )
+        net = @wealth - n
+        if net < 0
+            return false
+        else
+            @wealth = net
+            return true
+        end
     end
 
     def empty_equipment_set
@@ -369,6 +394,8 @@ class Mobile < GameObject
         broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]
         killer.output "#{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.push("You offer your victory to Gabriel who rewards you with 1 deity points.").join("\n")}"
         killer.inventory += @inventory + @equipment.values.reject(&:nil?)
+        killer.output "You get #{ self.to_worth } from the corpse of %s", [self]
+        killer.earn( @wealth )
         @inventory = []
         @equipment
         @game.mobiles.delete( self )
@@ -556,7 +583,7 @@ Member of clan Kenshi
 {cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".ljust(26)} {cNext Level:{x #{@experience_to_level - @experience}
 {cQuest Points:{x #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
 {cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".ljust(26) } {cWeight:{x    #{ @inventory.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
-{cGold:{x      #{ @gold.to_s.ljust(26) } {cSilver:{x    #{ @silver.to_s }
+{cGold:{x      #{ gold.to_s.ljust(26) } {cSilver:{x    #{ silver.to_s }
 {cClaims Remaining:{x N/A
 ---------------------------------- Stats --------------------------------
 {cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".ljust(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})

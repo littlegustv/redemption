@@ -197,6 +197,7 @@ Which alignment (G/N/E)?)
         end
 
         targets = query[:list].reject(&:nil?)                                                                       if query[:list]
+        targets = targets.select { |t| query[:affect].to_a.any?{ |affect| t.affected?( affect.to_s ) } }            if query[:affect]
         targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
@@ -319,12 +320,19 @@ Which alignment (G/N/E)?)
             self,
             room
         )
+        # 
+        # "Shopkeeper behavior" is handled as an affect, which is currently used only as a kind of 'flag' for the buy/sell commands
+        # 
+        if not @shop_data[ id ].nil?
+            mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0 ) )
+        end
         return mob
     end
 
     def load_item( id, room )
         row = @item_data[ id ]
         data = {
+            id: id,
             short_description: row[:short_desc],
             long_description: row[:long_desc],
             keywords: row[:keywords].split(" "),
@@ -456,6 +464,9 @@ Which alignment (G/N/E)?)
             value[:part_flags] = value[:part_flags].split(",")
             value[:form_flags] = value[:form_flags].split(",")
         end
+
+        @shop_data = @db[:shop_base].as_hash(:mobile_id)
+
         @item_data = @db[:item_base].as_hash(:id)
         @weapon_data = @db[:item_weapon].as_hash(:item_id)
 
@@ -560,6 +571,10 @@ Which alignment (G/N/E)?)
             CommandWhitespace.new,
             CommandWho.new( @continents.values ),
             CommandYell.new,
+            CommandBuy.new,
+            CommandList.new,
+            CommandSell.new,
+            CommandWorth.new
         ]
     end
 
