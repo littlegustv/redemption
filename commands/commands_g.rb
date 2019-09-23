@@ -36,14 +36,18 @@ class CommandGroup < Command
 
         if actor.group.include? target
             target.remove_from_group
+            return true
         elsif target.in_group.nil? and target.group.empty?
             target.add_to_group(actor)
+            return true
         else
             actor.output "They're already in a group."
+            return false
         end
 
         else
             actor.output "You can't find them."
+            return false
         end
     end
 end

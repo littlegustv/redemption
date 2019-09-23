@@ -16,6 +16,6 @@ class CommandMove < Command
 
     def attempt( actor, cmd, args )
         direction = @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.first
-        actor.move direction
+        return actor.move direction
     end
 end

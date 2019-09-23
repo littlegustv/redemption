@@ -17,17 +17,17 @@ class CommandCast < Command
         spell_name = args.shift
         if spell_name.nil?
             actor.output "What spell are you trying to cast?"
-            return
+            return false
         end
         matches = @spells.select{ |spell|
             spell.check( spell_name ) && actor.knows( spell.to_s )
         }.sort_by(&:priority)
 
         if matches.any?
-            matches.last.cast( actor, cmd, args )
-            return
+            return matches.last.cast( actor, cmd, args )
         else
             actor.output "You don't have any spells of that name."
+            return false
         end
     end
 
@@ -47,7 +47,7 @@ class CommandConsider < Command
     def attempt( actor, cmd, args )
         if args.first.nil?
             actor.output "Who did you want to consider?"
-            return
+            return false
         end
         if ( target = actor.target({ room: actor.room, type: ["Mobile"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
             case  target.level - actor.level
@@ -66,8 +66,10 @@ class CommandConsider < Command
             else
                 actor.output "Death will thank you for your gift.";
             end
+            return true
         else
             actor.output "You don't see anyone like that here."
+            return true
         end
     end
 

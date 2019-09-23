@@ -16,8 +16,10 @@ class CommandBlind < Command
         if not actor.affected? "blind"
             actor.output "You have been blinded!"
             actor.apply_affect(AffectBlind.new(source: actor, target: actor, level: actor.level, game: @game))
+            return true
         else
             actor.output "You are already blind!"
+            return false
         end
     end
 end
@@ -39,15 +41,16 @@ class CommandBuy < Command
             if ( purchase = ( actor.target({ list: shopkeeper.inventory }.merge( args.first.to_s.to_query )) ).first )
                 if actor.spend( purchase.cost )
                     actor.output( "You buy #{purchase} for #{ purchase.to_price }." )
-                    actor.inventory.push actor.game.load_item( purchase.id, nil )
-                    return
+                    actor.inventory.push @game.load_item( purchase.id, nil )
+                    return true
                 else
                     shopkeeper.do_command "say You can't afford to buy #{ purchase }"
-                    return
+                    return false
                 end
             end
         end.empty? and begin
             actor.output "You can't do that here."
+            return false
         end
     end
 

@@ -12,5 +12,6 @@ class CommandAffects < Command
 
     def attempt( actor, cmd, args )
         actor.output "You are affected by the following spells:\n#{ actor.affects.map(&:summary).join("\n") }"
+        return true
     end
 end

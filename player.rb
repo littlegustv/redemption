@@ -86,13 +86,6 @@ class Player < Mobile
         end
     end
 
-    def move_to_room( room )
-        @room&.players&.delete(self)
-        @room = room
-        @room.players.push(self)
-        @game.do_command self, "look"
-    end
-
     def die( killer )
         output "You have been KILLED!"
         broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
@@ -116,6 +109,7 @@ class Player < Mobile
             @game.remove_affect(affect)
         end
         @active = false
+        return true
     end
 
     def update( elapsed )

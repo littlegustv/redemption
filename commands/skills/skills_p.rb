@@ -3,7 +3,7 @@ require_relative 'skill.rb'
 class SkillPaintPower < Skill
 
 	@@slots = [ "torso", "head", "arms", "wrist_1", "wrist_2" ]
-    
+
     def initialize(game)
         super(
             game: game,
@@ -22,8 +22,10 @@ class SkillPaintPower < Skill
     		actor.output "{YThe tattoo sparkles brilliantly!{x" if tattoo.brilliant
     		actor.output "You have painted the following tattoo: #{tattoo.lore}"
     		actor.equipment[ slot.to_sym ] = tattoo
+            return true
     	else
     		actor.output "You don't have an empty equipment slot there."
+            return false
     	end
     end
 end

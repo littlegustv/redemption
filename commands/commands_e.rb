@@ -16,5 +16,6 @@ class CommandEquipment < Command
 You are using:
 #{ actor.show_equipment }
         )
+        return true
     end
 end

@@ -12,7 +12,7 @@ class CommandRecall < Command
     end
 
     def attempt( actor, cmd, args )
-        actor.recall
+        return actor.recall
     end
 end
 
@@ -28,7 +28,7 @@ class CommandRemove < Command
     end
 
     def attempt( actor, cmd, args )
-        actor.unwear args
+        return actor.unwear args
     end
 end
 
@@ -51,14 +51,18 @@ class CommandRest < Command
             actor.broadcast "%s wakes up and begins to rest.", actor.target( { :not => actor, :room => actor.room }), [actor]
             actor.position = Position::REST
             actor.look_room
+            return true
         when Position::REST
             actor.output "You are already resting."
+            return false
         when Position::STAND
             actor.output "You sit down and rest."
             actor.broadcast "%s sits down and rests.", actor.target( { :not => actor, :room => actor.room }), [actor]
             actor.position = Position::REST
+            return true
         else
             actor.output "You can't quite get comfortable enough."
+            return false
         end
     end
 end

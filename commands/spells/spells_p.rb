@@ -20,13 +20,16 @@ class SpellPyrotechnics < Spell
 	    end
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, level )
     	if args.first.nil? && actor.attacking
     		actor.magic_hit( actor.attacking, 100, "pyrotechnics", "flaming" )
+            return true
     	elsif ( target = actor.target({ room: actor.room, type: ["Mobile", "Player"] }.merge( args.first.to_s.to_query )).first )
     		actor.magic_hit( target, 100, "pyrotechnics", "flaming" )
+            return true
     	else
     		actor.output "They aren't here."
+            return false
     	end
     end
 end

@@ -108,8 +108,8 @@ module Constants
 		110 => ['MASSACRE!!', 'MASSACRES!!', 'barbaric', ', gore splatters everywhere!'],
 		120 => ['!ERADICATE!', '!ERADICATES!', 'fierce', ', leaving little remaining!'],
 		130 => ['!DECAPITATE!', '!DECAPITATES!', 'deadly', ', scrambling some brains'],
-		149 => ['!!SHATTER!!', '!!SHATTERS!!', 'legendary', ' into tiny pieces'],
-		150 => ['do UNSPEAKABLE things to', 'does UNSPEAKABLE things to', 'ultimate', '!']
+		149 => ['{r!!SHATTER!!{x', '{r!!SHATTERS!!{x', 'legendary', ' into tiny pieces'],
+		150 => ['do {RUNSPEAKABLE{x things to', 'does {RUNSPEAKABLE{x things to', 'ultimate', '!']
     }
 
     MAGIC_DAMAGE_DECORATORS = {
@@ -216,7 +216,6 @@ module Constants
         CommandMove,
         CommandPeek,
         CommandPoison,
-        CommandQui,
         CommandQuicken,
         CommandQuit,
         CommandRecall,
@@ -260,6 +259,7 @@ module Constants
         SpellBurstRune,
         SpellDestroyRune,
         SpellDestroyTattoo,
+        SpellEnchantWeapon,
         SpellFireRune,
         SpellHurricane,
         SpellIceBolt,

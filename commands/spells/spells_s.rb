@@ -13,13 +13,15 @@ class SpellShackleRune < Spell
         )
     end
 
-    def attempt( actor, cmd, args )
-    	if actor.room.affected? "fire rune"
+    def attempt( actor, cmd, args, level )
+    	if actor.room.affected? "shackle rune"
     		actor.output "This room is already affected by the restriction of movement."
+            return false
     	else
     		actor.output "You place a shackle on the ground preventing easy movement."
     		actor.broadcast "%s places a strange rune on the ground.", actor.target({ room: actor.room, not: actor }), [actor]
     		actor.room.apply_affect( AffectShackleRune.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
+            return true
     	end
     end
 end

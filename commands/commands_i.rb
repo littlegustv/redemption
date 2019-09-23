@@ -14,8 +14,10 @@ class CommandInspect < Command
     def attempt( actor, cmd, args )
         if ( target = actor.target({ room: actor.room, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
             actor.output target.score
+            return true
         else
             actor.output "You don't see anyone like that here."
+            return false
         end
     end
 end
@@ -36,7 +38,7 @@ class CommandInventory < Command
 
     def attempt( actor, cmd, args )
         actor.output %Q(You are carrying:
-#{ actor.inventory.count <= 0 ? "     Nothing." : actor.inventory.group_by { |item| categorize( item.type ) }.map{ |type, list| "\n\r{c#{type}:{x\n\r#{list.map{ |i| "#{ actor.can_see?(i) ? i.to_s : i.to_someone }" }.join("\n\r")}" }.join("\n\r") }
-        )
+#{ actor.inventory.count <= 0 ? "     Nothing." : actor.inventory.group_by { |item| categorize( item.type ) }.map{ |type, list| "\n\r{c#{type}:{x\n\r#{list.map{ |i| "#{ actor.can_see?(i) ? i.to_s : i.to_someone }" }.join("\n\r")}" }.join("\n\r") })
+        return true
     end
 end

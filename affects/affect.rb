@@ -123,7 +123,6 @@ class Affect
         return !intersection.slice(0, intersection.index(Affect)).empty?  # slice the array elements preceding Affect: these will be common ancestors
     end                                                                   # if this array is empty after the slice, then there are no common ancestors
 
-    # used when loading a saved player
     def overwrite_modifiers(modifiers)
         @modifiers = modifiers
     end

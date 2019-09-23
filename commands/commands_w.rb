@@ -12,7 +12,7 @@ class CommandWear < Command
     end
 
     def attempt( actor, cmd, args )
-        actor.wear args
+        return actor.wear args
     end
 
 end
@@ -33,8 +33,8 @@ class CommandWhere < Command
         actor.output %Q(
 Current Area: #{ actor.room.area }. Level Range: ? ?
 Players near you:
-#{ targets.map{ |t| "#{t.to_s.ljust(28)} #{t.room}" }.join("\n") }
-        )
+#{ targets.map{ |t| "#{t.to_s.ljust(28)} #{t.room}" }.join("\n") })
+        return true
     end
 
 end
@@ -52,6 +52,7 @@ class CommandWhitespace < Command
 
     def attempt( actor, cmd, args )
         actor.delayed_output
+        return true
     end
 
 end
@@ -76,6 +77,7 @@ class CommandWho < Command
         end
         out += "Players found: #{targets.count}"
         actor.output(out)
+        return true
     end
 
 end
@@ -94,6 +96,7 @@ class CommandWorth < Command
 
     def attempt( actor, cmd, args )
         actor.output "You have #{actor.to_worth}"
+        return true
     end
 
 end

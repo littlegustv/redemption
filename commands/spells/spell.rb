@@ -65,8 +65,9 @@ class Spell < Command
 		else
 			actor.output "You utter the words '#{translate( @name )}'"
 			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, room: actor.room, type: ["Mobile", "Player"] }), [actor]
-			actor.lag += @lag
+
 			actor.cast( self, args )
+            actor.lag += @lag
 		end
 	end
 
@@ -86,9 +87,9 @@ class Spell < Command
             actor.output "No way! You're still fighting!"
             return false
         end
-
-        attempt( actor, cmd, args )
-        return true
+        level = actor.casting_level
+        success = attempt( actor, cmd, args, level )
+        return success
     end
 
 end

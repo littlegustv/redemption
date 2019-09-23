@@ -51,9 +51,9 @@ class Command
             return false
         end
 
-        attempt( actor, cmd, args )
-        actor.lag += @lag
-        return true
+        success = attempt( actor, cmd, args )
+        actor.lag += @lag if success
+        return success
     end
 
     def attempt( actor, cmd, args )

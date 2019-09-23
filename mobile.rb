@@ -192,14 +192,11 @@ class Mobile < GameObject
     # When calling 'start_combat', call it first for the 'victim', then for the attacker
 
     def start_combat( attacker )
-        if !@active || !attacker.active
-            return
-        end
-        if attacker.room != @room
+        if !@active || !attacker.active || attacker.room != @room
             return
         end
         # only the one being attacked
-        if attacker.attacking != self && @attacking != attacker
+        if attacker.attacking != self && @attacking != attacker && is_player?
             do_command "yell 'Help I am being attacked by #{attacker}!'"
         end
         @position = Position::FIGHT
@@ -210,11 +207,11 @@ class Mobile < GameObject
 
     def stop_combat
         @attacking = nil
-        @position = Position::STAND
+        @position = Position::STAND if @position == Position::FIGHT
         target({ quantity: "all", attacking: self, type: ["Mobile", "Player"] }).each do |t|
             t.attacking = nil
             if target({ quantity: "all", attacking: t, type: ["Mobile", "Player"] }).empty?
-                t.position = Position::STAND
+                t.position = Position::STAND if t.position == Position::FIGHT
             end
         end
     end
@@ -420,12 +417,14 @@ class Mobile < GameObject
     def move( direction )
         if @room.exits[ direction.to_sym ].nil?
             output "There is no exit [#{direction}]."
+            return false
         else
             broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
             # @game.fire_event( :event_mobile_exit, { mobile: self }, self, @room )
             move_to_room(@room.exits[direction.to_sym])
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
             @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room )
+            return true
         end
     end
 
@@ -438,6 +437,9 @@ class Mobile < GameObject
     end
 
     def move_to_room( room )
+        if @attacking && @attacking.room != room
+            stop_combat
+        end
         @room&.mobile_depart(self)
         @room = room
         @room.mobile_arrive(self)
@@ -451,6 +453,7 @@ class Mobile < GameObject
         room = @game.recall_room( @room.continent )
         move_to_room( room )
         broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self, quantity: "all" }), [self]
+        return true
     end
 
     def condition_percent
@@ -527,8 +530,10 @@ class Mobile < GameObject
                 end
                 output "You can't wear something '#{ slot_name }'" if not worn
             end
+            return true
         else
             output "You don't have any '#{args[0]}'"
+            return false
         end
     end
 
@@ -539,8 +544,10 @@ class Mobile < GameObject
                 @equipment[ @equipment.key(target) ] = nil
                 output "You stop wearing #{ target }"
             end
+            return true
         else
             output "You aren't wearing any '#{args[0]}'"
+            return false
         end
     end
 
@@ -589,7 +596,7 @@ class Mobile < GameObject
         if [:max_str, :max_int, :max_dex, :max_con, :max_wis].include?(key) # limit max stats to 25
             stat = [25, stat].min                                           # (before gear and affects are applied)
         end
-        stat += @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i }.reduce(0, :+)
+        stat += @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i + value.affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+) }.reduce(0, :+)
         stat += @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
         if [:str, :int, :dex, :con, :wis].include?(key)
             stat = [stat("max_#{key}".to_sym), stat].min # limit stats by their max_stat
@@ -673,6 +680,13 @@ You are #{Position::STRINGS[ @position ]}.)
 
     def is_player?
         return false
+    end
+
+    def casting_level
+        class_multiplier = @game.class_data.dig(@race_id, :casting_multiplier)
+        casting = @level
+        casting *= (class_multiplier.to_i / 100) if class_multiplier
+        return [1, casting.to_i].max
     end
 
 end

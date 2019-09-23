@@ -32,5 +32,6 @@ class CommandHelp < Command
         help_out = matches.map{ |row| "#{ row[:keywords].join(" ") }\n\n#{ row[:text] }" }.join("\n\n#{"=" * 80}\n\n")
 
         actor.output(help_out)
+        return true
     end
 end
