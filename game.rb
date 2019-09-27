@@ -509,7 +509,7 @@ Which alignment (G/N/E)?)
         @room_item_resets = @db[:reset_room_item].as_hash(:reset_id)
 
         @base_resets = @db[:reset_base].where( area_id: [17, 23] ).as_hash(:id)
-        @base_resets = @db[:reset_base].as_hash(:id)
+        # @base_resets = @db[:reset_base].as_hash(:id)
         @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
         @base_room_item_resets = @base_resets.select{ |key, value| value[:type] == "room_item" }
         reset

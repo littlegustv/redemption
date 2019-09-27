@@ -195,6 +195,9 @@ class Mobile < GameObject
         if !@active || !attacker.active || attacker.room != @room
             return
         end
+
+        @game.fire_event( :event_on_start_combat, {}, self )
+                
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
             do_command "yell 'Help I am being attacked by #{attacker}!'"
@@ -237,9 +240,18 @@ class Mobile < GameObject
                 else
                     damage = 0
                 end
-                data = { damage: damage, source: self, target: attacking }
+                data = { damage: damage, source: self, target: @attacking }
                 @game.fire_event( :event_calculate_damage, data, self )
+
+                # :event_override_hit allows for affects to completely replace
+                # a normal physical attack - including both aggressively ( burst rune )
+                # and defensively ( mirror image )
+                
+                # if an override has occurred, it is passed through the 'confirm' field,
+                # and the normal hit does not occur
+
                 hit data[:damage]
+
                 return if @attacking.nil?
                 weapon_flags if data[:damage] > 0
                 return if @attacking.nil?
@@ -301,17 +313,24 @@ class Mobile < GameObject
     end
 
     def hit( damage, custom_noun = nil, target = nil )
-        hit_noun = custom_noun || noun
-        target = target || @attacking
-        decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+        override = { confirm: false, source: self, target: @attacking }
+        @game.fire_event( :event_override_hit, override, self, @attacking, equipment.values )
+        
+        if not override[:confirm]
 
-        output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target] if @room == target.room
-        target.output "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}", [self]
-        broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
+            hit_noun = custom_noun || noun
+            target = target || @attacking
+            decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
 
-        target.damage( damage, self )
-        data = { damage: damage, source: self, target: attacking }
-        @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment.values)
+            output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target] if @room == target.room
+            target.output "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}", [self]
+            broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
+
+            target.damage( damage, self )
+            data = { damage: damage, source: self, target: attacking }
+            @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment.values)
+
+        end
     end
 
     def anonymous_damage( damage, element = nil, magic = true, source = "Powerful magic" )
@@ -391,6 +410,10 @@ class Mobile < GameObject
         end
     end
 
+    def items
+        @inventory + @equipment.values.reject(&:nil?)
+    end
+
     def die( killer )
         if !@active
             return
@@ -401,8 +424,8 @@ class Mobile < GameObject
         end
         killer.xp( self ) if killer
         broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]
-        killer.output "#{( @inventory + @equipment.values.reject(&:nil?) ).map{ |item| "You get #{item} from the corpse of #{self}."}.push("You offer your victory to Gabriel who rewards you with 1 deity points.").join("\n")}" if killer
-        killer.inventory += @inventory + @equipment.values.reject(&:nil?) if killer
+        killer.output "#{( items ).map{ |item| "You get #{item} from the corpse of #{self}."}.push("You offer your victory to Gabriel who rewards you with 1 deity points.").join("\n")}" if killer
+        killer.inventory += items if killer
         killer.output "You get #{ self.to_worth } from the corpse of %s", [self]
         killer.earn( @wealth )
         @inventory = []
@@ -502,7 +525,9 @@ class Mobile < GameObject
     end
 
     def long
-        @long_description
+        data = { description: @long_description }
+        @game.fire_event( :event_calculate_description, data, self )
+        data[:description]
     end
 
     def full
@@ -553,8 +578,8 @@ class Mobile < GameObject
 
     def can_see? target
         return true if target == self
-        data = {chance: 100, target: target}
-        @game.fire_event(:event_try_can_see, data, self, @room, @room.area, equipment.values)
+        data = {chance: 100, target: target, source: self}
+        @game.fire_event(:event_try_can_see, data, self, @room, @room.area, equipment.values, target)
         return dice(1, 100) <= data[:chance]
     end
 

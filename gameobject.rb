@@ -160,7 +160,7 @@ class GameObject
     def remove_affect(term)
         list = @affects.select{ |a| a.check( term )  }
         list.each do |affect|
-            list.clear(call_complete: true)
+            affect.clear(call_complete: true)
         end
         #
         # @affects -= list

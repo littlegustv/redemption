@@ -126,7 +126,7 @@ class CommandLore < Command
             actor.output "What did you want to lore?"
             return false
         end
-        if (target = actor.target({ list: actor.inventory + actor.equipment.values, visible_to: actor }.merge( args.first.to_s.to_query ).merge({ quantity: 1 })).to_a.first)
+        if (target = actor.target({ list: actor.items, visible_to: actor }.merge( args.first.to_s.to_query ).merge({ quantity: 1 })).to_a.first)
             actor.output target.lore
             return true
         else
