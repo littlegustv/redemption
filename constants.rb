@@ -271,6 +271,7 @@ module Constants
         SpellMassInvisibility,
         SpellVentriloquate,
         SpellMirrorImage,
+        SpellPhantomForce,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -291,6 +292,8 @@ module Constants
         "invisible" =>            AffectInvisibility,
         "detect invisible" =>     AffectDetectInvisibility,
         "mirror image" =>         AffectMirrorImage,
+        "killer" =>               AffectKiller,
+        "guard" =>                AffectGuard,
     }
 
 end

@@ -51,6 +51,7 @@ class Mobile < GameObject
         }
 
         apply_affect_flags(data[:affect_flags].to_a)
+        apply_affect_flags(data[:specials].to_a)
 
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
@@ -200,6 +201,7 @@ class Mobile < GameObject
                 
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
+            attacker.apply_affect( AffectKiller.new(source: attacker, target: attacker, level: 0, game: @game) ) if attacker.is_player?
             do_command "yell 'Help I am being attacked by #{attacker}!'"
         end
         @position = Position::FIGHT
@@ -446,7 +448,7 @@ class Mobile < GameObject
             # @game.fire_event( :event_mobile_exit, { mobile: self }, self, @room )
             move_to_room(@room.exits[direction.to_sym])
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
-            @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room )
+            @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room, @room.occupants - [self] )
             return true
         end
     end

@@ -340,6 +340,7 @@ Which alignment (G/N/E)?)
                 sex: row[:sex],
                 wealth: row[:wealth].to_i,
                 form_flags: row[:form_flags],
+                specials: row[:specials],
                 parts: row[:part_flags],
                 size: row[:size],
                 material: row[:material],
@@ -496,6 +497,7 @@ Which alignment (G/N/E)?)
             value[:vuln_flags] = value[:vuln_flags].split(",")
             value[:part_flags] = value[:part_flags].split(",")
             value[:form_flags] = value[:form_flags].split(",")
+            value[:specials] = value[:specials].to_s.split(",").map{ |spec| spec.gsub("spec_", "") }
         end
 
         @shop_data = @db[:shop_base].as_hash(:mobile_id)
