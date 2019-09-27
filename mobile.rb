@@ -315,7 +315,7 @@ class Mobile < GameObject
     def hit( damage, custom_noun = nil, target = nil )
         override = { confirm: false, source: self, target: @attacking }
         @game.fire_event( :event_override_hit, override, self, @attacking, equipment.values )
-        
+
         if not override[:confirm]
 
             hit_noun = custom_noun || noun

@@ -581,4 +581,8 @@ Which alignment (G/N/E)?)
         @affects.delete(affect)
     end
 
+    def inspect
+        "GAME OBJECT"
+    end
+
 end
