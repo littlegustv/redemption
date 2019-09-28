@@ -226,11 +226,10 @@ Which alignment (G/N/E)?)
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
         targets = targets[0...query[:limit].to_i]                                                                   if query[:limit]
 
-        unless query[:offset] == 'all' or query[:quantity] == 'all'
-            offset = [0, query[:offset].to_i - 1].max
-            quantity = [1, query[:quantity].to_i].max
-            targets = targets[ offset...offset+quantity ]
-        end
+        query[:offset] == "all" || query[:offset].nil? ? offset = 0 : offset = [0, query[:offset].to_i - 1].max
+        query[:offset] == "all" || query[:quantity] == "all" || query[:quantity].nil? ? quantity = targets.length : quantity = [1, query[:quantity].to_i].max
+
+        targets = targets[ offset...offset+quantity ].to_a
 
         return targets
     end

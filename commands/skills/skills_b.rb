@@ -40,7 +40,7 @@ class SkillBash < Skill
         actor.start_combat kill_target
         actor.output "You slam into %s, and send him flying!", [target]
         target.output "%s sends you flying with a powerful bash!", [actor]
-        actor.broadcast "%s sends %s flying with a powerful bash!", actor.target({ quantity: "all", not: [ actor, target ], room: actor.room }), [actor, target]
+        actor.broadcast "%s sends %s flying with a powerful bash!", actor.target({ not: [ actor, target ], room: actor.room }), [actor, target]
         actor.hit 100, "bash", target
         target.lag += 0.5
     end

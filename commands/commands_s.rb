@@ -53,21 +53,16 @@ class CommandSell < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( shopkeeper = actor.target({ list: actor.room.mobiles, affect: "shopkeeper", quantity: "all" }).first )
-            if ( sale = actor.target({ list: actor.inventory }.merge( args.first.to_s.to_query ) ).first )
+        if ( shopkeeper = actor.target({ list: actor.room.mobiles, affect: "shopkeeper" }).first )
+            actor.target({ list: actor.inventory }.merge( args.first.to_s.to_query ) ).each do |sale|
                 if shopkeeper.spend( sale.cost )
                     shopkeeper.inventory.push sale
                     actor.inventory.delete sale
                     actor.earn( sale.cost )
                     actor.output( "You sell #{sale} for #{ sale.to_price }." )
-                    return true
                 else
                     shopkeeper.do_command "say I'm afraid I don't have enough wealth to buy #{ sale }"
-                    return false
                 end
-            else
-                actor.output "You don't have that."
-                return false
             end
         else
             actor.output "You can't do that here."

@@ -69,7 +69,7 @@ class CommandWho < Command
     end
 
     def attempt( actor, cmd, args )
-        targets = actor.target( { type: "Player", visible_to: actor, quantity: "all" } )
+        targets = actor.target( { type: "Player", visible_to: actor } )
         out = ""
         @game.continents.values.each do |continent|
             out += "----==== Characters #{continent.preposition} #{continent.name} ====----\n"

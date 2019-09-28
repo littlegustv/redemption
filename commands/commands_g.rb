@@ -64,7 +64,7 @@ class CommandGet < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( targets = actor.target({ room: actor.room, type: ["Item", "Weapon"], visible_to: actor }.merge( args.first.to_s.to_query ) ) )
+        if ( targets = actor.target({ room: actor.room, type: ["Item", "Weapon"], visible_to: actor }.merge( args.first.to_s.to_query( 1 ) ) ) )
             targets.each do | target |
                 if target.wearFlags.include? "take"
                     target.room = nil

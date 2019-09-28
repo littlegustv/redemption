@@ -13,7 +13,7 @@ class SpellMassInvisibility < Spell
     end
 
     def attempt( actor, cmd, args, level )
-        ( targets = @game.target( args.first.to_s.to_query.merge({ list: actor.room.occupants, visible_to: actor, quantity: "all" }) ) ).each do |target|
+        ( targets = @game.target( args.first.to_s.to_query.merge({ list: actor.room.occupants, visible_to: actor }) ) ).each do |target|
             target.apply_affect( AffectInvisibility.new( source: actor, target: target, level: level, game: @game ) )
         end
     end

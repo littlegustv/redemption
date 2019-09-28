@@ -17,7 +17,7 @@ class CommandYell < Command
             return false
         else
             actor.output "{RYou yell '#{args.join(' ')}'{x"
-            actor.broadcast "{R%s yells '#{args.join(' ')}'{x", actor.target( { :not => actor, :area => actor.room.area, quantity: "all" }), [actor]
+            actor.broadcast "{R%s yells '#{args.join(' ')}'{x", actor.target( { :not => actor, :area => actor.room.area }), [actor]
             return true
         end
     end

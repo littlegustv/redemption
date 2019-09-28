@@ -19,7 +19,7 @@ class SkillPaintPower < Skill
     	if ( slot = @@slots.select{ |s| s.fuzzy_match( args.first.to_s ) && actor.equipment[ s.to_sym ].nil? }.first )
     		tattoo = Tattoo.new( actor, slot )
     		actor.output "You carefully paint a magical tattoo on your #{ slot.gsub(/\_\d/, "") }."
-    		actor.broadcast "%s carefully paints a magical tattoo on their #{ slot.gsub(/\_\d/, "") }.", actor.target({ room: actor.room, quantity: "all", not: actor }), [actor]
+    		actor.broadcast "%s carefully paints a magical tattoo on their #{ slot.gsub(/\_\d/, "") }.", actor.target({ room: actor.room, not: actor }), [actor]
     		actor.output "{YThe tattoo sparkles brilliantly!{x" if tattoo.brilliant
     		actor.output "You have painted the following tattoo: #{tattoo.lore}"
     		actor.equipment[ slot.to_sym ] = tattoo

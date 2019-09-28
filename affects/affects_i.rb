@@ -16,6 +16,8 @@ class AffectInvisibility < Affect
     end
 
     def hook
+        @target.output "You fade out of existence."
+    	@game.broadcast "%s fades from existence.", @game.target({ room: @target.room, not: @target }), [@target]
         @target.add_event_listener(:event_on_start_combat, self, :do_remove_affect)
         @target.add_event_listener(:event_try_can_see, self, :do_invisibility)
         @target.add_event_listener(:event_calculate_description, self, :do_invisibility_aura)
@@ -25,6 +27,8 @@ class AffectInvisibility < Affect
         @target.delete_event_listener(:event_on_start_combat, self)
         @target.delete_event_listener(:event_try_can_see, self)
         @target.delete_event_listener(:event_calculate_description, self)
+        @target.output "You fade into existence."
+        @game.broadcast "%s fades into existence.", @game.target({ room: @target.room, not: @target }), [@target]
     end
 
     def do_remove_affect(data)
@@ -41,14 +45,5 @@ class AffectInvisibility < Affect
         data[:description] = "(Invis) " + data[:description]
     end
 
-    def start
-        @target.output "You fade out of existence."
-    	@game.broadcast "%s fades from existence.", @game.target( room: @target.room, not: @target ), [@target]
-    end
-
-    def complete
-        @target.output "You fade into existence."
-        @game.broadcast "%s fades into existence.", @game.target( room: @target.room, not: @target ), [@target]
-    end
 end
 

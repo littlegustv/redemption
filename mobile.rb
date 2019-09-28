@@ -50,9 +50,6 @@ class Mobile < GameObject
             ac_magic: data[:ac].to_a[3].to_i,
         }
 
-        apply_affect_flags(data[:affect_flags].to_a)
-        apply_affect_flags(data[:specials].to_a)
-
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
         @basehitpoints = @hitpoints
@@ -74,6 +71,9 @@ class Mobile < GameObject
 
         @room = room
         @room.mobile_arrive(self)
+
+        apply_affect_flags(data[:affect_flags].to_a)
+        apply_affect_flags(data[:specials].to_a)
     end
 
     def knows( skill_name )
@@ -213,7 +213,7 @@ class Mobile < GameObject
     def stop_combat
         @attacking = nil
         @position = Position::STAND if @position == Position::FIGHT
-        target({ quantity: "all", attacking: self, type: ["Mobile", "Player"] }).each do |t|
+        target({ attacking: self, type: ["Mobile", "Player"] }).each do |t|
             t.attacking = nil
             if target({ quantity: "all", attacking: t, type: ["Mobile", "Player"] }).empty?
                 t.position = Position::STAND if t.position == Position::FIGHT
@@ -473,11 +473,11 @@ class Mobile < GameObject
 
     def recall
         output "You pray for transportation!"
-        broadcast "%s prays for transportation!", target({ room: @room, not: self, quantity: "all" }), [self]
-        broadcast "%s disappears!", target({ room: @room, not: self, quantity: "all" }), [self]
+        broadcast "%s prays for transportation!", target({ room: @room, not: self }), [self]
+        broadcast "%s disappears!", target({ room: @room, not: self }), [self]
         room = @game.recall_room( @room.continent )
         move_to_room( room )
-        broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self, quantity: "all" }), [self]
+        broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self }), [self]
         return true
     end
 
@@ -537,7 +537,7 @@ class Mobile < GameObject
     end
 
     def wear( args )
-        if ( targets = target({ list: inventory, visible_to: self }.merge( args.first.to_s.to_query )) )
+        if ( targets = target({ list: inventory, visible_to: self }.merge( args.first.to_s.to_query( 1 ) )) )
             targets.each do |target|
                 slot_name = target.wear_location
                 worn = false
@@ -565,7 +565,7 @@ class Mobile < GameObject
     end
 
     def unwear( args )
-        if ( targets = target({ list: equipment.values, visible_to: self }.merge( args.first.to_s.to_query ) ) )
+        if ( targets = target({ list: equipment.values, visible_to: self }.merge( args.first.to_s.to_query( 1 ) ) ) )
             targets.each do |target|
                 @inventory.push target
                 @equipment[ @equipment.key(target) ] = nil
