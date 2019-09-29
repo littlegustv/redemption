@@ -268,6 +268,12 @@ module Constants
         SpellLightningBolt,
         SpellPyrotechnics,
         SpellShackleRune,
+        SpellInvisibility,
+        SpellDetectInvisibility,
+        SpellMassInvisibility,
+        SpellVentriloquate,
+        SpellMirrorImage,
+        SpellPhantomForce,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -291,7 +297,12 @@ module Constants
         "shopkeeper" =>           AffectShopkeeper,
         "slow" =>                 AffectSlow,
         "sneak" =>                AffectSneak,
-        "stun" =>                 AffectStun
+        "stun" =>                 AffectStun,
+        "invisible" =>            AffectInvisibility,
+        "detect invisible" =>     AffectDetectInvisibility,
+        "mirror image" =>         AffectMirrorImage,
+        "killer" =>               AffectKiller,
+        "guard" =>                AffectGuard,
     }
 
 

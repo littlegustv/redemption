@@ -56,8 +56,6 @@ class Mobile < GameObject
             ac_magic: data[:ac].to_a[3].to_i,
         }
 
-        apply_affect_flags(data[:affect_flags].to_a)
-
         @level = data[:level] || 1
         @hitpoints = data[:hitpoints] || 500
         @basehitpoints = @hitpoints
@@ -78,6 +76,9 @@ class Mobile < GameObject
 
         @room = room
         @room.mobile_arrive(self)
+
+        apply_affect_flags(data[:affect_flags].to_a)
+        apply_affect_flags(data[:specials].to_a)
     end
 
     # alias for @game.destroy_mobile(self)
@@ -180,8 +181,12 @@ class Mobile < GameObject
         if !@active || !attacker.active || attacker.room != @room
             return
         end
+
+        @game.fire_event( :event_on_start_combat, {}, self )
+
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
+            attacker.apply_affect( AffectKiller.new(source: attacker, target: attacker, level: 0, game: @game) ) if attacker.is_player?
             do_command "yell 'Help I am being attacked by #{attacker}!'"
         end
         @position = Position::FIGHT
@@ -193,7 +198,7 @@ class Mobile < GameObject
     def stop_combat
         @attacking = nil
         @position = Position::STAND if @position == Position::FIGHT
-        target({ quantity: "all", attacking: self, type: ["Mobile", "Player"] }).each do |t|
+        target({ attacking: self, type: ["Mobile", "Player"] }).each do |t|
             t.attacking = nil
             if target({ quantity: "all", attacking: t, type: ["Mobile", "Player"] }).empty?
                 t.position = Position::STAND if t.position == Position::FIGHT
@@ -223,9 +228,18 @@ class Mobile < GameObject
                 else
                     damage = 0
                 end
-                data = { damage: damage, source: self, target: attacking }
+                data = { damage: damage, source: self, target: @attacking }
                 @game.fire_event( :event_calculate_damage, data, self )
+
+                # :event_override_hit allows for affects to completely replace
+                # a normal physical attack - including both aggressively ( burst rune )
+                # and defensively ( mirror image )
+
+                # if an override has occurred, it is passed through the 'confirm' field,
+                # and the normal hit does not occur
+
                 hit data[:damage]
+
                 return if @attacking.nil?
                 weapon_flags if data[:damage] > 0
                 return if @attacking.nil?
@@ -289,17 +303,24 @@ class Mobile < GameObject
     end
 
     def hit( damage, custom_noun = nil, target = nil )
-        hit_noun = custom_noun || noun
-        target = target || @attacking
-        decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+        override = { confirm: false, source: self, target: @attacking }
+        @game.fire_event( :event_override_hit, override, self, @attacking, equipment )
 
-        output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target] if @room == target.room
-        target.output "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}", [self]
-        broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
+        if not override[:confirm]
 
-        target.damage( damage, self )
-        data = { damage: damage, source: self, target: attacking }
-        @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment)
+            hit_noun = custom_noun || noun
+            target = target || @attacking
+            decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+
+            output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target] if @room == target.room
+            target.output "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}", [self]
+            broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
+
+            target.damage( damage, self )
+            data = { damage: damage, source: self, target: attacking }
+            @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment)
+
+        end
     end
 
     def anonymous_damage( damage, element = nil, magic = true, source = "Powerful magic" )
@@ -386,12 +407,14 @@ class Mobile < GameObject
         end
         killer.xp( self ) if killer
         broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]
-
-        (@inventory.items + self.equipment).each do |item|
-            killer.get_item(item)
+        if killer
+            self.items.each do |item|
+                killer.get_item(item)
+            end
+            killer.output("You get #{ self.to_worth } from the corpse of %s", [self])
+            killer.output("You offer your victory to Gabriel who rewards you with 1 deity points.")
+            killer.earn( @wealth )
         end
-        killer.output "You get #{ self.to_worth } from the corpse of %s", [self]
-        killer.earn( @wealth )
         destroy
         stop_combat
         @active = false
@@ -407,7 +430,7 @@ class Mobile < GameObject
             # @game.fire_event( :event_mobile_exit, { mobile: self }, self, @room )
             move_to_room(@room.exits[direction.to_sym])
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
-            @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room )
+            @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room, @room.occupants - [self] )
             return true
         end
     end
@@ -432,11 +455,11 @@ class Mobile < GameObject
 
     def recall
         output "You pray for transportation!"
-        broadcast "%s prays for transportation!", target({ room: @room, not: self, quantity: "all" }), [self]
-        broadcast "%s disappears!", target({ room: @room, not: self, quantity: "all" }), [self]
+        broadcast "%s prays for transportation!", target({ room: @room, not: self }), [self]
+        broadcast "%s disappears!", target({ room: @room, not: self }), [self]
         room = @game.recall_room( @room.continent )
         move_to_room( room )
-        broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self, quantity: "all" }), [self]
+        broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self }), [self]
         return true
     end
 
@@ -487,7 +510,9 @@ class Mobile < GameObject
     end
 
     def long
-        @long_description
+        data = { description: @long_description }
+        @game.fire_event( :event_calculate_description, data, self )
+        data[:description]
     end
 
     def full

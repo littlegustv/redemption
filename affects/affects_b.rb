@@ -128,17 +128,18 @@ class AffectBurstRune < Affect
     end
 
     def hook
-        @target.add_event_listener(:event_on_hit, self, :do_burst_rune)
+        @target.add_event_listener(:event_override_hit, self, :do_burst_rune)
     end
 
     def unhook
-        @target.delete_event_listener(:event_on_hit, self)
+        @target.delete_event_listener(:event_override_hit, self)
     end
 
     def do_burst_rune(data)
-        if @source.attacking && rand(0..100) < 50
+        if data[:confirm] == false && data[:source].equipment[:wield] == @target && data[:target] && rand(0..100) < 25
             data[:source].output @hit
-            data[:source].magic_hit( @source.attacking, 100, @noun, @element)
+            data[:source].magic_hit( data[:target], 100, @noun, @element)
+            data[:confirm] = true
         end
     end
 

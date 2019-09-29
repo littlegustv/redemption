@@ -1,5 +1,24 @@
 require_relative 'spell.rb'
 
+class SpellDetectInvisibility < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "detect invisibility",
+            keywords: ["detect invisibility"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.apply_affect( AffectDetectInvisibility.new( source: actor, target: actor, level: level, game: @game ) )
+    end
+
+end
+
 class SpellDestroyTattoo < Spell
 
     def initialize(game)

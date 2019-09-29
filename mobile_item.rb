@@ -31,13 +31,12 @@ module MobileItem
             end
         end
         @equip_slots.each do |equip_slot|   # then try to find used slots
-            if item.wear_flags.include?(equip_slot.wear_flag) && !equip_slot.item && can_unwear(item: item, silent: silent)
-                if unwear_item(item: item, silent: silent)
+            if item.wear_flags.include?(equip_slot.wear_flag) && equip_slot.item
+                if unwear(item: equip_slot.item, silent: silent)
                     if !silent
-                        broadcast("%s stops using %s.", target({ :not => self, :list => @room.occupants }), [self, item])
+                        output(equip_slot.equip_message_self, [item])
                         broadcast(equip_slot.equip_message_others, target({ :not => self, :list => @room.occupants }), [self, item])
                     end
-                    unwear
                     item.move(equip_slot)
                     return true
                 end
@@ -58,7 +57,9 @@ module MobileItem
         if !can_unwear(item: item, silent: silent)
             return false
         end
-        item.move(@inventory)
+        output("You stop using %s.", [item])
+        broadcast("%s stops using %s.", target({ :not => self, :list => @room.occupants }), [self, item])
+        item.move(self.inventory)
         return true
     end
 
@@ -106,5 +107,8 @@ module MobileItem
         item.move(inventory)
     end
 
+    def items
+        @inventory.items + equipment
+    end
 
 end

@@ -41,9 +41,6 @@ class Player < Mobile
                 end
             end
         end
-        if !@room.occupants.include? self
-            move_to_room(@room)
-        end
         @client = client
         @thread = thread
         @active = true
@@ -130,6 +127,7 @@ class Player < Mobile
     end
 
     def quit
+        stop_combat
         broadcast "%s has disconnected.", @game.target({not: [self], list: @room.occupants}), self
         if @thread
             Thread.kill( @thread )

@@ -57,7 +57,7 @@ class SpellBurstRune < Spell
     end
 
     def attempt( actor, cmd, args, level )
-        if ( target = actor.target({ list: actor.inventory.items + actor.equipment, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
             if target.affected? "burst rune"
                 actor.output "The existing burst rune repels your magic."
                 return false
@@ -94,7 +94,7 @@ class SpellBladeRune < Spell
     end
 
     def attempt( actor, cmd, args, level )
-        if ( target = actor.target({ list: actor.inventory.items + actor.equipment, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
             if target.affected? "blade rune"
                 actor.output "The existing blade rune repels your magic."
                 return false

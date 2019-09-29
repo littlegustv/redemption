@@ -27,13 +27,13 @@ class String
       self.gsub(/[\%\[\]\^]/, "")
   end
 
-  def to_query
+  def to_query( default_quantity = "all" )
     if self == "all"
         { offset: 0, quantity: "all", keyword: [""] }
     else
         {
-            offset: self.match(/(\d+|all)\./).to_a.last,
-            quantity: self.match(/(\d+|all)\*/).to_a.last,
+            offset: self.match(/(\d+|all)\./).to_a.last || 0,
+            quantity: self.match(/(\d+|all)\*/).to_a.last || default_quantity,
             keyword: self.match(/((\d+|all).)?'?([a-zA-Z\s]+)'?/).to_a.last.to_s.split
         }
     end

@@ -64,7 +64,7 @@ class CommandGet < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( targets = actor.target({ list: actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ) )
+        if ( targets = actor.target({ list: actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query(1) ) ) )
             targets.each do | target |
                 actor.get_item(target)
             end
