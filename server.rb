@@ -10,10 +10,13 @@ require_relative 'room'
 require_relative 'mobile'
 require_relative 'item'
 require_relative 'player'
+require_relative 'inventory'
+require_relative 'equip_slot'
 require_relative 'affects/affects'
 require_relative 'commands/spells/spells'
 require_relative 'commands/skills/skills'
 require_relative 'continent'
 require_relative 'constants'
 
-game = Game.new( ARGV[0], ARGV[1] || 4000 )
+game = Game.new
+game.start(ARGV[0], ARGV[1] || 4000)

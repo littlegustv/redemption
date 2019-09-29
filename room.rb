@@ -1,14 +1,24 @@
 class Room < GameObject
 
-    attr_accessor :exits, :area, :continent, :mobiles, :players, :mobile_count
+    attr_accessor :area
+    attr_accessor :continent
+    attr_accessor :exits
 
-    def initialize( name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
+    attr_reader :id
+    attr_reader :inventory
+    attr_reader :mobiles
+    attr_reader :mobile_count
+    attr_reader :players
+
+    def initialize( id, name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
+        super(name, game)
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
         @exits.each do | direction, room |
             if not exits[ direction ].nil?
                 @exits[ direction ] = exits[ direction ]
             end
         end
+        @id = id
         @description = description
         @sector = sector
         @area = area
@@ -17,9 +27,9 @@ class Room < GameObject
         @mana_regen = mana_regen
         @continent = area.continent
         @mobiles = []
-        @players = []
         @mobile_count = {}
-        super name, game
+        @players = []
+        @inventory = Inventory.new(owner: self, game: @game)
     end
 
     def show( looker )
@@ -28,8 +38,8 @@ class Room < GameObject
             "#{ @description }\n" +
             "\n" +
             "[Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]" +
-            @game.target({ :room => self, :not => looker, type: ["Item", "Weapon"], visible_to: looker, quantity: 'all' }).map{ |t| "\n      #{t.long}" }.join +
-            @game.target({ :room => self, :not => looker, type: ["Player", "Mobile"], visible_to: looker, quantity: 'all' }).map{ |t| "\n#{t.long}" }.join
+            @game.target({ list: self.items, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "\n      #{t.long}" }.join +
+            @game.target({ list: self.occupants, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "\n#{t.long}" }.join
         else
             "You can't see a thing!"
         end
@@ -37,11 +47,12 @@ class Room < GameObject
 
     def mobile_arrive(mobile)
         if mobile.is_player?
+            @players.delete(mobile)
             @players.push(mobile)
         else
             @mobiles.push(mobile)
             @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i + 1
-            @mobile_count.delete[mobile_id] if @mobile_count[mobile.id] == 0
+            @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end
     end
 
@@ -51,17 +62,16 @@ class Room < GameObject
         else
             @mobiles.delete(mobile)
             @mobile_count[mobile.id] = @mobile_count[mobile.id] - 1
-            @mobile_count.delete[mobile_id] if @mobile_count[mobile.id] == 0
+            @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end
     end
 
     def occupants
-        return mobiles | players
+        return @mobiles | @players
     end
 
-    def remove_player(player)
-        @players.delete(player)
-        @mobiles.delete(player)
+    def items
+        return @inventory.items
     end
 
 end

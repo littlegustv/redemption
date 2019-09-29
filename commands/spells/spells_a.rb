@@ -7,7 +7,7 @@ class SpellAcidBlast < Spell
             game: game,
             name: "acid blast",
             keywords: ["acid", "blast", "acid blast"],
-            lag: 0.25,
+            lag: 2.25,
             position: Position::STAND,
             mana_cost: 10
         )
@@ -23,6 +23,7 @@ class SpellAcidBlast < Spell
     end
 
     def attempt( actor, cmd, args, level )
+        puts "#{args}"
     	if args.first.nil? && actor.attacking
     		actor.magic_hit( actor.attacking, 100, "acid blast", "corrosive" )
             return true

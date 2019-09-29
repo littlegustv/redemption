@@ -42,6 +42,7 @@ class CommandQuit < Command
             return
         end
         if actor.respond_to?(:quit)
+            @game.save_player(actor)
             return actor.quit
         else
             actor.output "Only players can quit!"

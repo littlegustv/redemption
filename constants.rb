@@ -77,12 +77,14 @@ module Constants
     # chance (out of ten) of an elemental flag effect
 
     ELEMENTAL_CHANCE = 3
-
-    FPS = 30
-    ROUND = FPS * 1		    # 1 second
-    TICK = FPS * 60			# 1 minute
-    RESET = FPS * 3 * 60    # 3 minutes
-    # RESET = FPS * 4        # fast resets for testing
+    module Interval
+        FPS = 30
+        ROUND = FPS * 1		    # 1 second
+        TICK = FPS * 60			# 1 minute
+        REPOP = FPS * 3 * 60    # 3 minutes
+        # RESET = FPS * 4         # fast resets for testing
+        AUTOSAVE = FPS * 60     # 1 minute
+    end
 
     DAMAGE_DECORATORS = {
 		0 => ['miss', 'misses', 'clumsy', '.'],
@@ -275,17 +277,24 @@ module Constants
     ]
 
     AFFECT_CLASS_HASH = {
+        "alarm rune" =>           AffectAlarmRune,
         "berserk" =>              AffectBerserk,
         "blade rune" =>           AffectBladeRune,
         "blind" =>                AffectBlind,
         "burst rune" =>           AffectBurstRune,
         "corrosive" =>            AffectCorrosive,
+        "enchant weapon" =>       AffectEnchantWeapon,
+        "fireblind" =>            AffectFireBlind,
         "flooding" =>             AffectFlooding,
+        "frost" =>                AffectFrost,
         "haste" =>                AffectHaste,
         "hatchling" =>            AffectHatchling,
         "living stone" =>         AffectLivingStone,
         "poison" =>               AffectPoison,
+        "shackle" =>              AffectShackle,
+        "shackle rune" =>         AffectShackleRune,
         "shocking" =>             AffectShocking,
+        "shopkeeper" =>           AffectShopkeeper,
         "slow" =>                 AffectSlow,
         "sneak" =>                AffectSneak,
         "stun" =>                 AffectStun,
@@ -295,5 +304,6 @@ module Constants
         "killer" =>               AffectKiller,
         "guard" =>                AffectGuard,
     }
+
 
 end

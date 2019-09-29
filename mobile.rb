@@ -1,8 +1,13 @@
+require_relative 'mobile_item'
+
 class Mobile < GameObject
 
-    attr_accessor :id, :attacking, :lag, :position, :inventory, :equipment, :affects, :level, :group, :in_group
+    attr_accessor :id, :attacking, :lag, :position, :inventory, :affects
+    attr_accessor :level, :group, :in_group, :experience, :quest_points, :alignment, :wealth
 
-    attr_reader :game, :room, :race_id, :active
+    attr_reader :game, :room, :race_id, :class_id, :active, :stats
+
+    include MobileItem
 
     def initialize( data, game, room )
         super(data[ :short_description ], game)
@@ -13,11 +18,12 @@ class Mobile < GameObject
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
+        @equip_slots = []
         set_race_id(data[:race_id])
         set_class_id(data[:class_id])
         @skills = []
         @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
-        @class_id = data[ :class_id ]
+
         @experience = 0
         @experience_to_level = 1000
         @quest_points = 0
@@ -31,16 +37,16 @@ class Mobile < GameObject
 
         @stats = {
             success: 100,
-            str: 0,
-            con: 0,
-            int: 0,
-            wis: 0,
-            dex: 0,
-            max_str: 0,
-            max_con: 0,
-            max_int: 0,
-            max_wis: 0,
-            max_dex: 0,
+            str: data[:str] || 0,
+            con: data[:con] || 0,
+            int: data[:int] || 0,
+            wis: data[:wis] || 0,
+            dex: data[:dex] || 0,
+            max_str: data[:max_str] || 0,
+            max_con: data[:max_con] || 0,
+            max_int: data[:max_int] || 0,
+            max_wis: data[:max_wis] || 0,
+            max_dex: data[:max_dex] || 0,
             hitroll: data[:hitroll] || rand(5...7),
             damroll: data[:damage] || 50,
             attack_speed: 1,
@@ -66,14 +72,18 @@ class Mobile < GameObject
         @parts = data[:parts] || Constants::PARTS
 
         @position = Position::STAND
-        @inventory = []
-        @equipment = empty_equipment_set
+        @inventory = Inventory.new(owner: self, game: @game)
 
         @room = room
         @room.mobile_arrive(self)
 
         apply_affect_flags(data[:affect_flags].to_a)
         apply_affect_flags(data[:specials].to_a)
+    end
+
+    # alias for @game.destroy_mobile(self)
+    def destroy
+        @game.destroy_mobile(self)
     end
 
     def knows( skill_name )
@@ -104,31 +114,6 @@ class Mobile < GameObject
             @wealth = net
             return true
         end
-    end
-
-    def empty_equipment_set
-        {
-            light: nil,
-            finger_1: nil,
-            finger_2: nil,
-            neck_1: nil,
-            neck_2: nil,
-            torso: nil,
-            head: nil,
-            legs: nil,
-            feet: nil,
-            hands: nil,
-            arms: nil,
-            shield: nil,
-            body: nil,
-            waist: nil,
-            wrist_1: nil,
-            wrist_2: nil,
-            hold: nil,
-            float: nil,
-            orbit: nil,
-            wield: nil,
-        }
     end
 
     def update( elapsed )
@@ -198,7 +183,7 @@ class Mobile < GameObject
         end
 
         @game.fire_event( :event_on_start_combat, {}, self )
-                
+
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
             attacker.apply_affect( AffectKiller.new(source: attacker, target: attacker, level: 0, game: @game) ) if attacker.is_player?
@@ -235,8 +220,9 @@ class Mobile < GameObject
             to_me = []
             to_target = []
             to_room = []
+            weapon = wielded.first
             stat( :attack_speed ).times do |attack|
-                hit_chance = ( attack_rating - @attacking.defense_rating( @equipment[:wield] ? @equipment[:wield].element : "bash" ) ).clamp( 5, 95 )
+                hit_chance = ( attack_rating - @attacking.defense_rating( weapon ? weapon.element : "bash" ) ).clamp( 5, 95 )
                 if rand(0...100) < hit_chance
                     damage = damage_rating
                 else
@@ -248,7 +234,7 @@ class Mobile < GameObject
                 # :event_override_hit allows for affects to completely replace
                 # a normal physical attack - including both aggressively ( burst rune )
                 # and defensively ( mirror image )
-                
+
                 # if an override has occurred, it is passed through the 'confirm' field,
                 # and the normal hit does not occur
 
@@ -262,14 +248,16 @@ class Mobile < GameObject
     end
 
     def noun
-        @equipment[:wield] ? @equipment[:wield].noun : @noun
+        weapon = wielded.first
+        weapon ? weapon.noun : @noun
     end
 
     def weapon_flags
-        ( flags = ( @equipment[:wield] ? @equipment[:wield].flags : [] ) ).each do |flag|
+        weapon = wielded.first
+        ( flags = ( weapon ? weapon.flags : [] ) ).each do |flag|
             if ( texts = Constants::ELEMENTAL_EFFECTS[ flag ] )
                 @attacking.output texts[0], [self]
-                @attacking.broadcast texts[1], target({ not: @attacking, room: @room }), [ @attacking, @equipment[:wield] ]
+                @attacking.broadcast texts[1], target({ not: @attacking, room: @room }), [ @attacking, weapon ]
                 elemental_effect( @attacking, flag )
                 @attacking.damage( 10, self )
                 return if @attacking.nil?
@@ -316,7 +304,7 @@ class Mobile < GameObject
 
     def hit( damage, custom_noun = nil, target = nil )
         override = { confirm: false, source: self, target: @attacking }
-        @game.fire_event( :event_override_hit, override, self, @attacking, equipment.values )
+        @game.fire_event( :event_override_hit, override, self, @attacking, equipment )
 
         if not override[:confirm]
 
@@ -330,7 +318,7 @@ class Mobile < GameObject
 
             target.damage( damage, self )
             data = { damage: damage, source: self, target: attacking }
-            @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment.values)
+            @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment)
 
         end
     end
@@ -363,28 +351,25 @@ class Mobile < GameObject
 
     end
 
-    def show_equipment
-%Q(
-<used as light>       #{equipment[:light] || "<Nothing>"}
-<worn on finger>      #{equipment[:finger_1] || "<Nothing>"}
-<worn on finger>      #{equipment[:finger_2] || "<Nothing>"}
-<worn around neck>    #{equipment[:neck_1] || "<Nothing>"}
-<worn around neck>    #{equipment[:neck_2] || "<Nothing>"}
-<worn on torso>       #{equipment[:torso] || "<Nothing>"}
-<worn on head>        #{equipment[:head] || "<Nothing>"}
-<worn on legs>        #{equipment[:legs] || "<Nothing>"}
-<worn on feet>        #{equipment[:feet] || "<Nothing>"}
-<worn on hands>       #{equipment[:hands] || "<Nothing>"}
-<worn on arms>        #{equipment[:arms] || "<Nothing>"}
-<worn about body>     #{equipment[:body] || "<Nothing>"}
-<worn about waist>    #{equipment[:waist] || "<Nothing>"}
-<worn around wrist>   #{equipment[:wrist_1] || "<Nothing>"}
-<worn around wrist>   #{equipment[:wrist_2] || "<Nothing>"}
-<wielded>             #{equipment[:wield] || "<Nothing>"}
-<held>                #{equipment[:hold] || "<Nothing>"}
-<floating nearby>     #{equipment[:float] || "<Nothing>"}
-<orbiting nearby>     #{equipment[:orbit] || "<Nothing>"}
-)
+    def show_equipment(observer)
+        objects = []
+        lines = []
+        string = ""
+        @equip_slots.each do |equip_slot|
+            line = "<#{equip_slot.list_prefix}>".ljust(22)
+            if equip_slot.item
+                line << "%s"
+                objects << equip_slot.item
+            else
+                if observer == self
+                    line << "<Nothing>"
+                else
+                    next
+                end
+            end
+            lines << line
+        end
+        observer.output(lines.join("\n"), objects)
     end
 
     def level_up
@@ -394,7 +379,7 @@ class Mobile < GameObject
         @basemanapoints += 10
         @basemovepoints += 10
         output "You raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices."
-        @game.fire_event(:event_on_level_up, {level: @level}, self, @room, @room.area, equipment.values)
+        @game.fire_event(:event_on_level_up, {level: @level}, self, @room, @room.area, equipment)
     end
 
     def xp( target )
@@ -412,10 +397,6 @@ class Mobile < GameObject
         end
     end
 
-    def items
-        @inventory + @equipment.values.reject(&:nil?)
-    end
-
     def die( killer )
         if !@active
             return
@@ -426,14 +407,15 @@ class Mobile < GameObject
         end
         killer.xp( self ) if killer
         broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]
-        killer.output "#{( items ).map{ |item| "You get #{item} from the corpse of #{self}."}.push("You offer your victory to Gabriel who rewards you with 1 deity points.").join("\n")}" if killer
-        killer.inventory += items if killer
-        killer.output "You get #{ self.to_worth } from the corpse of %s", [self]
-        killer.earn( @wealth )
-        @inventory = []
-        @equipment
-        @game.mobiles.delete( self )
-        @game.mobile_count[ @id ] = [0, (@game.mobile_count[ id ].to_i - 1)].max
+        if killer
+            self.items.each do |item|
+                killer.get_item(item)
+            end
+            killer.output("You get #{ self.to_worth } from the corpse of %s", [self])
+            killer.output("You offer your victory to Gabriel who rewards you with 1 deity points.")
+            killer.earn( @wealth )
+        end
+        destroy
         stop_combat
         @active = false
         @room = nil
@@ -467,8 +449,8 @@ class Mobile < GameObject
         end
         @room&.mobile_depart(self)
         @room = room
-        @room.mobile_arrive(self)
-        @game.do_command self, "look"
+        @room&.mobile_arrive(self)
+        @game.do_command self, "look" if @room
     end
 
     def recall
@@ -515,8 +497,9 @@ class Mobile < GameObject
     end
 
     def damage_rating
-        if @equipment[:wield]
-            @equipment[:wield].damage + stat(:damroll)
+        weapon = wielded.first
+        if weapon
+            weapon.damage + stat(:damroll)
         else
             rand(@damage_range[0]...@damage_range[1]).to_i + stat(:damroll)
         end
@@ -536,53 +519,13 @@ class Mobile < GameObject
         @full_description
     end
 
-    def wear( args )
-        if ( targets = target({ list: inventory, visible_to: self }.merge( args.first.to_s.to_query( 1 ) )) )
-            targets.each do |target|
-                slot_name = target.wear_location
-                worn = false
-                ["", "_1", "_2"].each do | modifier |
-                    slot = "#{slot_name}#{modifier}".to_sym
-                    if @equipment.keys.include? slot
-                        if ( old = @equipment[ slot ] )
-                            @inventory.push old
-                            output "You stop wearing #{old}"
-                        end
-                        @equipment[ slot ] = target
-                        @inventory.delete target
-                        output "You wear #{target} '#{ slot_name }'"
-                        worn = true
-                        break
-                    end
-                end
-                output "You can't wear something '#{ slot_name }'" if not worn
-            end
-            return true
-        else
-            output "You don't have any '#{args[0]}'"
-            return false
-        end
-    end
-
-    def unwear( args )
-        if ( targets = target({ list: equipment.values, visible_to: self }.merge( args.first.to_s.to_query( 1 ) ) ) )
-            targets.each do |target|
-                @inventory.push target
-                @equipment[ @equipment.key(target) ] = nil
-                output "You stop wearing #{ target }"
-            end
-            return true
-        else
-            output "You aren't wearing any '#{args[0]}'"
-            return false
-        end
-    end
-
+    # returns true if self can see target
     def can_see? target
         return true if target == self
-        data = {chance: 100, target: target, source: self}
-        @game.fire_event(:event_try_can_see, data, self, @room, @room.area, equipment.values, target)
-        return dice(1, 100) <= data[:chance]
+        data = {chance: 100, target: target}
+        @game.fire_event(:event_try_can_see, data, self, @room, @room.area, equipment)
+        result = dice(1, 100) <= data[:chance]
+        return result
     end
 
     def carry_max
@@ -623,7 +566,7 @@ class Mobile < GameObject
         if [:max_str, :max_int, :max_dex, :max_con, :max_wis].include?(key) # limit max stats to 25
             stat = [25, stat].min                                           # (before gear and affects are applied)
         end
-        stat += @equipment.map{ |slot, value| value.nil? ? 0 : value.modifier( key ).to_i + value.affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+) }.reduce(0, :+)
+        stat += equipment.map{ |item| item.nil? ? 0 : item.modifier( key ).to_i + item.affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+) }.reduce(0, :+)
         stat += @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
         if [:str, :int, :dex, :con, :wis].include?(key)
             stat = [stat("max_#{key}".to_sym), stat].min # limit stats by their max_stat
@@ -652,7 +595,7 @@ Member of clan Kenshi
 {cPracs:{x     N/A                        {cTrains:{x    N/A
 {cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".ljust(26)} {cNext Level:{x #{@experience_to_level - @experience}
 {cQuest Points:{x #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
-{cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".ljust(26) } {cWeight:{x    #{ @inventory.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
+{cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".ljust(26) } {cWeight:{x    #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
 {cGold:{x      #{ gold.to_s.ljust(26) } {cSilver:{x    #{ silver.to_s }
 {cClaims Remaining:{x N/A
 ---------------------------------- Stats --------------------------------
@@ -695,6 +638,26 @@ You are #{Position::STRINGS[ @position ]}.)
 
     def set_race_id(new_race_id)
         @race_id = new_race_id
+
+        old_equipment = self.equipment
+        old_equipment.each do |item| # move all equipped items to inventory
+            item.move(@inventory)
+        end
+        @equip_slots = []  # Clear old equip_slots
+        equip_slots = @game.race_data.dig(@race_id, :equip_slots)
+        equip_slots.each do |equip_slot|
+            row = @game.equip_slot_data[equip_slot.to_i]
+            if row
+                @equip_slots << EquipSlot.new(equip_message_self: row[:equip_message_self],
+                                           equip_message_others: row[:equip_message_others],
+                                           list_prefix: row[:list_prefix],
+                                           wear_flag: row[:wear_flag])
+            end
+        end
+        old_equipment.each do |item| # try to wear all items that were equipped before
+            wear(item: item, silent: true)
+        end
+
         affect_flags = @game.race_data.dig(@race_id, :affect_flags)
         apply_affect_flags(affect_flags) if affect_flags
     end

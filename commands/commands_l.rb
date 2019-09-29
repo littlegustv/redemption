@@ -37,11 +37,11 @@ class CommandList < Command
     end
 
     def attempt( actor, cmd, args )
-        ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper" ) ).each do |shopkeeper|
+        ( shopkeepers = actor.target( list: actor.room.occupants, affect: "shopkeeper" ) ).each do |shopkeeper|
             actor.output %Q(#{shopkeeper}:
 #{'-'*shopkeeper.to_s.length}
 [Lv Price Qty] Item
-#{ shopkeeper.inventory.map(&:to_store_listing).join("\n\r") }
+#{ shopkeeper.inventory.items.map(&:to_store_listing).join("\n\r") }
 )
         end
         if shopkeepers.length <= 0
@@ -69,7 +69,7 @@ class CommandLoadItem < Command
             actor.output "Syntax: loaditem <id>"
             return false
         else
-            item = actor.game.load_item( args.first.to_i, actor.room )
+            item = actor.game.load_item( args.first.to_i, actor.inventory.items )
             if !item
                 actor.output "No such item."
                 return false
@@ -96,12 +96,12 @@ class CommandLook < Command
         if args.length <= 0
             actor.output actor.room.show( actor )
             return true
-        elsif ( target = actor.target({ room: actor.room, type: ["Mobile"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             actor.output %Q(#{target.full}
 #{target.condition}
 
-#{target} is using:
-#{target.show_equipment})
+#{target} is using:)
+            target.show_equipment(actor)
             return true
         else
             actor.output "You don't see anyone like that here."
@@ -126,11 +126,11 @@ class CommandLore < Command
             actor.output "What did you want to lore?"
             return false
         end
-        if (target = actor.target({ list: actor.items, visible_to: actor }.merge( args.first.to_s.to_query ).merge({ quantity: 1 })).to_a.first)
-            actor.output target.lore
+        if (target = actor.target({ list: actor.items, visible_to: actor }.merge( args.first.to_s.to_query(1)) ).to_a.first)
+            actor.output(target.lore)
             return true
         else
-            actor.output "You can't find it."
+            actor.output("You can't find it.")
             return false
         end
     end

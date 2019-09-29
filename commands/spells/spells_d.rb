@@ -41,7 +41,7 @@ class SpellDestroyTattoo < Spell
     end
 
     def attempt( actor, cmd, args, level )
-    	if ( target = actor.target({ list: actor.equipment.values.reject(&:nil?), type: "tattoo" }.merge( args.first.to_s.to_query )).first )
+    	if ( target = actor.target({ list: actor.equipment, type: "tattoo" }.merge( args.first.to_s.to_query )).first )
     		actor.output "You focus your will and #{target} explodes into flames!"
     		target.destroy true
             return true
@@ -75,7 +75,7 @@ class SpellDestroyRune < Spell
                 actor.output "There are no runes found."
                 return false
             end
-    	elsif ( target = actor.target({ list: actor.equipment.values.reject(&:nil?) + actor.inventory, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
+    	elsif ( target = actor.target({ list: actor.equipment + actor.inventory, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
     		if target.affected?("rune")
     			actor.output "The runes on %s slowly fade out of existence.", [target]
     			target.remove_affect( "rune" )

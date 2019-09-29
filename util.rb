@@ -44,3 +44,7 @@ end
 def dice( count, sides )
     count.times.collect{ rand(1..sides) }.sum
 end
+
+def log(s)
+    puts "\033[0;30m[#{Time.now}]\033[0m #{s}"
+end
