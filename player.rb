@@ -8,29 +8,55 @@ class Player < Mobile
         @client = client
         @thread = thread
         @commands = []
-        super({
-          keywords: [data[:name]],
-          short_description: data[:name],
-          long_description: "#{data[:name]} the Master Rune Maker is here.",
-          race_id: data[:race_id],
-          alignment: data[:alignment],
-          class_id: data[:class_id]
-        }, game, room)
+        data[:keywords] = data[:name].to_a
+        data[:short_description] = data[:name]
+        data[:long_description] = "#{data[:name]} the Master Rune Maker is here."
+        super(data, game, room)
+    end
+
+    # alias for @game.destroy_player(self)
+    def destroy
+        @game.destroy_player(self)
     end
 
     def reconnect( client, thread )
+        if @client
+            @client.close
+        end
+        if @thread
+            Thread.kill( @thread )
+        end
+        if !@active
+            @affects.each do |affect|
+                @game.add_affect(affect)
+            end
+            @inventory.items.each do |item|
+                item.affects.each do |affect|
+                    @game.add_affect(affect)
+                end
+            end
+            equipment.each do |item|
+                item.affects.each do |affect|
+                    @game.add_affect(affect)
+                end
+            end
+        end
+        if !@room.occupants.include? self
+            move_to_room(@room)
+        end
         @client = client
         @thread = thread
         @active = true
-
-        @affects.each do |affect|
-            @game.add_affect(affect)
-        end
     end
 
     def input_loop
         loop do
-            raw = @client.gets
+            begin
+                raw = @client.gets
+            rescue StandardError => msg
+                log "Player #{self.name} disconnected: #{msg}"
+                quit
+            end
             if raw.nil?
                 quit
             else
@@ -45,7 +71,7 @@ class Player < Mobile
 
     def output( message, objects = [] )
         if objects.count > 0
-            @buffer += "#{ message % objects.map{ |obj| obj.show( self ) } }\n".capitalize_first
+            @buffer += "#{ message % objects.map{ |obj| (obj.respond_to?(:show)) ? obj.show( self ) : obj.to_s } }\n".capitalize_first
         else
             @buffer += "#{ message }\n".capitalize_first
         end
@@ -80,8 +106,12 @@ class Player < Mobile
             else
                 out += "\n\r\n\r[Hit Return to continue]"
             end
-
-            @client.print color_replace( "\n"+ out )
+            begin
+                @client.print color_replace( "\n"+ out )
+            rescue
+                log "Error in player.send_to_client #{self.name}"
+                quit
+            end
             @buffer = ""
         end
     end
@@ -100,15 +130,24 @@ class Player < Mobile
     end
 
     def quit
-        Thread.kill( @thread )
-        @buffer = ""
-        @client.close
-        @game.disconnect @short_description
-        @room.remove_player(self)
-        @affects.each do |affect|
-            @game.remove_affect(affect)
+        broadcast "%s has disconnected.", @game.target({not: [self], list: @room.occupants}), self
+        if @thread
+            Thread.kill( @thread )
         end
+        @buffer = ""
+        if @client
+            begin
+                @client.print "Alas, all good things must come to an end.\n\r"
+            rescue
+                log "Error on player quitting."
+            end
+            @client.close
+        end
+
+        @game.destroy_player(self)
         @active = false
+        @client = nil
+        @thread = nil
         return true
     end
 

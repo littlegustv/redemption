@@ -53,8 +53,8 @@ class CommandSell < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( shopkeeper = actor.target({ list: actor.room.mobiles, affect: "shopkeeper", quantity: "all" }).first )
-            if ( sale = actor.target({ list: actor.inventory }.merge( args.first.to_s.to_query ) ).first )
+        if ( shopkeeper = actor.target({ list: actor.room.occupants, affect: "shopkeeper", quantity: "all" }).first )
+            if ( sale = actor.target({ list: actor.inventory.items }.merge( args.first.to_s.to_query ) ).first )
                 if shopkeeper.spend( sale.cost )
                     shopkeeper.inventory.push sale
                     actor.inventory.delete sale

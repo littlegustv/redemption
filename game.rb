@@ -1,64 +1,70 @@
 require 'sequel'
+require_relative "game_setup"
 
 class Game
 
-    attr_accessor :mobiles, :mobile_count, :items
-    attr_reader :race_data, :class_data, :affects, :helps, :spells, :continents
+    attr_accessor :mobiles
+    attr_accessor :mobile_count
+    attr_accessor :items
+    attr_reader :race_data
+    attr_reader :class_data
+    attr_reader :equip_slot_data
+    attr_reader :affects
+    attr_reader :help_data
+    attr_reader :spells
+    attr_reader :continents
 
-    def initialize( ip, port )
+    include GameSetup
 
-        @affects = []
+    def initialize
+        @server = nil                       # TCPServer object
+        @db = nil                           # Sequel database connection
+        @started = false                    # Boolean: start has been called?
+        @next_uuid = 1                      # Next available UUID for a GameObject. Overridden with value from game_settings
+        @start_time = nil                   # Time the server actually began running/accepting players
+        @frame_count = 0                    # Frame count - goes up by 1 every frame (:
+        @starting_room = nil                # The room that players log in to - currently gets set in make_rooms
+
+        # Database tables
+        @game_settings = Hash.new           # Hash with values for next_uuid, login_splash, etc
+        @race_data = Hash.new               # Race table as array      (uses :id as key)
+        @class_data = Hash.new              # Class table as array     (uses :id as key)
+        @equip_slot_data = Hash.new         # equip_slot table as hash (uses :id as key)
+        @continent_data = Hash.new          # Continent table as hash  (uses :id as key)
+        @area_data = Hash.new               # Area table as hash       (uses :id as key)
+        @room_data = Hash.new               # Room table as hash       (uses :id as key)
+        @exit_data = Hash.new               # Room exit table as hash  (uses :id as key)
+        @room_description_data = Hash.new   # Room desc rable as hash  (uses :id as key)
+        @mobile_data = Hash.new             # Mobile table as hash     (uses :id as key)
+        @item_data = Hash.new               # Item table as hash       (uses :id as key)
+        @shop_data = Hash.new               # Shop table as hash       (uses :id as key)
+
+        @base_resets = Hash.new             # Reset table as hash           (uses :id as key)
+        @mob_resets = Hash.new              # Mob reset table as hash       (uses :reset_id as key)
+        @inventory_resets = Hash.new        # Inventory reset table as hash (uses :reset_id as key)
+        @equipment_resets = Hash.new        # Equipment reset table as hash (uses :reset_id as key)
+        @room_item_resets = Hash.new        # Room item reset table as hash (uses :reset_id as key)
+        @base_mob_resets = Hash.new         # Subset of @base_resets where :type is "mobile"
+        @base_room_item_resets = Hash.new   # Subset of @base_resets where :type is "room_item"
+
+        @help_data = Hash.new               # Help table as hash  (uses :id as key)
+
+        # GameObjects
+        @continents = Hash.new              # Continent objects as hash   (uses :id as key)
+        @areas = Hash.new                   # Area objects as hash        (uses :id as key)
+        @rooms = Hash.new                   # Room objects as hash        (uses :id as key)
         @players = Hash.new
         @inactive_players = Hash.new
         @items = []
-        @item_data = Hash.new
+        @item_count = Hash.new
         @mobiles = []
-        @mobile_data = Hash.new
-        @mobile_count = {}
-        @rooms = Hash.new
-        @areas = Hash.new
-        @helps = Hash.new
-        @continents = Hash.new
-        @game_settings = Hash.new
+        @mobile_count = Hash.new
 
-        @starting_room = nil
-        @start_time = Time.now
-        @frame_count = 0
+        @affects = []                       # Master list of all applied affects in the game
+        @skills = []                        # Skill object array
+        @spells = []                        # Spell object array
+        @commands = []                      # Command object array
 
-        @race_data = []
-        @class_data = []
-        @commands = []
-        @skills = []
-        @spells = []
-
-
-        # eventually load these from the database
-        puts "Opening server on #{port}"
-        if ip
-            @server = TCPServer.open( ip, port )
-        else
-            @server = TCPServer.open( port )
-        end
-
-        sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
-        @db = Sequel.mysql2( :host => sql_host, :port => sql_port, :username => sql_username, :password => sql_password, :database => "redemption" )
-        setup_game
-
-        make_commands
-
-        puts( "Redemption is ready to rock on port #{port}!" )
-
-        # game update loop runs on a single thread
-        Thread.start do
-            game_loop
-        end
-
-        # each client runs on its own thread as well
-        loop do
-            thread = Thread.start(@server.accept) do |client|
-                login client, thread
-            end
-        end
     end
 
     def login( client, thread )
@@ -68,32 +74,97 @@ class Game
         while name.nil?
             name = client.gets.chomp.to_s.downcase.capitalize
             if name.length <= 2
-                client.puts "Your name must be at least three characters.\n\r"
+                client.puts "Your name must be at least three characters."
                 name = nil
-            elsif @players.has_key? name
-                client.puts "That name is already in use, try another.\n\r"
-                name = nil
-            elsif @inactive_players.has_key?(name) && @inactive_players[name].weakref_alive?
-                @players[name] = @inactive_players[name].__getobj__
-                @inactive_players.delete(name)
-                @players[name].reconnect(client, thread)
-                @players[name].look_room
-                @players[name].input_loop
-                return
+            elsif (player_data = @db[:saved_player_base].where(name: name).first)
+                try = 0
+                correct = false
+                while try < 3 && !correct
+                    client.puts "Password:"
+                    password = client.gets.chomp.to_s
+                    try += 1
+                    if !(correct = (Digest::MD5.hexdigest(password) == player_data[:md5]))
+                        client.puts "Incorrect Password."
+                    end
+                end
+                if try == 3
+                    client.puts "Goodbye."
+                    client.close
+                    Thread.kill(thread)
+                    return
+                end
+                if @players[name]       # quit that player if they're online
+                    @players[name].quit
+                end
+                if @inactive_players.has_key?(name) && @inactive_players[name].weakref_alive?
+                    @players[name] = @inactive_players[name].__getobj__
+                    @inactive_players.delete(name)
+                    @players[name].reconnect(client, thread)
+                    finalize_login(@players[name])
+                    return
+                else
+                    @players[name] = Player.new( {
+                                                    alignment: player_data[:alignment],
+                                                    name: player_data[:name],
+                                                    race_id: player_data[:race_id],
+                                                    class_id: player_data[:class_id],
+                                                    wealth: player_data[:wealth],
+                                                    level: player_data[:level]
+                                                 },
+                                                 self,
+                                                 @rooms[player_data[:room_id]],
+                                                 client,
+                                                 thread )
+                    @players[name].experience = player_data[:experience]
+                    @players[name].uuid = player_data[:uuid]
+
+                    @players[name].stats[:str] = player_data[:str]
+                    @players[name].stats[:int] = player_data[:int]
+                    @players[name].stats[:dex] = player_data[:dex]
+                    @players[name].stats[:con] = player_data[:con]
+                    @players[name].stats[:wis] = player_data[:wis]
+
+                    @players[name].quest_points = player_data[:quest_points]
+                    @players[name].position = player_data[:position]
+                    save_player(@players[name])
+                    finalize_login(@players[name])
+                    return
+                end
             end
         end
+
+        md5 = nil
+        # local_echo_off = ["11111111111110110000000100000000"].pack("B*")
+        # local_echo_on =  ["11111111111111000000000100000000"].pack("B*")
+        # client.puts local_echo_off
+        client.puts "Please choose a password."
+        while md5.nil?
+            password = client.gets.chomp.to_s
+            if password.length < 6
+                client.puts "Passwords must be at least 6 characters long."
+            else
+                md5 = Digest::MD5.hexdigest(password)
+            end
+            if md5
+                client.puts "Re-enter password:"
+                password2 = client.gets.chomp.to_s
+                if password2 != password
+                    client.puts "Passwords don't match.\n\rPlease choose a password."
+                    md5 = nil
+                end
+            end
+        end
+        # client.puts local_echo_on
 
         race_id = nil
         player_race_data = @race_data.select{ |key, value| value[:player_race] == 1 && value[:starter_race] == 1 }
         player_race_names = player_race_data.map{ |key, value| value[:name] }
         while race_id.nil?
 
-            client.puts %Q(
-The following races are available:
-#{player_race_names.map{ |name| name.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}
-
-What is your race (help for more information)?)
-            race_input = client.gets.chomp || ""
+            client.puts("The following races are available:\n\r" +
+            "#{player_race_names.map{ |name| name.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n\r\n\r" +
+            "What is your race (help for more information)?)")
+            race_input = client.gets.chomp
             race_matches = player_race_names.select{ |name| name.fuzzy_match(race_input) }
             if race_matches.any?
                 race_id = @race_data.select{ |key, value| value[:name] == race_matches.first}.first[0]
@@ -122,8 +193,7 @@ Select a class
 
         alignment = nil
         while alignment.nil?
-            client.puts %Q(
-You may be good, neutral, or evil.
+            client.puts %Q(You may be good, neutral, or evil.
 Which alignment (G/N/E)?)
             case client.gets.chomp.to_s.capitalize
             when "G"
@@ -137,11 +207,15 @@ Which alignment (G/N/E)?)
             end
         end
 
-        client.puts "Welcome, #{name}."
-        broadcast "#{name} has joined the world.", target
         @players[name] = Player.new( { alignment: alignment, name: name, race_id: race_id, class_id: class_id }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
-        @players[name].look_room
-        @players[name].input_loop
+        save_player(@players[name], md5)
+        finalize_login(@players[name])
+    end
+
+    def finalize_login(player)
+        player.output "Welcome, #{player.name}."
+        broadcast("%s has entered the game.", target({not: [player], list: player.room.occupants, quantity: "all"}), [player])
+        @players[player.name].input_loop
     end
 
     def game_loop
@@ -151,29 +225,36 @@ Which alignment (G/N/E)?)
             # deal with inactive players that have been garbage collected
             # p "#{@frame_count} #{@inactive_players.keys}" if @inactive_players.length > 0
             @inactive_players.each do |name, player|
-                @inactive_players.delete(name) if !player.weakref_alive?
+                if !player.weakref_alive?
+                    @inactive_players.delete(name)
+                end
+            end
+
+            # save every so often!
+            if @frame_count % Constants::Interval::AUTOSAVE == 0
+                save
             end
 
             # each combat ROUND
-            if @frame_count % Constants::ROUND == 0
+            if @frame_count % Constants::Interval::ROUND == 0
                 combat
             end
 
-            if @frame_count % Constants::TICK == 0
+            if @frame_count % Constants::Interval::TICK == 0
                 tick
             end
 
-            if @frame_count % Constants::RESET == 0
-                reset
+            if @frame_count % Constants::Interval::REPOP == 0
+                repop
             end
 
-            update( 1.0 / Constants::FPS )
+            update( 1.0 / Constants::Interval::FPS )
             send_to_client
 
             # GC.start
 
             # Sleep until the next frame
-            sleep_time = (1.0 / Constants::FPS)
+            sleep_time = (1.0 / Constants::Interval::FPS)
             sleep(sleep_time)
         end
     end
@@ -206,16 +287,25 @@ Which alignment (G/N/E)?)
     def target( query = {} )
         targets = []
 
-        if query[:type].nil?
+        if !query[:list].nil?
+            targets = query[:list].reject(&:nil?)
+            if query[:type]
+                targets -= targets.select { |t| t === Area }      if !query[:type].to_a.include?("Area")
+                targets -= targets.select { |t| t === Continent } if !query[:type].to_a.include?("Continent")
+                targets -= targets.select { |t| t === Player }    if !query[:type].to_a.include?("Player")
+                targets -= targets.select { |t| t === Item }      if !query[:type].to_a.include?("Item")
+                targets -= targets.select { |t| t === Mobile }    if !query[:type].to_a.include?("Mobile")
+            end
+        elsif query[:type].nil?
             targets = @areas.values + @players.values + @items + @mobiles
         else
             targets += @areas.values       if query[:type].to_a.include? "Area"
+            targets += @continents.values  if query[:type].to_a.include? "Continent"
             targets += @players.values     if query[:type].to_a.include? "Player"
             targets += @items              if query[:type].to_a.include? "Item"
             targets += @mobiles            if query[:type].to_a.include? "Mobile"
         end
 
-        targets = query[:list].reject(&:nil?)                                                                       if query[:list]
         targets = targets.select { |t| query[:affect].to_a.any?{ |affect| t.affected?( affect.to_s ) } }            if query[:affect]
         targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
@@ -231,14 +321,7 @@ Which alignment (G/N/E)?)
             quantity = [1, query[:quantity].to_i].max
             targets = targets[ offset...offset+quantity ]
         end
-
         return targets
-    end
-
-    def disconnect( name )
-        @inactive_players[name] = WeakRef.new(@players[name])
-        @players.delete( name )
-        broadcast "#{name} has disconnected.", target
     end
 
     def tick
@@ -248,7 +331,7 @@ Which alignment (G/N/E)?)
         end
     end
 
-    def reset
+    def repop
         @base_mob_resets.each do |reset_id, reset_data|
             reset = @mob_resets[reset_id]
             if @mob_data[ reset[:mobile_id] ]
@@ -261,26 +344,19 @@ Which alignment (G/N/E)?)
                     # inventory
                     @inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:item_id] ]
-                            item = load_item( item_reset[:item_id], nil )
-                            mob.inventory.push item
+                            item = load_item( item_reset[:item_id], mob.inventory )
                         else
-                            puts "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@areas[@base_resets[item_reset_id][:area_id]]}"
+                            log "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@areas[@base_resets[item_reset_id][:area_id]]}"
                         end
                     end
 
                     #equipment
                     @equipment_resets.select{ |id, equipment_reset| equipment_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:item_id] ]
-                            item = load_item( item_reset[:item_id], nil )
-                            ["", "_1", "_2"].each do | modifier |
-                                slot = "#{item.wear_location}#{modifier}".to_sym
-                                if mob.equipment.key?( slot ) and mob.equipment[slot] == nil
-                                    mob.equipment[ slot ] = item
-                                    break
-                                end
-                            end
+                            item = load_item( item_reset[:item_id], mob.inventory )
+                            mob.wear(item: item, silent: true)
                         else
-                            puts "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_resets[item_reset_id][:area_id]}"
+                            log "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_resets[item_reset_id][:area_id]}"
                         end
                     end
 
@@ -288,15 +364,17 @@ Which alignment (G/N/E)?)
                 end
 
             else
-                puts "[Mob not found] RESET ID: #{reset[:id]}, MOB ID: #{reset[:mobile_id]}"
+                log "[Mob not found] RESET ID: #{reset[:id]}, MOB ID: #{reset[:mobile_id]}"
             end
         end
 
         @base_room_item_resets.each do |reset_id, reset_data|
             if ( reset = @room_item_resets[reset_id] )
-                load_item( reset[:item_id], @rooms[ reset[:room_id] ] )
+                if @rooms[reset[:room_id]].inventory.item_count[reset[:item_id]].to_i < 1
+                    load_item( reset[:item_id], @rooms[ reset[:room_id] ].inventory )
+                end
             else
-                puts ["Room item reset not found] RESET ID: #{reset_id}"]
+                log ["Room item reset not found] RESET ID: #{reset_id}"]
             end
         end
     end
@@ -348,16 +426,17 @@ Which alignment (G/N/E)?)
             self,
             room
         )
-        # 
+        #
         # "Shopkeeper behavior" is handled as an affect, which is currently used only as a kind of 'flag' for the buy/sell commands
-        # 
+        #
         if not @shop_data[ id ].nil?
             mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0, game: self ) )
         end
         return mob
     end
 
-    def load_item( id, room )
+    def load_item( id, inventory )
+        item = nil
         if ( row = @item_data[ id ] )
             data = {
                 id: id,
@@ -368,10 +447,10 @@ Which alignment (G/N/E)?)
                 cost: row[:cost].to_i,
                 type: row[:type],
                 level: row[:level].to_i,
-                wear_location: row[:wear_flags].match(/(wear_\w+|wield)/).to_a[1].to_s.gsub("wear_", ""),
-                wearFlags: row[:wear_flags].split(","),
+                wear_location: row[:wear_flags].match(/(wear_\w+|wield|hold|light)/).to_a[1].to_s.gsub("wear_", ""),
+                wear_flags: row[:wear_flags].split(","),
                 material: row[:material],
-                extraFlags: row[:extra_flags],
+                extra_flags: row[:extra_flags],
                 modifiers: {},
                 ac: @ac_data[ id ].to_h.reject{ |k, v| [:id, :item_id].include?(k) }
             }
@@ -389,141 +468,24 @@ Which alignment (G/N/E)?)
                         dice_sides: weapon_info[:dice_sides].to_i,
                         dice_count: weapon_info[:dice_count].to_i
                     }
-                    item = Weapon.new( data.merge( weapon_data ), self, room )
+                    item = Weapon.new( data.merge( weapon_data ), self, inventory )
                 else
-                    puts "[Weapon and/or Dice data not found] ITEM ID: #{id}"
-                    item = Item.new( data, self, room )
+                    log "[Weapon and/or Dice data not found] ITEM ID: #{id}"
+                    item = Item.new( data, self, inventory )
                 end
             else
-                item = Item.new( data, self, room )
+                item = Item.new( data, self, inventory )
             end
             if item
                 @items.push item
                 return item
             else
-                "[Item creation unsuccessful]"
+                log "[Item creation unsuccessful]"
                 return nil
             end
         else
-            puts "load_item [ITEM NOT FOUND] Item ID: #{ id }"
+            log "load_item [ITEM NOT FOUND] Item ID: #{ id }"
         end
-    end
-
-    def setup_game
-
-        @game_settings = @db[:game_settings].all.first
-        @race_data = @db[:race_base].to_hash(:id)
-        @race_data.each do |key, value|
-            value[:skills] = value[:skills].split(",")
-            value[:spells] = value[:spells].split(",")
-            value[:affect_flags] = value[:affect_flags].split(",")
-            value[:immune_flags] = value[:immune_flags].split(",")
-            value[:resist_flags] = value[:resist_flags].split(",")
-            value[:vuln_flags] = value[:vuln_flags].split(",")
-            value[:part_flags] = value[:part_flags].split(",")
-            value[:form_flags] = value[:form_flags].split(",")
-        end
-        @class_data = @db[:class_base].to_hash(:id)
-        @class_data.each do |key, value|
-            value[:skills] = value[:skills].to_s.split(",")
-            value[:spells] = value[:spells].to_s.split(",")
-            value[:affect_flags] = value[:affect_flags].to_s.split(",")
-        end
-
-        continent_rows = @db[:continent_base].all
-        continent_rows.each do |row|
-            @continents[row[:id]] = Continent.new(row, self)
-        end
-
-        # create area objects
-        area_rows = @db[:area_base].all
-        area_rows.each do |row|
-            @areas[row[:id]] = Area.new(
-                {
-                    id: row[:id],
-                    name: row[:name],
-                    continent: @continents[row[:continent_id]],
-                    age: row[:age],
-                    builders: row[:builders],
-                    credits: row[:credits],
-                    questable: row[:questable],
-                    gateable: row[:gateable],
-                    security: row[:security],
-                    control: row[:control]
-                },
-                self
-            )
-        end
-
-        # create rooms
-        @item_modifiers = @db[:item_modifier].to_hash_groups(:item_id)
-        @ac_data = @db[:item_armor].to_hash(:item_id)
-
-        room_rows = @db[:room_base].all
-        room_rows.each do |row|
-            @rooms[row[:id]] = Room.new(
-                row[:name],
-                row[:description],
-                row[:sector],
-                @areas[row[:area_id]],
-                row[:flags].to_s.split(" "),
-                row[:hp_regen].to_i,
-                row[:mana_regen].to_i,
-                self
-            )
-        end
-
-
-        @starting_room = @rooms[@db[:continent_base].to_hash(:id)[2][:starting_room_id]]
-
-        # assign each exit to its room in the hash (if the destination exists)
-        exit_rows = @db[:room_exit].all
-        exit_rows.each do |exit|
-            if @rooms[exit[:room_id]] && @rooms[exit[:to_room_id]]
-                @rooms[exit[:room_id]].exits[exit[:direction].to_sym] = @rooms[exit[:to_room_id]]
-            end
-        end
-
-        puts ( "Rooms loaded from database." )
-
-        @mob_data = @db[:mobile_base].as_hash(:id)
-        @mob_data.each do |key, value|
-            value[:affect_flags] = value[:affect_flags].split(",")
-            value[:off_flags] = value[:off_flags].split(",")
-            value[:act_flags] = value[:act_flags].split(",")
-            value[:immune_flags] = value[:immune_flags].split(",")
-            value[:resist_flags] = value[:resist_flags].split(",")
-            value[:vuln_flags] = value[:vuln_flags].split(",")
-            value[:part_flags] = value[:part_flags].split(",")
-            value[:form_flags] = value[:form_flags].split(",")
-        end
-
-        @shop_data = @db[:shop_base].as_hash(:mobile_id)
-
-        @item_data = @db[:item_base].as_hash(:id)
-        @weapon_data = @db[:item_weapon].as_hash(:item_id)
-
-        @mob_resets = @db[:reset_mobile].as_hash(:reset_id)
-        @inventory_resets = @db[:reset_inventory_item].as_hash(:reset_id)
-        @equipment_resets = @db[:reset_equipped_item].as_hash(:reset_id)
-        @room_item_resets = @db[:reset_room_item].as_hash(:reset_id)
-
-        @base_resets = @db[:reset_base].where( area_id: [17, 23] ).as_hash(:id)
-        @base_resets = @db[:reset_base].as_hash(:id)
-        @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
-        @base_room_item_resets = @base_resets.select{ |key, value| value[:type] == "room_item" }
-        reset
-
-        puts( "Mob Data and Resets loaded from database.")
-
-        @areas.values.each do | area |
-            area.set_rooms (@rooms.values.select{ | room | room.area == area })
-        end
-
-        @helps = @db[:help_base].as_hash(:id)
-        @helps.each { |id, help| help[:keywords] = help[:keywords].split(" ") }
-
-        puts ( "Helpfiles loaded from database." )
     end
 
     def do_command( actor, cmd, args = [] )
@@ -540,18 +502,6 @@ Which alignment (G/N/E)?)
     	actor.output "Huh?"
     end
 
-    def make_commands
-        Constants::SKILL_CLASSES.each do |skill_class|
-            @skills.push skill_class.new(self)
-        end
-        Constants::SPELL_CLASSES.each do |spell_class|
-            @spells.push spell_class.new(self)
-        end
-        Constants::COMMAND_CLASSES. each do |command_class|
-            @commands.push command_class.new(self)
-        end
-    end
-
     def recall_room( continent )
         return @rooms[continent.recall_room_id]
     end
@@ -560,7 +510,7 @@ Which alignment (G/N/E)?)
     #
     # Examples:
     #  fire_event(:event_test, {}, some_mobile)
-    #  fire_event(:event_on_hit, data, some_mobile, some_room, some_room.area, some_mobile.equipment.values)
+    #  fire_event(:event_on_hit, data, some_mobile, some_room, some_room.area, some_mobile.equipment)
     def fire_event(event, data, *objects)
         objects.each do |object|
             if object.kind_of?(Array)
@@ -579,6 +529,135 @@ Which alignment (G/N/E)?)
 
     def remove_affect(affect)
         @affects.delete(affect)
+    end
+
+    def save
+        @db[:game_settings].update(:next_uuid => @next_uuid)
+        @players.each do |name, player|
+            save_player(player)
+        end
+    end
+
+    def save_player(player, md5 = nil)
+        single_call = !md5.nil?
+        md5 = @db[:saved_player_base].where(name: player.name).first[:md5] if md5.nil?
+        @db[:saved_player_base].where(name: player.name).delete
+        player_data = {
+            uuid: player.uuid,
+            name: player.name,
+            md5: md5,
+            level: player.level,
+            experience: player.experience,
+            room_id: player.room.id,
+            race_id: player.race_id,
+            class_id: player.class_id,
+            str: player.stats[:str],
+            int: player.stats[:int],
+            dex: player.stats[:dex],
+            con: player.stats[:con],
+            wis: player.stats[:wis],
+
+            wealth: player.wealth,
+            quest_points: player.quest_points,
+            position: player.position,
+            alignment: player.alignment
+
+        }
+        @db[:saved_player_base].insert(player_data)
+        save if single_call
+    end
+
+    def new_uuid
+        uuid = @next_uuid
+        @next_uuid += 1
+        return uuid
+    end
+
+    # Object removal methods:
+    #
+    # objects passed to these methods will be allowed to be garbage collected, provided they are not
+    # the source of any remaining affects in the game.
+
+    # destroy a continent object
+    def destroy_continent(continent)
+        continent.affects.each do |affect|
+            remove_affect(affect)
+        end
+        areas = @areas.select{ |area| area.continent == continent}
+        areas.each do |area|
+            destroy_area(area)
+        end
+        @continents.delete(continent.id)
+    end
+
+    # destroy an area object
+    def destroy_area(area)
+        area.affects.each do |affect|
+            remove_affect(affect)
+        end
+        area.rooms.each do |room|
+            destroy_room(room)
+        end
+        @areas.delete(area.id)
+    end
+
+    # destroy a room object
+    def destroy_room(room)
+        rooms.affects.each do |affect|
+            remove_affect(affect)
+        end
+        room.mobiles.each do |mobile|
+            destroy_mobile(mobile)
+        end
+        room.players.each do |player|
+            player.move_to_room(@starting_room) # just move players out
+        end
+        room.inventory.items.each do |item|
+            destroy_item(item)
+        end
+        @rooms.delete(room.id)
+    end
+
+    # destroy a mobile object
+    def destroy_mobile(mobile)
+        mobile.move_to_room(nil)
+        mobile.affects.each do |affect|
+            remove_affect(affect)
+        end
+        mobile.inventory.items.each do |item|
+            destroy_item(item)
+        end
+        mobile.equipment.each do |item|
+            destroy_item(item)
+        end
+        @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i - 1
+        @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
+        @mobiles.delete(mobile)
+    end
+
+    # destroy a player object
+    def destroy_player(player)
+        @inactive_players[player.name] = WeakRef.new(player)
+        player.room.mobile_depart(player)
+        player.affects.each do |affect|
+            remove_affect(affect)
+        end
+        player.inventory.items.each do |item|
+            destroy_item(item)
+        end
+        player.equipment.each do |item|
+            destroy_item(item)
+        end
+        @players.delete(player.name)
+    end
+
+    # destroy an item object
+    def destroy_item(item)
+        item.move(nil)          # remove its inventory references by moving it to a nil inventory
+        item.affects.each do |affect|
+            remove_affect(affect)
+        end
+        @items.delete(item)
     end
 
 end

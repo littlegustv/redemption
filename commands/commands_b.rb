@@ -37,8 +37,8 @@ class CommandBuy < Command
     end
 
     def attempt( actor, cmd, args )
-        ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper" ) ).each do |shopkeeper|
-            if ( purchase = ( actor.target({ list: shopkeeper.inventory }.merge( args.first.to_s.to_query )) ).first )
+        ( shopkeepers = actor.target( list: actor.room.occupants, affect: "shopkeeper" ) ).each do |shopkeeper|
+            if ( purchase = ( actor.target({ list: shopkeeper.inventory.items }.merge( args.first.to_s.to_query )) ).first )
                 if actor.spend( purchase.cost )
                     actor.output( "You buy #{purchase} for #{ purchase.to_price }." )
                     actor.inventory.push @game.load_item( purchase.id, nil )

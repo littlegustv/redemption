@@ -12,6 +12,7 @@ class CommandWear < Command
     end
 
     def attempt( actor, cmd, args )
+        targets = actor.target({list: actor.inventory.items}).merge( args.first.to_s.to_query )) )
         return actor.wear args
     end
 

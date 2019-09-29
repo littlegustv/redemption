@@ -1,9 +1,15 @@
 class Item < GameObject
 
-	attr_accessor :wear_location, :weight, :room, :type
-    attr_reader :cost, :id, :wearFlags
+	attr_accessor :wear_location
+    attr_accessor :weight
+    attr_accessor :room
+    attr_accessor :type
+    attr_reader :cost
+    attr_reader :id
+    attr_reader :wear_flags
+    attr_reader :parent_inventory
 
-    def initialize( data, game, room )
+    def initialize( data, game, parent_inventory )
         super(data[:short_description], game)
         @id = data[:id]
         @short_description = data[:short_description]
@@ -15,12 +21,12 @@ class Item < GameObject
         @type = data[:type]
         @wear_location = data[:wear_location]
         @material = data[:material]
-        @extraFlags = data[:extraFlags]
-        @wearFlags = data[:wearFlags]
+        @extra_flags = data[:extra_flags]
+        @wear_flags = data[:wear_flags]
         @modifiers = data[:modifiers].merge( data[:ac] )
         # @ac = data[:ac] || [0,0,0,0]
 
-        @room = room
+        move(parent_inventory)
     end
 
     def to_s
@@ -53,28 +59,6 @@ class Item < GameObject
         @affects.each{ |affect| affect.update(elapsed) }
     end
 
-=begin
-Object 'A Quicksilver Katar named "Eye-Sting"' is of type weapon. [Clanner Only]
-Description: A punch dagger made of quicksilver is here.
-Keywords 'quicksilver katar punch dagger eye sting Laika'
-Weight 2 lbs, Value 5000 silver, level is 51, Material is quicksilver.
-Extra flags: hum
-    Item is wielded as a weapon.
-    Item belongs to Kite.
-    Item has been magically crafted.
-    Item is level 8 and has 15013 xp.
-    Weapon type is dagger.
-    Damage is 6d6 (average 21).
-    Weapons flags: vorpal shocking intelligent
-Object modifies saves by -2.
-Object modifies max dexterity by 2.
-Object modifies constitution by 1.
-Object modifies hit roll by 5.
-Object modifies damage roll by 7.
-Object modifies mana by 40.
-Object modifies wisdom by 1.
-=end
-
     def lore
 %Q(
 Object '#{ @short_description }' is of type #{ @type }. [Clanner Only]
@@ -83,7 +67,23 @@ Keywords '#{ @keywords.join(' ') }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
 Extra flags: #{ @extraFlags }
 #{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
-) +  affects.map(&:summary).join("\n") 
+) +  affects.map(&:summary).join("\n")
+    end
+
+    # move this item to another inventory - nil is passed when an item is going to be destroyed
+    def move(new_inventory)
+        if @parent_inventory
+            @parent_inventory.remove_item(self)
+        end
+        if new_inventory
+            new_inventory.add_item(self)
+        end
+        @parent_inventory = new_inventory
+    end
+
+    # alias for @game.destroy_item(self)
+    def destroy
+        @game.destroy_item(self)
     end
 
 end
@@ -143,7 +143,7 @@ class Tattoo < Item
     }
 
     def initialize( runist, slot )
-        super({ 
+        super({
             level: runist.level,
             weight: 0,
             cost: 0,
@@ -176,8 +176,7 @@ class Tattoo < Item
 
     def lore
         super + %Q(
-Tattoo will last for another #{ @duration.to_i } seconds.
-        )
+Tattoo will last for another #{ @duration.to_i } seconds.)
     end
 
     def paint

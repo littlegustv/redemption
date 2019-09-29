@@ -1,9 +1,7 @@
 class GameObject
 
-    attr_accessor :name, :keywords, :affects
-    attr_reader :listeners, :uuid, :room, :active
-
-    @@next_uuid = 1
+    attr_accessor :name, :keywords, :affects, :uuid
+    attr_reader :listeners, :room, :active
 
     def initialize( name, game )
         @name = name
@@ -11,8 +9,7 @@ class GameObject
         @game = game
         @affects = []
         @listeners = {}
-        @uuid = @@next_uuid
-        @@next_uuid += 1
+        @uuid = @game.new_uuid
         @active = true
     end
 
@@ -165,6 +162,11 @@ class GameObject
         #
         # @affects -= list
         # list.each(&:unhook)
+    end
+
+    # handles its own destruction - override in subclasses
+    def destroy
+        puts "GameObject::destroy being called by object #{self} : This shouldn't happen!"
     end
 
 end
