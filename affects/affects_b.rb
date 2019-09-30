@@ -136,7 +136,7 @@ class AffectBurstRune < Affect
     end
 
     def do_burst_rune(data)
-        if data[:confirm] == false && data[:source].equipment[:wield] == @target && data[:target] && rand(0..100) < 25
+        if data[:confirm] == false && data[:source].wielded.include?(@target) && data[:target] && rand(0..100) < 25
             data[:source].output @hit
             data[:source].magic_hit( data[:target], 100, @noun, @element)
             data[:confirm] = true
