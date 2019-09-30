@@ -1,6 +1,14 @@
 class Affect
     attr_accessor :source
-    attr_reader :name, :priority, :application_type, :modifiers, :duration, :permanent, :hidden
+    attr_accessor :savable
+    attr_reader :application_type
+    attr_reader :duration
+    attr_reader :hidden
+    attr_reader :level
+    attr_reader :modifiers
+    attr_reader :name
+    attr_reader :permanent
+    attr_reader :priority
 
     def initialize(
         game:,
@@ -18,7 +26,6 @@ class Affect
         hidden: false
     )
         @game = game
-        # @source = (source != target && permanent) ? WeakRef.new(source) : source   # should things that give other things perma_affects last forever??
         @source = source
         @target = target
         @keywords = keywords
@@ -32,6 +39,7 @@ class Affect
                                                # :source_overwrite, :source_stack, :source_single
         @permanent = permanent
         @hidden = hidden
+        @savable = true
 
         @clock = 0
         @conditions = []

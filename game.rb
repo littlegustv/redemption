@@ -1,5 +1,6 @@
 require 'sequel'
-require_relative "game_setup"
+require_relative 'game_setup'
+require_relative 'game_save'
 
 class Game
 
@@ -15,6 +16,7 @@ class Game
     attr_reader :continents
 
     include GameSetup
+    include GameSave
 
     def initialize
         @server = nil                       # TCPServer object
@@ -100,33 +102,18 @@ class Game
                     @players[name] = @inactive_players[name].__getobj__
                     @inactive_players.delete(name)
                     @players[name].reconnect(client, thread)
+                    save
                     finalize_login(@players[name])
                     return
                 else
-                    @players[name] = Player.new( {
-                                                    alignment: player_data[:alignment],
-                                                    name: player_data[:name],
-                                                    race_id: player_data[:race_id],
-                                                    class_id: player_data[:class_id],
-                                                    wealth: player_data[:wealth],
-                                                    level: player_data[:level]
-                                                 },
-                                                 self,
-                                                 @rooms[player_data[:room_id]],
-                                                 client,
-                                                 thread )
-                    @players[name].experience = player_data[:experience]
-                    @players[name].uuid = player_data[:uuid]
-
-                    @players[name].stats[:str] = player_data[:str]
-                    @players[name].stats[:int] = player_data[:int]
-                    @players[name].stats[:dex] = player_data[:dex]
-                    @players[name].stats[:con] = player_data[:con]
-                    @players[name].stats[:wis] = player_data[:wis]
-
-                    @players[name].quest_points = player_data[:quest_points]
-                    @players[name].position = player_data[:position]
-                    save_player(@players[name])
+                    @players[name] = load_player(name, client, thread)
+                    if !@players[name]
+                        @players.delete(name)
+                        client.close
+                        Thread.kill(thread)
+                        return
+                    end
+                    save
                     finalize_login(@players[name])
                     return
                 end
@@ -281,7 +268,7 @@ Which alignment (G/N/E)?)
 
     def broadcast( message, targets, objects = [] )
         targets.each do | player |
-            player.output( message, objects )
+            player.output( message, objects.to_a )
         end
     end
 
@@ -291,11 +278,11 @@ Which alignment (G/N/E)?)
         if !query[:list].nil?
             targets = query[:list].reject(&:nil?)
             if query[:type]
-                targets -= targets.select { |t| t === Area }      if !query[:type].to_a.include?("Area")
-                targets -= targets.select { |t| t === Continent } if !query[:type].to_a.include?("Continent")
-                targets -= targets.select { |t| t === Player }    if !query[:type].to_a.include?("Player")
-                targets -= targets.select { |t| t === Item }      if !query[:type].to_a.include?("Item")
-                targets -= targets.select { |t| t === Mobile }    if !query[:type].to_a.include?("Mobile")
+                targets -= targets.select { |t| Area === t }      if !query[:type].to_a.include?("Area")
+                targets -= targets.select { |t| Continent === t } if !query[:type].to_a.include?("Continent")
+                targets -= targets.select { |t| Player === t }    if !query[:type].to_a.include?("Player")
+                targets -= targets.select { |t| Item === t }      if !query[:type].to_a.include?("Item")
+                targets -= targets.select { |t| Mobile === t }    if !query[:type].to_a.include?("Mobile")
             end
         elsif query[:type].nil?
             targets = @areas.values + @players.values + @items + @mobiles
@@ -307,6 +294,7 @@ Which alignment (G/N/E)?)
             targets += @mobiles            if query[:type].to_a.include? "Mobile"
         end
 
+        targets = targets.select { |t| t.uuid == query[:uuid] }                                                     if query[:uuid]
         targets = targets.select { |t| query[:affect].to_a.any?{ |affect| t.affected?( affect.to_s ) } }            if query[:affect]
         targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
@@ -533,52 +521,14 @@ Which alignment (G/N/E)?)
         @affects.delete(affect)
     end
 
-    def save
-        @db[:game_settings].update(:next_uuid => @next_uuid)
-        @players.each do |name, player|
-            save_player(player)
-        end
-    end
-
-    def save_player(player, md5 = nil)
-        single_call = !md5.nil?
-        md5 = @db[:saved_player_base].where(name: player.name).first[:md5] if md5.nil?
-        @db[:saved_player_base].where(name: player.name).delete
-        player_data = {
-            uuid: player.uuid,
-            name: player.name,
-            md5: md5,
-            level: player.level,
-            experience: player.experience,
-            room_id: player.room.id,
-            race_id: player.race_id,
-            class_id: player.class_id,
-            str: player.stats[:str],
-            int: player.stats[:int],
-            dex: player.stats[:dex],
-            con: player.stats[:con],
-            wis: player.stats[:wis],
-
-            wealth: player.wealth,
-            quest_points: player.quest_points,
-            position: player.position,
-            alignment: player.alignment
-
-        }
-        @db[:saved_player_base].insert(player_data)
-        save if single_call
-    end
-
-    def new_uuid
-        uuid = @next_uuid
-        @next_uuid += 1
-        return uuid
-    end
-
     # Object removal methods:
     #
     # objects passed to these methods will be allowed to be garbage collected, provided they are not
     # the source of any remaining affects in the game.
+    #
+    # Calling destroy_mobile does NOT call destroy_item on the mobile's items
+    # figure out what to do with continents/areas/rooms?
+    #
 
     # destroy a continent object
     def destroy_continent(continent)
@@ -592,6 +542,17 @@ Which alignment (G/N/E)?)
         @continents.delete(continent.id)
     end
 
+    def new_inactive_continent
+        data = {
+            name: "inactive continent",
+            id: 0,
+            preposition: "on",
+            recall_room_id: 0,
+            starting_room_id: 0
+        }
+        return Continent.new(data, self)
+    end
+
     # destroy an area object
     def destroy_area(area)
         area.affects.each do |affect|
@@ -601,6 +562,22 @@ Which alignment (G/N/E)?)
             destroy_room(room)
         end
         @areas.delete(area.id)
+    end
+
+    def new_inactive_area
+        data = {
+            name: "inactive area",
+            age: 0,
+            builders: "no builders",
+            continent: self.new_inactive_continent,
+            control: "no control",
+            credits: "no credits",
+            gateable: 0,
+            id: 0,
+            questable: 0,
+            security: 0
+        }
+        return Area.new(data, self)
     end
 
     # destroy a room object
@@ -615,22 +592,37 @@ Which alignment (G/N/E)?)
             player.move_to_room(@starting_room) # just move players out
         end
         room.inventory.items.each do |item|
-            destroy_item(item)
+            item.affects.each do |affect|
+                remove_affect(affect)
+            end
+            @items.delete(item)
         end
         @rooms.delete(room.id)
     end
 
+    def new_inactive_room
+        return Room.new(0, "inactive room", "no description", "no sector",
+                self.new_inactive_area, "", 0, 0, self)
+    end
+
     # destroy a mobile object
     def destroy_mobile(mobile)
-        mobile.move_to_room(nil)
+        mobile.move_to_room(self.new_inactive_room)
+        mobile.deactivate
         mobile.affects.each do |affect|
             remove_affect(affect)
         end
         mobile.inventory.items.each do |item|
-            destroy_item(item)
+            item.affects.each do |affect|
+                remove_affect(affect)
+            end
+            @items.delete(item)
         end
         mobile.equipment.each do |item|
-            destroy_item(item)
+            item.affects.each do |affect|
+                remove_affect(affect)
+            end
+            @items.delete(item)
         end
         @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i - 1
         @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
@@ -641,14 +633,21 @@ Which alignment (G/N/E)?)
     def destroy_player(player)
         @inactive_players[player.name] = WeakRef.new(player)
         player.room.mobile_depart(player)
+        player.deactivate
         player.affects.each do |affect|
             remove_affect(affect)
         end
         player.inventory.items.each do |item|
-            destroy_item(item)
+            item.affects.each do |affect|
+                remove_affect(affect)
+            end
+            @items.delete(item)
         end
         player.equipment.each do |item|
-            destroy_item(item)
+            item.affects.each do |affect|
+                remove_affect(affect)
+            end
+            @items.delete(item)
         end
         @players.delete(player.name)
     end

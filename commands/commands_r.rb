@@ -28,7 +28,15 @@ class CommandRemove < Command
     end
 
     def attempt( actor, cmd, args )
-        return actor.unwear args
+        if ( targets = actor.target({ visible_to: actor, list: actor.equipment }.merge( args.first.to_s.to_query(1) )) )
+            targets.each do |target|
+                actor.unwear(item: target)
+            end
+            return true
+        else
+            actor.output "You aren't wearing that."
+            return false
+        end
     end
 end
 

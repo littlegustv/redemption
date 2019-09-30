@@ -2,10 +2,10 @@ require_relative 'mobile_item'
 
 class Mobile < GameObject
 
-    attr_accessor :id, :attacking, :lag, :position, :inventory, :affects
+    attr_accessor :id, :attacking, :lag, :position, :inventory, :affects, :active
     attr_accessor :level, :group, :in_group, :experience, :quest_points, :alignment, :wealth
 
-    attr_reader :game, :room, :race_id, :class_id, :active, :stats
+    attr_reader :game, :room, :race_id, :class_id, :stats
 
     include MobileItem
 
@@ -75,7 +75,7 @@ class Mobile < GameObject
         @inventory = Inventory.new(owner: self, game: @game)
 
         @room = room
-        @room.mobile_arrive(self)
+        @room.mobile_arrive(self) if @room
 
         apply_affect_flags(data[:affect_flags].to_a)
         apply_affect_flags(data[:specials].to_a)
@@ -178,7 +178,7 @@ class Mobile < GameObject
     # When calling 'start_combat', call it first for the 'victim', then for the attacker
 
     def start_combat( attacker )
-        if !@active || !attacker.active || attacker.room != @room
+        if !@active || !attacker.active || !@room.contains?([self, attacker])
             return
         end
 
@@ -415,10 +415,12 @@ class Mobile < GameObject
             killer.output("You offer your victory to Gabriel who rewards you with 1 deity points.")
             killer.earn( @wealth )
         end
-        destroy
         stop_combat
+        destroy
+    end
+
+    def deactivate
         @active = false
-        @room = nil
     end
 
     def move( direction )
@@ -449,8 +451,10 @@ class Mobile < GameObject
         end
         @room&.mobile_depart(self)
         @room = room
-        @room&.mobile_arrive(self)
-        @game.do_command self, "look" if @room
+        if @room
+            @room.mobile_arrive(self)
+            @game.do_command self, "look"
+        end
     end
 
     def recall
@@ -677,6 +681,10 @@ You are #{Position::STRINGS[ @position ]}.)
         casting = @level
         casting *= (class_multiplier.to_i / 100) if class_multiplier
         return [1, casting.to_i].max
+    end
+
+    def db_source_type
+        return "Mobile"
     end
 
 end

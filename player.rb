@@ -16,9 +16,11 @@ class Player < Mobile
 
     # alias for @game.destroy_player(self)
     def destroy
+        @game.save
         @game.destroy_player(self)
     end
 
+    # this method basically has to undo a @game.destroy_player(self)
     def reconnect( client, thread )
         if @client
             @client.close
@@ -31,11 +33,13 @@ class Player < Mobile
                 @game.add_affect(affect)
             end
             @inventory.items.each do |item|
+                @game.items << item
                 item.affects.each do |affect|
                     @game.add_affect(affect)
                 end
             end
             equipment.each do |item|
+                @game.items << item
                 item.affects.each do |affect|
                     @game.add_affect(affect)
                 end
@@ -126,26 +130,28 @@ class Player < Mobile
         @position = Position::REST
     end
 
-    def quit
+    def quit(silent: false)
         stop_combat
-        broadcast "%s has disconnected.", @game.target({not: [self], list: @room.occupants}), self
+        if !silent
+            broadcast "%s has left the game.", @game.target({not: [self], list: @room.occupants}), self
+        end
         if @thread
             Thread.kill( @thread )
         end
         @buffer = ""
         if @client
             begin
-                @client.print "Alas, all good things must come to an end.\n\r"
+                if !silent
+                    @client.print "Alas, all good things must come to an end.\n\r"
+                end
             rescue
                 log "Error on player quitting."
             end
             @client.close
         end
-
-        @game.destroy_player(self)
-        @active = false
         @client = nil
         @thread = nil
+        destroy
         return true
     end
 
@@ -170,6 +176,10 @@ class Player < Mobile
 
     def is_player?
         return true
+    end
+
+    def db_source_type
+        return "Player"
     end
 
 end

@@ -57,8 +57,10 @@ module MobileItem
         if !can_unwear(item: item, silent: silent)
             return false
         end
-        output("You stop using %s.", [item])
-        broadcast("%s stops using %s.", target({ :not => self, :list => @room.occupants }), [self, item])
+        if !silent
+            output("You stop using %s.", [item])
+            broadcast("%s stops using %s.", target({ :not => self, :list => @room.occupants }), [self, item])
+        end
         item.move(self.inventory)
         return true
     end
@@ -77,7 +79,7 @@ module MobileItem
         if !item.wear_flags.include? "take"
             output "You can't take #{ item }"
         end
-        if (container = item.parent_inventory.owner) === Item
+        if Item === (container = item.parent_inventory.owner)
             output("You get %s from %s.", [item, container])
             broadcast("%s gets %s from %s.", target({ :not => self, :list => @room.occupants }), [self, item, container])
         else

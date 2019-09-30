@@ -18,6 +18,7 @@ class EquipSlot < Inventory
     end
 
     def items
+        log "EquipSlot items being accessed: #{self.owner.name}"
         return nil
     end
 

@@ -38,4 +38,8 @@ class Area < GameObject
         @game.destroy_area(self)
     end
 
+    def db_source_type
+        return "Area"
+    end
+
 end

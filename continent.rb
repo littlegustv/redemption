@@ -18,4 +18,8 @@ class Continent < GameObject
         @game.destroy_continent(self)
     end
 
+    def db_source_type
+        return "Continent"
+    end
+
 end

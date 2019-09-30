@@ -1,7 +1,7 @@
 class GameObject
 
-    attr_accessor :name, :keywords, :affects, :uuid
-    attr_reader :listeners, :room, :active
+    attr_accessor :name, :keywords, :affects, :uuid, :active
+    attr_reader :listeners, :room
 
     def initialize( name, game )
         @name = name
@@ -147,7 +147,11 @@ class GameObject
     def apply_affect_flags(flags)
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
-            apply_affect(affect_class.new(source: self, target: self, level: 0, game: @game)) if affect_class
+            if affect_class
+                affect = affect_class.new(source: self, target: self, level: 0, game: @game)
+                affect.savable = false
+                apply_affect(affect)
+            end
         end
     end
     ##
@@ -167,6 +171,18 @@ class GameObject
     # handles its own destruction - override in subclasses
     def destroy
         puts "GameObject::destroy being called by object #{self} : This shouldn't happen!"
+    end
+
+    # Generates a hash to provide affect source fields for the database
+    def db_source_fields
+        return { source_type: self.db_source_type,
+                 source_uuid: @uuid,
+                 source_id: (self.respond_to?(:id)) ? self.id : 0 }
+    end
+
+    # Override this in subclasses to generate correct source_type strings
+    def db_source_type
+        return "GameObject"
     end
 
 end

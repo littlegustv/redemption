@@ -34,14 +34,17 @@ class Room < GameObject
 
     def show( looker )
         if looker.can_see? self
-            "#{ @name }\n" +
+
+            out = "#{ @name }\n" +
             "#{ @description }\n" +
-            "\n" +
-            "[Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]" +
-            @game.target({ list: self.items, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "\n      #{t.long}" }.join +
-            @game.target({ list: self.occupants, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "\n#{t.long}" }.join
+            "[Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]"
+            item_list = @inventory.show(observer: looker, long: true)
+            out += "\n#{item_list}" if item_list.length > 0
+            occupant_list = @game.target({ list: self.occupants, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "#{t.long}" }.join("\n")
+            out += "\n#{occupant_list}" if occupant_list.length > 0
+            return out
         else
-            "You can't see a thing!"
+            return "You can't see a thing!"
         end
     end
 
@@ -66,12 +69,21 @@ class Room < GameObject
         end
     end
 
+    # Returns true if the room contains ALL mobiles (an array of players and/or mobiles)
+    def contains?(mobiles)
+        return (mobiles.to_a - occupants).empty?
+    end
+
     def occupants
         return @mobiles | @players
     end
 
     def items
         return @inventory.items
+    end
+
+    def db_source_type
+        return "Room"
     end
 
 end

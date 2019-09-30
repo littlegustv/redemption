@@ -86,6 +86,10 @@ Extra flags: #{ @extraFlags }
         @game.destroy_item(self)
     end
 
+    def db_source_type
+        return "Item"
+    end
+
 end
 
 class Weapon < Item

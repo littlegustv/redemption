@@ -22,7 +22,7 @@ class SpellEnchantWeapon < Spell
     end
 
     def attempt( actor, cmd, args, level )
-        if ( target = actor.target({ list: actor.inventory, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.inventory.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
             fail = 25
             # dam =
             affect = AffectEnchantWeapon.new( source: nil, target: target, level: actor.level, game: @game )
