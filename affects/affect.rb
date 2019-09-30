@@ -1,8 +1,8 @@
 class Affect
+    attr_accessor :duration
     attr_accessor :source
     attr_accessor :savable
     attr_reader :application_type
-    attr_reader :duration
     attr_reader :hidden
     attr_reader :level
     attr_reader :modifiers

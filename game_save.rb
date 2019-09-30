@@ -211,6 +211,7 @@ module GameSave
                 source = find_affect_source(affect_row, player)
                 if source != false # source can be nil, just not false - see find_affect_source
                     affect = affect_class.new(source: source, target: player, level: affect_row[:level], game: self)
+                    affect.duration = affect_row[:duration]
                     modifiers = {}
                     modifier_rows = @db[:saved_player_affect_modifier].where(saved_player_affect_id: affect_row[:id]).all
                     modifier_rows.each do |modifier_row|
@@ -241,6 +242,7 @@ module GameSave
                     source = find_affect_source(affect_row, player.items + [player])
                     if source != false # source can be nil, just not false - see find_affect_source
                         affect = affect_class.new(source: source, target: player, level: affect_row[:level], game: self)
+                        affect.duration = affect_row[:duration]
                         modifiers = {}
                         modifier_rows = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: affect_row[:id]).all
                         modifier_rows.each do |modifier_row|
