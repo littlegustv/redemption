@@ -403,7 +403,7 @@ class Mobile < GameObject
         end
         broadcast "%s is DEAD!!", target({ :not => self, :room => @room }), [self]
         @affects.each do |affect|
-            affect.clear(call_complete: false)
+            affect.clear(silent: true)
         end
         killer.xp( self ) if killer
         broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]

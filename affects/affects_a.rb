@@ -15,27 +15,24 @@ class AffectAlarmRune < Affect
         )
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_mobile_enter, self, :do_alarm_rune)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_mobile_enter, self)
         @source.remove_affect "alarm rune"
     end
 
-    def complete
+    def send_complete_messages
     	@source.output "Your connection with the alarm rune is broken."
-    	@source.broadcast "The rune of warding on this room vanishes.", @source.target({ room: @target })
+    	@source.broadcast "The rune of warding on this room vanishes.", @target.target({ room: @target })
     end
 
     def do_alarm_rune(data)
-        puts "1"
     	if data[:mobile] == @source
-            puts "2"
     		@source.output "You sense the power of the room's rune and avoid it!"
     	else
-            puts "3"
     		@source.output "{R%s has triggered your alarm rune!{x", [data[:mobile]]
 	    end
     end

@@ -16,11 +16,11 @@ class AffectGuard < Affect
         )
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_mobile_enter, self, :do_guard)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_mobile_enter, self)
     end
 

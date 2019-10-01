@@ -16,11 +16,11 @@ class AffectKiller < Affect
         )
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_calculate_description, self, :do_killer_flag)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_calculate_description, self)
     end
 
@@ -28,7 +28,7 @@ class AffectKiller < Affect
         data[:description] = "{R(KILLER){x " + data[:description]
     end
 
-    def start
-        @target.output "*** You are now a KILLER!! ***"    	
+    def send_start_messages
+        @target.output "*** You are now a KILLER!! ***"
     end
 end

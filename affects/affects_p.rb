@@ -17,13 +17,13 @@ class AffectPoison < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.broadcast "{m%s looks very ill.{x", @game.target({ not: @target, room: @target.room }), [@target]
         # @target.output "{mYou feel poison coursing through your veins.{x"
         @target.output "You feel very sick."
     end
 
-    def refresh
+    def send_refresh_messages
         @target.broadcast "{m%s looks very ill.{x", @game.target({ not: @target, room: @target.room }), [@target]
         # @target.output "{mYou feel poison coursing through your veins.{x"
         @target.output "You feel very sick."
@@ -34,7 +34,7 @@ class AffectPoison < Affect
         @target.damage 10, @target
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You feel better!"
     end
 

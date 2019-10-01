@@ -21,7 +21,7 @@ class GameObject
     end
 
     def broadcast( message, targets, objects = [] )
-        @game.broadcast message, targets, objects
+        @game.broadcast message, targets, objects.to_a
     end
 
     def target( query )
@@ -117,14 +117,15 @@ class GameObject
         if !existing_affects.empty?
             case type
             when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
-                existing_affects.each { |a| a.clear(call_complete: false) }
+                existing_affects.each { |a| a.clear(silent: true) }
+                new_affect.send_refresh_messages if !silent
                 affects.push(new_affect)
-                new_affect.hook
-                new_affect.refresh if !silent
                 @game.add_affect(new_affect)
+                new_affect.start
             when :global_stack, :source_stack                      # stack with existing affect
+                existing_affects.first.send_refresh_messages if !silent
                 existing_affects.first.stack(new_affect)
-                existing_affects.first.refresh if !silent
+                existing_affects.first.start
             when :global_single, :source_single                    # do nothing, already applied
                 return false
             else
@@ -132,10 +133,10 @@ class GameObject
                 return false
             end
         else
+            new_affect.send_start_messages if !silent
             affects.push(new_affect)
-            new_affect.hook
-            new_affect.start if !silent
             @game.add_affect(new_affect)
+            new_affect.start
         end
         return true
     end
@@ -144,13 +145,14 @@ class GameObject
     # AFFECT_CLASS_HASH in constants.rb
     #  some_mobile.apply_affect_flags(["infravision", "hatchling", "flying"])
     #
-    def apply_affect_flags(flags)
+    def apply_affect_flags(flags, silent: false)
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class
                 affect = affect_class.new(source: self, target: self, level: 0, game: @game)
                 affect.savable = false
-                apply_affect(affect)
+                affect.permanent = true
+                apply_affect(affect, silent)
             end
         end
     end
@@ -161,11 +163,8 @@ class GameObject
     def remove_affect(term)
         list = @affects.select{ |a| a.check( term )  }
         list.each do |affect|
-            affect.clear(call_complete: true)
+            affect.clear(silent: false)
         end
-        #
-        # @affects -= list
-        # list.each(&:unhook)
     end
 
     # handles its own destruction - override in subclasses

@@ -15,12 +15,14 @@ class AffectLivingStone < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.output "You are now affected by stone form."
+        @target.broadcast("%s's flesh turns to stone.", @target.target({list: @target.room, not: @target}), [@target] )
     end
 
-    def complete
+    def send_complete_messages
         @target.output "Your flesh feels more supple."
+        @target.broadcast("%s's flesh looks more supple.", @target.target({list: @target.room, not: @target}), [@target] )
     end
 
 end

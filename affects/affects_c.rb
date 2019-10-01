@@ -16,17 +16,17 @@ class AffectCorrosive < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.broadcast "{g%s flesh burns away, revealing vital areas!{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{gChunks of your flesh melt away, exposing vital areas!{x"
     end
 
-    def refresh
+    def send_refresh_messages
         @target.broadcast "{g%s flesh burns away, revealing vital areas!{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{gChunks of your flesh melt away, exposing vital areas!{x"
     end
 
-    def complete
+    def send_complete_messages
         @target.output "Your flesh begins to heal."
     end
 

@@ -15,12 +15,14 @@ class AffectHaste < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.output "You feel yourself moving more quickly."
+        @target.broadcast("%s starts moving more quickly.", @target.target({list: @target.room.occupants, not: @target}), @target)
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You feel yourself slow down."
+        @target.broadcast("%s slows down.", @target.target({list: @target.room.occupants, not: @target}), @target)
     end
 end
 
@@ -49,11 +51,11 @@ class AffectHatchling < Affect
         )
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_on_level_up, self, :hatch)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_on_level_up, self)
     end
 
@@ -62,7 +64,7 @@ class AffectHatchling < Affect
             race_name = @@HATCHLING_MESSAGES.keys.sample
             @target.set_race_id(@game.race_data.select { |k, v| v[:name] == race_name }.first[0])
             @target.output("#{@@HATCHLING_MESSAGES[ race_name ].join("\n")}")
-            self.clear(call_complete: false)
+            self.clear(silent: true)
         end
     end
 

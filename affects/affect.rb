@@ -1,5 +1,6 @@
 class Affect
     attr_accessor :duration
+    attr_accessor :permanent
     attr_accessor :source
     attr_accessor :savable
     attr_reader :application_type
@@ -7,7 +8,6 @@ class Affect
     attr_reader :level
     attr_reader :modifiers
     attr_reader :name
-    attr_reader :permanent
     attr_reader :priority
 
     def initialize(
@@ -16,7 +16,7 @@ class Affect
         target:,
         keywords:,
         name:,
-        level:,
+        level: 0,
         duration: 0,
         modifiers: {},
         period: nil,
@@ -45,20 +45,35 @@ class Affect
         @conditions = []
     end
 
-    # override this method to add event listeners - Make sure you remove them in +unhook+!
-    def hook
+    # Override this method to output start messages.
+    # Doesn't always get called!
+    def send_start_messages
     end
 
-    # override this method to clear event listeners
-    def unhook
-    end
-
-    def start
-        # @target.output "Affect has started: #{@duration} seconds remain."
-    end
-
-    def refresh
+    # Override this method to output refresh messages.
+    # Doesn't always get called!
+    def send_refresh_messages
         @target.output "Your #{@name} is refreshed!"
+    end
+
+    # Override this method to output ending messages.
+    # Doesn't always get called!
+    def send_complete_messages
+    end
+
+    # Override this method to perform actions and logic.
+    # This is also where you add event listeners. Make sure you remove them in +complete+.
+    #
+    # Always gets called when an affect is applied. +start+ can be called multiple times
+    # if the affect application type is :global_stack or :source_stack.
+    def start
+    end
+
+    # Override this method to perform actions and logic.
+    # This is where you remove event listeners.
+    #
+    # Always gets called when an affect is cleared.
+    def complete
     end
 
     def update( elapsed )
@@ -70,25 +85,20 @@ class Affect
             end
         end
         @duration -= elapsed if !@permanent
-        if (@duration <= 0 && !@permanent) || (@conditions.length > 0 && @conditions.map { |condition| condition.evaluate }.include?(false))
-            clear(call_complete: true)
+        if (@duration.to_i <= 0 && !@permanent) || (@conditions.length > 0 && @conditions.map { |condition| condition.evaluate }.include?(false))
+            clear(silent: false)
         end
     end
 
     # Call this method to remove an affect from a GameObject.
-    # You may optionally specify whether :complete is called or not, defaulting to true.
-    def clear(call_complete: true)
-        unhook
+    def clear(silent: false)
+        send_complete_messages if !silent
+        complete
         @target.affects.delete self
         @game.remove_affect(self)
-        complete if call_complete
     end
 
     def periodic
-    end
-
-    def complete
-        # @target.output "Affect has worn off."
     end
 
     def check( key )

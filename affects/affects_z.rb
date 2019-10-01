@@ -15,18 +15,18 @@ class AffectZeal < Affect
     end
 
     def start
-        @target.output "You begin to channel pain into a zealous wrath!"
-    end
-
-    def hook
     	@target.add_event_listener(:event_calculate_damage, self, :do_zeal)
     end
 
-    def unhook
-		@target.add_event_listener(:event_calculate_damage, self)
+    def send_start_messages
+        @target.output "You begin to channel pain into a zealous wrath!"
     end
 
     def complete
+		@target.add_event_listener(:event_calculate_damage, self)
+    end
+
+    def send_complete_messages
         @target.output "Your combat abilities returns to normal."
     end
 

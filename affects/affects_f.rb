@@ -8,12 +8,12 @@ class AffectFireBlind < AffectBlind
         @name = "fireblind"
     end
 
-    def start
+    def send_start_messages
         @target.broadcast "{r%s is blinded by smoke!{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{rYour eyes tear up from smoke...you can't see a thing!{x"
     end
 
-    def complete
+    def send_complete_messages
         @target.output "The smoke leaves your eyes."
     end
 
@@ -33,12 +33,16 @@ class AffectFireRune < Affect
         )
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_mobile_enter, self, :do_fire_rune)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_mobile_enter, self)
+    end
+
+    def send_complete_messages
+        @source.broadcast "The rune of flames on this room vanishes.", @target.target({ room: @target })
     end
 
     def do_fire_rune(data)
@@ -72,17 +76,17 @@ class AffectFlooding < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.broadcast "{b%s coughes and chokes on the water.{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{bYou cough and choke on the water.{x"
     end
 
-    def refresh
+    def send_refresh_messages
         @target.broadcast "{b%s coughes and chokes on the water.{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{bYou cough and choke on the water.{x"
     end
 
-    def complete
+    def send_complete_messages
         @target.output "Your flesh begins to heal."
     end
 
@@ -104,17 +108,17 @@ class AffectFrost < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.broadcast "{C%s turns blue and shivers.{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{CA chill sinks deep into your bones.{x"
     end
 
-    def refresh
+    def send_refresh_messages
         @target.broadcast "{C%s turns blue and shivers.{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{CA chill sinks deep into your bones.{x"
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You start to warm up."
     end
 

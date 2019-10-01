@@ -71,6 +71,7 @@ class Player < Mobile
     end
 
     def output( message, objects = [] )
+        objects = objects.to_a
         if objects.count > 0
             @buffer += "#{ message % objects.map{ |obj| (obj.respond_to?(:show)) ? obj.show( self ) : obj.to_s } }\n".capitalize_first
         else
@@ -122,7 +123,7 @@ class Player < Mobile
         broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
         stop_combat
         @affects.each do |affect|
-            affect.clear(call_complete: false) if !affect.permanent
+            affect.clear(silent: true) if !affect.permanent
         end
         room = @game.recall_room( @room.continent )
         move_to_room( room )

@@ -141,7 +141,7 @@ module GameSave
             item_data[:equipped] = "1"
         end
         @db[:saved_player_item].insert(item_data)
-        item.affects.each do |affect|
+        item.affects.select{ |affect| affect.savable }.each do |affect|
             save_player_item_affect(affect, item, saved_player_id)
         end
     end
@@ -203,12 +203,22 @@ module GameSave
         player.quest_points = player_data[:quest_points]
         player.position = player_data[:position]
 
-        # load affects
+        # load items
+        item_rows = @db[:saved_player_item].where(saved_player_id: player_data[:id]).all
+        item_rows.each do |row|
+            item = load_item(row[:item_id], player.inventory)
+            item.uuid = row[:uuid]
+            if row[:equipped] == 1
+                player.wear(item: item, silent: true)
+            end
+        end
+
+        # load player affects
         affect_rows = @db[:saved_player_affect].where(saved_player_id: player_data[:id]).all
         affect_rows.each do |affect_row|
             affect_class = Constants::AFFECT_CLASS_HASH[affect_row[:name]]
             if affect_class
-                source = find_affect_source(affect_row, player)
+                source = find_affect_source(affect_row, player.items + [player])
                 if source != false # source can be nil, just not false - see find_affect_source
                     affect = affect_class.new(source: source, target: player, level: affect_row[:level], game: self)
                     affect.duration = affect_row[:duration]
@@ -223,16 +233,6 @@ module GameSave
             end
         end
 
-        # load items
-        item_rows = @db[:saved_player_item].where(saved_player_id: player_data[:id]).all
-        item_rows.each do |row|
-            item = load_item(row[:item_id], player.inventory)
-            item.uuid = row[:uuid]
-            if row[:equipped] == 1
-                player.wear(item: item, silent: true)
-            end
-        end
-
         # apply affects to items
         player.items.each do |item|
             item_affect_rows = @db[:saved_player_item_affect].where(saved_item_uuid: item.uuid).all
@@ -241,7 +241,7 @@ module GameSave
                 if affect_class
                     source = find_affect_source(affect_row, player.items + [player])
                     if source != false # source can be nil, just not false - see find_affect_source
-                        affect = affect_class.new(source: source, target: player, level: affect_row[:level], game: self)
+                        affect = affect_class.new(source: source, target: item, level: affect_row[:level], game: self)
                         affect.duration = affect_row[:duration]
                         modifiers = {}
                         modifier_rows = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: affect_row[:id]).all

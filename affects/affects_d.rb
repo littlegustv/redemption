@@ -15,12 +15,11 @@ class AffectDetectInvisibility < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.output "Your eyes tingle."
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You can no longer detect invisibility."
     end
 end
-

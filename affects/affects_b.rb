@@ -16,7 +16,8 @@ class AffectBerserk < Affect
         )
     end
 
-    def start
+    def send_start_messages
+        @target.broadcast("%s gets a wild look in %x eyes!", @target.target({list:@target.room.occupants, not: @target}), @target)
         @target.output "Your pulse races as you are consumed by rage!"
     end
 
@@ -57,9 +58,14 @@ class AffectBladeRune < Affect
         @message, @modifiers = @@TYPES.sample
     end
 
-    def start
-        @source.output "You empower the weapon with a blade rune!"
+    def send_start_messages
+        @source.broadcast("%s empowers %s with a blade rune.", @source.target({list: @source.room.occupants, not: @source}), [@source, @target])
+        @source.output "You empower the %s with a blade rune!", @target
         @source.output @message
+    end
+
+    def send_complete_messages
+        @source.output "The blade    rune on %s fades away.", [@target]
     end
 end
 
@@ -79,20 +85,20 @@ class AffectBlind < Affect
         )
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_try_can_see, self, :do_blindness)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_try_can_see, self)
     end
 
-    def start
+    def send_start_messages
         @target.broadcast "%s is blinded!", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "You can't see a thing!"
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You can see again."
     end
 
@@ -127,11 +133,11 @@ class AffectBurstRune < Affect
         @noun = "elemental charged strike"
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_override_hit, self, :do_burst_rune)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_override_hit, self)
     end
 
@@ -143,12 +149,13 @@ class AffectBurstRune < Affect
         end
     end
 
-    def start
+    def send_start_messages
         @source.output "You empower the weapon with an elemental burst rune!"
         @source.output @message
     end
 
-    def complete
+    def send_complete_messages
+        @source.output "The burst rune on %s fades away.", [@target]
     end
 
     def summary

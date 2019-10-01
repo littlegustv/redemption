@@ -21,20 +21,20 @@ class AffectShackle < Affect
         )
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_mobile_enter, self, :do_shackles)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_mobile_enter, self)
     end
 
-    def start
+    def send_start_messages
         @target.output "You are bound and restricted by runic shackles!"
         @target.broadcast "%s has been bound by runic shackles!", @target.target({ room: @target.room, not: @target }), [ @target ]
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You feel less restricted in movement."
     end
 
@@ -60,15 +60,15 @@ class AffectShackleRune < Affect
         )
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_mobile_enter, self, :do_shackle_rune)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_mobile_enter, self)
     end
 
-    def complete
+    def send_complete_mesages
         @source.output "You feel that movement is not being restricted by runes as much as it used to."
         @source.broadcast "The rune of warding on this room vanishes.", @source.target({ room: @target })
     end
@@ -114,12 +114,12 @@ class AffectShocking < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
 
-    def refresh
+    def send_refresh_messages
         @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, room: @target.room }), [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
@@ -140,11 +140,11 @@ class AffectSneak < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.output "You attempt to move silently."
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You are now visible."
     end
 end
@@ -164,11 +164,11 @@ class AffectSlow < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.output "You find yourself moving more slowly."
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You speed up."
     end
 end
@@ -188,11 +188,11 @@ class AffectStun < Affect
         )
     end
 
-    def start
+    def send_start_messages
         @target.output "You are stunned but will probably recover."
     end
 
-    def complete
+    def send_complete_messages
         @target.output "You are no longer stunned."
     end
 end

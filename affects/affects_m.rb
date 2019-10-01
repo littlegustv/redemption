@@ -16,18 +16,15 @@ class AffectMirrorImage < Affect
         @health = 5
     end
 
-    def hook
+    def start
         @target.add_event_listener(:event_override_hit, self, :do_mirror_image)
     end
 
-    def unhook
+    def complete
         @target.delete_event_listener(:event_override_hit, self)
     end
 
-    def complete
-    end
-
-    def start
+    def send_start_messages
     	@source.output "You create a mirror image of yourself."
     	@source.broadcast "%s creates a mirror image.", @source.target( room: @source.room, not: @source ), [@source]
     end
@@ -41,7 +38,7 @@ class AffectMirrorImage < Affect
 	        	@source.remove_affect("mirror image")
 	        else
 	        	@source.output "Your mirror image takes %s's hit!", [data[:source]]
-	        	@source.broadcast "%s's mirror image absorbs the shock.", @source.target( room: @source.room, not: @source ), [ @source ]	        	
+	        	@source.broadcast "%s's mirror image absorbs the shock.", @source.target( room: @source.room, not: @source ), [ @source ]
 	        end
 	        data[:confirm] = true
 	    end

@@ -102,6 +102,7 @@ class Game
                     @players[name] = @inactive_players[name].__getobj__
                     @inactive_players.delete(name)
                     @players[name].reconnect(client, thread)
+                    puts "#{name} is connecting as an inactive player!"
                     save
                     finalize_login(@players[name])
                     return
