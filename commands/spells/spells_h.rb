@@ -17,7 +17,7 @@ class SpellHurricane < Spell
         actor.broadcast "%s summons a hurricane!", actor.target({ not: actor, list: actor.room.occupants, type: ["Mobile", "Player"] }), [actor]
         actor.output "You summon a hurricane!"
     	( targets = actor.target({ not: actor, room: actor.room, type: ["Mobile", "Player"] })).each do |target|
-    		actor.magic_hit( target, 100, "hurricane", "flooding" )
+    		actor.deal_damage(target: target, damage: 100, noun:"hurricane", element: Constants::Element::DROWNING, type: Constants::Damage::MAGICAL)
     	end
         return true
     end

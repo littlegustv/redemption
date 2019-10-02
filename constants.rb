@@ -261,19 +261,20 @@ module Constants
         SpellBurstRune,
         SpellDestroyRune,
         SpellDestroyTattoo,
+        SpellDetectInvisibility,
         SpellEnchantWeapon,
         SpellFireRune,
         SpellHurricane,
         SpellIceBolt,
-        SpellLightningBolt,
-        SpellPyrotechnics,
-        SpellShackleRune,
+        SpellIgnoreWounds,
         SpellInvisibility,
-        SpellDetectInvisibility,
+        SpellLightningBolt,
         SpellMassInvisibility,
-        SpellVentriloquate,
         SpellMirrorImage,
         SpellPhantomForce,
+        SpellPyrotechnics,
+        SpellShackleRune,
+        SpellVentriloquate,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -292,6 +293,7 @@ module Constants
         "guard" =>                  AffectGuard,
         "haste" =>                  AffectHaste,
         "hatchling" =>              AffectHatchling,
+        "ignore wounds" =>          AffectIgnoreWounds,
         "invisibility" =>           AffectInvisibility,
         "invisible" =>              AffectInvisibility,
         "killer" =>                 AffectKiller,
@@ -305,9 +307,8 @@ module Constants
         "slow" =>                   AffectSlow,
         "sneak" =>                  AffectSneak,
         "stun" =>                   AffectStun,
+        "vuln" =>                   AffectVuln,
         "zeal" =>                   AffectZeal
     }
-
-
 
 end

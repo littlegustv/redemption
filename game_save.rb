@@ -111,7 +111,8 @@ module GameSave
             name: affect.name,
             level: affect.level,
             duration: affect.duration,
-            source_type: "None"
+            source_type: "None",
+            data: affect.data.to_json
         }
         if affect.source
             affect_data.merge!(affect.source.db_source_fields)
@@ -157,7 +158,8 @@ module GameSave
             name: affect.name,
             level: affect.level,
             duration: affect.duration,
-            source_type: "None"
+            source_type: "None",
+            data: affect.data.to_json
         }
         if affect.source
             affect_data.merge!(affect.source.db_source_fields)
@@ -225,9 +227,10 @@ module GameSave
                     modifiers = {}
                     modifier_rows = @db[:saved_player_affect_modifier].where(saved_player_affect_id: affect_row[:id]).all
                     modifier_rows.each do |modifier_row|
-                        modifiers[modifier_row[:field]] = modifier_row[:value]
+                        modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
                     end
                     affect.overwrite_modifiers(modifiers)
+                    affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
                     player.apply_affect(affect, silent: true)
                 end
             end
@@ -246,9 +249,10 @@ module GameSave
                         modifiers = {}
                         modifier_rows = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: affect_row[:id]).all
                         modifier_rows.each do |modifier_row|
-                            modifiers[modifier_row[:field]] = modifier_row[:value]
+                            modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
                         end
                         affect.overwrite_modifiers(modifiers)
+                        affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
                         item.apply_affect(affect, silent: true)
                     end
                 end

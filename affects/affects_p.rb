@@ -31,7 +31,8 @@ class AffectPoison < Affect
 
     def periodic
         @target.output "You shiver and suffer."
-        @target.damage 10, @target
+        @target.broadcast("%s shivers and suffers.", @target.target({list: @target.room.occupants, not: @target}), @target)
+        @target.receive_damage(source: nil, damage: 10, element: Constants::Element::POISON, type: Constants::Damage::MAGICAL, silent: true)
     end
 
     def send_complete_messages

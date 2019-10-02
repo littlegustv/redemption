@@ -109,6 +109,7 @@ module GameSetup
             value[:part_flags] = value[:part_flags].split(",")
             value[:form_flags] = value[:form_flags].split(",")
             value[:equip_slots] = value[:equip_slots].split(",")
+            value[:h2h_flags] = value[:h2h_flags].split(",")
         end
         log ( "Database load complete: Race data" )
     end
@@ -120,6 +121,9 @@ module GameSetup
             value[:skills] = value[:skills].to_s.split(",")
             value[:spells] = value[:spells].to_s.split(",")
             value[:affect_flags] = value[:affect_flags].to_s.split(",")
+            value[:immune_flags] = value[:immune_flags].to_s.split(",")
+            value[:resist_flags] = value[:resist_flags].to_s.split(",")
+            value[:vuln_flags] = value[:vuln_flags].to_s.split(",")
         end
         log ( "Database load complete: Class data" )
     end

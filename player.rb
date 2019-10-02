@@ -3,7 +3,7 @@ class Player < Mobile
     def initialize( data, game, room, client, thread )
         @buffer = ""
         @delayed_buffer = ""
-        @scroll = 40
+        @scroll = 60
 	    @lag = 0
         @client = client
         @thread = thread
@@ -71,6 +71,9 @@ class Player < Mobile
     end
 
     def output( message, objects = [] )
+        if !@active
+            return
+        end
         objects = objects.to_a
         if objects.count > 0
             @buffer += "#{ message % objects.map{ |obj| (obj.respond_to?(:show)) ? obj.show( self ) : obj.to_s } }\n".capitalize_first

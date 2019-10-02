@@ -61,7 +61,7 @@ class Item < GameObject
 
     def lore
 %Q(
-Object '#{ @short_description }' is of type #{ @type }. [Clanner Only]
+Object '#{ @short_description }' is of type #{ @type }.
 Description: #{ @long_description }
 Keywords '#{ @keywords.join(' ') }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
@@ -96,18 +96,19 @@ class Weapon < Item
 
 	attr_accessor :noun, :element, :flags
 
-	def initialize( data, game, room )
-		super data, game, room
+	def initialize( data, game, parent_inventory )
+		super(data, game, parent_inventory)
 
 		@noun = data[:noun] || "pierce"
 		@flags = data[:flags] || []
 		@element = data[:element] || "iron"
 		@dice_count = data[:dice_count] || 2
 		@dice_sides = data[:dice_sides] || 6
+        @dice_bonus = data[:dice_bonus] || 0
 	end
 
 	def damage
-        dice( @dice_count, @dice_sides )
+        dice( @dice_count, @dice_sides ) + @dice_bonus
 	end
 
 end
@@ -156,7 +157,7 @@ class Tattoo < Item
             material: "tattoo",
             extraFlags: "noremove",
             ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
-        }.merge( paint ), runist.game, nil)
+        }.merge( paint ), runist.game, runist.inventory)
         @runist = runist
         @duration = 600.0 * runist.level
         @slot = slot

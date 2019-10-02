@@ -111,9 +111,6 @@ class GameObject
         if [:source_overwrite, :source_stack, :source_single].include?(type)
             existing_affects.select! { |a| a.source == new_affect.source }
         end
-        if existing_affects.length > 1 # This shouldn't ever happen, I don't think!
-            puts "Multiple pre-existing affects in apply_effect on affect #{affect} belonging to #{self}"
-        end
         if !existing_affects.empty?
             case type
             when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
@@ -128,6 +125,11 @@ class GameObject
                 existing_affects.first.start
             when :global_single, :source_single                    # do nothing, already applied
                 return false
+            when :multiple
+                new_affect.send_start_messages if !silent
+                affects.push(new_affect)
+                @game.add_affect(new_affect)
+                new_affect.start
             else
                 puts "unknown application type #{affect.application_type} in apply_affect on affect #{affect} belonging to #{self}"
                 return false
@@ -143,9 +145,12 @@ class GameObject
 
     # Applies an group of affects from an array of strings, matching the strings as keys for
     # AFFECT_CLASS_HASH in constants.rb
+    # +flags+:: array of flag strings. +["infravision", "hatchling", "flying"]+
+    # +silent+:: true if the affects should not output messages
+    # +array+:: array to add affects onto
     #  some_mobile.apply_affect_flags(["infravision", "hatchling", "flying"])
     #
-    def apply_affect_flags(flags, silent: false)
+    def apply_affect_flags(flags, silent: false, array: nil)
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class
@@ -153,13 +158,13 @@ class GameObject
                 affect.savable = false
                 affect.permanent = true
                 apply_affect(affect, silent)
+                array << affect if array
             end
         end
     end
-    ##
+
     # Remove all affects by a given keyword
     # +term+:: The keyword to match
-    #
     def remove_affect(term)
         list = @affects.select{ |a| a.check( term )  }
         list.each do |affect|

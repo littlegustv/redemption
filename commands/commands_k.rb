@@ -25,8 +25,7 @@ class CommandKill < Command
             actor.output "You are already fighting!"
             return false
         elsif ( kill_target = actor.target({ room: actor.room, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            kill_target.start_combat actor
-            actor.start_combat kill_target
+            actor.do_round_of_attacks(target: kill_target)
             return true
         else
             actor.output "I can't find anyone with that name."

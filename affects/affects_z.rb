@@ -2,20 +2,21 @@ require_relative 'affect.rb'
 
 class AffectZeal < Affect
 
-    def initialize(source:)
+    def initialize(source:, target:, level:, game:)
         super(
+            game: game,
             source: source,
-            target: source,
+            target: target,
             keywords: ["zeal"],
             name: "zeal",
-            level:  1,
+            level:  level,
             permanent: true,
-            modifiers: { none: 0 },
+            modifiers: { none: 0 }
         )
     end
 
     def start
-    	@target.add_event_listener(:event_calculate_damage, self, :do_zeal)
+    	@target.add_event_listener(:event_calculate_weapon_hit_damage, self, :do_zeal)
     end
 
     def send_start_messages
@@ -23,7 +24,7 @@ class AffectZeal < Affect
     end
 
     def complete
-		@target.add_event_listener(:event_calculate_damage, self)
+		@target.add_event_listener(:event_calculate_weapon_hit_damage, self)
     end
 
     def send_complete_messages

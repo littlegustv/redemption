@@ -2,7 +2,7 @@ require_relative 'mobile_item'
 
 class Mobile < GameObject
 
-    attr_accessor :id, :attacking, :lag, :position, :inventory, :affects, :active
+    attr_accessor :id, :attacking, :lag, :position, :inventory, :active
     attr_accessor :level, :group, :in_group, :experience, :quest_points, :alignment, :wealth
 
     attr_reader :game, :room, :race_id, :class_id, :stats
@@ -19,8 +19,6 @@ class Mobile < GameObject
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
         @equip_slots = []
-        set_race_id(data[:race_id])
-        set_class_id(data[:class_id])
         @skills = []
         @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
 
@@ -66,9 +64,14 @@ class Mobile < GameObject
         @movepoints = data[:movepoints] || 100
         @basemovepoints = @movepoints
 
-        @damage_range = data[:damage_range] || [ 2, 12 ]
-        @noun = data[:attack] || ["entangle", "grep", "strangle", "pierce", "smother", "flaming bite"].sample
-        # @armor_class = data[:armor_class] || [0, 0, 0, 0]
+        # @damage_range = data[:damage_range] || nil
+        # @noun = data[:attack] || nil
+        @damage_dice_sides = data[:damage_dice_sides]
+        @damage_dice_count = data[:damage_dice_count]
+        @damage_dice_bonus = data[:damage_dice_bonus]
+        @hand_to_hand_noun = data[:hand_to_hand_noun]
+        @swing_counter = 0
+
         @parts = data[:parts] || Constants::PARTS
 
         @position = Position::STAND
@@ -76,6 +79,11 @@ class Mobile < GameObject
 
         @room = room
         @room.mobile_arrive(self) if @room
+        @race_affects = []                  # list of affects applied by race
+        @class_affects = []                  # list of affects applied by race
+
+        set_race_id(data[:race_id])
+        set_class_id(data[:class_id])
 
         apply_affect_flags(data[:affect_flags].to_a)
         apply_affect_flags(data[:specials].to_a)
@@ -217,43 +225,11 @@ class Mobile < GameObject
 
     def combat
         if @attacking && @active && @attacking.active
-            to_me = []
-            to_target = []
-            to_room = []
-            weapon = wielded.first
-            stat( :attack_speed ).times do |attack|
-                hit_chance = ( attack_rating - @attacking.defense_rating( weapon ? weapon.element : "bash" ) ).clamp( 5, 95 )
-                if rand(0...100) < hit_chance
-                    damage = damage_rating
-                else
-                    damage = 0
-                end
-                data = { damage: damage, source: self, target: @attacking }
-                @game.fire_event( :event_calculate_damage, data, self )
-
-                # :event_override_hit allows for affects to completely replace
-                # a normal physical attack - including both aggressively ( burst rune )
-                # and defensively ( mirror image )
-
-                # if an override has occurred, it is passed through the 'confirm' field,
-                # and the normal hit does not occur
-
-                hit data[:damage]
-
-                return if @attacking.nil?
-                weapon_flags if data[:damage] > 0
-                return if @attacking.nil?
-            end
+            do_round_of_attacks(target: @attacking)
         end
     end
 
-    def noun
-        weapon = wielded.first
-        weapon ? weapon.noun : @noun
-    end
-
-    def weapon_flags
-        weapon = wielded.first
+    def weapon_flags(weapon)
         ( flags = ( weapon ? weapon.flags : [] ) ).each do |flag|
             if ( texts = Constants::ELEMENTAL_EFFECTS[ flag ] )
                 @attacking.output texts[0], [self]
@@ -284,77 +260,161 @@ class Mobile < GameObject
         end
     end
 
-    def magic_hit( target, damage, noun = "spell", element = "spell" )
-        if target != self
-            target.start_combat( self )
-            self.start_combat( target )
+    # Gets a single weapon in wielded slot, cycling on each hit, or hand to hand
+    def weapon_for_next_hit
+        weapons = wielded
+        case weapons.length
+        when 0 # hand to hand
+            return hand_to_hand_weapon
+        when 1 # single weapon
+            return weapons.first
+        else # multi-wield
+            @swing_counter.clamp(0, weapons.length - 1)
+            @swing_counter = (@swing_counter + 1) % weapons.length
+            return weapons[@swing_counter]
         end
-
-        decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-
-        output "Your #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", [target] if @room == target.room
-        target.output("%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self]) unless target == self
-        broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, target], room: @room }), [self, target]
-
-        elemental_effect( target, element )
-        elemental_effect( target, element ) if knows "essence"
-
-        target.damage( damage, self )
+        log "Error in mobile weapon_for_next_hit: #{name}" # should never happen
+        return nil
     end
 
-    def hit( damage, custom_noun = nil, target = nil )
-        override = { confirm: false, source: self, target: @attacking }
-        @game.fire_event( :event_override_hit, override, self, @attacking, equipment )
+    # generate hand to hand weapon.
+    def hand_to_hand_weapon
+        weapon_data = {
+            short_description: "Hand to hand",
+            id: 0,
+            keywords: "",
+            level: @level,
+            weight: 0,
+            cost: 0,
+            long_description: "",
+            type: "weapon",
+            wear_location: nil,
+            material: "flesh",
+            extra_flags: [],
+            wear_flags: [],
+            modifiers: {},
+            ac: {},
+            noun: @hand_to_hand_noun || @game.race_data.dig(@race_id, :h2h_noun),
+            flags: @game.race_data.dig(@race_id, :h2h_flags),
+            element: @game.race_data.dig(@race_id, :h2h_element),
+            dice_count: @damage_dice_count || 6,
+            dice_sides: @damage_dice_sides || 7,
+            dice_bonus: @damage_dice_bonus || 0
+        }
+        weapon = Weapon.new(weapon_data, @game, nil)
+        return weapon
+    end
 
-        if not override[:confirm]
+    # do a round of attacks against a target
+    def do_round_of_attacks(target:)
+        stat( :attack_speed ).times do |attack|
+            weapon_hit(target: target)
+        end
+    end
 
-            hit_noun = custom_noun || noun
-            target = target || @attacking
-            decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-
-            output "Your #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} [#{damage}]", [target] if @room == target.room
-            target.output "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} you#{decorators[3]}", [self]
-            broadcast "%s's #{decorators[2]} #{hit_noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, target ], room: @room }), [self, target]
-
-            target.damage( damage, self )
+    # Hit a target using weapon for damage
+    def weapon_hit(target:, damage_bonus: 0, hit_bonus: 0, custom_noun: nil, weapon: nil)
+        weapon = weapon || weapon_for_next_hit
+        noun = custom_noun || weapon.noun
+        hit = false
+        override = { confirm: false, source: self, target: target, weapon: weapon }
+        @game.fire_event( :event_override_hit, override, self, target, equipment )
+        if override[:confirm]
+            return
+        end
+        hit_chance = (hit_bonus + attack_rating - target.defense_rating( weapon ? weapon.element : "bash" ) ).clamp( 5, 95 )
+        if rand(0...100) < hit_chance
+            damage = damage_rating(weapon: weapon) + damage_bonus
+            hit = true
+        else
+            damage = 0
+        end
+        data = { damage: damage, source: self, target: target, weapon: weapon }
+        @game.fire_event( :event_calculate_weapon_hit_damage, data, self )
+        deal_damage(target: target, damage: data[:damage], noun: weapon.noun, element: weapon.element, type: Constants::Damage::PHYSICAL)
+        if hit
             data = { damage: damage, source: self, target: attacking }
             @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment)
-
+        end
+        if @attacking
+            weapon_flags(weapon) if data[:damage] > 0
         end
     end
 
-    def anonymous_damage( damage, element = nil, magic = true, source = "Powerful magic" )
-        decorators = []
-        if magic
-            decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-            output "#{source} #{decorators[0]} you#{decorators[1]}#{decorators[2]}"
-            broadcast "#{source} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self], room: @room }), [self]
-            elemental_effect( self, element )
-        else
-            decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-            output "#{source} #{decorators[1]} you#{decorators[3]}"
-            broadcast "#{source} #{decorators[1]} %s#{decorators[3]}", target({ not: [self], room: @room }), [self]
+    # Deal some damage to a mobile.
+    # +target+:: the mobile who will be receiving the damage
+    # +damage+:: the amount of damage being dealt
+    # +element+:: the element of the damage (fire, cold, etc)
+    # +type+:: the type of the damage: physical of magical
+    # +silent+:: true if damage decorators should not be broadcast
+    # +anonymous+:: true if output messages should omit the +source+
+    #  mob1.deal_damage(target: mob2, noun: "stab", element: Constants::Element::PIERCE, type: Constants::Damage::PHYSICAL)
+    #  mob1.deal_damage(target: mob2, noun: "ice bolt", element: Constants::Element::COLD, type: Constants::Damage::MAGICAL)
+    def deal_damage(target:, damage:, noun: "damage", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: false, anonymous: false)
+        if !target || !target.active # if this is inactive, it can still deal damage
+            return
         end
-        damage(damage, nil)
+        if !is_player?
+            damage = (damage * 0.1).to_i
+        end
+        calculation_data = { damage: damage, source: self, target: target, element: element, type: type }
+        @game.fire_event(:event_calculate_damage, calculation_data, self, equipment, target, target.equipment)
+        damage = calculation_data[:damage]
+        override = { confirm: false, source: self, target: target, damage: damage, noun: noun, element: element, type: type }
+        @game.fire_event( :event_override_damage, override, self, equipment, target, target.equipment )
+        if override[:confirm]
+            return
+        end
+        target.receive_damage(source: self, damage: damage, noun: noun, element: element, type: type, silent: silent, anonymous: anonymous)
     end
 
-    def damage( damage, attacker )
+    # Receive some damage!
+    # +source+:: the mobile dealing the damage (can be nil)
+    # +damage+:: the amount of damage being dealt
+    # +element+:: the element of the damage (fire, cold, etc)
+    # +type+:: the type of the damage: physical of magical
+    # +silent+:: true if damage decorators should not be broadcast
+    # +anonymous+:: true if output messages should omit the +source+
+    def receive_damage(source:, damage:, noun: "damage", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: false, anonymous: false)
+        if !@active # inactive mobiles can't take damage.
+            return
+        end
+        if source && source != self
+            self.start_combat( source )
+            source.start_combat( self )
+        end
+        if type == Constants::Damage::PHYSICAL # phyiscal damage
+            if !silent
+                decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+                if source && !anonymous
+                    source.output("Your #{decorators[2]} #{noun} #{decorators[1]} #{(source==self) ? "yourself" : "%s"}#{decorators[3]} [#{damage}]", [self])
+                    output("%s's #{decorators[2]} #{noun} #{decorators[1]} you#{decorators[3]}", [source]) if source != self
+                    broadcast("%s's #{decorators[2]} #{noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, source ], list: (self.room.occupants | source.room.occupants) }), [source, self])
+                else # anonymous damage
+                    output("#{noun} #{decorators[1]} you#{decorators[3]}", [self])
+                    broadcast("#{noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self ], list: self.room.occupants }), [self])
+                end
+            end
+        else # magic damage
+            if !silent
+                decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
+                if source && !anonymous
+                    source.output("Your #{noun} #{decorators[0]} #{(source==self) ? "yourself" : "%s"}#{decorators[1]}#{decorators[2]}", [self])
+                    output("%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [source]) if source != self
+                    broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, source], list: (self.room.occupants | source.room.occupants) }), [source, self]
+                else # anonymous damage
+                    output("#{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self])
+                    broadcast "#{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [ self ], list: self.room.occupants }), [self]
+                end
+            end
+        end
         @hitpoints -= damage
-        die( attacker ) if @hitpoints <= 0
-    end
-
-    def deal_damage(target:, damage:, element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL)
-
-    end
-
-    def receive_damage(source:, damage:, element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL)
-
+        die( source ) if @hitpoints <= 0
     end
 
     def show_equipment(observer)
         objects = []
         lines = []
-        string = ""
         @equip_slots.each do |equip_slot|
             line = "<#{equip_slot.list_prefix}>".ljust(22)
             if equip_slot.item
@@ -500,13 +560,8 @@ class Mobile < GameObject
         ( -1 * stat( "armor_#{element}".to_sym ) - 100 ) / 5
     end
 
-    def damage_rating
-        weapon = wielded.first
-        if weapon
-            weapon.damage + stat(:damroll)
-        else
-            rand(@damage_range[0]...@damage_range[1]).to_i + stat(:damroll)
-        end
+    def damage_rating(weapon:)
+        return weapon.damage + stat(:damroll)
     end
 
     def to_s
@@ -588,7 +643,14 @@ class Mobile < GameObject
     end
 
     def score
-    race_hash = @game.race_data[@race_id]
+        race_hash = @game.race_data[@race_id]
+        element_data = {string: ""}
+        @game.fire_event( :event_display_vulns, element_data, self, equipment )
+        @game.fire_event( :event_display_resists, element_data, self, equipment )
+        @game.fire_event( :event_display_immunes, element_data, self, equipment )
+        if element_data[:string] == ""
+            element_data[:string] = "\nNone."
+        end
 %Q(#{@short_description}
 Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
@@ -601,7 +663,6 @@ Member of clan Kenshi
 {cQuest Points:{x #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
 {cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".ljust(26) } {cWeight:{x    #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
 {cGold:{x      #{ gold.to_s.ljust(26) } {cSilver:{x    #{ silver.to_s }
-{cClaims Remaining:{x N/A
 ---------------------------------- Stats --------------------------------
 {cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".ljust(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
 {cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".ljust(26)} {cWimpy:{x     #{@wimpy}
@@ -611,6 +672,7 @@ Member of clan Kenshi
 {cHitRoll:{x   #{ stat(:hitroll).to_s.ljust(26)} {cDamRoll:{x   #{ stat(:damroll) }
 {cDamResist:{x #{ stat(:damresist).to_s.ljust(26) } {cMagicDam:{x  #{ stat(:magicdam) }
 {cAttackSpd:{x #{ stat(:attack_speed) }
+-------------------------------- Elements -------------------------------#{element_data[:string]}
 --------------------------------- Armour --------------------------------
 {cPierce:{x    #{ (-1 * stat(:ac_pierce)).to_s.ljust(26) } {cBash:{x      #{ -1 * stat(:ac_bash) }
 {cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.ljust(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
@@ -661,15 +723,40 @@ You are #{Position::STRINGS[ @position ]}.)
         old_equipment.each do |item| # try to wear all items that were equipped before
             wear(item: item, silent: true)
         end
-
+        @race_affects.each do |affect|
+            affect.clear(silent: true)
+        end
+        @race_affects = []
         affect_flags = @game.race_data.dig(@race_id, :affect_flags)
-        apply_affect_flags(affect_flags) if affect_flags
+        apply_affect_flags(affect_flags, silent: true, array: @race_affects) if affect_flags
+        apply_element_flags(@game.race_data.dig(@race_id, :vuln_flags), AffectVuln, @race_affects)
+        apply_element_flags(@game.race_data.dig(@race_id, :resist_flags), AffectResist, @race_affects)
+        apply_element_flags(@game.race_data.dig(@race_id, :immune_flags), AffectImmune, @race_affects)
     end
 
     def set_class_id(new_class_id)
         @class_id = new_class_id
+        @class_affects.each do |affect|
+            affect.clear(silent: true)
+        end
+        @class_affects = []
         affect_flags = @game.class_data.dig(@class_id, :affect_flags)
-        apply_affect_flags(affect_flags) if affect_flags
+        apply_affect_flags(affect_flags, silent: true, array: @race_affects) if affect_flags
+        apply_element_flags(@game.class_data.dig(@class_id, :vuln_flags), AffectVuln, @class_affects)
+        apply_element_flags(@game.class_data.dig(@class_id, :resist_flags), AffectResist, @class_affects)
+        apply_element_flags(@game.class_data.dig(@class_id, :immune_flags), AffectImmune, @class_affects)
+    end
+
+    def apply_element_flags(element_flags, affect_class, array)
+        element_flags.to_a.each do |flag|
+            element = Constants::Element::STRINGS.select { |k, v| v == flag }.first
+            next if !element
+            affect = affect_class.new(source: nil, target: self, level: 0, game: @game)
+            affect.savable = false
+            affect.overwrite_data({element: element[0]})
+            apply_affect(affect, silent: true)
+            array << affect
+        end
     end
 
     def is_player?

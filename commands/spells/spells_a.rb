@@ -7,7 +7,7 @@ class SpellAcidBlast < Spell
             game: game,
             name: "acid blast",
             keywords: ["acid", "blast", "acid blast"],
-            lag: 2.25,
+            lag: 0.25,
             position: Position::STAND,
             mana_cost: 10
         )
@@ -23,17 +23,18 @@ class SpellAcidBlast < Spell
     end
 
     def attempt( actor, cmd, args, level )
-        puts "#{args}"
-    	if args.first.nil? && actor.attacking
-    		actor.magic_hit( actor.attacking, 100, "acid blast", "corrosive" )
-            return true
-    	elsif ( target = actor.target({ room: actor.room, type: ["Mobile", "Player"] }.merge( args.first.to_s.to_query )).first )
-    		actor.magic_hit( target, 100, "acid blast", "corrosive" )
-            return true
-    	else
-    		actor.output "They aren't here."
+        target = nil
+        if args.first.nil? && actor.attacking
+            target = actor.attacking
+        elsif !args.first.nil?
+            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        end
+        if !target
+            actor.output "They aren't here."
             return false
-    	end
+        end
+        actor.deal_damage(target: target, damage: 100, noun:"acid blast", element: Constants::Element::ACID, type: Constants::Damage::MAGICAL)
+        return true
     end
 end
 

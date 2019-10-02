@@ -77,7 +77,8 @@ module MobileItem
 
     def get_item(item)
         if !item.wear_flags.include? "take"
-            output "You can't take #{ item }"
+            output "You can't take #{ item }."
+            return
         end
         if Item === (container = item.parent_inventory.owner)
             output("You get %s from %s.", [item, container])

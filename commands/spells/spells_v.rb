@@ -26,7 +26,7 @@ class SpellVentriloquate < Spell
     	if args.first.nil? && actor.attacking
     		actor.attacking.do_command "say #{args[1..-1].to_a.join(' ')}"
             return true
-    	elsif ( target = actor.target({ room: actor.room, type: ["Mobile", "Player"] }.merge( args.first.to_s.to_query )).first )
+    	elsif ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
     		target.do_command "say #{args[1..-1].to_a.join(' ')}"
             return true
     	else
