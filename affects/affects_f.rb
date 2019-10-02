@@ -92,6 +92,49 @@ class AffectFlooding < Affect
 
 end
 
+class AffectFollow < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["follow"],
+            name: "follow",
+            modifiers: { none: 0 },
+            level:  level,
+            permanent: true,
+            hidden: true,
+            application_type: :global_overwrite
+        )
+    end
+
+    def send_start_messages
+        @target.output "You now follow %s", [@source]
+        @source.output "%s now follows you", [@target]
+    end
+
+    def send_complete_messages
+        @target.output "You stop following %s", [@source]
+        @source.output "%s stops following you", [@target] 
+    end
+
+    def start
+        @target.add_event_listener(:event_mobile_exit, self, :do_follow)
+    end
+
+    def complete
+        @target.delete_event_listener(:event_mobile_exit, self)
+    end
+
+    def do_follow( data )
+        if data[:mobile] == @source
+            @target.do_command data[:direction]
+        end
+    end
+
+end
+
 class AffectFrost < Affect
 
     def initialize(source:, target:, level:, game:)

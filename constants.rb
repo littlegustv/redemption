@@ -237,7 +237,9 @@ module Constants
         CommandBuy,
         CommandList,
         CommandSell,
-        CommandWorth
+        CommandWorth,
+        CommandFollow,
+        CommandOrder
     ]
 
     SKILL_CLASSES = [
@@ -274,6 +276,8 @@ module Constants
         SpellVentriloquate,
         SpellMirrorImage,
         SpellPhantomForce,
+        SpellPhantasmMonster,
+        SpellCloakOfMind
     ]
 
     AFFECT_CLASS_HASH = {
@@ -305,9 +309,11 @@ module Constants
         "slow" =>                   AffectSlow,
         "sneak" =>                  AffectSneak,
         "stun" =>                   AffectStun,
-        "zeal" =>                   AffectZeal
+        "zeal" =>                   AffectZeal,
+        "follow" =>                 AffectFollow,
+        "charm" =>                  AffectCharm,
+        "aggressive" =>             AffectAggressive,
+        "cloak of mind" =>          AffectCloakOfMind,
     }
-
-
 
 end

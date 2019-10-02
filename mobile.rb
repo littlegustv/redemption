@@ -78,6 +78,7 @@ class Mobile < GameObject
         @room.mobile_arrive(self) if @room
 
         apply_affect_flags(data[:affect_flags].to_a)
+        apply_affect_flags(data[:action_flags].to_a)
         apply_affect_flags(data[:specials].to_a)
     end
 
@@ -429,7 +430,7 @@ class Mobile < GameObject
             return false
         else
             broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
-            # @game.fire_event( :event_mobile_exit, { mobile: self }, self, @room )
+            @game.fire_event( :event_mobile_exit, { mobile: self, direction: direction }, self, @room, @room.occupants - [self] )
             move_to_room(@room.exits[direction.to_sym])
             broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
             @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room, @room.occupants - [self] )

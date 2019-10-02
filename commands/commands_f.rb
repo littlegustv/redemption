@@ -28,3 +28,26 @@ class CommandFlee < Command
         end
     end
 end
+
+class CommandFollow < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "follow",
+            keywords: ["follow"],
+            lag: 0,
+            position: Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args )
+        if args.first.nil?
+            actor.remove_affect("follow")
+        elsif ( target = actor.target({ list: actor.room.occupants, not: actor }.merge( args.first.to_s.to_query )).first )
+            actor.apply_affect( AffectFollow.new( source: target, target: actor, level: 1, game: @game ) )
+        else
+            actor.output "They aren't here"
+        end
+    end
+end
