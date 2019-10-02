@@ -28,8 +28,6 @@ class AffectVuln < Affect
     end
 
     def do_vuln(data)
-        puts "hello?"
-        puts "#{data[:target]} #{@target} #{data[:element]} #{@data[:element]}"
         if data[:target] == @target && data[:element] == @data[:element]
             data[:damage] = (data[:damage] * 1.3).to_i
         end
