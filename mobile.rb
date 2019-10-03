@@ -33,6 +33,7 @@ class Mobile < GameObject
         @active = true
         @group = []
         @in_group = nil
+        @deity = "Gabriel"
 
         @stats = {
             success: 100,
@@ -134,6 +135,10 @@ class Mobile < GameObject
         n <= @manapoints ? (@manapoints -= n) : false
     end
 
+    def use_movement( n )
+        n <= @movepoints ? (@movepoints -= n) : false
+    end
+
     def remove_from_group
         self.output "You leave #{self.in_group}'s group."
         self.in_group.output "#{self} leaves your group."
@@ -188,7 +193,7 @@ class Mobile < GameObject
     # When calling 'start_combat', call it first for the 'victim', then for the attacker
 
     def start_combat( attacker )
-        if !@active || !attacker.active || !@room.contains?([self, attacker])
+        if !@active || !attacker.active || !@room.contains?([self, attacker]) || attacker == self
             return
         end
 
@@ -207,6 +212,8 @@ class Mobile < GameObject
         if @attacking.nil?
             @attacking = attacker
         end
+
+        attacker.start_combat( self ) if attacker.attacking.nil?
     end
 
     def stop_combat
@@ -237,7 +244,7 @@ class Mobile < GameObject
                 @attacking.output texts[0], [self]
                 @attacking.broadcast texts[1], target({ not: @attacking, list: @room.occupants }), [ @attacking, weapon ]
                 elemental_effect( @attacking, flag )
-                @attacking.damage( 10, self )
+                # @attacking.damage( 10, self )
                 return if @attacking.nil?
             end
         end
@@ -383,7 +390,6 @@ class Mobile < GameObject
         end
         if source && source != self
             self.start_combat( source )
-            source.start_combat( self )
         end
         if type == Constants::Damage::PHYSICAL # phyiscal damage
             if !silent
@@ -444,6 +450,7 @@ class Mobile < GameObject
             return
         end
         broadcast "%s is DEAD!!", target({ :not => self, :room => @room }), [self]
+        @game.fire_event( :event_on_die, {}, self )
         @affects.each do |affect|
             affect.clear(silent: true)
         end
@@ -454,7 +461,7 @@ class Mobile < GameObject
                 killer.get_item(item)
             end
             killer.output("You get #{ self.to_worth } from the corpse of %s", [self])
-            killer.output("You offer your victory to Gabriel who rewards you with 1 deity points.")
+            killer.output("You offer your victory to #{@deity} who rewards you with 1 deity points.")
             killer.earn( @wealth )
         end
         stop_combat
@@ -502,11 +509,19 @@ class Mobile < GameObject
     def recall
         output "You pray for transportation!"
         broadcast "%s prays for transportation!", target({ list: @room.occupants, not: self }), [self]
-        broadcast "%s disappears!", target({ list: @room.occupants, not: self }), [self]
-        room = @game.recall_room( @room.continent )
-        move_to_room( room )
-        broadcast "%s arrives in a puff of smoke!", target({ list: room.occupants, not: self }), [self]
-        return true
+        data = { mobile: self, success: true }
+        @game.fire_event(:event_try_recall, data, self, @room.occupants, @room)
+
+        if data[:success]
+            broadcast "%s disappears!", target({ list: @room.occupants, not: self }), [self]
+            room = @game.recall_room( @room.continent )
+            move_to_room( room )
+            broadcast "%s arrives in a puff of smoke!", target({ list: room.occupants, not: self }), [self]
+            return true
+        else
+            output "#{@deity} has forsaken you"
+            return false
+        end
     end
 
     def condition_percent
@@ -563,7 +578,7 @@ class Mobile < GameObject
     # returns true if self can see target
     def can_see? target
         return true if target == self
-        data = {chance: 100, target: target}
+        data = {chance: 100, target: target }
         @game.fire_event(:event_try_can_see, data, self, @room, @room.area, equipment)
         result = dice(1, 100) <= data[:chance]
         return result
@@ -638,7 +653,7 @@ Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
 {cLevel:{x     #{@level.to_s.ljust(26)} {cAge:{x       17 - 0(0) hours
 {cRace:{x      #{@game.race_data.dig(@race_id, :name).to_s.ljust(26)} {cSex:{x       male
-{cClass:{x     #{@game.class_data.dig(@class_id, :name).to_s.ljust(26)} {cDeity:{x     Gabriel
+{cClass:{x     #{@game.class_data.dig(@class_id, :name).to_s.ljust(26)} {cDeity:{x     #{@deity}
 {cAlignment:{x #{@alignment.to_s.ljust(26)} {cDeity Points:{x 0
 {cPracs:{x     N/A                        {cTrains:{x    N/A
 {cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".ljust(26)} {cNext Level:{x #{@experience_to_level - @experience}

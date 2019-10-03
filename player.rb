@@ -124,6 +124,7 @@ class Player < Mobile
     def die( killer )
         output "You have been KILLED!"
         broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
+        @game.fire_event( :event_on_die, {}, self )
         stop_combat
         @affects.each do |affect|
             affect.clear(silent: true) if !affect.permanent

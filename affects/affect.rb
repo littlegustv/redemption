@@ -10,6 +10,7 @@ class Affect
     attr_reader :modifiers
     attr_reader :name
     attr_reader :priority
+    attr_reader :keywords
 
     def initialize(
         game:,

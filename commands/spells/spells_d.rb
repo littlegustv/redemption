@@ -1,5 +1,24 @@
 require_relative 'spell.rb'
 
+class SpellDeathRune < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "death rune",
+            keywords: ["death rune"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.apply_affect( AffectDeathRune.new( source: actor, target: actor, level: level, game: @game ) )
+    end
+
+end
+
 class SpellDetectInvisibility < Spell
 
     def initialize(game)

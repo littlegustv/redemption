@@ -67,7 +67,6 @@ class AffectAggressive < Affect
         if @target.can_see?(data[:mobile]) && !data[:mobile].affected?("cloak of mind")
             @game.broadcast "%s screams and attacks!!", @game.target({ list: @target.room.occupants, not: @target }), [@target]
             @target.start_combat data[:mobile]
-            data[:mobile].start_combat @target
         end
     end
 end

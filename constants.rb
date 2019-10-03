@@ -148,6 +148,16 @@ module Constants
         "corrosive" => [ "Your flesh is dissolved by %s.", "%s's flesh is dissolved by %s." ],
     }
 
+    ALIGNMENT_DESCRIPTIONS = {
+        700 => "%s has a pure and good aura.",
+        350 => "%s is of excellent moral character.",
+        100 => "%s is often kind and thoughtful.",
+        -100 => "%s doesn't have a firm moral commitment.",
+        -350 => "%s lies to their friends.",
+        -700 => "%s is a black-hearted murderer.",
+        -1000 => "%s is the embodiment of pure evil.",
+    }
+
     PARTS = [
     	"brains"
     ]
@@ -277,6 +287,19 @@ module Constants
         SpellPyrotechnics,
         SpellShackleRune,
         SpellVentriloquate,
+        SpellCurse,
+        SpellEnergyDrain,
+        SpellPlague,
+        SpellManaDrain,
+        SpellPoison,
+        SpellSlow,
+        SpellWeaken,
+        SpellCancellation,
+        SpellKnowAlignment,
+        # SpellProtectionGood,
+        # SpellProtectionNeutral,
+        # SpellProtectionEvil,
+        SpellDeathRune
     ]
 
     AFFECT_CLASS_HASH = {
@@ -315,6 +338,13 @@ module Constants
         "cloak of mind" =>          AffectCloakOfMind,
         "vuln" =>                   AffectVuln,
         "zeal" =>                   AffectZeal,
+        "curse" =>                  AffectCurse,
+        "plague" =>                 AffectPlague,
+        # "protect_good" =>           AffectProtectGood,
+        # "protect_good" =>           AffectProtectEvil,
+        # "protect_good" =>           AffectProtectNeutral,
+        "weaken" =>                 AffectWeaken,
+        "death rune" =>             AffectDeathRune,
     }
 
 end

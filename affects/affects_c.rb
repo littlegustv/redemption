@@ -100,3 +100,44 @@ class AffectCorrosive < Affect
     end
 
 end
+
+class AffectCurse < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["curse"],
+            name: "curse",
+            level:  level,
+            duration: 60 * level,
+            modifiers: { hitroll: -5 },
+            application_type: :global_single,
+        )
+    end
+
+    def send_start_messages
+        @target.output "You feel unclean"
+        @source.output "%s looks very uncomfortable.", [@target]
+    end
+
+    def send_complete_messages
+        @target.output "You feel better."
+    end
+
+    def start
+        @target.add_event_listener(:event_try_recall, self, :do_curse)
+    end
+
+    def complete
+        @target.delete_event_listener(:event_try_recall, self)
+    end
+
+    def do_cursed( data )
+        if data[:mobile] == @target
+            data[:success] = false
+        end
+    end
+
+end
