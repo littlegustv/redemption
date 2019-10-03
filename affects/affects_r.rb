@@ -34,7 +34,6 @@ class AffectResist < Affect
     end
 
     def do_display(data)
-        p @data[:element]
         element_string = Constants::Element::STRINGS[@data[:element]]
         data[:string] += "\nYou are resistant to #{element_string} damage."
     end

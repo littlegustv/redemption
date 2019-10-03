@@ -41,7 +41,6 @@ class SkillBash < Skill
         target.output "%s sends you flying with a powerful bash!", [actor]
         actor.broadcast "%s sends %s flying with a powerful bash!", actor.target({ not: [ actor, target ], list: actor.room.occupants }), [actor, target]
         actor.deal_damage(target: target, damage: 100, noun:"bash", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
-        puts @data[:target_lag]
         target.lag += @data[:target_lag]
     end
 end
