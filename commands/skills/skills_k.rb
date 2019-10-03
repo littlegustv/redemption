@@ -23,9 +23,7 @@ class SkillKick < Command
         elsif actor.attacking and args.length <= 0
             do_kick( actor, actor.attacking )
             return true
-        elsif ( kill_target = actor.target({ room: actor.room, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            kill_target.start_combat actor
-            actor.start_combat kill_target
+        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             do_kick( actor, kill_target )
             return true
         else
@@ -34,7 +32,7 @@ class SkillKick < Command
         end
     end
 
-    def do_bash( actor, target )
-        target.hit 50, "kick", target
+    def do_kick( actor, target )
+        actor.deal_damage(target: target, damage: 50, noun:"kick", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
     end
 end

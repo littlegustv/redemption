@@ -12,7 +12,7 @@ class CommandPeek < Command
     end
 
     def attempt( actor, cmd, args )
-        if ( target = actor.target({ room: actor.room, type: ["Mobile"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if target.inventory.count > 0
                 actor.output "#{target} is carrying:\n#{target.inventory.items.map(&:to_s).join("\n")}"
                 return true

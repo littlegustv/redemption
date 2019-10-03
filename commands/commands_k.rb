@@ -21,12 +21,11 @@ class CommandKill < Command
         if actor.position < Position::STAND
             actor.output "You have to stand up first."
             return false
-        elsif actor.position >= Position::FIGHT
+        elsif actor.attacking
             actor.output "You are already fighting!"
             return false
-        elsif ( kill_target = actor.target({ room: actor.room, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            kill_target.start_combat actor
-            actor.start_combat kill_target
+        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            actor.do_round_of_attacks(target: kill_target)
             return true
         else
             actor.output "I can't find anyone with that name."

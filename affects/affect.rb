@@ -4,6 +4,7 @@ class Affect
     attr_accessor :source
     attr_accessor :savable
     attr_reader :application_type
+    attr_reader :data
     attr_reader :hidden
     attr_reader :level
     attr_reader :modifiers
@@ -36,13 +37,15 @@ class Affect
         @priority = priority
         @period = period
         @application_type = application_type   # :global_overwrite, :global_stack, :global_single,
-                                               # :source_overwrite, :source_stack, :source_single
+                                               # :source_overwrite, :source_stack, :source_single,
+                                               # :multiple
         @permanent = permanent
         @hidden = hidden
         @savable = true
 
         @clock = 0
         @conditions = []
+        @data = Hash.new                       # Additional data. Only "primitives". Saved to the database.
     end
 
     # Override this method to output start messages.
@@ -141,8 +144,16 @@ class Affect
         return !intersection.slice(0, intersection.index(Affect)).empty?  # slice the array elements preceding Affect: these will be common ancestors
     end                                                                   # if this array is empty after the slice, then there are no common ancestors
 
+    # Overwrite the modifiers with a new set
+    # (Probably only used when loading existing affects from database)
     def overwrite_modifiers(modifiers)
         @modifiers = modifiers
+    end
+
+    # Overwrite the data with a new hash
+    # (Also probably only used when loading existing affects from the database)
+    def overwrite_data(data)
+        @data = data
     end
 
 end
@@ -150,9 +161,9 @@ end
 # The AffectCondition is an object that an +Affect+ can evaluate at each +update+ to determine whether or not     <br>
 # the +Affect+ should clear itself. When added to an +Affect+'s +conditions+ array, the affect will clear itself  <br>
 # upon finding any condition to be false.
-#                                                                               # evaluates as:
-#     AffectCondition.new(some_mobile, [:room], :==, some_room, [])             # some_mobile.room == some_room
-#     AffectCondition.new(some_mobile, [:room, :area], :==, some_room, [:area]) # some_mobile.room.area == some_room.area
+#                                                                            # evaluates as:
+#  AffectCondition.new(some_mobile, [:room], :==, some_room, [])             # some_mobile.room == some_room
+#  AffectCondition.new(some_mobile, [:room, :area], :==, some_room, [:area]) # some_mobile.room.area == some_room.area
 #
 class AffectCondition
 

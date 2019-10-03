@@ -45,7 +45,7 @@ class CommandRest < Command
     def initialize(game)
         super(
             game: game,
-            name: "sit",
+            name: "rest",
             keywords: ["sit", "rest"],
             position: Position::SLEEP,
             usable_in_combat: false

@@ -74,7 +74,7 @@ class CommandLoadItem < Command
                 actor.output "No such item."
                 return false
             end
-            actor.broadcast "Loaded item: #{item}", actor.target({ room: actor.room })
+            actor.broadcast "Loaded item: #{item}", actor.target({ list: actor.room.occupants })
             return true
         end
     end

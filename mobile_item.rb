@@ -20,7 +20,7 @@ module MobileItem
         if !can_wear(item: item, silent: silent)
             return false
         end
-        @equip_slots.each do |equip_slot|   # first try to find empty slots
+        equip_slots.each do |equip_slot|   # first try to find empty slots
             if item.wear_flags.include?(equip_slot.wear_flag) && !equip_slot.item
                 if !silent
                     output(equip_slot.equip_message_self, [item])
@@ -30,7 +30,7 @@ module MobileItem
                 return true
             end
         end
-        @equip_slots.each do |equip_slot|   # then try to find used slots
+        equip_slots.each do |equip_slot|   # then try to find used slots
             if item.wear_flags.include?(equip_slot.wear_flag) && equip_slot.item
                 if unwear(item: equip_slot.item, silent: silent)
                     if !silent
@@ -65,19 +65,41 @@ module MobileItem
         return true
     end
 
+    # Returns a string showing this mobile's equipment to another.
+    def show_equipment(observer)
+        objects = []
+        lines = []
+        self.equip_slots.each do |equip_slot|
+            line = "<#{equip_slot.list_prefix}>".ljust(22)
+            if equip_slot.item
+                line << "%s"
+                objects << equip_slot.item
+            else
+                if observer == self
+                    line << "<Nothing>"
+                else
+                    next
+                end
+            end
+            lines << line
+        end
+        observer.output(lines.join("\n"), objects)
+    end
+
     # Returns an array of items that are held by @equip_slots
     def equipment
-        return @equip_slots.select(&:item).map(&:item)
+        return self.equip_slots.select(&:item).map(&:item)
     end
 
     # return an array of equipped items in equip_slots with the 'wield' wear flag
     def wielded
-        return @equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_flag == "wield" }.map(&:item)
+        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_flag == "wield" }.map(&:item)
     end
 
     def get_item(item)
         if !item.wear_flags.include? "take"
-            output "You can't take #{ item }"
+            output "You can't take #{ item }."
+            return
         end
         if Item === (container = item.parent_inventory.owner)
             output("You get %s from %s.", [item, container])
@@ -107,6 +129,12 @@ module MobileItem
         output("You put %s in %s.", [item, container])
         broadcast("%s puts %s in %s.", target({ :not => self, :list => @room.occupants }), [self, item, container])
         item.move(inventory)
+    end
+
+    def equip_slots
+        data = {equip_slots: (@race_equip_slots + @class_equip_slots)}
+        @game.fire_event(:event_get_equip_slots, data, self)
+        return (data[:equip_slots])
     end
 
     def items

@@ -395,9 +395,11 @@ Which alignment (G/N/E)?)
                 manapoints: dice( row[:mana_dice_count].to_i, row[:mana_dice_sides].to_i ) + row[:mana_dice_bonus].to_i,
                 movepoints: 100,
                 #damage_range: row[:damageRange].split("-").map(&:to_i),
-                damage_range: [10, 20],
-                damage: row[:damage].to_i,
-                damage_type: row[:hand_to_hand_noun].split("").first, # pierce, slash, none, etc.
+                # damage_range: [10, 20],
+                damage_dice_sides: row[:damage_dice_sides].to_i,
+                damage_dice_count: row[:damage_dice_count].to_i,
+                damage_dice_bonus: row[:damage_dice_bonus].to_i,
+                hand_to_hand_noun: row[:hand_to_hand_noun].split("").first, # pierce, slash, none, etc.
                 ac: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
                 offensive_flags: row[:off_flags],
                 immune_flags: row[:immune_flags],
@@ -503,14 +505,8 @@ Which alignment (G/N/E)?)
     #  fire_event(:event_test, {}, some_mobile)
     #  fire_event(:event_on_hit, data, some_mobile, some_room, some_room.area, some_mobile.equipment)
     def fire_event(event, data, *objects)
-        objects.each do |object|
-            if object.kind_of?(Array)
-                object.reject(&:nil?).each do |subobject|
-                    subobject.event(event, data)
-                end
-            elsif object.kind_of?(GameObject)
-                object.event(event, data)
-            end
+        objects.flatten.uniq.each do |object|
+            object.event(event, data)
         end
     end
 

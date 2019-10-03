@@ -31,7 +31,7 @@ class AffectShackle < Affect
 
     def send_start_messages
         @target.output "You are bound and restricted by runic shackles!"
-        @target.broadcast "%s has been bound by runic shackles!", @target.target({ room: @target.room, not: @target }), [ @target ]
+        @target.broadcast "%s has been bound by runic shackles!", @target.target({ list: @target.room.occupants, not: @target }), [ @target ]
     end
 
     def send_complete_messages
@@ -39,7 +39,7 @@ class AffectShackle < Affect
     end
 
     def do_shackles(data)
-        @target.broadcast "%s tries to move while magically shackled.", @target.target({ room: @target.room, not: @target }), [ @target ]
+        @target.broadcast "%s tries to move while magically shackled.", @target.target({ list: @target.room.occupants, not: @target }), [ @target ]
         @target.output "You struggle against the shackles!"
         @target.lag += 1
     end
@@ -70,7 +70,7 @@ class AffectShackleRune < Affect
 
     def send_complete_mesages
         @source.output "You feel that movement is not being restricted by runes as much as it used to."
-        @source.broadcast "The rune of warding on this room vanishes.", @source.target({ room: @target })
+        @source.broadcast "The rune of warding on this room vanishes.", @source.target({ list: @target.occupants })
     end
 
     def do_shackle_rune(data)
@@ -115,12 +115,12 @@ class AffectShocking < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, room: @target.room }), [@target]
+        @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
 
     def send_refresh_messages
-        @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, room: @target.room }), [@target]
+        @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
 end
@@ -146,6 +146,10 @@ class AffectSneak < Affect
 
     def send_complete_messages
         @target.output "You are now visible."
+    end
+
+    def do_bonus_equip(data)
+        data[:equip_slots] << @equip_slot
     end
 end
 

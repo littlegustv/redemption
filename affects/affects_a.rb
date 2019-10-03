@@ -26,7 +26,7 @@ class AffectAlarmRune < Affect
 
     def send_complete_messages
     	@source.output "Your connection with the alarm rune is broken."
-    	@source.broadcast "The rune of warding on this room vanishes.", @target.target({ room: @target })
+    	@source.broadcast "The rune of warding on this room vanishes.", @target.target({ list: @target.occupants })
     end
 
     def do_alarm_rune(data)

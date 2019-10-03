@@ -2,14 +2,12 @@ module Position
     SLEEP = 0
     REST = 1
     STAND = 2
-    FIGHT = 3
 
-    STRINGS = [
-        "sleeping",
-        "resting",
-        "standing",
-        "fighting"
-    ]
+    STRINGS = {
+        SLEEP => "sleeping",
+        REST => "resting",
+        STAND => "standing"
+    }
 end
 
 module Constants
@@ -263,21 +261,22 @@ module Constants
         SpellBurstRune,
         SpellDestroyRune,
         SpellDestroyTattoo,
+        SpellDetectInvisibility,
         SpellEnchantWeapon,
         SpellFireRune,
         SpellHurricane,
         SpellIceBolt,
-        SpellLightningBolt,
-        SpellPyrotechnics,
-        SpellShackleRune,
+        SpellIgnoreWounds,
         SpellInvisibility,
-        SpellDetectInvisibility,
+        SpellLightningBolt,
         SpellMassInvisibility,
-        SpellVentriloquate,
         SpellMirrorImage,
         SpellPhantomForce,
         SpellPhantasmMonster,
-        SpellCloakOfMind
+        SpellCloakOfMind,
+        SpellPyrotechnics,
+        SpellShackleRune,
+        SpellVentriloquate,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -296,6 +295,7 @@ module Constants
         "guard" =>                  AffectGuard,
         "haste" =>                  AffectHaste,
         "hatchling" =>              AffectHatchling,
+        "ignore wounds" =>          AffectIgnoreWounds,
         "invisibility" =>           AffectInvisibility,
         "invisible" =>              AffectInvisibility,
         "killer" =>                 AffectKiller,
@@ -309,11 +309,12 @@ module Constants
         "slow" =>                   AffectSlow,
         "sneak" =>                  AffectSneak,
         "stun" =>                   AffectStun,
-        "zeal" =>                   AffectZeal,
         "follow" =>                 AffectFollow,
         "charm" =>                  AffectCharm,
         "aggressive" =>             AffectAggressive,
         "cloak of mind" =>          AffectCloakOfMind,
+        "vuln" =>                   AffectVuln,
+        "zeal" =>                   AffectZeal,
     }
 
 end

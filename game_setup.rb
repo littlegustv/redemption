@@ -109,6 +109,7 @@ module GameSetup
             value[:part_flags] = value[:part_flags].split(",")
             value[:form_flags] = value[:form_flags].split(",")
             value[:equip_slots] = value[:equip_slots].split(",")
+            value[:h2h_flags] = value[:h2h_flags].split(",")
         end
         log ( "Database load complete: Race data" )
     end
@@ -120,6 +121,10 @@ module GameSetup
             value[:skills] = value[:skills].to_s.split(",")
             value[:spells] = value[:spells].to_s.split(",")
             value[:affect_flags] = value[:affect_flags].to_s.split(",")
+            value[:immune_flags] = value[:immune_flags].to_s.split(",")
+            value[:resist_flags] = value[:resist_flags].to_s.split(",")
+            value[:vuln_flags] = value[:vuln_flags].to_s.split(",")
+            value[:equip_slots] = value[:equip_slots].to_s.split(",")
         end
         log ( "Database load complete: Class data" )
     end
@@ -261,7 +266,14 @@ module GameSetup
     # Construct Skill objects
     protected def make_skills
         Constants::SKILL_CLASSES.each do |skill_class|
-            @skills.push skill_class.new(self)
+            skill = skill_class.new(self)
+            row = @db[:skill_base].where(name: skill.name).first
+            if row
+                skill.overwrite_attributes(row)
+            else
+                log "Skill \"#{skill.name}\" not found in database!"
+            end
+            @skills.push skill
         end
         log("Skills constructed.")
     end
@@ -269,7 +281,14 @@ module GameSetup
     # Construct Spell objects
     protected def make_spells
         Constants::SPELL_CLASSES.each do |spell_class|
-            @spells.push spell_class.new(self)
+            spell = spell_class.new(self)
+            row = @db[:spell_base].where(name: spell.name).first
+            if row
+                spell.overwrite_attributes(row)
+            else
+                log "Spell \"#{spell.name}\" not found in database!"
+            end
+            @spells.push spell
         end
         log("Spells constructed.")
     end
@@ -277,7 +296,14 @@ module GameSetup
     # Construct Command objects
     protected def make_commands
         Constants::COMMAND_CLASSES. each do |command_class|
-            @commands.push command_class.new(self)
+            command = command_class.new(self)
+            row = @db[:command_base].where(name: command.name).first
+            if row
+                command.overwrite_attributes(row)
+            else
+                log "Command \"#{command.name}\" not found in database!"
+            end
+            @commands.push command
         end
         log("Commands constructed.")
     end

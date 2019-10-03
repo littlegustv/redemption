@@ -23,6 +23,7 @@ class Area < GameObject
         @questable = data[:questable]
         @rooms = []
         @security = data[:security]
+        @keywords = data[:name].split(" ")
 	end
 
     def occupants

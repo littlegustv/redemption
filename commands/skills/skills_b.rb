@@ -10,6 +10,7 @@ class SkillBash < Skill
             lag: 2,
             position: Position::STAND
         )
+        @data[:target_lag] = 0.5
     end
 
     def attempt( actor, cmd, args )
@@ -36,13 +37,12 @@ class SkillBash < Skill
     end
 
     def do_bash( actor, target )
-        kill_target.start_combat actor
-        actor.start_combat kill_target
         actor.output "You slam into %s, and send him flying!", [target]
         target.output "%s sends you flying with a powerful bash!", [actor]
-        actor.broadcast "%s sends %s flying with a powerful bash!", actor.target({ not: [ actor, target ], room: actor.room }), [actor, target]
-        actor.hit 100, "bash", target
-        target.lag += 0.5
+        actor.broadcast "%s sends %s flying with a powerful bash!", actor.target({ not: [ actor, target ], list: actor.room.occupants }), [actor, target]
+        actor.deal_damage(target: target, damage: 100, noun:"bash", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
+        puts @data[:target_lag]
+        target.lag += @data[:target_lag]
     end
 end
 
