@@ -18,7 +18,8 @@ class Mobile < GameObject
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]
         @full_description = data[ :full_description ]
-        @equip_slots = []
+        @race_equip_slots = []
+        @class_equip_slots = []
         @skills = []
         @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
 
@@ -412,26 +413,6 @@ class Mobile < GameObject
         die( source ) if @hitpoints <= 0
     end
 
-    def show_equipment(observer)
-        objects = []
-        lines = []
-        @equip_slots.each do |equip_slot|
-            line = "<#{equip_slot.list_prefix}>".ljust(22)
-            if equip_slot.item
-                line << "%s"
-                objects << equip_slot.item
-            else
-                if observer == self
-                    line << "<Nothing>"
-                else
-                    next
-                end
-            end
-            lines << line
-        end
-        observer.output(lines.join("\n"), objects)
-    end
-
     def level_up
         @experience = (@experience - @experience_to_level)
         @level += 1
@@ -704,17 +685,16 @@ You are #{Position::STRINGS[ @position ]}.)
 
     def set_race_id(new_race_id)
         @race_id = new_race_id
-
         old_equipment = self.equipment
         old_equipment.each do |item| # move all equipped items to inventory
             item.move(@inventory)
         end
-        @equip_slots = []  # Clear old equip_slots
-        equip_slots = @game.race_data.dig(@race_id, :equip_slots)
-        equip_slots.each do |equip_slot|
-            row = @game.equip_slot_data[equip_slot.to_i]
+        @race_equip_slots = []  # Clear old equip_slots
+        slots = @game.race_data.dig(@race_id, :equip_slots).to_a
+        slots.each do |slot|
+            row = @game.equip_slot_data[slot.to_i]
             if row
-                @equip_slots << EquipSlot.new(equip_message_self: row[:equip_message_self],
+                @race_equip_slots << EquipSlot.new(equip_message_self: row[:equip_message_self],
                                            equip_message_others: row[:equip_message_others],
                                            list_prefix: row[:list_prefix],
                                            wear_flag: row[:wear_flag])
@@ -736,6 +716,25 @@ You are #{Position::STRINGS[ @position ]}.)
 
     def set_class_id(new_class_id)
         @class_id = new_class_id
+        old_equipment = self.equipment
+        old_equipment.each do |item| # move all equipped items to inventory
+            item.move(@inventory)
+        end
+        @class_equip_slots = []  # Clear old equip_slots
+        slots = @game.class_data.dig(@class_id, :equip_slots).to_a
+        slots.each do |slot|
+            row = @game.equip_slot_data[slot.to_i]
+            puts row
+            if row
+                @class_equip_slots << EquipSlot.new(equip_message_self: row[:equip_message_self],
+                                            equip_message_others: row[:equip_message_others],
+                                            list_prefix: row[:list_prefix],
+                                            wear_flag: row[:wear_flag])
+            end
+        end
+        old_equipment.each do |item| # try to wear all items that were equipped before
+            wear(item: item, silent: true)
+        end
         @class_affects.each do |affect|
             affect.clear(silent: true)
         end

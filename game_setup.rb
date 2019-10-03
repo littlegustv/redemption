@@ -124,6 +124,7 @@ module GameSetup
             value[:immune_flags] = value[:immune_flags].to_s.split(",")
             value[:resist_flags] = value[:resist_flags].to_s.split(",")
             value[:vuln_flags] = value[:vuln_flags].to_s.split(",")
+            value[:equip_slots] = value[:equip_slots].to_s.split(",")
         end
         log ( "Database load complete: Class data" )
     end

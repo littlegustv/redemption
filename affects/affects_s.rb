@@ -147,6 +147,10 @@ class AffectSneak < Affect
     def send_complete_messages
         @target.output "You are now visible."
     end
+
+    def do_bonus_equip(data)
+        data[:equip_slots] << @equip_slot
+    end
 end
 
 class AffectSlow < Affect
