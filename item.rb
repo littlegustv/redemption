@@ -97,10 +97,9 @@ Extra flags: #{ @extraFlags }
         return "Item"
     end
 
+    # gets the room this object is in, whether it's in a room directly, in a mobile inventory/equip_slot,
+    # or in another item
     def room
-        puts "name #{name}"
-        puts "parent inventory #{@parent_inventory}"
-        puts "parent inventory owner #{@parent_inventory.owner}"
         return @parent_inventory.owner.room
     end
 

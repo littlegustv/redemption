@@ -443,12 +443,12 @@ class Mobile < GameObject
         if !@active
             return
         end
-        broadcast "%s is DEAD!!", target({ :not => self, :room => @room }), [self]
+        broadcast "%s is DEAD!!", target({ not: self, list: @room.occupants }), [self]
         @affects.each do |affect|
             affect.clear(silent: true)
         end
         killer.xp( self ) if killer
-        broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]
+        broadcast "%s's head is shattered, and her brains splash all over you.", target({ not: self, list: @room.occupants }), [self]
         if killer
             self.items.each do |item|
                 killer.get_item(item)

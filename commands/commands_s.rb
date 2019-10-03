@@ -17,7 +17,7 @@ class CommandSay < Command
             return false
         else
             actor.output "{yYou say '#{args.join(' ')}'{x"
-            actor.broadcast "{y%s says '#{args.join(' ')}'{x", actor.target( { :not => actor, :room => actor.room }), [actor]
+            actor.broadcast "{y%s says '#{args.join(' ')}'{x", actor.target( { not: actor, list: actor.room.occupants }), [actor]
             return true
         end
     end
@@ -126,7 +126,7 @@ class CommandSleep < Command
             return false
         when Position::REST, Position::STAND
             actor.output "You go to sleep."
-            actor.broadcast "%s lies down and goes to sleep.", actor.target( { :not => actor, :room => actor.room }), [actor]
+            actor.broadcast "%s lies down and goes to sleep.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
         else
             actor.output "You can't quite get comfortable enough."
             return false
@@ -156,13 +156,13 @@ class CommandStand < Command
         case actor.position
         when Position::SLEEP
             actor.output "You wake and stand up."
-            actor.broadcast "%s wakes and stands up.", actor.target( { :not => actor, :room => actor.room }), [actor]
+            actor.broadcast "%s wakes and stands up.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
             actor.position = Position::STAND
             actor.look_room
             return true
         when Position::REST
             actor.output "You stand up."
-            actor.broadcast "%s stands up.", actor.target( { :not => actor, :room => actor.room }), [actor]
+            actor.broadcast "%s stands up.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
             actor.position = Position::STAND
             return true
         when Position::STAND
