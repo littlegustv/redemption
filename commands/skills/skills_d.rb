@@ -37,7 +37,7 @@ class SkillDirtKick < Skill
         super(
             game: game,
             name: "dirt kick",
-            keywords: ["blind", "dirt kick"],
+            keywords: ["dirt kick"],
             lag: 2,
             position: Position::STAND
         )
@@ -55,8 +55,6 @@ class SkillDirtKick < Skill
             do_dirtkick( actor, actor.attacking )
             return true
         elsif ( kill_target = actor.target({ room: actor.room, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            kill_target.start_combat actor
-            actor.start_combat kill_target
             do_dirtkick( actor, kill_target )
             return true
         else
@@ -70,6 +68,7 @@ class SkillDirtKick < Skill
             target.output "You are blinded by the dirt in your eyes!"
             actor.broadcast "%s is blinded by the dirt in their eyes!", actor.target({ room: actor.room,  not: target }), [target]
             target.apply_affect(AffectBlind.new(source: actor, target: target, level: actor.level, game: @game))
+            actor.deal_damage(target: target, damage: 5, noun:"bash", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: true)
         else
             target.output "They are already blind!"
         end

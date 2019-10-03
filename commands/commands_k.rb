@@ -21,7 +21,7 @@ class CommandKill < Command
         if actor.position < Position::STAND
             actor.output "You have to stand up first."
             return false
-        elsif actor.position >= Position::FIGHT
+        elsif actor.attacking
             actor.output "You are already fighting!"
             return false
         elsif ( kill_target = actor.target({ room: actor.room, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )

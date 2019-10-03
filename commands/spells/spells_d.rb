@@ -19,39 +19,6 @@ class SpellDetectInvisibility < Spell
 
 end
 
-class SpellDestroyTattoo < Spell
-
-    def initialize(game)
-        super(
-            game: game,
-            name: "destroy tattoo",
-            keywords: ["destroy tattoo"],
-            lag: 0.25,
-            position: Position::STAND,
-            mana_cost: 10
-        )
-    end
-
-    def cast( actor, cmd, args )
-    	if args.first.nil? && actor.attacking.nil?
-    		actor.output "Cast the spell on what now?"
-    	else
-	    	super
-	    end
-    end
-
-    def attempt( actor, cmd, args, level )
-    	if ( target = actor.target({ list: actor.equipment, type: "tattoo" }.merge( args.first.to_s.to_query )).first )
-    		actor.output "You focus your will and #{target} explodes into flames!"
-    		target.destroy true
-            return true
-        else
-            actor.output "You don't have a tattoo like that."
-            return false
-    	end
-    end
-end
-
 class SpellDestroyRune < Spell
 
     def initialize(game)
@@ -84,6 +51,39 @@ class SpellDestroyRune < Spell
                 actor.output "%s is not runed.", [target]
                 return false
     		end
+    	end
+    end
+end
+
+class SpellDestroyTattoo < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "destroy tattoo",
+            keywords: ["destroy tattoo"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def cast( actor, cmd, args )
+    	if args.first.nil? && actor.attacking.nil?
+    		actor.output "Cast the spell on what now?"
+    	else
+	    	super
+	    end
+    end
+
+    def attempt( actor, cmd, args, level )
+    	if ( target = actor.target({ list: actor.equipment, type: "tattoo" }.merge( args.first.to_s.to_query )).first )
+    		actor.output "You focus your will and #{target} explodes into flames!"
+    		target.destroy true
+            return true
+        else
+            actor.output "You don't have a tattoo like that."
+            return false
     	end
     end
 end

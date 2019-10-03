@@ -83,7 +83,7 @@ class Spell < Command
             end
             return false
         end
-        if actor.position >= Position::FIGHT && !@usable_in_combat
+        if actor.attacking && !@usable_in_combat
             actor.output "No way! You're still fighting!"
             return false
         end

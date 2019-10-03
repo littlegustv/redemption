@@ -197,7 +197,11 @@ class Mobile < GameObject
             attacker.apply_affect( AffectKiller.new(source: attacker, target: attacker, level: 0, game: @game) ) if attacker.is_player?
             do_command "yell 'Help I am being attacked by #{attacker}!'"
         end
-        @position = Position::FIGHT
+        old_position = @position
+        @position = Position::STAND
+        if old_position == Position::SLEEP
+            look_room
+        end
         if @attacking.nil?
             @attacking = attacker
         end
@@ -205,12 +209,8 @@ class Mobile < GameObject
 
     def stop_combat
         @attacking = nil
-        @position = Position::STAND if @position == Position::FIGHT
-        target({ attacking: self, type: ["Mobile", "Player"] }).each do |t|
-            t.attacking = nil
-            if target({ quantity: "all", attacking: t, type: ["Mobile", "Player"] }).empty?
-                t.position = Position::STAND if t.position == Position::FIGHT
-            end
+        target({ attacking: self, list: @room.occupants }).each do |t|
+            t.attacking = target({ quantity: "all", attacking: t, list: t.room.occupants }).first
         end
     end
 

@@ -37,6 +37,42 @@ class SpellBlastOfRot < Spell
     end
 end
 
+class SpellBladeRune < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "blade rune",
+            keywords: ["blade rune"],
+            lag: 0.25,
+            position: Position::STAND
+        )
+    end
+
+    def cast( actor, cmd, args )
+        if args.first.nil?
+            actor.output "Cast the spell on what now?"
+        else
+            super
+        end
+    end
+
+    def attempt( actor, cmd, args, level )
+        if ( target = actor.target({ list: actor.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
+            if target.affected? "blade rune"
+                actor.output "The existing blade rune repels your magic."
+                return false
+            else
+                target.apply_affect( AffectBladeRune.new( source: actor, target: target, level: actor.level, game: @game ) )
+                return true
+            end
+        else
+            actor.output "You don't see that here."
+            return false
+        end
+    end
+end
+
 class SpellBurstRune < Spell
 
     def initialize(game)
@@ -73,40 +109,4 @@ class SpellBurstRune < Spell
         end
     end
 
-end
-
-class SpellBladeRune < Spell
-
-    def initialize(game)
-        super(
-            game: game,
-            name: "blade rune",
-            keywords: ["blade rune"],
-            lag: 0.25,
-            position: Position::STAND
-        )
-    end
-
-    def cast( actor, cmd, args )
-        if args.first.nil?
-            actor.output "Cast the spell on what now?"
-        else
-            super
-        end
-    end
-
-    def attempt( actor, cmd, args, level )
-        if ( target = actor.target({ list: actor.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
-            if target.affected? "blade rune"
-                actor.output "The existing blade rune repels your magic."
-                return false
-            else
-                target.apply_affect( AffectBladeRune.new( source: actor, target: target, level: actor.level, game: @game ) )
-                return true
-            end
-        else
-            actor.output "You don't see that here."
-            return false
-        end
-    end
 end

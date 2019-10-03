@@ -13,7 +13,7 @@ class CommandFlee < Command
     end
 
     def attempt( actor, cmd, args )
-        if actor.position < Position::FIGHT
+        if !actor.attacking
             actor.output "But you aren't fighting anyone!"
             return false
         elsif rand(0..10) < 5

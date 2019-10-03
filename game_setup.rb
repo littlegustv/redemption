@@ -265,7 +265,14 @@ module GameSetup
     # Construct Skill objects
     protected def make_skills
         Constants::SKILL_CLASSES.each do |skill_class|
-            @skills.push skill_class.new(self)
+            skill = skill_class.new(self)
+            row = @db[:skill_base].where(name: skill.name).first
+            if row
+                skill.overwrite_attributes(row)
+            else
+                log "Skill \"#{skill.name}\" not found in database!"
+            end
+            @skills.push skill
         end
         log("Skills constructed.")
     end
@@ -273,7 +280,14 @@ module GameSetup
     # Construct Spell objects
     protected def make_spells
         Constants::SPELL_CLASSES.each do |spell_class|
-            @spells.push spell_class.new(self)
+            spell = spell_class.new(self)
+            row = @db[:spell_base].where(name: spell.name).first
+            if row
+                spell.overwrite_attributes(row)
+            else
+                log "Spell \"#{spell.name}\" not found in database!"
+            end
+            @spells.push spell
         end
         log("Spells constructed.")
     end
@@ -281,7 +295,14 @@ module GameSetup
     # Construct Command objects
     protected def make_commands
         Constants::COMMAND_CLASSES. each do |command_class|
-            @commands.push command_class.new(self)
+            command = command_class.new(self)
+            row = @db[:command_base].where(name: command.name).first
+            if row
+                command.overwrite_attributes(row)
+            else
+                log "Command \"#{command.name}\" not found in database!"
+            end
+            @commands.push command
         end
         log("Commands constructed.")
     end
