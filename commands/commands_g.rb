@@ -85,7 +85,8 @@ class CommandGoTo < Command
     end
 
     def attempt( actor, cmd, args )
-        area_target = actor.target({keyword: args.first.to_s, type: ["Area"]}).first
+        area_target = actor.target({type: ["Area"]}.merge( args.first.to_s.to_query() )).first
+        puts "#{{type: ["Area"]}.merge( args.first.to_s.to_query() )}"
         room_target = area_target.rooms.first if area_target
         if !area_target || !room_target
             actor.output "Nothing by that name."
