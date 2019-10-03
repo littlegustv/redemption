@@ -725,7 +725,6 @@ You are #{Position::STRINGS[ @position ]}.)
         slots = @game.class_data.dig(@class_id, :equip_slots).to_a
         slots.each do |slot|
             row = @game.equip_slot_data[slot.to_i]
-            puts row
             if row
                 @class_equip_slots << EquipSlot.new(equip_message_self: row[:equip_message_self],
                                             equip_message_others: row[:equip_message_others],
