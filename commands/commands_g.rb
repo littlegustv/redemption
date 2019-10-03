@@ -1,5 +1,90 @@
 require_relative 'command.rb'
 
+class CommandGet < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "get",
+            keywords: ["get", "take"],
+            position: Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args )
+        if ( targets = actor.target({ list: actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query(1) ) ) )
+            targets.each do | target |
+                actor.get_item(target)
+            end
+        else
+            actor.output "You don't see that here."
+        end
+    end
+end
+
+
+class CommandGive < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "give",
+            keywords: ["give"],
+            position: Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args )
+        case args.length
+        when 0
+            actor.output "Give what to whom?"
+            return false
+        when 1
+            actor.output "Give it to whom?"
+            return false
+        end
+        items = actor.target({ list: actor.inventory.items, visible_to: actor }.merge( args[0].to_s.to_query(1) ) )
+        person = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args[1].to_s.to_query(1) ) ).first
+        if !items
+            actor.output "You don't see that here."
+            return false
+        end
+        if !person
+            actor.output "They aren't here."
+            return false
+        end
+        items.each do | item |
+            if person.can_see?(item)
+                actor.give_item(item, person)
+            else
+                actor.output "They can't see %s.", item
+            end
+        end
+        return true
+    end
+end
+
+class CommandGoTo < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "goto",
+            keywords: ["goto"]
+        )
+    end
+
+    def attempt( actor, cmd, args )
+        area_target = actor.target({type: ["Area"]}.merge( args.first.to_s.to_query() )).first
+        room_target = area_target.rooms.first if area_target
+        if !area_target || !room_target
+            actor.output "Nothing by that name."
+            return
+        end
+        actor.move_to_room( room_target )
+    end
+end
+
 class CommandGroup < Command
     def initialize(game)
         super(
@@ -49,48 +134,5 @@ class CommandGroup < Command
             actor.output "You can't find them."
             return false
         end
-    end
-end
-
-class CommandGet < Command
-
-    def initialize(game)
-        super(
-            game: game,
-            name: "get",
-            keywords: ["get", "take"],
-            position: Position::REST
-        )
-    end
-
-    def attempt( actor, cmd, args )
-        if ( targets = actor.target({ list: actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query(1) ) ) )
-            targets.each do | target |
-                actor.get_item(target)
-            end
-        else
-            actor.output "You don't see that here."
-        end
-    end
-end
-
-class CommandGoTo < Command
-
-    def initialize(game)
-        super(
-            game: game,
-            name: "goto",
-            keywords: ["goto"]
-        )
-    end
-
-    def attempt( actor, cmd, args )
-        area_target = actor.target({type: ["Area"]}.merge( args.first.to_s.to_query() )).first
-        room_target = area_target.rooms.first if area_target
-        if !area_target || !room_target
-            actor.output "Nothing by that name."
-            return
-        end
-        actor.move_to_room( room_target )
     end
 end

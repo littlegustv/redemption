@@ -203,6 +203,7 @@ module Constants
         CommandEquipment,
         CommandFlee,
         CommandGet,
+        CommandGive,
         CommandGoTo,
         CommandGroup,
         CommandHelp,

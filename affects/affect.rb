@@ -27,8 +27,8 @@ class Affect
         hidden: false
     )
         @game = game
-        @source = source
-        @target = target
+        @source = source                        # GameObject that is the source of this affect - prefer nil when possible.
+        @target = target                        # The GameObjects that this affect is attached to.
         @keywords = keywords
         @name = name
         @level = level

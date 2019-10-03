@@ -86,4 +86,9 @@ class Room < GameObject
         return "Room"
     end
 
+    # sort of a hack to add a room method to items
+    def room
+        return self
+    end
+
 end
