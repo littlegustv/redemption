@@ -14,7 +14,7 @@ class SpellCloakOfMind < Spell
     end
 
     def attempt( actor, cmd, args, level )
-        actor.apply_affect( AffectCloakOfMind.new( target: actor, level: actor.level, game: @game ) )
+        actor.apply_affect( AffectCloakOfMind.new( source: nil, target: actor, level: actor.level, game: @game ) )
     end
 
 end

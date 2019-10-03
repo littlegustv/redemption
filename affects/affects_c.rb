@@ -44,7 +44,7 @@ end
 
 class AffectCloakOfMind < Affect
 
-    def initialize(target:, level:, game:)
+    def initialize(source:, target:, level:, game:)
         super(
             game: game,
             source: nil,
