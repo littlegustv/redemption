@@ -9,7 +9,8 @@ class EquipSlot < Inventory
     attr_reader :wear_flag
     attr_reader :item
 
-    def initialize(equip_message_self:, equip_message_others:, list_prefix:, wear_flag:)
+    def initialize(equip_message_self:, equip_message_others:, list_prefix:, wear_flag:, owner:, game:)
+        super(owner: owner, game: game)
         @equip_message_self = equip_message_self        # String format for mobile doing the equipping
         @equip_message_others = equip_message_others    # String format for others in the room
         @list_prefix = list_prefix                      # ex. worn about body, worn on feet, etc
@@ -44,6 +45,10 @@ class EquipSlot < Inventory
             return
         end
         @item = item
+    end
+
+    def empty?
+        return item.nil?
     end
 
 end

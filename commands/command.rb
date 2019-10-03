@@ -67,6 +67,7 @@ class Command
     def overwrite_attributes(new_attr_hash)
         @priority = new_attr_hash[:priority].to_i
         @keywords = new_attr_hash[:keywords].to_s.split(",")
+        @keywords = [""] if @keywords.empty?
         @lag = new_attr_hash[:lag].to_i
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = !(new_attr_hash[:usable_in_combat].to_i.zero?)

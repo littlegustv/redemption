@@ -2,7 +2,6 @@ class Item < GameObject
 
 	attr_accessor :wear_location
     attr_accessor :weight
-    attr_accessor :room
     attr_accessor :type
     attr_reader :cost
     attr_reader :id
@@ -30,7 +29,7 @@ class Item < GameObject
     end
 
     def to_s
-    	@short_description
+        return @short_description
     end
 
     def to_someone
@@ -47,8 +46,16 @@ class Item < GameObject
         gold > 0 ? "#{ gold } gold and #{ silver } silver" : "#{ silver } silver"
     end
 
+    def name
+        data = { description: @name }
+        @game.fire_event( :event_calculate_description, data, self )
+        return data[:description]
+    end
+
     def long
-    	@long_description
+        data = { description: @long_description }
+        @game.fire_event( :event_calculate_description, data, self )
+        return data[:description]
     end
 
     def modifier( key )
@@ -88,6 +95,12 @@ Extra flags: #{ @extraFlags }
 
     def db_source_type
         return "Item"
+    end
+
+    # gets the room this object is in, whether it's in a room directly, in a mobile inventory/equip_slot,
+    # or in another item
+    def room
+        return @parent_inventory.owner.room
     end
 
 end

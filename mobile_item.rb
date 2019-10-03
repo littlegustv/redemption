@@ -48,6 +48,13 @@ module MobileItem
         return false
     end
 
+    def wear_all
+        self.equip_slots.select(&:empty?).each do |equip_slot|
+            item = self.inventory.items.select{ |i| i.wear_flags.include?(equip_slot.wear_flag) }.first
+            wear(item: item) if item
+        end
+    end
+
     # remove an item that is equipped
     def unwear( item:, silent: false )
         if !item

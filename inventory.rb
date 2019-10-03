@@ -60,11 +60,15 @@ class Inventory
 
     # returns the number of items
     def count
-        return items.count
+        return @items.count
     end
 
     def length
         return count
+    end
+
+    def empty?
+        return count == 0
     end
 
 end

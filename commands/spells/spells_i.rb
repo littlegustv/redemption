@@ -67,10 +67,14 @@ class SpellInvisibility < Spell
     end
 
     def attempt( actor, cmd, args, level )
+        target = nil
         if args.first.nil?
-            actor.apply_affect( AffectInvisibility.new( source: actor, target: actor, level: level, game: @game ) )
-        elsif ( target = @game.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectInvisibility.new( source: actor, target: target, level: level, game: @game ) )
+            target = actor
+        elsif !(target = @game.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query )).first)
+            actor.output "You don't see anything like that here."
+            return false
         end
+        target.apply_affect( AffectInvisibility.new( source: actor, target: target, level: level, game: @game ) )
+        return true
     end
 end

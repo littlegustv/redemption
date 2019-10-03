@@ -24,12 +24,12 @@ class AffectIgnoreWounds < Affect
     end
 
     def send_start_messages
-        @source.output "You close your eyes and forget about the pain."
-        @source.broadcast "%s closes %x eyes and forgets about the pain.", @target.target( list: @target.room.occupants, not: @target ), [@target]
+        @target.output "You close your eyes and forget about the pain."
+        @target.broadcast "%s closes %x eyes and forgets about the pain.", @target.target( list: @target.room.occupants, not: @target ), [@target]
     end
 
     def end_complete_messages
-        @source.output "Your body is once again vulnerable."
+        @target.output "Your body is once again vulnerable."
     end
 
     def do_ignore_wounds(data)
@@ -122,12 +122,12 @@ class AffectInvisibility < Affect
     end
 
     def do_remove_affect(data)
-        @target.remove_affect("invisibility")
+        clear
     end
 
     def do_invisibility(data)
     	if data[:target] == @target
-	        data[:chance] *= 0 unless data[:source].affected? "detect invisibility"
+	        data[:chance] *= 0 unless data[:observer].affected? "detect invisibility"
 	    end
     end
 

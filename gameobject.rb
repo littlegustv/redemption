@@ -42,7 +42,9 @@ class GameObject
 
     def show( looker )
         if looker.can_see? self
-            to_s
+            data = { description: self.to_s }
+            @game.fire_event( :event_calculate_description, data, self )
+            return data[:description]
         else
             to_someone
         end
@@ -131,7 +133,7 @@ class GameObject
                 @game.add_affect(new_affect)
                 new_affect.start
             else
-                puts "unknown application type #{affect.application_type} in apply_affect on affect #{affect} belonging to #{self}"
+                log "unknown application type #{affect.application_type} in apply_affect on affect #{affect} belonging to #{self}"
                 return false
             end
         else
@@ -174,7 +176,7 @@ class GameObject
 
     # handles its own destruction - override in subclasses
     def destroy
-        puts "GameObject::destroy being called by object #{self} : This shouldn't happen!"
+        log "GameObject::destroy being called by object #{self} : This shouldn't happen!"
     end
 
     # Generates a hash to provide affect source fields for the database

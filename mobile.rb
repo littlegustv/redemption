@@ -449,13 +449,14 @@ class Mobile < GameObject
         if !@active
             return
         end
-        broadcast "%s is DEAD!!", target({ :not => self, :room => @room }), [self]
+        broadcast "%s is DEAD!!", target({ not: self, list: @room.occupants }), [self]
         @game.fire_event( :event_on_die, {}, self )
+
         @affects.each do |affect|
             affect.clear(silent: true)
         end
         killer.xp( self ) if killer
-        broadcast "%s's head is shattered, and her brains splash all over you.", target({ :not => self, :room => @room }), [self]
+        broadcast "%s's head is shattered, and her brains splash all over you.", target({ not: self, list: @room.occupants }), [self]
         if killer
             self.items.each do |item|
                 killer.get_item(item)
@@ -477,10 +478,10 @@ class Mobile < GameObject
             output "There is no exit [#{direction}]."
             return false
         else
-            broadcast "%s leaves #{direction}.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
+            broadcast "%s leaves #{direction}.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
             @game.fire_event( :event_mobile_exit, { mobile: self, direction: direction }, self, @room, @room.occupants - [self] )
             move_to_room(@room.exits[direction.to_sym])
-            broadcast "%s has arrived.", target({ :not => self, :room => @room }), [self] unless self.affected? "sneak"
+            broadcast "%s has arrived.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
             @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room, @room.occupants - [self] )
             return true
         end
@@ -568,7 +569,7 @@ class Mobile < GameObject
     def long
         data = { description: @long_description }
         @game.fire_event( :event_calculate_description, data, self )
-        data[:description]
+        return data[:description]
     end
 
     def full
@@ -576,11 +577,11 @@ class Mobile < GameObject
     end
 
     # returns true if self can see target
-    def can_see? target
+    def can_see?(target)
         return true if target == self
-        data = {chance: 100, target: target }
-        @game.fire_event(:event_try_can_see, data, self, @room, @room.area, equipment)
-        result = dice(1, 100) <= data[:chance]
+        data = {chance: 100, target: target, observer: self}
+        @game.fire_event(:event_try_can_see, data, self, target, @room, @room.occupants, @room.area, equipment)
+        result = dice(1, 100) <= data[:chance].to_i
         return result
     end
 
@@ -713,7 +714,9 @@ You are #{Position::STRINGS[ @position ]}.)
                 @race_equip_slots << EquipSlot.new(equip_message_self: row[:equip_message_self],
                                            equip_message_others: row[:equip_message_others],
                                            list_prefix: row[:list_prefix],
-                                           wear_flag: row[:wear_flag])
+                                           wear_flag: row[:wear_flag],
+                                           owner: self,
+                                           game: @game)
             end
         end
         old_equipment.each do |item| # try to wear all items that were equipped before
@@ -744,7 +747,9 @@ You are #{Position::STRINGS[ @position ]}.)
                 @class_equip_slots << EquipSlot.new(equip_message_self: row[:equip_message_self],
                                             equip_message_others: row[:equip_message_others],
                                             list_prefix: row[:list_prefix],
-                                            wear_flag: row[:wear_flag])
+                                            wear_flag: row[:wear_flag],
+                                            owner: self,
+                                            game: @game)
             end
         end
         old_equipment.each do |item| # try to wear all items that were equipped before
