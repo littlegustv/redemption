@@ -23,7 +23,7 @@ class SkillDisarm < Skill
         else
         	actor.output "You disard %s!", [actor.attacking]
         	actor.attacking.output "You have been disarmed!"
-        	actor.broadcast "%s disarms %s", actor.target({ not: [ actor, actor.attacking ], room: actor.room }), [actor, actor.attacking]
+        	actor.broadcast "%s disarms %s", actor.target({ not: [ actor, actor.attacking ], list: actor.room.occupants }), [actor, actor.attacking]
         	actor.attacking.equipment[:wield].room = actor.room
         	actor.attacking.equipment[:wield] = nil
             return true
@@ -54,7 +54,7 @@ class SkillDirtKick < Skill
         elsif actor.attacking and args.length <= 0
             do_dirtkick( actor, actor.attacking )
             return true
-        elsif ( kill_target = actor.target({ room: actor.room, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
             do_dirtkick( actor, kill_target )
             return true
         else
@@ -66,7 +66,7 @@ class SkillDirtKick < Skill
     def do_dirtkick( actor, target )
         if not target.affected? "blind"
             target.output "You are blinded by the dirt in your eyes!"
-            actor.broadcast "%s is blinded by the dirt in their eyes!", actor.target({ room: actor.room,  not: target }), [target]
+            actor.broadcast "%s is blinded by the dirt in their eyes!", actor.target({ list: actor.room.occupants,  not: target }), [target]
             target.apply_affect(AffectBlind.new(source: actor, target: target, level: actor.level, game: @game))
             actor.deal_damage(target: target, damage: 5, noun:"bash", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: true)
         else

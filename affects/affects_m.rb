@@ -25,20 +25,20 @@ class AffectMirrorImage < Affect
     end
 
     def send_start_messages
-    	@source.output "You create a mirror image of yourself."
-    	@source.broadcast "%s creates a mirror image.", @source.target( room: @source.room, not: @source ), [@source]
+    	@target.output "You create a mirror image of yourself."
+    	@target.broadcast "%s creates a mirror image.", @target.target( list: @target.room.occupants, not: @target ), [@target]
     end
 
     def do_mirror_image(data)
         if data[:confirm] == false && @source == data[:target]
 	        @health -= 1
 	        if @health <= 0
-	        	@source.output "Your mirror image shatters to pieces!", [data[:source]]
-	        	@source.broadcast "%s's mirror image shatters to pieces!", @source.target( room: @source.room, not: @source ), [ @source ]
-	        	@source.remove_affect("mirror image")
+	        	@target.output "Your mirror image shatters to pieces!", [data[:source]]
+	        	@target.broadcast "%s's mirror image shatters to pieces!", @target.target( list: @target.room.occupants, not: @target ), [ @target ]
+	        	@target.remove_affect("mirror image")
 	        else
-	        	@source.output "Your mirror image takes %s's hit!", [data[:source]]
-	        	@source.broadcast "%s's mirror image absorbs the shock.", @source.target( room: @source.room, not: @source ), [ @source ]
+	        	@target.output "Your mirror image takes %s's hit!", [data[:source]]
+	        	@target.broadcast "%s's mirror image absorbs the shock.", @target.target( list: @target.room.occupants, not: @target ), [ @target ]
 	        end
 	        data[:confirm] = true
 	    end

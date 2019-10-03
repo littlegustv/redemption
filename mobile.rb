@@ -233,7 +233,7 @@ class Mobile < GameObject
         ( flags = ( weapon ? weapon.flags : [] ) ).each do |flag|
             if ( texts = Constants::ELEMENTAL_EFFECTS[ flag ] )
                 @attacking.output texts[0], [self]
-                @attacking.broadcast texts[1], target({ not: @attacking, room: @room }), [ @attacking, weapon ]
+                @attacking.broadcast texts[1], target({ not: @attacking, list: @room.occupants }), [ @attacking, weapon ]
                 elemental_effect( @attacking, flag )
                 @attacking.damage( 10, self )
                 return if @attacking.nil?
@@ -519,11 +519,11 @@ class Mobile < GameObject
 
     def recall
         output "You pray for transportation!"
-        broadcast "%s prays for transportation!", target({ room: @room, not: self }), [self]
-        broadcast "%s disappears!", target({ room: @room, not: self }), [self]
+        broadcast "%s prays for transportation!", target({ list: @room.occupants, not: self }), [self]
+        broadcast "%s disappears!", target({ list: @room.occupants, not: self }), [self]
         room = @game.recall_room( @room.continent )
         move_to_room( room )
-        broadcast "%s arrives in a puff of smoke!", target({ room: room, not: self }), [self]
+        broadcast "%s arrives in a puff of smoke!", target({ list: room.occupants, not: self }), [self]
         return true
     end
 

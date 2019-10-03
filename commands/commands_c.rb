@@ -49,7 +49,7 @@ class CommandConsider < Command
             actor.output "Who did you want to consider?"
             return false
         end
-        if ( target = actor.target({ room: actor.room, type: ["Mobile"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             case  target.level - actor.level
             when -51..-10
                 actor.output "You can kill #{target} naked and weaponless."

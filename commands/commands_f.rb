@@ -18,7 +18,7 @@ class CommandFlee < Command
             return false
         elsif rand(0..10) < 5
             actor.output "You flee from combat!"
-            actor.broadcast "%s has fled!", actor.target({ not: actor, room: actor.room }), [ actor ]
+            actor.broadcast "%s has fled!", actor.target({ not: actor, list: actor.room.occupants }), [ actor ]
             actor.stop_combat
             actor.do_command(actor.room.exits.select{ |k, v| not v.nil? }.keys.sample.to_s)
             return true

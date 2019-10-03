@@ -19,7 +19,7 @@ class SpellShackleRune < Spell
             return false
     	else
     		actor.output "You place a shackle on the ground preventing easy movement."
-    		actor.broadcast "%s places a strange rune on the ground.", actor.target({ room: actor.room, not: actor }), [actor]
+    		actor.broadcast "%s places a strange rune on the ground.", actor.target({ list: actor.room.occupants, not: actor }), [actor]
     		actor.room.apply_affect( AffectShackleRune.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
             return true
     	end

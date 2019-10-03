@@ -94,7 +94,7 @@ class AffectBlind < Affect
     end
 
     def send_start_messages
-        @target.broadcast "%s is blinded!", @game.target({ not: @target, room: @target.room }), [@target]
+        @target.broadcast "%s is blinded!", @game.target({ not: @target, list: @target.room.occupants }), [@target]
         @target.output "You can't see a thing!"
     end
 

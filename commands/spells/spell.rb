@@ -64,7 +64,7 @@ class Spell < Command
 			actor.output "You don't have enough mana"
 		else
 			actor.output "You utter the words '#{translate( @name )}'"
-			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, room: actor.room, type: ["Mobile", "Player"] }), [actor]
+			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, list: actor.room.occupants }), [actor]
 
 			actor.cast( self, args )
             actor.lag += @lag

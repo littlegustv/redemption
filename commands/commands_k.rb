@@ -24,7 +24,7 @@ class CommandKill < Command
         elsif actor.attacking
             actor.output "You are already fighting!"
             return false
-        elsif ( kill_target = actor.target({ room: actor.room, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             actor.do_round_of_attacks(target: kill_target)
             return true
         else
