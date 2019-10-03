@@ -40,4 +40,5 @@ class SkillTrip < Skill
         actor.deal_damage(target: target, damage: 5, noun:"trip", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
         target.apply_affect(Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }, game: @game))
     end
+    
 end

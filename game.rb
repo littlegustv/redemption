@@ -399,7 +399,7 @@ Which alignment (G/N/E)?)
                 damage_dice_sides: row[:damage_dice_sides].to_i,
                 damage_dice_count: row[:damage_dice_count].to_i,
                 damage_dice_bonus: row[:damage_dice_bonus].to_i,
-                hand_to_hand_noun: row[:hand_to_hand_noun].split("").first, # pierce, slash, none, etc.
+                hand_to_hand_noun: row[:hand_to_hand_noun], # pierce, slash, none, etc.
                 ac: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
                 offensive_flags: row[:off_flags],
                 immune_flags: row[:immune_flags],

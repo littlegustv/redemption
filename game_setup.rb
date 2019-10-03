@@ -167,6 +167,7 @@ module GameSetup
             row[:vuln_flags] = row[:vuln_flags].split(",")
             row[:part_flags] = row[:part_flags].split(",")
             row[:form_flags] = row[:form_flags].split(",")
+            row[:hand_to_hand_noun] = "pound" if row[:hand_to_hand_noun] == "none" 
         end
         log("Database load complete: Mobile data")
     end

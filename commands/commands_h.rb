@@ -18,7 +18,6 @@ class CommandHelp < Command
         matches = []
         @helps.each do |id, help|
             valid_help = true
-            p help
             args.each do |arg|
                 if !help[:keywords].any? { |keyword| keyword.fuzzy_match( arg ) }
                     valid_help = false

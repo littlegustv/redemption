@@ -103,10 +103,7 @@ module GameSave
 
     #save one player affect
     def save_player_affect(affect, saved_player_id)
-        saved_player_affect_id = @db.fetch("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES " +
-                    "WHERE TABLE_SCHEMA = 'redemption' AND TABLE_NAME = 'saved_player_affect';").first[:AUTO_INCREMENT]
         affect_data = {
-            id: saved_player_affect_id,
             saved_player_id: saved_player_id,
             name: affect.name,
             level: affect.level,
@@ -117,7 +114,7 @@ module GameSave
         if affect.source
             affect_data.merge!(affect.source.db_source_fields)
         end
-        @db[:saved_player_affect].insert(affect_data)
+        saved_player_affect_id = @db[:saved_player_affect].insert(affect_data)
         affect.modifiers.each do |key, value|
             modifier_data = {
                 saved_player_affect_id: saved_player_affect_id,
@@ -130,10 +127,7 @@ module GameSave
 
     # save one item
     def save_player_item(item, saved_player_id)
-        saved_player_item_id = @db.fetch("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES " +
-                    "WHERE TABLE_SCHEMA = 'redemption' AND TABLE_NAME = 'saved_player_item';").first[:AUTO_INCREMENT]
         item_data = {
-            id: saved_player_item_id,
             saved_player_id: saved_player_id,
             uuid: item.uuid,
             item_id: item.id
@@ -141,7 +135,7 @@ module GameSave
         if EquipSlot === item.parent_inventory
             item_data[:equipped] = "1"
         end
-        @db[:saved_player_item].insert(item_data)
+        saved_player_item_id = @db[:saved_player_item].insert(item_data)
         item.affects.select{ |affect| affect.savable }.each do |affect|
             save_player_item_affect(affect, item, saved_player_id)
         end
@@ -150,10 +144,7 @@ module GameSave
 
     # save one item affect
     def save_player_item_affect(affect, item, saved_player_id)
-        saved_player_item_affect_id = @db.fetch("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES " +
-                    "WHERE TABLE_SCHEMA = 'redemption' AND TABLE_NAME = 'saved_player_item_affect';").first[:AUTO_INCREMENT]
         affect_data = {
-            id: saved_player_item_affect_id,
             saved_item_uuid: item.uuid,
             name: affect.name,
             level: affect.level,
@@ -164,7 +155,7 @@ module GameSave
         if affect.source
             affect_data.merge!(affect.source.db_source_fields)
         end
-        @db[:saved_player_item_affect].insert(affect_data)
+        saved_player_item_affect_id = @db[:saved_player_item_affect].insert(affect_data)
         affect.modifiers.each do |key, value|
             modifier_data = {
                 saved_player_item_affect_id: saved_player_item_affect_id,
