@@ -119,8 +119,8 @@ class SpellSummon < Spell
 
     def attempt( actor, cmd, args, level )
         if ( target = @game.target({ type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            @game.broadcast "%s disappears suddenly.", @game.target({ list: target.room.occupants }), [target]
-            @game.broadcast "%s arrives suddenly.", @game.target({ list: actor.room.occupants }), [target]
+            @game.broadcast "%s disappears suddenly.", @game.target({ list: target.room.occupants, not: target }), [target]
+            @game.broadcast "%s arrives suddenly.", @game.target({ list: actor.room.occupants, not: target }), [target]
             target.move_to_room actor.room
             target.output "%s has summoned you!", [actor]
         else
