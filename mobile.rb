@@ -184,8 +184,9 @@ class Mobile < GameObject
     end
 
     def do_command( input )
-        cmd, args = input.sanitize.split " ", 2
-        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
+        cmd, args = input.sanitize.split " ", 2        
+        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?([^\s\.\'\*]+|'[\w\s]+'?))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
+        # @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
     end
 
     # When mobile is attacked, respond automatically unless already in combat targeting someone else
@@ -225,11 +226,13 @@ class Mobile < GameObject
 
     # all this does right now is regen some HP
     def tick
-        regen 50
+        regen 50, 15, 15
     end
 
-    def regen( n )
-        @hitpoints = [@hitpoints + n, maxhitpoints].min
+    def regen( hp, mp, mv )
+        @hitpoints = [@hitpoints + hp, maxhitpoints].min
+        @manapoints = [@manapoints + mp, maxmanapoints].min
+        @movepoints = [@movepoints + mv, maxmovepoints].min
     end
 
     def combat

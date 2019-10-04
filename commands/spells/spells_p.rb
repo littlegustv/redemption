@@ -137,6 +137,31 @@ class SpellPoison < Spell
     end
 end
 
+class SpellProtection < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "protection",
+            keywords: ["protection"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        if args.first.to_s.fuzzy_match("good")
+            actor.apply_affect( AffectProtectionGood.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        elsif args.first.to_s.fuzzy_match("neutral")
+            actor.apply_affect( AffectProtectionNeutral.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        elsif args.first.to_s.fuzzy_match("evil")
+            actor.apply_affect( AffectProtectionEvil.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        end
+    end
+
+end
+
 class SpellPyrotechnics < Spell
 
     def initialize(game)

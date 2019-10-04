@@ -26,6 +26,26 @@ class SpellShackleRune < Spell
     end
 end
 
+class SpellShield < Spell
+
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "shield",
+            keywords: ["shield", "shield"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.apply_affect( AffectShield.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
+end
+
 class SpellSlow < Spell
 
     def initialize(game)
@@ -63,4 +83,49 @@ class SpellSlow < Spell
         return true
     end
     
+end
+
+class SpellStoneSkin < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "stoneskin",
+            keywords: ["stone skin", "stoneskin"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.apply_affect( AffectStoneSkin.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
+end
+
+class SpellSummon < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "summon",
+            keywords: ["summon"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 25
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        if ( target = @game.target({ type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            @game.broadcast "%s disappears suddenly.", @game.target({ list: target.room.occupants }), [target]
+            @game.broadcast "%s arrives suddenly.", @game.target({ list: actor.room.occupants }), [target]
+            target.move_to_room actor.room
+            target.output "%s has summoned you!", [actor]
+        else
+            actor.output "You can't find anyone with that name."
+        end
+    end
+
 end

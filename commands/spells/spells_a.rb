@@ -67,3 +67,23 @@ class SpellAlarmRune < Spell
         end
     end
 end
+
+class SpellArmor < Spell
+
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "armor",
+            keywords: ["armor"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.apply_affect( AffectArmor.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
+end

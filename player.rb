@@ -65,7 +65,6 @@ class Player < Mobile
                 if @delayed_buffer.length > 0 && message.length > 0
                     @delayed_buffer = ""
                 end
-                
                 until !@game.locked
                     sleep(0.001)
                 end

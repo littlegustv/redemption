@@ -17,15 +17,14 @@ class SkillDisarm < Skill
         if not actor.attacking
         	actor.output "But you aren't fighting anyone!"
             return false
-        elsif not actor.attacking.equipment[:wield]
+        elsif not actor.attacking.wielded.first
         	actor.output "They aren't wielding a weapon."
             return false
         else
-        	actor.output "You disard %s!", [actor.attacking]
+        	actor.output "You disarm %s!", [actor.attacking]
         	actor.attacking.output "You have been disarmed!"
         	actor.broadcast "%s disarms %s", actor.target({ not: [ actor, actor.attacking ], list: actor.room.occupants }), [actor, actor.attacking]
-        	actor.attacking.equipment[:wield].room = actor.room
-        	actor.attacking.equipment[:wield] = nil
+        	actor.attacking.wielded.first.move actor.room.inventory
             return true
         end
     end

@@ -83,6 +83,32 @@ class AffectShackleRune < Affect
 
 end
 
+class AffectShield < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["shield", "armor"],
+            name: "shield",
+            level: level,
+            duration: level * 60,
+            modifiers: { ac_pierce: 20, ac_bash: 20, ac_slash: 20, ac_magic: -20 }
+        )
+    end
+
+    def send_start_messages
+        @target.output "You are surrounded by a force shield."
+        @target.broadcast "%s is surrounded by a force shield.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+    end
+
+    def send_complete_messages
+        @target.output "Your force shield shimmers then fades away."
+    end
+
+end
+
 class AffectShopkeeper < Affect
 
     def initialize(source:, target:, level:, game:)
@@ -175,6 +201,32 @@ class AffectSlow < Affect
     def send_complete_messages
         @target.output "You speed up."
     end
+end
+
+class AffectStoneSkin < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["stoneskin", "armor"],
+            name: "stoneskin",
+            level: level,
+            duration: level * 60,
+            modifiers: { ac_pierce: 40 }
+        )
+    end
+
+    def send_start_messages
+        @target.output "Your skin turns to stone."
+        @target.broadcast "%s's skin turns to stone.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+    end
+
+    def send_complete_messages
+        @target.output "Your skin feels soft again."
+    end
+
 end
 
 class AffectStun < Affect

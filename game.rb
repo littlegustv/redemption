@@ -197,7 +197,7 @@ Which alignment (G/N/E)?)
         end
 
         player = Player.new( { alignment: alignment, name: name, race_id: race_id, class_id: class_id }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
-        save_player(player, md5)
+        player.id = save_player(player, md5)
         finalize_login(player)
     end
 

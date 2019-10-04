@@ -19,25 +19,6 @@ class SpellDeathRune < Spell
 
 end
 
-class SpellDetectInvisibility < Spell
-
-    def initialize(game)
-        super(
-            game: game,
-            name: "detect invisibility",
-            keywords: ["detect invisibility"],
-            lag: 0.25,
-            position: Position::STAND,
-            mana_cost: 10
-        )
-    end
-
-    def attempt( actor, cmd, args, level )
-        actor.apply_affect( AffectDetectInvisibility.new( source: actor, target: actor, level: level, game: @game ) )
-    end
-
-end
-
 class SpellDestroyRune < Spell
 
     def initialize(game)
@@ -104,5 +85,48 @@ class SpellDestroyTattoo < Spell
             actor.output "You don't have a tattoo like that."
             return false
     	end
+    end
+end
+
+class SpellDetectInvisibility < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "detect invisibility",
+            keywords: ["detect invisibility"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.apply_affect( AffectDetectInvisibility.new( source: actor, target: actor, level: level, game: @game ) )
+    end
+
+end
+
+class SpellDetectMagic < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "detect magic",
+            keywords: ["detect magic"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            actor.output "%s is affected by the following spells:\n#{ target.affects.map(&:summary).join("\n") }", [target]
+            return true
+        else
+            actor.output "There is no one here with that name."
+            return false
+        end
     end
 end
