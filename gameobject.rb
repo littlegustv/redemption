@@ -194,7 +194,7 @@ class GameObject
 
     # Show the affects on this object to an observer
     def show_affects(observer: observer, show_hidden: false)
-        prefix = "#{show(observer)} is"
+        prefix = "#{show(self)} is"
         if self == observer
             prefix = "You are"
         end
