@@ -8,6 +8,7 @@ class Game
     attr_accessor :mobile_count
     attr_accessor :items
     attr_reader :race_data
+    attr_reader :locked
     attr_reader :class_data
     attr_reader :equip_slot_data
     attr_reader :affects
@@ -67,6 +68,8 @@ class Game
         @spells = []                        # Spell object array
         @commands = []                      # Command object array
 
+        @locked = false                     # lock is true during game loop, unlocked between frames
+
     end
 
     def login( client, thread )
@@ -99,23 +102,21 @@ class Game
                     @players[name].quit
                 end
                 if @inactive_players.has_key?(name) && @inactive_players[name].weakref_alive?
-                    @players[name] = @inactive_players[name].__getobj__
+                    player = @inactive_players[name].__getobj__
                     @inactive_players.delete(name)
-                    @players[name].reconnect(client, thread)
-                    log "#{name} is connecting as an inactive player!"
-                    save
-                    finalize_login(@players[name])
+                    player.reconnect(client, thread)
+                    # log "#{name} is connecting as an inactive player!"
+                    finalize_login(player)
                     return
                 else
-                    @players[name] = load_player(name, client, thread)
-                    if !@players[name]
+                    player = load_player(name, client, thread)
+                    if !player
                         @players.delete(name)
                         client.close
                         Thread.kill(thread)
                         return
                     end
-                    save
-                    finalize_login(@players[name])
+                    finalize_login(player)
                     return
                 end
             end
@@ -150,7 +151,7 @@ class Game
         while race_id.nil?
 
             client.puts("The following races are available:\n\r" +
-            "#{player_race_names.map{ |name| name.ljust(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n\r\n\r" +
+            "#{player_race_names.map{ |name| name.lpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n\r\n\r" +
             "What is your race (help for more information)?)")
             race_input = client.gets.chomp
             race_matches = player_race_names.select{ |name| name.fuzzy_match(race_input) }
@@ -195,12 +196,17 @@ Which alignment (G/N/E)?)
             end
         end
 
-        @players[name] = Player.new( { alignment: alignment, name: name, race_id: race_id, class_id: class_id }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
-        save_player(@players[name], md5)
-        finalize_login(@players[name])
+        player = Player.new( { alignment: alignment, name: name, race_id: race_id, class_id: class_id }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
+        save_player(player, md5)
+        finalize_login(player)
     end
 
     def finalize_login(player)
+        until !@locked
+            sleep(0.001)
+        end
+        @players[player.name] = player
+        save
         player.output "Welcome, #{player.name}."
         player.move_to_room(player.room)
         broadcast("%s has entered the game.", target({not: [player], list: player.room.occupants, quantity: "all"}), [player])
@@ -209,6 +215,7 @@ Which alignment (G/N/E)?)
 
     def game_loop
         loop do
+            @locked = true
             @frame_count += 1
 
             # deal with inactive players that have been garbage collected
@@ -244,6 +251,7 @@ Which alignment (G/N/E)?)
 
             # Sleep until the next frame
             sleep_time = (1.0 / Constants::Interval::FPS)
+            @locked = false
             sleep(sleep_time)
         end
     end
@@ -277,7 +285,7 @@ Which alignment (G/N/E)?)
         targets = []
 
         if !query[:list].nil?
-            targets = query[:list].reject(&:nil?)
+            targets = query[:list].reject(&:nil?) # got a crash here once but don't know why - maybe a bad list passed in?
             if query[:type]
                 targets -= targets.select { |t| Area === t }      if !query[:type].to_a.include?("Area")
                 targets -= targets.select { |t| Continent === t } if !query[:type].to_a.include?("Continent")
@@ -315,7 +323,7 @@ Which alignment (G/N/E)?)
     end
 
     def tick
-        broadcast "{MMud newbies 'Hi everyone! It's a tick!!'{x", target
+        broadcast "{MMud newbies 'Hi everyone! It's a tick!!'{x", target({ list: @players.values })
         ( @players.values + @mobiles).each do | entity |
             entity.tick
         end

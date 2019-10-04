@@ -70,7 +70,7 @@ class SpellInvisibility < Spell
         target = nil
         if args.first.nil?
             target = actor
-        elsif !(target = @game.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query )).first)
+        elsif !(target = @game.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query() )).first)
             actor.output "You don't see anything like that here."
             return false
         end

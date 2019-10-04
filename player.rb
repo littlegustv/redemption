@@ -65,6 +65,10 @@ class Player < Mobile
                 if @delayed_buffer.length > 0 && message.length > 0
                     @delayed_buffer = ""
                 end
+                
+                until !@game.locked
+                    sleep(0.001)
+                end
                 @commands.push message
             end
         end
@@ -95,11 +99,6 @@ class Player < Mobile
         "{c<#{@hitpoints}/#{maxhitpoints}hp #{@manapoints}/#{maxmanapoints}mp #{@movepoints}/#{maxmovepoints}mv>{x"
     end
 
-    def color_replace( message )
-        Constants::COLOR_CODE_REPLACEMENTS.each { |r| message = message.gsub("#{r[0]}", "#{r[1]}") }
-        return message
-    end
-
     def send_to_client
         if @buffer.length > 0
             @buffer += @attacking.condition if @attacking
@@ -112,7 +111,7 @@ class Player < Mobile
                 out += "\n\r\n\r[Hit Return to continue]"
             end
             begin
-                @client.print color_replace( "\n"+ out )
+                @client.print (out).replace_color_codes
             rescue
                 log "Error in player.send_to_client #{self.name}"
                 quit

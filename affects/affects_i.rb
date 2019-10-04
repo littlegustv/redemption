@@ -118,6 +118,7 @@ class AffectInvisibility < Affect
 
     def send_complete_messages
         @target.output "You fade into existence."
+        room  = @target.room
         @game.broadcast "%s fades into existence.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
     end
 

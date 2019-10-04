@@ -96,10 +96,10 @@ class Affect
 
     # Call this method to remove an affect from a GameObject.
     def clear(silent: false)
-        send_complete_messages if !silent
         complete
         @target.affects.delete self
         @game.remove_affect(self)
+        send_complete_messages if !silent
     end
 
     def periodic
@@ -115,7 +115,7 @@ class Affect
 
     def summary
         if @modifiers.length > 0
-            return "Spell: #{@name.ljust(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
+            return "Spell: #{@name.lpad(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
         else
             return "Spell: #{@name}"
         end

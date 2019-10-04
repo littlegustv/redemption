@@ -62,6 +62,9 @@ class Spell < Command
 	def cast( actor, spell, args )
 		if not actor.use_mana( @mana_cost )
 			actor.output "You don't have enough mana"
+        elsif actor.attacking && !@usable_in_combat
+            actor.output "You can't concentrate enough."
+            return false
 		else
 			actor.output "You utter the words '#{translate( @name )}'"
 			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, list: actor.room.occupants }), [actor]
@@ -84,7 +87,7 @@ class Spell < Command
             return false
         end
         if actor.attacking && !@usable_in_combat
-            actor.output "No way! You're still fighting!"
+            actor.output "You can't concentrate enough."
             return false
         end
         level = actor.casting_level

@@ -77,7 +77,7 @@ module MobileItem
         objects = []
         lines = []
         self.equip_slots.each do |equip_slot|
-            line = "<#{equip_slot.list_prefix}>".ljust(22)
+            line = "<#{equip_slot.list_prefix}>".lpad(22)
             if equip_slot.item
                 line << "%s"
                 objects << equip_slot.item
