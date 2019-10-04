@@ -2,7 +2,6 @@ module GameSave
 
     # Main save method for the game. This saves all active players.
     def save
-        # @db[:game_settings].update(:next_uuid => @next_uuid)  # update the next_uuid in the database
         @players.each do |name, player|                       # save each player
             save_player(player)
         end
@@ -31,7 +30,7 @@ module GameSave
         end
         old_item_data = @db[:saved_player_item].where(saved_player_id: player_data[:id])
         old_item_data.all.each do |item_row|
-            old_item_affect_rows = @db[:saved_player_item_affect].where(saved_item_uuid: item_row[:uuid])
+            old_item_affect_rows = @db[:saved_player_item_affect].where(saved_player_item_id: item_row[:id])
             old_item_affect_rows.all.each do |item_affect_row|
                 old_item_affect_modifiers = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: item_affect_row[:id])
                 old_item_affect_modifiers.delete
@@ -41,6 +40,7 @@ module GameSave
         old_item_data.delete
     end
 
+    # save a player and their items. saves md5 password hash if passed in
     def save_player(player, md5 = nil)
         single_call = !md5.nil?
         md5 = @db[:saved_player_base].where(name: player.name).first[:md5] if md5.nil?
@@ -124,7 +124,6 @@ module GameSave
     def save_player_item(item, saved_player_id)
         item_data = {
             saved_player_id: saved_player_id,
-            uuid: item.uuid,
             item_id: item.id
         }
         if EquipSlot === item.parent_inventory
@@ -132,15 +131,15 @@ module GameSave
         end
         saved_player_item_id = @db[:saved_player_item].insert(item_data)
         item.affects.select{ |affect| affect.savable }.each do |affect|
-            save_player_item_affect(affect, item, saved_player_id)
+            save_player_item_affect(affect, item, saved_player_id, saved_player_item_id)
         end
     end
 
 
     # save one item affect
-    def save_player_item_affect(affect, item, saved_player_id)
+    def save_player_item_affect(affect, item, saved_player_id, saved_player_item_id)
         affect_data = {
-            saved_item_uuid: item.uuid,
+            saved_player_item_id: saved_player_item_id,
             name: affect.name,
             level: affect.level,
             duration: affect.duration,
@@ -181,7 +180,6 @@ module GameSave
                              client,
                              thread )
         player.experience = player_data[:experience]
-        player.uuid = player_data[:uuid]
 
         player.stats[:str] = player_data[:str]
         player.stats[:int] = player_data[:int]
@@ -192,14 +190,15 @@ module GameSave
         player.quest_points = player_data[:quest_points]
         player.position = player_data[:position]
 
+        item_saved_id_hash = Hash.new
         # load items
         item_rows = @db[:saved_player_item].where(saved_player_id: player_data[:id]).all
         item_rows.each do |row|
             item = load_item(row[:item_id], player.inventory)
-            item.uuid = row[:uuid]
             if row[:equipped] == 1
                 player.wear(item: item, silent: true)
             end
+            item_saved_id_hash[row[:id]] = item
         end
 
         # load player affects
@@ -207,7 +206,7 @@ module GameSave
         affect_rows.each do |affect_row|
             affect_class = Constants::AFFECT_CLASS_HASH[affect_row[:name]]
             if affect_class
-                source = find_affect_source(affect_row, player.items + [player])
+                source = find_affect_source(affect_row, player, player.items)
                 if source != false # source can be nil, just not false - see find_affect_source
                     affect = affect_class.new(source: source, target: player, level: affect_row[:level], game: self)
                     affect.duration = affect_row[:duration]
@@ -224,12 +223,12 @@ module GameSave
         end
 
         # apply affects to items
-        player.items.each do |item|
-            item_affect_rows = @db[:saved_player_item_affect].where(saved_item_uuid: item.uuid).all
+        item_saved_id_hash.each do |saved_player_item_id, item|
+            item_affect_rows = @db[:saved_player_item_affect].where(saved_player_item_id: saved_player_item_id).all
             item_affect_rows.each do |affect_row|
                 affect_class = Constants::AFFECT_CLASS_HASH[affect_row[:name]]
                 if affect_class
-                    source = find_affect_source(affect_row, player.items + [player])
+                    source = find_affect_source(affect_row, player, player.items)
                     if source != false # source can be nil, just not false - see find_affect_source
                         affect = affect_class.new(source: source, target: item, level: affect_row[:level], game: self)
                         affect.duration = affect_row[:duration]
@@ -252,10 +251,14 @@ module GameSave
 
     # Find/load a source for an affect.
     # Returns the source (or nil if that was the affect's source) or false for a failure to find the source
-    def find_affect_source(data, targets)
-        targets = targets.to_a
+    def find_affect_source(data, player, items)
+        targets = items.to_a
         source = nil
-        source = targets.select{ |t| t.uuid == data[:source_uuid] }.first
+        if data[:source_type] == "Player"
+            source = player if player.id == data[:source_id]
+        else
+            source = items.select{ |i| i.uuid == data[:source_uuid] }.first
+        end
         if source
             return source   # source was an item on the player or the player itself? - return it!
         end

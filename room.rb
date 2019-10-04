@@ -13,9 +13,9 @@ class Room < GameObject
     def initialize( id, name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
         super(name, game)
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
-        @exits.each do | direction, room |
-            if not exits[ direction ].nil?
-                @exits[ direction ] = exits[ direction ]
+        @exits.each do | direction, room |                  # Exits exist as a hash.
+            if not exits[ direction ].nil?                  #  Key is direction (as a string)
+                @exits[ direction ] = exits[ direction ]    #  Value is the room object in that direction.
             end
         end
         @id = id

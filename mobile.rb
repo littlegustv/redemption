@@ -184,7 +184,7 @@ class Mobile < GameObject
     end
 
     def do_command( input )
-        cmd, args = input.sanitize.split " ", 2        
+        cmd, args = input.sanitize.split " ", 2
         @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?([^\s\.\'\*]+|'[\w\s]+'?))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
         # @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
     end
@@ -478,7 +478,7 @@ class Mobile < GameObject
 
     def move( direction )
         if @room.exits[ direction.to_sym ].nil?
-            output "There is no exit [#{direction}]."
+            output "Alas, you cannot go that way."
             return false
         else
             broadcast "%s leaves #{direction}.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"

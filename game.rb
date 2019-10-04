@@ -587,6 +587,14 @@ Which alignment (G/N/E)?)
 
     # destroy a room object
     def destroy_room(room)
+        @rooms.each do |other_room| # remove exits that go to the room being destroyed
+            other_room.exits.each do |direction, exit_room|
+                if exit_room == room
+                    other_room[direction] = nil
+                end
+            end
+        end
+
         rooms.affects.each do |affect|
             remove_affect(affect)
         end

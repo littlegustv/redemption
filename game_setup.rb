@@ -101,7 +101,6 @@ module GameSetup
     # Load the game_settings table from the database and apply its values where necessary.
     protected def load_game_settings
         @game_settings = @db[:game_settings].all.first
-        # @next_uuid = [1, @game_settings[:next_uuid].to_i].max
         log ( "Database load complete: Game settings" )
     end
 
@@ -281,7 +280,7 @@ module GameSetup
             if row
                 skill.overwrite_attributes(row)
             else
-                log "Skill \"#{skill.name}\" not found in database!"
+                log "{ySkill not found in database: \"#{skill.name}\" {x"
             end
             @skills.push skill
         end
@@ -296,7 +295,7 @@ module GameSetup
             if row
                 spell.overwrite_attributes(row)
             else
-                log "Spell \"#{spell.name}\" not found in database!"
+                log "{ySpell not found in database: \"#{spell.name}\"{x"
             end
             @spells.push spell
         end
@@ -311,7 +310,7 @@ module GameSetup
             if row
                 command.overwrite_attributes(row)
             else
-                log "Command \"#{command.name}\" not found in database!"
+                log "{yCommand not found in database: \"#{command.name}\"{x"
             end
             @commands.push command
         end

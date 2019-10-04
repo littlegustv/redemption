@@ -181,9 +181,10 @@ class GameObject
 
     # Generates a hash to provide affect source fields for the database
     def db_source_fields
-        return { source_type: self.db_source_type,
-                 source_uuid: @uuid,
-                 source_id: (self.respond_to?(:id)) ? self.id : 0 }
+        source_data = { source_type: self.db_source_type,
+                        source_uuid: @uuid,
+                        source_id: (self.respond_to?(:id)) ? self.id : 0 }
+        return source_data
     end
 
     # Override this in subclasses to generate correct source_type strings
