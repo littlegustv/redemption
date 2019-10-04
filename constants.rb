@@ -297,10 +297,16 @@ module Constants
         SpellWeaken,
         SpellCancellation,
         SpellKnowAlignment,
-        # SpellProtectionGood,
-        # SpellProtectionNeutral,
-        # SpellProtectionEvil,
-        SpellDeathRune
+        SpellProtection,
+        SpellDeathRune,
+        SpellDetectMagic,
+        SpellStoneSkin,
+        SpellArmor,
+        SpellBlur,
+        SpellBarkskin,
+        SpellShield,
+        SpellSummon,
+        SpellGate,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -341,11 +347,16 @@ module Constants
         "zeal" =>                   AffectZeal,
         "curse" =>                  AffectCurse,
         "plague" =>                 AffectPlague,
-        # "protect_good" =>           AffectProtectGood,
-        # "protect_good" =>           AffectProtectEvil,
-        # "protect_good" =>           AffectProtectNeutral,
+        "protect_good" =>           AffectProtectionGood,
+        "protect_good" =>           AffectProtectionEvil,
+        "protect_good" =>           AffectProtectionNeutral,
         "weaken" =>                 AffectWeaken,
         "death rune" =>             AffectDeathRune,
+        "stoneskin" =>              AffectStoneSkin,
+        "barkskin" =>               AffectBarkSkin,
+        "shield" =>                 AffectShield,
+        "blur" =>                   AffectBlur,
+        "armor" =>                  AffectArmor,
     }
 
 end

@@ -1,5 +1,32 @@
 require_relative 'affect.rb'
 
+class AffectBarkSkin < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["barkskin", "armor"],
+            name: "barkskin",
+            level: level,
+            duration: level * 60,
+            modifiers: { ac_bash: 40 }
+        )
+    end
+
+    def send_start_messages
+        @target.output "You are as mighty as an oak."
+        @target.broadcast "%s looks as mighty as an oak", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+    end
+
+    def send_complete_messages
+        @target.output "The bark on your skin flakes off."
+        @target.broadcast "The bark on %s's skin flakes off.", @game.target({ list: @target.room.occupants, not: @target }), [@target]        
+    end
+
+end
+
 class AffectBerserk < Affect
 
     def initialize(source:, target:, level:, game:)
@@ -22,7 +49,7 @@ class AffectBerserk < Affect
     end
 
     def periodic
-        @target.regen 10
+        @target.regen 10, 0, 0
     end
 
     def complete
@@ -104,6 +131,33 @@ class AffectBlind < Affect
 
     def do_blindness(data)
         data[:chance] *= 0
+    end
+
+end
+
+class AffectBlur < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["blur", "armor"],
+            name: "blur",
+            level: level,
+            duration: level * 60,
+            modifiers: { ac_slash: 40 }
+        )
+    end
+
+    def send_start_messages
+        @target.output "You become blurry."
+        @target.broadcast "%s's outline turns blurry.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+    end
+
+    def send_complete_messages
+        @target.output "You come into focus."
+        @target.broadcast "%s comes into focus.", @game.target({ list: @target.room.occupants, not: @target }), [@target]        
     end
 
 end

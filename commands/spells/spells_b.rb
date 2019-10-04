@@ -1,5 +1,24 @@
 require_relative 'spell.rb'
 
+class SpellBarkskin < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "barkskin",
+            keywords: ["barkskin", "bark skin"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.apply_affect( AffectBarkSkin.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
+end
+
 class SpellBlastOfRot < Spell
 
     def initialize(game)
@@ -71,6 +90,25 @@ class SpellBladeRune < Spell
             return false
         end
     end
+end
+
+class SpellBlur < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "blur",
+            keywords: ["blur"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.apply_affect( AffectBlur.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
 end
 
 class SpellBurstRune < Spell

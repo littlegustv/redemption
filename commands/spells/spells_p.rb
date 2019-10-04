@@ -1,5 +1,28 @@
 require_relative 'spell.rb'
 
+class SpellPhantasmMonster < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "phantasm monster",
+            keywords: ["phantasm monster"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.output "You call forth phantasmic forces!"
+        mob = @game.load_mob( 1844, actor.room )
+        @game.mobiles.push mob
+        mob.apply_affect( AffectFollow.new( source: actor, target: mob, level: 1, game: @game ) )
+        mob.apply_affect( AffectCharm.new( source: actor, target: mob, level: actor.level, game: @game ) )
+    end
+
+end
+
 class SpellPhantomForce < Spell
 
     def initialize(game)
@@ -114,6 +137,31 @@ class SpellPoison < Spell
     end
 end
 
+class SpellProtection < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "protection",
+            keywords: ["protection"],
+            lag: 0.25,
+            position: Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        if args.first.to_s.fuzzy_match("good")
+            actor.apply_affect( AffectProtectionGood.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        elsif args.first.to_s.fuzzy_match("neutral")
+            actor.apply_affect( AffectProtectionNeutral.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        elsif args.first.to_s.fuzzy_match("evil")
+            actor.apply_affect( AffectProtectionEvil.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        end
+    end
+
+end
+
 class SpellPyrotechnics < Spell
 
     def initialize(game)
@@ -148,27 +196,4 @@ class SpellPyrotechnics < Spell
         actor.deal_damage(target: target, damage: 100, noun:"pyrotechnics", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
         return true
     end
-end
-
-class SpellPhantasmMonster < Spell
-
-    def initialize(game)
-        super(
-            game: game,
-            name: "phantasm monster",
-            keywords: ["phantasm monster"],
-            lag: 0.25,
-            position: Position::STAND,
-            mana_cost: 10
-        )
-    end
-
-    def attempt( actor, cmd, args, level )
-        actor.output "You call forth phantasmic forces!"
-        mob = @game.load_mob( 1844, actor.room )
-        @game.mobiles.push mob
-        mob.apply_affect( AffectFollow.new( source: actor, target: mob, level: 1, game: @game ) )
-        mob.apply_affect( AffectCharm.new( source: actor, target: mob, level: actor.level, game: @game ) )
-    end
-
 end
