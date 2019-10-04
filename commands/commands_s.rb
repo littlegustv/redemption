@@ -56,8 +56,7 @@ class CommandSell < Command
         if ( shopkeeper = actor.target({ list: actor.room.occupants, affect: "shopkeeper" }).first )
             actor.target({ list: actor.inventory }.merge( args.first.to_s.to_query ) ).each do |sale|
                 if shopkeeper.spend( sale.cost )
-                    shopkeeper.inventory.push sale
-                    actor.inventory.delete sale
+                    sale.move(shopkeeper.inventory)
                     actor.earn( sale.cost )
                     actor.output( "You sell #{sale} for #{ sale.to_price }." )
                 else

@@ -118,7 +118,7 @@ class GameObject
             when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
                 existing_affects.each { |a| a.clear(silent: true) }
                 new_affect.send_refresh_messages if !silent
-                affects.push(new_affect)
+                affects.unshift(new_affect)
                 @game.add_affect(new_affect)
                 new_affect.start
             when :global_stack, :source_stack                      # stack with existing affect
@@ -129,7 +129,7 @@ class GameObject
                 return false
             when :multiple
                 new_affect.send_start_messages if !silent
-                affects.push(new_affect)
+                affects.unshift(new_affect)
                 @game.add_affect(new_affect)
                 new_affect.start
             else
@@ -138,7 +138,7 @@ class GameObject
             end
         else
             new_affect.send_start_messages if !silent
-            affects.push(new_affect)
+            affects.unshift(new_affect)
             @game.add_affect(new_affect)
             new_affect.start
         end
@@ -190,6 +190,23 @@ class GameObject
     # Override this in subclasses to generate correct source_type strings
     def db_source_type
         return "GameObject"
+    end
+
+    # Show the affects on this object to an observer
+    def show_affects(observer: observer, show_hidden: false)
+        prefix = "#{show(observer)} is"
+        if self == observer
+            prefix = "You are"
+        end
+        affects = self.affects
+        if !show_hidden
+            affects.select!{ |affect| !affect.hidden  }
+        end
+        if affects.empty?
+            return "#{prefix} not affected by any spells."
+        else
+            return "#{prefix} affected by the following spells:\n#{ affects.map(&:summary).join("\n") }"
+        end
     end
 
 end

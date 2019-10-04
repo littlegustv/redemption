@@ -25,7 +25,7 @@ class Inventory
     def add_item(item)
         @item_count[item.id] = @item_count[item.id].to_i + 1
         @item_count.delete(item.id) if item_count[item.id] <= 0
-        @items.push(item)
+        @items.unshift(item)
     end
 
     def show(observer:, long: false)

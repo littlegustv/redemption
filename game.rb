@@ -335,7 +335,7 @@ Which alignment (G/N/E)?)
             if @mob_data[ reset[:mobile_id] ]
                 if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
-                    @mobiles.push mob
+                    @mobiles.unshift mob
 
                     @mobile_count[ reset[:mobile_id] ] = @mobile_count[ reset[:mobile_id] ].to_i + 1
 
@@ -478,7 +478,7 @@ Which alignment (G/N/E)?)
                 item = Item.new( data, self, inventory )
             end
             if item
-                @items.push item
+                @items.unshift item
                 return item
             else
                 log "[Item creation unsuccessful]"
@@ -519,7 +519,7 @@ Which alignment (G/N/E)?)
     end
 
     def add_affect(affect)
-        @affects.push(affect)
+        @affects.unshift(affect)
     end
 
     def remove_affect(affect)

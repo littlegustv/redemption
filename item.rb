@@ -74,7 +74,7 @@ Keywords '#{ @keywords.join(' ') }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
 Extra flags: #{ @extraFlags }
 #{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
-) +  affects.map(&:summary).join("\n")
+) +  show_affects(observer: nil)
     end
 
     # move this item to another inventory - nil is passed when an item is going to be destroyed
@@ -174,7 +174,7 @@ class Tattoo < Item
         @runist = runist
         @duration = 600.0 * runist.level
         @slot = slot
-        @game.items.push self
+        @game.items.unshift self
     end
 
     def update(elapsed)

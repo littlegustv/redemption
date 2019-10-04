@@ -42,7 +42,7 @@ class CommandBuy < Command
 
                 if actor.spend( purchase.cost )
                     actor.output( "You buy #{purchase} for #{ purchase.to_price }." )
-                    actor.inventory.push @game.load_item( purchase.id, nil )
+                    actor.inventory.unshift @game.load_item( purchase.id, nil )
                 end
             end
         end.empty? and begin

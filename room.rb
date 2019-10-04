@@ -51,9 +51,9 @@ class Room < GameObject
     def mobile_arrive(mobile)
         if mobile.is_player?
             @players.delete(mobile)
-            @players.push(mobile)
+            @players.unshift(mobile)
         else
-            @mobiles.push(mobile)
+            @mobiles.unshift(mobile)
             @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i + 1
             @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end

@@ -122,7 +122,7 @@ class SpellDetectMagic < Spell
 
     def attempt( actor, cmd, args, level )
         if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            actor.output "%s is affected by the following spells:\n#{ target.affects.map(&:summary).join("\n") }", [target]
+            actor.output target.show_affects(observer: actor)
             return true
         else
             actor.output "There is no one here with that name."

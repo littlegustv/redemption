@@ -73,6 +73,7 @@ class Mobile < GameObject
         @damage_dice_bonus = data[:damage_dice_bonus]
         @hand_to_hand_noun = data[:hand_to_hand_noun]
         @swing_counter = 0
+        @hand_to_hand = nil
 
         @parts = data[:parts] || Constants::PARTS
 
