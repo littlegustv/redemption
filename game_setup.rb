@@ -6,13 +6,14 @@ module GameSetup
     # Calling this method will (in order):
     # 1. Open the TCP Server for the game.
     # 2. Open a connection to the database.
-    # 3. Load database tables
-    # 4. construct continents, areas, rooms
-    # 5. construct skills, spells, commands
-    # 6. perform a game.repop
-    # 7. set start_time to now
-    # 8. start the game_loop thread
-    # 9. begin a loop, creating threads for incoming clients
+    # 3. Cleans up database rows that were only relevant to the last instance of the game running
+    # 4. Load database tables
+    # 5. construct continents, areas, rooms
+    # 6. construct skills, spells, commands
+    # 7. perform a game.repop
+    # 8. set start_time to now
+    # 9. start the game_loop thread
+    # 10. begin a loop, creating threads for incoming clients
     # +ip+:: The IP address of the server. (Optional, can pass +nil+)
     # +port+:: The port the server uses.
     public def start(ip, port)
@@ -26,6 +27,7 @@ module GameSetup
         start_server(ip, port)
         # Open database connection
         connect_database
+        clean_database
 
         # load database tables
         load_game_settings
@@ -89,10 +91,17 @@ module GameSetup
         log( "Database connection established." )
     end
 
+    # clear some rows that were valid on the last time the game was running but are now errant data
+    protected def clean_database
+        @db[:saved_player_affect].update(source_uuid: 0)
+        @db[:saved_player_item_affect].update(source_uuid: 0)
+        log ( "Database cleaned." )
+    end
+
     # Load the game_settings table from the database and apply its values where necessary.
     protected def load_game_settings
         @game_settings = @db[:game_settings].all.first
-        @next_uuid = [1, @game_settings[:next_uuid].to_i].max
+        # @next_uuid = [1, @game_settings[:next_uuid].to_i].max
         log ( "Database load complete: Game settings" )
     end
 
@@ -167,7 +176,7 @@ module GameSetup
             row[:vuln_flags] = row[:vuln_flags].split(",")
             row[:part_flags] = row[:part_flags].split(",")
             row[:form_flags] = row[:form_flags].split(",")
-            row[:hand_to_hand_noun] = "pound" if row[:hand_to_hand_noun] == "none" 
+            row[:hand_to_hand_noun] = "pound" if row[:hand_to_hand_noun] == "none"
         end
         log("Database load complete: Mobile data")
     end

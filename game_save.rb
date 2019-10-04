@@ -2,7 +2,7 @@ module GameSave
 
     # Main save method for the game. This saves all active players.
     def save
-        @db[:game_settings].update(:next_uuid => @next_uuid)  # update the next_uuid in the database
+        # @db[:game_settings].update(:next_uuid => @next_uuid)  # update the next_uuid in the database
         @players.each do |name, player|                       # save each player
             save_player(player)
         end
@@ -47,13 +47,7 @@ module GameSave
         saved_player_id = nil
         old_row = @db[:saved_player_base].where(name: player.name).first
         saved_player_id = old_row.dig(:id) if old_row
-        if !saved_player_id
-            saved_player_id = @db.fetch("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES " +
-                        "WHERE TABLE_SCHEMA = 'redemption' AND TABLE_NAME = 'saved_player_base';").first[:AUTO_INCREMENT]
-        end
         player_data = {
-            id: saved_player_id,
-            uuid: player.uuid,
             name: player.name,
             level: player.level,
             experience: player.experience,
@@ -74,10 +68,10 @@ module GameSave
         if md5
             player_data[:md5] = md5
         end
-        if @db[:saved_player_base].where(id:saved_player_id).first
+        if saved_player_id && @db[:saved_player_base].where(id:saved_player_id).first
             @db[:saved_player_base].where(id:saved_player_id).update(player_data)
         else
-            @db[:saved_player_base].insert(player_data)
+            saved_player_id = @db[:saved_player_base].insert(player_data)
         end
 
         # Affects
@@ -99,6 +93,7 @@ module GameSave
         end
 
         # save if single_call
+        return saved_player_id
     end
 
     #save one player affect
@@ -173,12 +168,13 @@ module GameSave
             log "Trying to load invalid player: \"#{name}\""
             return
         end
-        player = Player.new( { alignment: player_data[:alignment],
+        player = Player.new( { id: player_data[:id],
+                               alignment: player_data[:alignment],
                                name: player_data[:name],
                                race_id: player_data[:race_id],
                                class_id: player_data[:class_id],
-                                wealth: player_data[:wealth],
-                                level: player_data[:level]
+                               wealth: player_data[:wealth],
+                               level: player_data[:level]
                              },
                              self,
                              @rooms[player_data[:room_id]] || @starting_room,
@@ -274,17 +270,17 @@ module GameSave
             source = @rooms[data[:source_id]]
         when "Player"
             # check active players
-            source = @players.values.select { |p| p.uuid == data[:source_uuid] }.first
+            source = @players.values.select { |p| p.id == data[:source_id] }.first
             if source # online player has been found
                 return source
             end
             # check inactive players
-            source = @inactive_players.values.select { |p| p.weakref_alive? && p.uuid == data[:source_uuid] }.first
+            source = @inactive_players.values.select { |p| p.weakref_alive? && p.id == data[:source_id] }.first
             if source # inactive player found as source
                 return source.__getobj__ # get actual reference from the WeakRef
             end
             # check database players
-            player_data = @db[:saved_player_base].where(uuid: data[:source_uuid]).first
+            player_data = @db[:saved_player_base].where(id: data[:source_id]).first
             if player_data # source exists in the database
                 source = load_player(player_data[:name], nil, nil)
                 source.quit(silent: true) # removes affects from master lists, puts into inactive players

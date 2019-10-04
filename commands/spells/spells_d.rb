@@ -125,7 +125,7 @@ class SpellDetectMagic < Spell
             actor.output "%s is affected by the following spells:\n#{ target.affects.map(&:summary).join("\n") }", [target]
             return true
         else
-            actor.outpt "There is no one here with that name."
+            actor.output "There is no one here with that name."
             return false
         end
     end

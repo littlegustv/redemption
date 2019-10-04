@@ -144,7 +144,7 @@ class Mobile < GameObject
         self.in_group.output "#{self} leaves your group."
 
         self.in_group.group.delete self
-        puts "#{self.in_group.group.length} others in group."
+        log "#{self.in_group.group.length} others in group."
         self.in_group = nil
     end
 
@@ -154,7 +154,7 @@ class Mobile < GameObject
 
         self.in_group = leader
         leader.group.push self
-        puts "#{leader.group.length} others in group."
+        log "#{leader.group.length} others in group."
     end
 
     def group_info
@@ -495,7 +495,7 @@ class Mobile < GameObject
     end
 
     def who
-        "[#{@level.to_s.rjust(2)} #{@game.race_data.dig(@race_id, :display_name).ljust(7)} #{@game.class_data.dig(@class_id, :name).capitalize.rjust(7)}] #{@short_description}"
+        "[#{@level.to_s.rpad(2)} #{@game.race_data.dig(@race_id, :display_name).lpad(8)} #{@game.class_data.dig(@class_id, :name).capitalize.rpad(8)}] #{@short_description}"
     end
 
     def move_to_room( room )
@@ -655,28 +655,28 @@ class Mobile < GameObject
 %Q(#{@short_description}
 Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
-{cLevel:{x     #{@level.to_s.ljust(26)} {cAge:{x       17 - 0(0) hours
-{cRace:{x      #{@game.race_data.dig(@race_id, :name).to_s.ljust(26)} {cSex:{x       male
-{cClass:{x     #{@game.class_data.dig(@class_id, :name).to_s.ljust(26)} {cDeity:{x     #{@deity}
-{cAlignment:{x #{@alignment.to_s.ljust(26)} {cDeity Points:{x 0
+{cLevel:{x     #{@level.to_s.lpad(26)} {cAge:{x       17 - 0(0) hours
+{cRace:{x      #{@game.race_data.dig(@race_id, :name).to_s.lpad(26)} {cSex:{x       male
+{cClass:{x     #{@game.class_data.dig(@class_id, :name).to_s.lpad(26)} {cDeity:{x     #{@deity}
+{cAlignment:{x #{@alignment.to_s.lpad(26)} {cDeity Points:{x 0
 {cPracs:{x     N/A                        {cTrains:{x    N/A
-{cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".ljust(26)} {cNext Level:{x #{@experience_to_level - @experience}
+{cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".lpad(26)} {cNext Level:{x #{@experience_to_level - @experience}
 {cQuest Points:{x #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
-{cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".ljust(26) } {cWeight:{x    #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
-{cGold:{x      #{ gold.to_s.ljust(26) } {cSilver:{x    #{ silver.to_s }
+{cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".lpad(26) } {cWeight:{x    #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
+{cGold:{x      #{ gold.to_s.lpad(26) } {cSilver:{x    #{ silver.to_s }
 ---------------------------------- Stats --------------------------------
-{cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".ljust(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
-{cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".ljust(26)} {cWimpy:{x     #{@wimpy}
+{cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".lpad(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
+{cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".lpad(26)} {cWimpy:{x     #{@wimpy}
 #{score_stat("str")}#{score_stat("con")}
 #{score_stat("int")}#{score_stat("wis")}
 #{score_stat("dex")}
-{cHitRoll:{x   #{ stat(:hitroll).to_s.ljust(26)} {cDamRoll:{x   #{ stat(:damroll) }
-{cDamResist:{x #{ stat(:damresist).to_s.ljust(26) } {cMagicDam:{x  #{ stat(:magicdam) }
+{cHitRoll:{x   #{ stat(:hitroll).to_s.lpad(26)} {cDamRoll:{x   #{ stat(:damroll) }
+{cDamResist:{x #{ stat(:damresist).to_s.lpad(26) } {cMagicDam:{x  #{ stat(:magicdam) }
 {cAttackSpd:{x #{ stat(:attack_speed) }
 -------------------------------- Elements -------------------------------#{element_data[:string]}
 --------------------------------- Armour --------------------------------
-{cPierce:{x    #{ (-1 * stat(:ac_pierce)).to_s.ljust(26) } {cBash:{x      #{ -1 * stat(:ac_bash) }
-{cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.ljust(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
+{cPierce:{x    #{ (-1 * stat(:ac_pierce)).to_s.lpad(26) } {cBash:{x      #{ -1 * stat(:ac_bash) }
+{cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.lpad(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
 You are #{Position::STRINGS[ @position ]}.)
@@ -692,7 +692,7 @@ You are #{Position::STRINGS[ @position ]}.)
         base += 3 if @game.class_data.dig(@class_id, :main_stat) == stat_name
         modified = stat(stat)
         max = stat(max_stat)
-        return "{c#{stat_name.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".ljust(27)}"
+        return "{c#{stat_name.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".lpad(27)}"
     end
 
     def skills

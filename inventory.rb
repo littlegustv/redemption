@@ -37,7 +37,7 @@ class Inventory
                 next
             end
             quantity = targets.select{ |t| t.id == item.id }.length
-            quantity_string = quantity > 1 ? "(#{quantity.to_s.rjust(2)})" : "    "
+            quantity_string = quantity > 1 ? "(#{quantity.to_s.rpad(2)})" : "    "
             if long
                 lines << "#{quantity_string} #{item.long}"
             else

@@ -37,7 +37,7 @@ class Item < GameObject
     end
 
     def to_store_listing
-        "[#{@level.to_s.rjust(2)} #{@cost.to_s.rjust(5)} -- ] #{@short_description}"
+        "[#{@level.to_s.rpad(2)} #{@cost.to_s.rpad(5)} -- ] #{@short_description}"
     end
 
     def to_price
