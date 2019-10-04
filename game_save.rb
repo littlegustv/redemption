@@ -40,7 +40,8 @@ module GameSave
         old_item_data.delete
     end
 
-    # save a player and their items. saves md5 password hash if passed in
+    # save a player and their items. saves md5 password hash if passed in.
+    # returns the database id of the player
     def save_player(player, md5 = nil)
         single_call = !md5.nil?
         md5 = @db[:saved_player_base].where(name: player.name).first[:md5] if md5.nil?
