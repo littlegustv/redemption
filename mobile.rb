@@ -215,7 +215,7 @@ class Mobile < GameObject
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
             attacker.apply_affect( AffectKiller.new(source: attacker, target: attacker, level: 0, game: @game) ) if attacker.is_player?
-            do_command "yell 'Help I am being attacked by #{attacker}!'"
+            do_command "yell Help I am being attacked by #{attacker}!"
         end
         old_position = @position
         @position = Constants::Position::STAND

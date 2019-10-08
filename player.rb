@@ -13,6 +13,7 @@ class Player < Mobile
 	    @lag = 0
         @client = client
         @commands = []
+        move_to_room(room)
     end
 
     # Player destroy works a little differently from other gameobjects.

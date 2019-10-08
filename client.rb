@@ -326,10 +326,10 @@ class Client
 
     # do a single output
     def send_output(s)
-        s = s.gsub(/\n/, "\n\r")
         if s[-1] != "\n"
             s += "\n"
         end
+        s = s.gsub(/\n/, "\n\r")
         begin
             @client_connection.print s.replace_color_codes
         rescue StandardError => msg
