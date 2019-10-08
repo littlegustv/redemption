@@ -93,24 +93,60 @@ module GameSave
         delete_database_player_affects(player.name)
 
         # save current affects
+        affect_query = []
+        affect_modifier_query = []
+
         player.affects.select{ |affect| affect.savable }.each do |affect|
-            save_player_affect(affect, saved_player_id)
+            save_player_affect(affect, saved_player_id, affect_query, affect_modifier_query)
         end
+
+        affect_save_result = @db[:saved_player_affect].multi_insert( affect_query, return: :primary_key )
+        log("Warning: multi_insert for player affects has a result with different length than the query") if affect_query.count != affect_save_result.to_a.count
+
+        affect_modifier_query.each do |affect_modifier_data|
+            affect_modifier_data[:saved_player_affect_id] = affect_save_result[ affect_modifier_data[:saved_player_affect_id] ]
+        end
+
+        @db[:saved_player_affect_modifier].multi_insert( affect_modifier_query )
 
         # Items
         # delete existing database items
         delete_database_player_items(player.name)
 
         #save current items
+        #
+        # To avoid performance problems, items are compiled into a single query array and inserted into the database at once.
+        # 
+        # Once they are inserted, the related affects are updated to use the appropriate database ID (and subsequently for modifiers as well)
+
+        item_query = []
+        item_affect_query = []
+        item_affect_modifier_query = []
+
         player.items.each do |item|
-            save_player_item(item, saved_player_id)
+            save_player_item(item, saved_player_id, item_query, item_affect_query, item_affect_modifier_query )
         end
+        item_save_result = @db[:saved_player_item].multi_insert( item_query, return: :primary_key )
+        log("Warning: multi_insert for items has a result with different length than the query") if item_query.count != item_save_result.to_a.count
+        
+        item_affect_query.each do |item_affect_data|
+            item_affect_data[:saved_player_item_id] = item_save_result[ item_affect_data[:saved_player_item_id] ]
+        end
+
+        item_affect_save_result = @db[:saved_player_item_affect].multi_insert( item_affect_query, return: :primary_key )
+        log("Warning: multi_insert for item affects has a result with different length than the query") if item_affect_query.count != item_affect_save_result.to_a.count
+
+        item_affect_modifier_query.each do |item_affect_modifier_data|
+            item_affect_modifier_data[:saved_player_item_affect_id] = item_affect_save_result[ item_affect_modifier_data[:saved_player_item_affect_id] ]
+        end
+
+        @db[:saved_player_item_affect_modifier].multi_insert( item_affect_modifier_query )
 
         return saved_player_id
     end
 
     #save one player affect
-    protected def save_player_affect(affect, saved_player_id)
+    protected def save_player_affect(affect, saved_player_id, affect_query, affect_modifier_query)
         affect_data = {
             saved_player_id: saved_player_id,
             name: affect.name,
@@ -122,19 +158,25 @@ module GameSave
         if affect.source
             affect_data.merge!(affect.source.db_source_fields)
         end
-        saved_player_affect_id = @db[:saved_player_affect].insert(affect_data)
+        saved_player_affect_id = affect_query.length
+        affect_query << affect_data
         affect.modifiers.each do |key, value|
             modifier_data = {
                 saved_player_affect_id: saved_player_affect_id,
                 field: key.to_s,
                 value: value
             }
-            @db[:saved_player_affect_modifier].insert(modifier_data)
+            affect_modifier_query << modifier_data
         end
     end
 
     # save one item
-    protected def save_player_item(item, saved_player_id)
+    # 
+    # In both save_player_item and save_player_item_affect, the parent object ID is not known until the object has been saved into the
+    # database, so the query array index is used as a placeholder and filled in with the proper ID once the query is called.
+    # 
+
+    protected def save_player_item(item, saved_player_id, item_query, item_affect_query, item_affect_modifier_query)
         item_data = {
             saved_player_id: saved_player_id,
             item_id: item.id
@@ -142,15 +184,16 @@ module GameSave
         if EquipSlot === item.parent_inventory
             item_data[:equipped] = "1"
         end
-        saved_player_item_id = @db[:saved_player_item].insert(item_data)
+        saved_player_item_id = item_query.length
+        item_query << item_data
         item.affects.select{ |affect| affect.savable }.each do |affect|
-            save_player_item_affect(affect, item, saved_player_id, saved_player_item_id)
+            save_player_item_affect( affect, item, saved_player_id, saved_player_item_id, item_affect_query, item_affect_modifier_query )
         end
     end
 
 
     # save one item affect
-    protected def save_player_item_affect(affect, item, saved_player_id, saved_player_item_id)
+    protected def save_player_item_affect(affect, item, saved_player_id, saved_player_item_id, item_affect_query, item_affect_modifier_query)
         affect_data = {
             saved_player_item_id: saved_player_item_id,
             name: affect.name,
@@ -162,14 +205,15 @@ module GameSave
         if affect.source
             affect_data.merge!(affect.source.db_source_fields)
         end
-        saved_player_item_affect_id = @db[:saved_player_item_affect].insert(affect_data)
+        saved_player_item_affect_id = item_affect_query.length
+        item_affect_query << affect_data
         affect.modifiers.each do |key, value|
             modifier_data = {
                 saved_player_item_affect_id: saved_player_item_affect_id,
                 field: key.to_s,
                 value: value
             }
-            @db[:saved_player_item_affect_modifier].insert(modifier_data)
+            item_affect_modifier_query << modifier_data
         end
     end
 
@@ -285,7 +329,7 @@ module GameSave
             source = @rooms[data[:source_id]]
         when "Player"
             # check active players
-            source = @players.values.select { |p| p.id == data[:source_id] }.first
+            source = @players.select { |p| p.id == data[:source_id] }.first
             if source # online player has been found
                 return source
             end
