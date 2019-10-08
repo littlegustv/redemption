@@ -12,7 +12,7 @@ class SkillTrip < Skill
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         target = nil
         if args.length <= 0 and actor.attacking.nil?
             actor.output "Who did you want to bash?"

@@ -13,7 +13,7 @@ class CommandCast < Command
         @spells = game.spells
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         spell_name = args.shift
         if spell_name.nil?
             actor.output "What spell are you trying to cast?"
@@ -24,7 +24,7 @@ class CommandCast < Command
         }.sort_by(&:priority)
 
         if matches.any?
-            return matches.last.cast( actor, cmd, args )
+            return matches.last.cast( actor, cmd, args, input )
         else
             actor.output "You don't have any spells of that name."
             return false
@@ -44,7 +44,7 @@ class CommandConsider < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.first.nil?
             actor.output "Who did you want to consider?"
             return false

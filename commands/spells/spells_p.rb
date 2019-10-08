@@ -13,7 +13,7 @@ class SpellPhantasmMonster < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.output "You call forth phantasmic forces!"
         mob = @game.load_mob( 1844, actor.room )
         @game.mobiles.unshift mob
@@ -44,7 +44,7 @@ class SpellPhantomForce < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -81,7 +81,7 @@ class SpellPlague < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -120,7 +120,7 @@ class SpellPoison < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -150,7 +150,7 @@ class SpellProtection < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         if args.first.to_s.fuzzy_match("good")
             actor.apply_affect( AffectProtectionGood.new( source: nil, target: actor, level: actor.level, game: @game ) )
         elsif args.first.to_s.fuzzy_match("neutral")
@@ -182,7 +182,7 @@ class SpellPyrotechnics < Spell
 	    end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking

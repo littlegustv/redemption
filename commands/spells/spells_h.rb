@@ -13,7 +13,7 @@ class SpellHurricane < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.broadcast "%s summons a hurricane!", actor.target({ not: actor, list: actor.room.occupants, type: ["Mobile", "Player"] }), [actor]
         actor.output "You summon a hurricane!"
     	( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|

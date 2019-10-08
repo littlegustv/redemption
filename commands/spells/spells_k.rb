@@ -13,7 +13,7 @@ class SpellKnowAlignment < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         if ( target = @game.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
         	actor.output Constants::ALIGNMENT_DESCRIPTIONS.select{ |key, value| target.alignment >= key }.values.last, [target]
         else

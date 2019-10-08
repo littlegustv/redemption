@@ -22,7 +22,7 @@ class SpellVentriloquate < Spell
 	    end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
     	if args.first.nil? && actor.attacking
     		actor.attacking.do_command "say #{args[1..-1].to_a.join(' ')}"
             return true

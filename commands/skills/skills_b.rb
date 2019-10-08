@@ -13,7 +13,7 @@ class SkillBash < Skill
         @data[:target_lag] = 0.5
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         target = nil
         if args.length > 0
             target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
@@ -57,7 +57,7 @@ class SkillBerserk < Skill
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if not actor.affected? "berserk"
             actor.apply_affect(AffectBerserk.new(source: actor, target: actor, level: actor.level, game: @game))
             return true

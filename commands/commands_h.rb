@@ -11,7 +11,7 @@ class CommandHelp < Command
         @helps = game.help_data
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.count == 0
             args.push("summary")
         end

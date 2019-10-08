@@ -12,7 +12,7 @@ class CommandFlee < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if !actor.attacking
             actor.output "But you aren't fighting anyone!"
             return false
@@ -41,7 +41,7 @@ class CommandFollow < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.first.nil?
             actor.remove_affect("follow")
         elsif ( target = actor.target({ list: actor.room.occupants, not: actor }.merge( args.first.to_s.to_query )).first )

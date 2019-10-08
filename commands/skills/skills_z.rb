@@ -12,7 +12,7 @@ class SkillZeal < Skill
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
     	if not actor.affected? "zeal"
 	        actor.apply_affect(AffectZeal.new( source: nil, target: actor, level: actor.level, game: @game))
             return true

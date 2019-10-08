@@ -50,6 +50,10 @@ class Mobile < GameObject
         @in_group = nil
         @deity = "Gabriel"
 
+        @casting = nil
+        @casting_args = nil
+        @casting_input = nil
+
         @stats = {
             success: 100,
             str: data[:str] || 0,
@@ -197,7 +201,7 @@ class Mobile < GameObject
 
     def do_command( input )
         cmd, args = input.sanitize.split " ", 2
-        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?([^\s\.\'\*]+|'[\w\s]+'?))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
+        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?([^\s\.\'\*]+|'[\w\s]+'?))/i).map(&:first).map{ |arg| arg.gsub("'", "") }, input )
         # @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
     end
 
@@ -654,9 +658,10 @@ class Mobile < GameObject
     #     @armor_class[index].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.armor( index ).to_i }.reduce(0, :+)
     # end
 
-    def cast( spell, args )
+    def cast( spell, args, input )
         @casting = spell
         @casting_args = args
+        @casting_input = input
     end
 
     def score
@@ -786,9 +791,6 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
     end
 
     def apply_element_flags(element_flags, affect_class, array)
-        if !is_player?
-            return
-        end
         element_flags.to_a.each do |flag|
             element = Constants::Element::STRINGS.select { |k, v| v == flag }.first
             next if !element

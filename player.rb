@@ -13,7 +13,6 @@ class Player < Mobile
 	    @lag = 0
         @client = client
         @commands = []
-        move_to_room(room)
     end
 
     # Player destroy works a little differently from other gameobjects.
@@ -148,7 +147,7 @@ class Player < Mobile
             @lag -= elapsed
         elsif @casting
             if rand(1..100) <= stat(:success)
-                @casting.execute( self, @casting.name, @casting_args )
+                @casting.execute( self, @casting.name, @casting_args, @casting_input )
                 @casting = nil
                 @casting_args = []
             else

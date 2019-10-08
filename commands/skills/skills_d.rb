@@ -13,7 +13,7 @@ class SkillDisarm < Skill
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if not actor.attacking
         	actor.output "But you aren't fighting anyone!"
             return false
@@ -42,7 +42,7 @@ class SkillDirtKick < Skill
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.length <= 0 and actor.attacking.nil?
             actor.output "Who did you want to dirt kick?"
             return false

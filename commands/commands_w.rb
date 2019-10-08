@@ -11,7 +11,7 @@ class CommandWear < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.first == "all"
             actor.wear_all
             return true
@@ -40,7 +40,7 @@ class CommandWhere < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         targets = actor.target( { type: "Player", area: actor.room.area, visible_to: actor } )
         actor.output %Q(
 Current Area: #{ actor.room.area }. Level Range: ? ?
@@ -62,7 +62,7 @@ class CommandWhitespace < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.delayed_output
         return true
     end
@@ -80,7 +80,7 @@ class CommandWho < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         targets = actor.target( { type: "Player", visible_to: actor } )
         out = ""
         @game.continents.values.each do |continent|
@@ -106,7 +106,7 @@ class CommandWorth < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.output "You have #{actor.to_worth}"
         return true
     end

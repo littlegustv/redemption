@@ -13,7 +13,7 @@ class SpellShackleRune < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
     	if actor.room.affected? "shackle rune"
     		actor.output "This room is already affected by the restriction of movement."
             return false
@@ -40,7 +40,7 @@ class SpellShield < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectShield.new( source: nil, target: actor, level: actor.level, game: @game ) )
     end
 
@@ -67,7 +67,7 @@ class SpellSlow < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -98,7 +98,7 @@ class SpellStoneSkin < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectStoneSkin.new( source: nil, target: actor, level: actor.level, game: @game ) )
     end
 
@@ -117,7 +117,7 @@ class SpellSummon < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         if ( target = @game.target({ type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
             @game.broadcast "%s disappears suddenly.", @game.target({ list: target.room.occupants }), [target]
             @game.broadcast "%s arrives suddenly.", @game.target({ list: actor.room.occupants }), [target]

@@ -12,7 +12,7 @@ class CommandBlind < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if not actor.affected? "blind"
             actor.output "You have been blinded!"
             actor.apply_affect(AffectBlind.new(source: actor, target: actor, level: actor.level, game: @game))
@@ -36,7 +36,7 @@ class CommandBuy < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper" ) ).each do |shopkeeper|
             ( actor.target({ list: shopkeeper.inventory.items }.merge( args.first.to_s.to_query )) ).each do |purchase|
 

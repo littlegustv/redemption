@@ -21,7 +21,7 @@ class SpellWeaken < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking

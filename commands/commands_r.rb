@@ -11,7 +11,7 @@ class CommandRecall < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         return actor.recall
     end
 end
@@ -27,7 +27,7 @@ class CommandRemove < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if ( targets = actor.target({ visible_to: actor, list: actor.equipment }.merge( args.first.to_s.to_query(1) )) )
             targets.each do |target|
                 actor.unwear(item: target)
@@ -52,7 +52,7 @@ class CommandRest < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         case actor.position
         when Constants::Position::SLEEP
             actor.output "You wake up and rest."

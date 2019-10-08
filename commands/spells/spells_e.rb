@@ -21,7 +21,7 @@ class SpellEnchantWeapon < Spell
 	    end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.inventory.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
             fail = 25
             # dam =
@@ -58,7 +58,7 @@ class SpellEnergyDrain < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking

@@ -37,7 +37,7 @@ class Command
         @name
     end
 
-    def execute( actor, cmd, args )
+    def execute( actor, cmd, args, input )
         if actor.position < @position # Check position
             case actor.position
             when Constants::Position::SLEEP
@@ -54,12 +54,12 @@ class Command
             return false
         end
 
-        success = attempt( actor, cmd, args )
+        success = attempt( actor, cmd, args, input )
         actor.lag += @lag if success
         return success
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.output "Default command"
     end
 

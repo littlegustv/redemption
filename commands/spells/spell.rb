@@ -59,7 +59,7 @@ class Spell < Command
 		translation.downcase
 	end
 
-	def cast( actor, spell, args )
+	def cast( actor, spell, args, input )
 		if not actor.use_mana( @mana_cost )
 			actor.output "You don't have enough mana"
         elsif actor.attacking && !@usable_in_combat
@@ -74,7 +74,7 @@ class Spell < Command
 		end
 	end
 
-    def execute( actor, cmd, args )
+    def execute( actor, cmd, args, input )
         if actor.position < @position # Check position
             case actor.position
             when Constants::Position::SLEEP
@@ -91,7 +91,7 @@ class Spell < Command
             return false
         end
         level = actor.casting_level
-        success = attempt( actor, cmd, args, level )
+        success = attempt( actor, cmd, args, input, level )
         return success
     end
 
