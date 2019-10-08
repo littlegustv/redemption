@@ -32,7 +32,7 @@ class SpellCauseLight < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
         else
@@ -40,7 +40,7 @@ class SpellCauseLight < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -69,7 +69,7 @@ class SpellCauseSerious < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
         else
@@ -77,7 +77,7 @@ class SpellCauseSerious < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -106,7 +106,7 @@ class SpellCauseCritical < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
         else
@@ -114,7 +114,7 @@ class SpellCauseCritical < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -126,43 +126,6 @@ class SpellCauseCritical < Spell
             return false
         end
         actor.deal_damage(target: target, damage: 75, noun:"cause critical wounds", element: Constants::Element::HOLY, type: Constants::Damage::MAGICAL)
-        return true
-    end
-end
-
-class SpellHarm < Spell
-
-    def initialize(game)
-        super(
-            game: game,
-            name: "harm",
-            keywords: ["harm"],
-            lag: 0.25,
-            position: Constants::Position::STAND,
-            mana_cost: 50
-        )
-    end
-
-    def cast( actor, cmd, args )
-        if args.first.nil? && actor.attacking.nil?
-            actor.output "Cast the spell on who, now?"
-        else
-            super
-        end
-    end
-
-    def attempt( actor, cmd, args, level )
-        target = nil
-        if args.first.nil? && actor.attacking
-            target = actor.attacking
-        elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
-        end
-        if !target
-            actor.output "They aren't here."
-            return false
-        end
-        actor.deal_damage(target: target, damage: 100, noun:"harm", element: Constants::Element::HOLY, type: Constants::Damage::MAGICAL)
         return true
     end
 end
@@ -180,7 +143,7 @@ class SpellChainLightning < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
         else
@@ -188,7 +151,7 @@ class SpellChainLightning < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -250,7 +213,7 @@ class SpellColorSpray < Spell
     def initialize(game)
         super(
             game: game,
-            name: "color spray",
+            name: "colour spray",
             keywords: ["color spray", "colour spray"],
             lag: 0.25,
             position: Constants::Position::STAND,
@@ -258,7 +221,7 @@ class SpellColorSpray < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
             return
@@ -267,7 +230,7 @@ class SpellColorSpray < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking

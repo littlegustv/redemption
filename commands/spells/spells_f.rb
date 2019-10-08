@@ -13,7 +13,7 @@ class SpellFireball < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.broadcast "%s summons a burning ball of fire!", actor.target({ not: actor, list: actor.room.occupants, type: ["Mobile", "Player"] }), [actor]
         actor.output "You summon a fireball!"
         ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
@@ -61,7 +61,7 @@ class SpellFlamestrike < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
         else
@@ -69,7 +69,7 @@ class SpellFlamestrike < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking

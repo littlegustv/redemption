@@ -13,7 +13,7 @@ class SpellEarthquake < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.broadcast "%s makes the earth tremble and shiver.", actor.target({ not: actor, list: actor.room.area.occupants, type: ["Mobile", "Player"] }), [actor]
         actor.output "The earth trembles beneath your feet!"
         ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
