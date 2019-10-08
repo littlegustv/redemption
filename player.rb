@@ -142,25 +142,6 @@ class Player < Mobile
         return true
     end
 
-    def update( elapsed )
-        if @lag > 0
-            @lag -= elapsed
-        elsif @casting
-            if rand(1..100) <= stat(:success)
-                @casting.execute( self, @casting.name, @casting_args )
-                @casting = nil
-                @casting_args = []
-            else
-                output "You lost your concentration."
-                @casting = nil
-                @casting_args = []
-            end
-        elsif @commands.length > 0
-            do_command @commands.shift
-        end
-        super( elapsed )
-    end
-
     def process_commands(elapsed)
         if @lag > 0
             @lag -= elapsed
