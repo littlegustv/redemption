@@ -13,7 +13,7 @@ class SpellVentriloquate < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
     	if args.first.nil? && actor.attacking.nil?
     		actor.output "Cast the spell on who, now?"
             return
@@ -23,11 +23,10 @@ class SpellVentriloquate < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-    	if args.first.nil? && actor.attacking
-    		actor.attacking.do_command "say #{args[1..-1].to_a.join(' ')}"
-            return true
-    	elsif ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-    		target.do_command "say #{args[1..-1].to_a.join(' ')}"
+    	if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            words = input.split(" ")
+            message = input[/#{words[1]}.*#{words[2]} (.*)/, 1]
+    		target.do_command "say #{message}"
             return true
     	else
     		actor.output "They aren't here."

@@ -51,7 +51,7 @@ class SpellCurse < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
         else

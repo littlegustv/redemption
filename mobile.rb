@@ -334,9 +334,12 @@ class Mobile < GameObject
     end
 
     # do a round of attacks against a target
-    def do_round_of_attacks(target:)
+    def do_round_of_attacks(target: nil)
+        if !target
+            target = @attacking
+        end
         stat( :attack_speed ).times do |attack|
-            weapon_hit(target: target)
+            weapon_hit(target: target) if target.attacking
         end
     end
 

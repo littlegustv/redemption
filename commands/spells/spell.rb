@@ -69,7 +69,7 @@ class Spell < Command
 			actor.output "You utter the words '#{translate( @name )}'"
 			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, list: actor.room.occupants }), [actor]
 
-			actor.cast( self, args )
+			actor.cast( self, args, input )
             actor.lag += @lag
 		end
 	end
