@@ -7,7 +7,7 @@ class CommandGet < Command
             game: game,
             name: "get",
             keywords: ["get", "take"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -30,7 +30,7 @@ class CommandGive < Command
             game: game,
             name: "give",
             keywords: ["give"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -91,7 +91,7 @@ class CommandGroup < Command
             game: game,
             name: "group",
             keywords: ["group"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

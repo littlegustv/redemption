@@ -18,6 +18,7 @@ require_relative 'commands/spells/spells'
 require_relative 'commands/skills/skills'
 require_relative 'continent'
 require_relative 'constants'
+require_relative 'client'
 
 game = Game.new
 game.start(ARGV[0], ARGV[1] || 4000)

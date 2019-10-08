@@ -8,7 +8,7 @@ class SpellKnowAlignment < Spell
             name: "know alignment",
             keywords: ["know alignment"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

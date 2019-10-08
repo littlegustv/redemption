@@ -2,10 +2,25 @@ require_relative 'mobile_item'
 
 class Mobile < GameObject
 
-    attr_accessor :id, :attacking, :lag, :position, :inventory, :active
-    attr_accessor :level, :group, :in_group, :experience, :quest_points, :alignment, :wealth
+    attr_accessor :id
+    attr_accessor :attacking
+    attr_accessor :lag
+    attr_accessor :position
+    attr_accessor :inventory
+    attr_accessor :active
+    attr_accessor :level
+    attr_accessor :group
+    attr_accessor :in_group
+    attr_accessor :experience
+    attr_accessor :quest_points
+    attr_accessor :alignment
+    attr_accessor :wealth
 
-    attr_reader :game, :room, :race_id, :class_id, :stats
+    attr_reader :game
+    attr_reader :room
+    attr_reader :race_id
+    attr_reader :class_id
+    attr_reader :stats
 
     include MobileItem
 
@@ -77,7 +92,7 @@ class Mobile < GameObject
 
         @parts = data[:parts] || Constants::PARTS
 
-        @position = Position::STAND
+        @position = Constants::Position::STAND
         @inventory = Inventory.new(owner: self, game: @game)
 
         @room = room
@@ -126,10 +141,6 @@ class Mobile < GameObject
             @wealth = net
             return true
         end
-    end
-
-    def update( elapsed )
-        super elapsed
     end
 
     def use_mana( n )
@@ -207,8 +218,8 @@ class Mobile < GameObject
             do_command "yell 'Help I am being attacked by #{attacker}!'"
         end
         old_position = @position
-        @position = Position::STAND
-        if old_position == Position::SLEEP
+        @position = Constants::Position::STAND
+        if old_position == Constants::Position::SLEEP
             look_room
         end
         if @attacking.nil?
@@ -507,7 +518,11 @@ class Mobile < GameObject
         @room = room
         if @room
             @room.mobile_arrive(self)
-            @game.do_command self, "look"
+            if @position == Constants::Position::SLEEP
+                output "Your dreams grow restless."
+            else
+                @game.do_command self, "look"
+            end
         end
     end
 
@@ -680,7 +695,7 @@ Member of clan Kenshi
 {cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.lpad(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
-You are #{Position::STRINGS[ @position ]}.)
+You are #{Constants::Position::STRINGS[ @position ]}.)
     end
 
     # Take a stat name as a string and convert it into a score-formatted output string.
@@ -771,6 +786,9 @@ You are #{Position::STRINGS[ @position ]}.)
     end
 
     def apply_element_flags(element_flags, affect_class, array)
+        if !is_player?
+            return
+        end
         element_flags.to_a.each do |flag|
             element = Constants::Element::STRINGS.select { |k, v| v == flag }.first
             next if !element
@@ -795,6 +813,11 @@ You are #{Position::STRINGS[ @position ]}.)
 
     def db_source_type
         return "Mobile"
+    end
+
+    def do_visible
+        remove_affect("invisibility")
+        output "You are now visible."
     end
 
 end

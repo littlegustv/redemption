@@ -7,7 +7,7 @@ class CommandDrop < Command
             game: game,
             name: "drop",
             keywords: ["drop"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

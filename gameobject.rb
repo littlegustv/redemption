@@ -20,8 +20,8 @@ class GameObject
     def output( message, objects = [] )
     end
 
-    def broadcast( message, targets, objects = [] )
-        @game.broadcast message, targets, objects.to_a
+    def broadcast( message, targets, objects = [], send_to_sleeping: false)
+        @game.broadcast(message, targets, objects.to_a, send_to_sleeping: send_to_sleeping)
     end
 
     def target( query )
@@ -58,7 +58,7 @@ class GameObject
         }
     end
 
-    def can_see?
+    def can_see?(target)
         true
     end
 
@@ -153,6 +153,9 @@ class GameObject
     #  some_mobile.apply_affect_flags(["infravision", "hatchling", "flying"])
     #
     def apply_affect_flags(flags, silent: false, array: nil)
+        if !self.respond_to?(:is_player?) || !self.is_player?
+            return
+        end
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class
@@ -193,19 +196,20 @@ class GameObject
     end
 
     # Show the affects on this object to an observer
-    def show_affects(observer: observer, show_hidden: false)
+    def show_affects(observer:, show_hidden: false, full: true)
         prefix = "#{show(self)} is"
         if self == observer
             prefix = "You are"
         end
-        affects = self.affects
+        affs_to_show = self.affects
         if !show_hidden
-            affects.select!{ |affect| !affect.hidden  }
+            affs_to_show = affs_to_show.reject(&:hidden)
         end
-        if affects.empty?
-            return "#{prefix} not affected by any spells."
+        text = ( full ? "#{prefix} affected by the following spells:\n" : "" )
+        if affs_to_show.empty?
+            return ( full ? "#{prefix} not affected by any spells." : "")
         else
-            return "#{prefix} affected by the following spells:\n#{ affects.map(&:summary).join("\n") }"
+            return "#{text}#{ affs_to_show.map(&:summary).join("\n") }"
         end
     end
 

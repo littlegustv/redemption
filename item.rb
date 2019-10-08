@@ -62,10 +62,6 @@ class Item < GameObject
         return @modifiers[ key ].to_i
     end
 
-    def update(elapsed)
-        @affects.each{ |affect| affect.update(elapsed) }
-    end
-
     def lore
 %Q(
 Object '#{ @short_description }' is of type #{ @type }.
@@ -74,7 +70,7 @@ Keywords '#{ @keywords.join(' ') }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
 Extra flags: #{ @extraFlags }
 #{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
-) +  show_affects(observer: nil)
+) +  show_affects(observer: nil, full: false)
     end
 
     # move this item to another inventory - nil is passed when an item is going to be destroyed

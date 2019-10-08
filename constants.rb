@@ -1,16 +1,16 @@
-module Position
-    SLEEP = 0
-    REST = 1
-    STAND = 2
-
-    STRINGS = {
-        SLEEP => "sleeping",
-        REST => "resting",
-        STAND => "standing"
-    }
-end
-
 module Constants
+
+    module Position
+        SLEEP = 0
+        REST = 1
+        STAND = 2
+
+        STRINGS = {
+            SLEEP => "sleeping",
+            REST => "resting",
+            STAND => "standing"
+        }
+    end
 
     module Element
         NONE = 0
@@ -80,7 +80,7 @@ module Constants
         ROUND = FPS * 1		    # 1 second
         TICK = FPS * 60			# 1 minute
         REPOP = FPS * 3 * 60    # 3 minutes
-        # RESET = FPS * 4         # fast resets for testing
+        # REPOP = FPS * 4         # fast resets for testing
         AUTOSAVE = FPS * 60     # 1 minute
     end
 
@@ -356,5 +356,12 @@ module Constants
         "blur" =>                   AffectBlur,
         "armor" =>                  AffectArmor,
     }
+
+    module ClientState
+        LOGIN = 0
+        ACCOUNT = 1
+        CREATION = 2
+        PLAYER = 3
+    end
 
 end

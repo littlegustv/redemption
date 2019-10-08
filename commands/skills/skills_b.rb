@@ -8,7 +8,7 @@ class SkillBash < Skill
             name: "bash",
             keywords: ["bash"],
             lag: 2,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
         @data[:target_lag] = 0.5
     end
@@ -28,7 +28,7 @@ class SkillBash < Skill
             actor.output "You fall flat on your face!"
             return true
         end
-        if actor.position < Position::STAND
+        if actor.position < Constants::Position::STAND
             actor.output "You have to stand up first."
             return false
         end
@@ -53,7 +53,7 @@ class SkillBerserk < Skill
             name: "berserk",
             keywords: ["berserk"],
             lag: 0.5,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

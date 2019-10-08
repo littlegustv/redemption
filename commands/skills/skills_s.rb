@@ -8,7 +8,7 @@ class SkillSneak < Command
             name: "sneak",
             keywords: ["sneak"],
             lag: 0,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

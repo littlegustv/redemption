@@ -42,6 +42,8 @@ module GameSetup
         load_shop_data
         load_reset_data
         load_help_data
+        load_account_data
+        load_saved_player_data
 
         # construct objects
         make_continents
@@ -63,9 +65,11 @@ module GameSetup
         end
 
         # each client runs on its own thread as well
+
         loop do
-            thread = Thread.start(@server.accept) do |client|
-                login client, thread
+            thread = Thread.start(@server.accept) do |client_connection|
+                client = Client.new(client_connection, thread, self)
+                client.input_loop
             end
         end
     end
@@ -197,14 +201,14 @@ module GameSetup
 
     # load reset tables from database
     protected def load_reset_data
-        # @base_resets = @db[:reset_base].where( area_id: [17, 23] ).to_hash(:id)
-        @base_resets = @db[:reset_base].to_hash(:id)
-        @mob_resets = @db[:reset_mobile].to_hash(:reset_id)
-        @inventory_resets = @db[:reset_inventory_item].to_hash(:reset_id)
-        @equipment_resets = @db[:reset_equipped_item].to_hash(:reset_id)
-        @room_item_resets = @db[:reset_room_item].to_hash(:reset_id)
-        @base_mob_resets = @base_resets.select{ |key, value| value[:type] == "mobile" }
-        @base_room_item_resets = @base_resets.select{ |key, value| value[:type] == "room_item" }
+        # @base_reset_data = @db[:reset_base].where( area_id: [17, 23] ).to_hash(:id)
+        @base_reset_data = @db[:reset_base].to_hash(:id)
+        @mob_reset_data = @db[:reset_mobile].to_hash(:reset_id)
+        @inventory_reset_data = @db[:reset_inventory_item].to_hash(:reset_id)
+        @equipment_reset_data = @db[:reset_equipped_item].to_hash(:reset_id)
+        @room_item_reset_data = @db[:reset_room_item].to_hash(:reset_id)
+        @base_mob_reset_data = @base_reset_data.select{ |key, value| value[:type] == "mobile" }
+        @base_room_item_reset_data = @base_reset_data.select{ |key, value| value[:type] == "room_item" }
         log("Database load complete: Resets")
     end
 
@@ -213,6 +217,18 @@ module GameSetup
         @help_data = @db[:help_base].to_hash(:id)
         @help_data.each { |id, help| help[:keywords] = help[:keywords].split(" ") }
         log ( "Database load complete: Helpfiles" )
+    end
+
+    # load account data = this will be continually updated
+    protected def load_account_data
+        @account_data = @db[:account_base].to_hash(:id)
+        log ( "Database load complete: Account data" )
+    end
+
+    # load player data - this will be continually updated in the main thread
+    protected def load_saved_player_data
+        @saved_player_data = @db[:saved_player_base].to_hash(:id)
+        log ( "Database load complete: Saved player data" )
     end
 
     # Construct Continent objects

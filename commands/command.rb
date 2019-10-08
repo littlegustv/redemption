@@ -11,7 +11,7 @@ class Command
         keywords: ["defaultcommand"],
         lag: 0,
         usable_in_combat: true,
-        position: Position::SLEEP,
+        position: Constants::Position::SLEEP,
         hp_cost: 0,
         mana_cost: 0,
         movement_cost: 0
@@ -40,9 +40,9 @@ class Command
     def execute( actor, cmd, args )
         if actor.position < @position # Check position
             case actor.position
-            when Position::SLEEP
+            when Constants::Position::SLEEP
                 actor.output "In your dreams, or what?"
-            when Position::REST
+            when Constants::Position::REST
                 actor.output "Nah... You feel too relaxed..."
             else
                 actor.output "You can't quite get comfortable enough."
@@ -71,7 +71,7 @@ class Command
         @lag = new_attr_hash[:lag].to_i
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = !(new_attr_hash[:usable_in_combat].to_i.zero?)
-        new_position = Position::STRINGS.select{ |k, v| v == new_attr_hash[:position].to_s }.first
+        new_position = Constants::Position::STRINGS.select{ |k, v| v == new_attr_hash[:position].to_s }.first
         if new_position
             @position = new_position[0]
         end

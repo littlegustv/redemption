@@ -9,7 +9,7 @@ class SkillDisarm < Skill
             name: "disarm",
             keywords: ["disarm"],
             lag: 2,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -38,7 +38,7 @@ class SkillDirtKick < Skill
             name: "dirt kick",
             keywords: ["dirt kick"],
             lag: 2,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -47,7 +47,7 @@ class SkillDirtKick < Skill
             actor.output "Who did you want to dirt kick?"
             return false
         end
-        if actor.position < Position::STAND
+        if actor.position < Constants::Position::STAND
             actor.output "You have to stand up first."
             return false
         elsif actor.attacking and args.length <= 0

@@ -7,7 +7,7 @@ class CommandEquipment < Command
             game: game,
             name: "equipment",
             keywords: ["equipment"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

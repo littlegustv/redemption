@@ -8,7 +8,7 @@ class SkillKick < Command
             name: "kick",
             keywords: ["kick"],
             lag: 1,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -17,7 +17,7 @@ class SkillKick < Command
             actor.output "Who did you want to kick?"
             return false
         end
-        if actor.position < Position::STAND
+        if actor.position < Constants::Position::STAND
             actor.output "You have to stand up first."
             return false
         elsif actor.attacking and args.length <= 0

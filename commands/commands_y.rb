@@ -7,7 +7,7 @@ class CommandYell < Command
             game: game,
             name: "yell",
             keywords: ["yell"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

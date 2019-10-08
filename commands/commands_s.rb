@@ -7,7 +7,7 @@ class CommandSay < Command
             game: game,
             name: "say",
             keywords: ["say", "'"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -48,7 +48,7 @@ class CommandSell < Command
             name: "sell",
             keywords: ["sell"],
             lag: 0,
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -120,17 +120,17 @@ class CommandSleep < Command
 
     def attempt( actor, cmd, args )
         case actor.position
-        when Position::SLEEP
+        when Constants::Position::SLEEP
             actor.output "You are already asleep."
             return false
-        when Position::REST, Position::STAND
+        when Constants::Position::REST, Constants::Position::STAND
             actor.output "You go to sleep."
             actor.broadcast "%s lies down and goes to sleep.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
         else
             actor.output "You can't quite get comfortable enough."
             return false
         end
-        actor.position = Position::SLEEP
+        actor.position = Constants::Position::SLEEP
         return true
     end
 end
@@ -148,23 +148,23 @@ class CommandStand < Command
 
     def attempt( actor, cmd, args )
         keyword = @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.first
-        if keyword == "wake" && actor.position != Position::SLEEP
+        if keyword == "wake" && actor.position != Constants::Position::SLEEP
             actor.output "You're already awake!"
             return false
         end
         case actor.position
-        when Position::SLEEP
+        when Constants::Position::SLEEP
             actor.output "You wake and stand up."
             actor.broadcast "%s wakes and stands up.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
-            actor.position = Position::STAND
+            actor.position = Constants::Position::STAND
             actor.look_room
             return true
-        when Position::REST
+        when Constants::Position::REST
             actor.output "You stand up."
             actor.broadcast "%s stands up.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
-            actor.position = Position::STAND
+            actor.position = Constants::Position::STAND
             return true
-        when Position::STAND
+        when Constants::Position::STAND
             actor.output "You are already standing."
             return false
         else

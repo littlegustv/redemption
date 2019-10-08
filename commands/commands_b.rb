@@ -8,7 +8,7 @@ class CommandBlind < Command
             name: "blind",
             keywords: ["blind"],
             lag: 0.4,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -32,7 +32,7 @@ class CommandBuy < Command
             name: "buy",
             keywords: ["buy"],
             lag: 0,
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

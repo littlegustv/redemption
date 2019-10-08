@@ -8,7 +8,7 @@ class CommandKill < Command
             name: "kill",
             keywords: ["kill", "hit"],
             lag: 0.5,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -18,7 +18,7 @@ class CommandKill < Command
             actor.output "Who did you want to #{keyword}?"
             return false
         end
-        if actor.position < Position::STAND
+        if actor.position < Constants::Position::STAND
             actor.output "You have to stand up first."
             return false
         elsif actor.attacking

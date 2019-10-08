@@ -8,7 +8,7 @@ class SkillTrip < Skill
             name: "trip",
             keywords: ["trip"],
             lag: 2,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -18,7 +18,7 @@ class SkillTrip < Skill
             actor.output "Who did you want to bash?"
             return false
         end
-        if actor.position < Position::STAND
+        if actor.position < Constants::Position::STAND
             actor.output "You have to stand up first."
             return false
         elsif actor.attacking and args.length <= 0

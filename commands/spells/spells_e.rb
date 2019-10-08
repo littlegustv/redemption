@@ -8,7 +8,7 @@ class SpellEnchantWeapon < Spell
             name: "enchant weapon",
             keywords: ["enchant weapon"],
             lag: 2,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -44,7 +44,7 @@ class SpellEnergyDrain < Spell
             name: "energy drain",
             keywords: ["energy drain"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

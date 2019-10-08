@@ -8,7 +8,7 @@ class SpellBarkskin < Spell
             name: "barkskin",
             keywords: ["barkskin", "bark skin"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -27,7 +27,7 @@ class SpellBlastOfRot < Spell
             name: "blast of rot",
             keywords: ["blast", "rot", "blast of rot"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -64,7 +64,7 @@ class SpellBladeRune < Spell
             name: "blade rune",
             keywords: ["blade rune"],
             lag: 0.25,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -100,7 +100,7 @@ class SpellBlur < Spell
             name: "blur",
             keywords: ["blur"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -119,7 +119,7 @@ class SpellBurstRune < Spell
             name: "burst rune",
             keywords: ["burst rune"],
             lag: 0.25,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

@@ -7,7 +7,7 @@ class CommandWear < Command
             game: game,
             name: "wear",
             keywords: ["wear", "hold", "wield"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -36,7 +36,7 @@ class CommandWhere < Command
             game: game,
             name: "where",
             keywords: ["where"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

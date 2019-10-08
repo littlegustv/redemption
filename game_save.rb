@@ -1,17 +1,35 @@
 module GameSave
 
+    # save an account info to the database, then update account table
+    def save_new_account(account_data)
+        account_id = @db[:account_base].insert(account_data)
+        @account_data = @db[:account_base].to_hash(:id)
+        return account_id
+    end
+
+    # save an account info to the database, then update account table
+    def save_new_player(player_data)
+        player_data[:position] = Constants::Position::STAND
+        player_data[:room_id] = @starting_room.id
+        player_data[:level] = 1
+        player_id = @db[:saved_player_base].insert(player_data)
+        @saved_player_data = @db[:saved_player_base].to_hash(:id)
+        return player_id
+    end
+
     # Main save method for the game. This saves all active players.
     def save
-        @players.each do |name, player|                       # save each player
+        @players.each do |player|                       # save each player
             save_player(player)
         end
+        @saved_player_data = @db[:saved_player_base].to_hash(:id)
     end
 
     # delete saved_player_affect row and relevant rows in subtables for a player with a given name
-    def delete_database_player_affects(name)
+    protected def delete_database_player_affects(name)
         player_data = @db[:saved_player_base].where(name: name).first
         if !player_data
-            log "deleting database affects for a player not in the database? #{name}"
+            log "Deleting database affects for a player not in the database: #{name}"
             return
         end
         old_affect_data = @db[:saved_player_affect].where(saved_player_id: player_data[:id])
@@ -22,7 +40,7 @@ module GameSave
     end
 
     # delete saved_player_item row and relevant rows in subtables for a player with a given name
-    def delete_database_player_items(name)
+    protected def delete_database_player_items(name)
         player_data = @db[:saved_player_base].where(name: name).first
         if !player_data
             log "deleting database items for a player not in the database? #{name}"
@@ -42,7 +60,7 @@ module GameSave
 
     # save a player and their items. saves md5 password hash if passed in.
     # returns the database id of the player
-    def save_player(player, md5 = nil)
+    protected def save_player(player, md5 = nil)
         single_call = !md5.nil?
         md5 = @db[:saved_player_base].where(name: player.name).first[:md5] if md5.nil?
         saved_player_id = nil
@@ -98,7 +116,7 @@ module GameSave
     end
 
     #save one player affect
-    def save_player_affect(affect, saved_player_id)
+    protected def save_player_affect(affect, saved_player_id)
         affect_data = {
             saved_player_id: saved_player_id,
             name: affect.name,
@@ -122,7 +140,7 @@ module GameSave
     end
 
     # save one item
-    def save_player_item(item, saved_player_id)
+    protected def save_player_item(item, saved_player_id)
         item_data = {
             saved_player_id: saved_player_id,
             item_id: item.id
@@ -138,7 +156,7 @@ module GameSave
 
 
     # save one item affect
-    def save_player_item_affect(affect, item, saved_player_id, saved_player_item_id)
+    protected def save_player_item_affect(affect, item, saved_player_id, saved_player_item_id)
         affect_data = {
             saved_player_item_id: saved_player_item_id,
             name: affect.name,
@@ -162,10 +180,10 @@ module GameSave
     end
 
     # Load a player from the database. Returns the player object.
-    def load_player(name, client, thread)
-        player_data = @db[:saved_player_base].where(name: name).first
+    def load_player(id, client)
+        player_data = @db[:saved_player_base].where(id: id).first
         if !player_data
-            log "Trying to load invalid player: \"#{name}\""
+            log "Trying to load invalid player: \"#{id}\""
             return
         end
         player = Player.new( { id: player_data[:id],
@@ -178,8 +196,7 @@ module GameSave
                              },
                              self,
                              @rooms[player_data[:room_id]] || @starting_room,
-                             client,
-                             thread )
+                             client)
         player.experience = player_data[:experience]
 
         player.stats[:str] = player_data[:str]
@@ -252,7 +269,7 @@ module GameSave
 
     # Find/load a source for an affect.
     # Returns the source (or nil if that was the affect's source) or false for a failure to find the source
-    def find_affect_source(data, player, items)
+    protected def find_affect_source(data, player, items)
         targets = items.to_a
         source = nil
         if data[:source_type] == "Player"
@@ -286,7 +303,7 @@ module GameSave
             # check database players
             player_data = @db[:saved_player_base].where(id: data[:source_id]).first
             if player_data # source exists in the database
-                source = load_player(player_data[:name], nil, nil)
+                source = load_player(player_data[:id], nil, nil)
                 source.quit(silent: true) # removes affects from master lists, puts into inactive players
             end
         when "Mobile"

@@ -1,32 +1,35 @@
 class Player < Mobile
 
-    def initialize( data, game, room, client, thread )
+    attr_reader :client
+
+    def initialize( data, game, room, client )
+        data[:keywords] = data[:name].to_a
+        data[:short_description] = data[:name]
+        data[:long_description] = "#{data[:name]} the Master Rune Maker is here."
+        super(data, game, room)
         @buffer = ""
         @delayed_buffer = ""
         @scroll = 60
 	    @lag = 0
         @client = client
-        @thread = thread
         @commands = []
-        data[:keywords] = data[:name].to_a
-        data[:short_description] = data[:name]
-        data[:long_description] = "#{data[:name]} the Master Rune Maker is here."
-        super(data, game, room)
     end
 
-    # alias for @game.destroy_player(self)
+    # Player destroy works a little differently from other gameobjects.
+    # Player destroy just marks it for destruction in the main thread so you can call it
+    # from the client's own thread.
     def destroy
-        @game.save
+        if @client
+            @client.player = nil
+            @client = nil
+        end
         @game.destroy_player(self)
     end
 
-    # this method basically has to undo a @game.destroy_player(self)
-    def reconnect( client, thread )
+    # this method basically has to undo a @game.destroy_player(self) call
+    def reconnect( client )
         if @client
-            @client.close
-        end
-        if @thread
-            Thread.kill( @thread )
+            @client.disconnect
         end
         if !@active
             @affects.each do |affect|
@@ -46,31 +49,23 @@ class Player < Mobile
             end
         end
         @client = client
-        @thread = thread
         @active = true
     end
 
-    def input_loop
-        loop do
-            begin
-                raw = @client.gets
-            rescue StandardError => msg
-                log "Player #{self.name} disconnected: #{msg}"
-                quit
-            end
-            if raw.nil?
-                quit
-            else
-                message = raw.chomp.to_s
-                if @delayed_buffer.length > 0 && message.length > 0
-                    @delayed_buffer = ""
-                end
-                until !@game.locked
-                    sleep(0.001)
-                end
-                @commands.push message
-            end
+    # this is a client thread method!
+    def input(s)
+        s = s.chomp.to_s
+        if @delayed_buffer.length > 0 && s.length > 0
+            @delayed_buffer = ""
         end
+        @commands.push(s)
+    end
+
+    # Called when a player first logs in.
+    def login
+        output "Welcome, #{@name}."
+        move_to_room(@room)
+        broadcast("%s has entered the game.", target({not: [self], list: @room.occupants}), [self])
     end
 
     def output( message, objects = [] )
@@ -103,18 +98,13 @@ class Player < Mobile
             @buffer += @attacking.condition if @attacking
             lines = @buffer.split("\n", 1 + @scroll)
             @delayed_buffer = (lines.count > @scroll ? lines.pop : @delayed_buffer)
-            out = lines.join("\n\r")
+            out = lines.join("\n")
             if @delayed_buffer.length == 0
-                out += "\n\r#{prompt}"
+                out += "\n#{prompt}"
             else
-                out += "\n\r\n\r[Hit Return to continue]"
+                out += "\n\n[Hit Return to continue]"
             end
-            begin
-                @client.print (out).replace_color_codes
-            rescue
-                log "Error in player.send_to_client #{self.name}"
-                quit
-            end
+            @client.send_output(out)
             @buffer = ""
         end
     end
@@ -130,30 +120,24 @@ class Player < Mobile
         room = @game.recall_room( @room.continent )
         move_to_room( room )
         @hitpoints = 10
-        @position = Position::REST
+        @position = Constants::Position::REST
     end
 
     def quit(silent: false)
+        @game.save
         stop_combat
         if !silent
             broadcast "%s has left the game.", @game.target({not: [self], list: @room.occupants}), self
         end
-        if @thread
-            Thread.kill( @thread )
-        end
         @buffer = ""
-        if @client
-            begin
-                if !silent
-                    @client.print "Alas, all good things must come to an end.\n\r"
-                end
-            rescue
-                log "Error on player quitting."
-            end
-            @client.close
+        if !silent
+            @client.send_output("Alas, all good things must come to an end.\n")
+            @client.list_characters
         end
-        @client = nil
-        @thread = nil
+        if @client
+            @client.player = nil
+            @client = nil
+        end
         destroy
         return true
     end
@@ -175,6 +159,24 @@ class Player < Mobile
             do_command @commands.shift
         end
         super( elapsed )
+    end
+
+    def process_commands(elapsed)
+        if @lag > 0
+            @lag -= elapsed
+        elsif @casting
+            if rand(1..100) <= stat(:success)
+                @casting.execute( self, @casting.name, @casting_args )
+                @casting = nil
+                @casting_args = []
+            else
+                output "You lost your concentration."
+                @casting = nil
+                @casting_args = []
+            end
+        elsif @commands.length > 0
+            do_command @commands.shift
+        end
     end
 
     def is_player?

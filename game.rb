@@ -8,13 +8,20 @@ class Game
     attr_accessor :mobile_count
     attr_accessor :items
     attr_reader :race_data
-    attr_reader :locked
     attr_reader :class_data
     attr_reader :equip_slot_data
     attr_reader :affects
     attr_reader :help_data
     attr_reader :spells
     attr_reader :continents
+    attr_reader :game_settings
+    attr_reader :saved_player_data
+    attr_reader :account_data
+    attr_reader :new_accounts
+    attr_reader :new_players
+    attr_reader :players
+    attr_reader :logging_players
+    attr_reader :client_account_ids
 
     include GameSetup
     include GameSave
@@ -42,22 +49,31 @@ class Game
         @item_data = Hash.new               # Item table as hash       (uses :id as key)
         @shop_data = Hash.new               # Shop table as hash       (uses :id as key)
 
-        @base_resets = Hash.new             # Reset table as hash           (uses :id as key)
-        @mob_resets = Hash.new              # Mob reset table as hash       (uses :reset_id as key)
-        @inventory_resets = Hash.new        # Inventory reset table as hash (uses :reset_id as key)
-        @equipment_resets = Hash.new        # Equipment reset table as hash (uses :reset_id as key)
-        @room_item_resets = Hash.new        # Room item reset table as hash (uses :reset_id as key)
-        @base_mob_resets = Hash.new         # Subset of @base_resets where :type is "mobile"
-        @base_room_item_resets = Hash.new   # Subset of @base_resets where :type is "room_item"
+        @base_reset_data = Hash.new             # Reset table as hash           (uses :id as key)
+        @mob_reset_data = Hash.new              # Mob reset table as hash       (uses :reset_id as key)
+        @inventory_reset_data = Hash.new        # Inventory reset table as hash (uses :reset_id as key)
+        @equipment_reset_data = Hash.new        # Equipment reset table as hash (uses :reset_id as key)
+        @room_item_reset_data = Hash.new        # Room item reset table as hash (uses :reset_id as key)
+        @base_mob_reset_data = Hash.new         # Subset of @base_reset_data where :type is "mobile"
+        @base_room_item_reset_data = Hash.new   # Subset of @base_reset_data where :type is "room_item"
 
-        @help_data = Hash.new               # Help table as hash  (uses :id as key)
+        @help_data = Hash.new                   # Help table as hash  (uses :id as key)
+        @account_data = Hash.new                # Account table as hash (uses :id  as key)
+        @saved_player_data = Hash.new           # Saved player table as hash    (uses :id as key)
+
 
         # GameObjects
         @continents = Hash.new              # Continent objects as hash   (uses :id as key)
         @areas = Hash.new                   # Area objects as hash        (uses :id as key)
         @rooms = Hash.new                   # Room objects as hash        (uses :id as key)
-        @players = Hash.new
-        @inactive_players = Hash.new
+
+        @client_account_ids = []            # Account IDs of connected clients
+        @new_accounts = []                  # Accounts waiting to be created - added to from client threads
+        @new_players = []                   # Players waiting to be created - added to from client threads
+        @players = []                       # players online - array
+        @inactive_players = Hash.new        # inactive players - they've logged but not been garbage collected yet
+        @logging_players = []               # ids of players waiting to be added to the game
+        @quitting_players = []              # players who have placed themselves here are to be quit
         @items = []
         @item_count = Hash.new
         @mobiles = []
@@ -68,161 +84,49 @@ class Game
         @spells = []                        # Spell object array
         @commands = []                      # Command object array
 
-        @locked = false                     # lock is true during game loop, unlocked between frames
-
-    end
-
-    def login( client, thread )
-        client.puts @game_settings[:login_splash]
-        name = nil
-        client.puts "By what name do you wish to be known?"
-        while name.nil?
-            name = client.gets.chomp.to_s.downcase.capitalize
-            if name.length <= 2
-                client.puts "Your name must be at least three characters."
-                name = nil
-            elsif (player_data = @db[:saved_player_base].where(name: name).first)
-                try = 0
-                correct = false
-                while try < 3 && !correct
-                    client.puts "Password:"
-                    password = client.gets.chomp.to_s
-                    try += 1
-                    if !(correct = (Digest::MD5.hexdigest(password) == player_data[:md5]))
-                        client.puts "Incorrect Password."
-                    end
-                end
-                if try == 3
-                    client.puts "Goodbye."
-                    client.close
-                    Thread.kill(thread)
-                    return
-                end
-                if @players[name]       # quit that player if they're online
-                    @players[name].quit
-                end
-                if @inactive_players.has_key?(name) && @inactive_players[name].weakref_alive?
-                    player = @inactive_players[name].__getobj__
-                    @inactive_players.delete(name)
-                    player.reconnect(client, thread)
-                    # log "#{name} is connecting as an inactive player!"
-                    finalize_login(player)
-                    return
-                else
-                    player = load_player(name, client, thread)
-                    if !player
-                        @players.delete(name)
-                        client.close
-                        Thread.kill(thread)
-                        return
-                    end
-                    finalize_login(player)
-                    return
-                end
-            end
-        end
-
-        md5 = nil
-        # local_echo_off = ["11111111111110110000000100000000"].pack("B*")
-        # local_echo_on =  ["11111111111111000000000100000000"].pack("B*")
-        # client.puts local_echo_off
-        client.puts "Please choose a password."
-        while md5.nil?
-            password = client.gets.chomp.to_s
-            if password.length < 6
-                client.puts "Passwords must be at least 6 characters long."
-            else
-                md5 = Digest::MD5.hexdigest(password)
-            end
-            if md5
-                client.puts "Re-enter password:"
-                password2 = client.gets.chomp.to_s
-                if password2 != password
-                    client.puts "Passwords don't match.\n\rPlease choose a password."
-                    md5 = nil
-                end
-            end
-        end
-        # client.puts local_echo_on
-
-        race_id = nil
-        player_race_data = @race_data.select{ |key, value| value[:player_race] == 1 && value[:starter_race] == 1 }
-        player_race_names = player_race_data.map{ |key, value| value[:name] }
-        while race_id.nil?
-
-            client.puts("The following races are available:\n\r" +
-            "#{player_race_names.map{ |name| name.lpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n\r\n\r" +
-            "What is your race (help for more information)?)")
-            race_input = client.gets.chomp
-            race_matches = player_race_names.select{ |name| name.fuzzy_match(race_input) }
-            if race_matches.any?
-                race_id = @race_data.select{ |key, value| value[:name] == race_matches.first}.first[0]
-            else
-                client.puts "You must choose a valid race!"
-            end
-        end
-
-        class_id = nil
-        start_class_data = @class_data.select{ |key, value| value[:starter_class] == 1 }
-        class_names = start_class_data.map{ |key, value| value[:name] }
-        while class_id.nil?
-            client.puts %Q(
-Select a class
----------------
-#{class_names.join("\n")}
-:)
-            class_input = client.gets.chomp.to_s
-            class_matches = class_names.select{ |name| name.fuzzy_match(class_input) }
-            if class_matches.any?
-                class_id = @class_data.select{ |key, value| value[:name] == class_matches.first}.first[0]
-            else
-                client.puts "Invalid class!"
-            end
-        end
-
-        alignment = nil
-        while alignment.nil?
-            client.puts %Q(You may be good, neutral, or evil.
-Which alignment (G/N/E)?)
-            case client.gets.chomp.to_s.capitalize
-            when "G"
-                alignment = 1000
-            when "N"
-                alignment = 0
-            when "E"
-                alignment = -1000
-            else
-                client.puts "Please type G N or E OMG!"
-            end
-        end
-
-        player = Player.new( { alignment: alignment, name: name, race_id: race_id, class_id: class_id }, self, @starting_room.nil? ? @rooms.first : @starting_room, client, thread )
-        player.id = save_player(player, md5)
-        finalize_login(player)
-    end
-
-    def finalize_login(player)
-        until !@locked
-            sleep(0.001)
-        end
-        @players[player.name] = player
-        save
-        player.output "Welcome, #{player.name}."
-        player.move_to_room(player.room)
-        broadcast("%s has entered the game.", target({not: [player], list: player.room.occupants, quantity: "all"}), [player])
-        @players[player.name].input_loop
     end
 
     def game_loop
+        total_time = 0
         loop do
-            @locked = true
+            start_time = Time.now
             @frame_count += 1
+
+            # insert into the database any new accounts waiting
+            @new_accounts.each do |account_data|
+                save_new_account(account_data)
+                @new_accounts.delete(account_data)
+            end
+
+            # insert into the database any new players waiting
+            @new_players.each do |player_data|
+                save_new_player(player_data)
+                @new_players.delete(player_data)
+            end
 
             # deal with inactive players that have been garbage collected
             # p "#{@frame_count} #{@inactive_players.keys}" if @inactive_players.length > 0
             @inactive_players.each do |name, player|
                 if !player.weakref_alive?
                     @inactive_players.delete(name)
+                end
+            end
+
+            # load any players whose ids have been added to the logging_players queue
+            @logging_players.each do |player_id, client|
+                @logging_players.delete([player_id, client])
+                player = nil
+                if (player = @players.select{ |p| p.id == player_id }.first) # found in online player
+                    player.reconnect(client)
+                elsif (player = @inactive_players.values.select { |p| p.weakref_alive? && p.id == player_id }.first)
+                    player = player.__getobj__             # found in inactive player
+                    @inactive_players.delete(player.name)
+                    player.reconnect(client)
+                elsif (player = load_player(player_id, client) )
+                    # load player normally - nothing else to do, maybe!
+                end
+                if player
+                    @players.unshift(player)
                 end
             end
 
@@ -246,36 +150,67 @@ Which alignment (G/N/E)?)
 
             update( 1.0 / Constants::Interval::FPS )
             send_to_client
-
-            # GC.start
-
-            # Sleep until the next frame
-            sleep_time = (1.0 / Constants::Interval::FPS)
-            @locked = false
-            sleep(sleep_time)
+            end_time = Time.now
+            loop_computation_time = end_time - start_time
+            sleep_time = ((1.0 / Constants::Interval::FPS) - loop_computation_time)
+            # total_time += loop_computation_time
+            # puts "#{sleep_time.to_s.ljust(22)} #{loop_computation_time.to_s.ljust(22)} #{(sleep_time - loop_computation_time > 0).to_s.ljust(22)} #{total_time / @frame_count}"
+            if sleep_time < 0                   # Sleep until the next frame, if there's time leftover
+                log ("Negative sleep time detected: {c#{sleep_time}{x")
+            else
+                sleep(sleep_time)
+            end
         end
     end
 
     # eventually, this will handle all game logic
     def update( elapsed )
-        ( @players.values + @mobiles + @items + @rooms.values + @areas.values ).each do | entity |
-            entity.update(elapsed)
+        @players.each do | player |
+            # player.update(elapsed)
+            player.process_commands(elapsed)
+        end
+        # @mobiles.each do | mobile |
+        #     mobile.update(elapsed)
+        # end
+        # @items.each do | item |
+        #     item.update(elapsed)
+        # end
+        # @rooms.values.each do | room |
+        #     room.update(elapsed)
+        # end
+        # @areas.values.each do | area |
+        #     area.update(elapsed)
+        # end
+        # @affects.each do |affect|
+        #     affect.update(elapsed)
+        # end
+        # @continents.values.each do | continent |
+        #     continent.update(elapsed)
+        # end
+        @affects.each do |affect|
+            affect.update(elapsed)
         end
     end
 
     def send_to_client
-        @players.each do | username, player |
+        @players.each do | player |
             player.send_to_client
         end
     end
 
     def combat
-        ( @players.values + @mobiles).each do | entity |
-            entity.combat
+        @players.each do | player |
+            player.combat
+        end
+        @mobiles.each do | mobile |
+            mobile.combat
         end
     end
 
-    def broadcast( message, targets, objects = [] )
+    def broadcast( message, targets, objects = [], send_to_sleeping: false )
+        if !send_to_sleeping
+            targets.reject!{ |t| t.respond_to?(:position) && t.position == Constants::Position::SLEEP }
+        end
         targets.each do | player |
             player.output( message, objects.to_a )
         end
@@ -294,11 +229,11 @@ Which alignment (G/N/E)?)
                 targets -= targets.select { |t| Mobile === t }    if !query[:type].to_a.include?("Mobile")
             end
         elsif query[:type].nil?
-            targets = @areas.values + @players.values + @items + @mobiles
+            targets = @areas.values + @players + @items + @mobiles
         else
             targets += @areas.values       if query[:type].to_a.include? "Area"
             targets += @continents.values  if query[:type].to_a.include? "Continent"
-            targets += @players.values     if query[:type].to_a.include? "Player"
+            targets += @players            if query[:type].to_a.include? "Player"
             targets += @items              if query[:type].to_a.include? "Item"
             targets += @mobiles            if query[:type].to_a.include? "Mobile"
         end
@@ -323,15 +258,15 @@ Which alignment (G/N/E)?)
     end
 
     def tick
-        broadcast "{MMud newbies 'Hi everyone! It's a tick!!'{x", target({ list: @players.values })
-        ( @players.values + @mobiles).each do | entity |
+        broadcast("{MMud newbies 'Hi everyone! It's a tick!!'{x", target({ list: @players } ), send_to_sleeping: true)
+        ( @players + @mobiles).each do | entity |
             entity.tick
         end
     end
 
     def repop
-        @base_mob_resets.each do |reset_id, reset_data|
-            reset = @mob_resets[reset_id]
+        @base_mob_reset_data.each do |reset_id, reset_data|
+            reset = @mob_reset_data[reset_id]
             if @mob_data[ reset[:mobile_id] ]
                 if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
@@ -340,21 +275,21 @@ Which alignment (G/N/E)?)
                     @mobile_count[ reset[:mobile_id] ] = @mobile_count[ reset[:mobile_id] ].to_i + 1
 
                     # inventory
-                    @inventory_resets.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
+                    @inventory_reset_data.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:item_id] ]
                             item = load_item( item_reset[:item_id], mob.inventory )
                         else
-                            log "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@areas[@base_resets[item_reset_id][:area_id]]}"
+                            log "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@areas[@base_reset_data[item_reset_id][:area_id]]}"
                         end
                     end
 
                     #equipment
-                    @equipment_resets.select{ |id, equipment_reset| equipment_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
+                    @equipment_reset_data.select{ |id, equipment_reset| equipment_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:item_id] ]
                             item = load_item( item_reset[:item_id], mob.inventory )
                             mob.wear(item: item, silent: true)
                         else
-                            log "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_resets[item_reset_id][:area_id]}"
+                            log "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
                         end
                     end
 
@@ -366,8 +301,8 @@ Which alignment (G/N/E)?)
             end
         end
 
-        @base_room_item_resets.each do |reset_id, reset_data|
-            if ( reset = @room_item_resets[reset_id] )
+        @base_room_item_reset_data.each do |reset_id, reset_data|
+            if ( reset = @room_item_reset_data[reset_id] )
                 if @rooms[reset[:room_id]].inventory.item_count[reset[:item_id]].to_i < 1
                     load_item( reset[:item_id], @rooms[ reset[:room_id] ].inventory )
                 end
@@ -431,7 +366,7 @@ Which alignment (G/N/E)?)
         # "Shopkeeper behavior" is handled as an affect, which is currently used only as a kind of 'flag' for the buy/sell commands
         #
         if not @shop_data[ id ].nil?
-            mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0, game: self ) )
+            # mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0, game: self ) )
         end
         return mob
     end
@@ -646,7 +581,6 @@ Which alignment (G/N/E)?)
     def destroy_player(player)
         @inactive_players[player.name] = WeakRef.new(player)
         player.room.mobile_depart(player)
-        player.deactivate
         player.affects.each do |affect|
             remove_affect(affect)
         end
@@ -662,7 +596,8 @@ Which alignment (G/N/E)?)
             end
             @items.delete(item)
         end
-        @players.delete(player.name)
+        player.deactivate
+        @players.delete(player)
     end
 
     # destroy an item object
