@@ -35,6 +35,7 @@ module Constants
         SOUND = 19
         RAIN = 20
         VORPAL = 21
+        GEOLOGY = 22
 
         STRINGS = {
             NONE => "none",
@@ -305,6 +306,19 @@ module Constants
         SpellSummon,
         SpellVentriloquate,
         SpellWeaken,
+        SpellMagicMissile,
+        SpellBurningHands,
+        SpellShockingGrasp,
+        SpellColorSpray,
+        SpellRukusMagna,
+        SpellFireball,
+        SpellChainLightning,
+        SpellFlamestrike,
+        SpellCauseLight,
+        SpellCauseSerious,
+        SpellCauseCritical,
+        SpellHarm,
+        SpellEarthquake
     ]
 
     AFFECT_CLASS_HASH = {

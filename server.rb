@@ -21,4 +21,4 @@ require_relative 'constants'
 require_relative 'client'
 
 game = Game.new
-game.start(ARGV[0], ARGV[1] || 4000)
+game.start(ARGV[0], ARGV[1] || 4000, ARGV[2] || "all")

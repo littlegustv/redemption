@@ -1,5 +1,28 @@
 require_relative 'spell.rb'
 
+class SpellEarthquake < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "earthquake",
+            keywords: ["earthquake"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, level )
+        actor.broadcast "%s makes the earth tremble and shiver.", actor.target({ not: actor, list: actor.room.area.occupants, type: ["Mobile", "Player"] }), [actor]
+        actor.output "The earth trembles beneath your feet!"
+        ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
+            actor.deal_damage(target: target, damage: 100, noun:"earthquake", element: Constants::Element::GEOLOGY, type: Constants::Damage::MAGICAL)
+        end
+        return true
+    end
+end
+
 class SpellEnchantWeapon < Spell
 
     def initialize(game)

@@ -153,9 +153,6 @@ class GameObject
     #  some_mobile.apply_affect_flags(["infravision", "hatchling", "flying"])
     #
     def apply_affect_flags(flags, silent: false, array: nil)
-        if !self.respond_to?(:is_player?) || !self.is_player?
-            return
-        end
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class

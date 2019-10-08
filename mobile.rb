@@ -229,6 +229,13 @@ class Mobile < GameObject
         attacker.start_combat( self ) if attacker.attacking.nil?
     end
 
+    # sets mobiles attacking target to 'nil', so 'combat' method will no longer call a round of attacks
+    # 
+    # then iterates through all room occupants that were targeting 'self' in combat and sets them to attack the next
+    # mobile that is currently in combat with THEM
+    # 
+    # if no new combatant is found, the new target is set to 'nil' which stops combat as well
+
     def stop_combat
         @attacking = nil
         target({ attacking: self, list: @room.occupants }).each do |t|
@@ -786,9 +793,6 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
     end
 
     def apply_element_flags(element_flags, affect_class, array)
-        if !is_player?
-            return
-        end
         element_flags.to_a.each do |flag|
             element = Constants::Element::STRINGS.select { |k, v| v == flag }.first
             next if !element

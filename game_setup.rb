@@ -16,7 +16,7 @@ module GameSetup
     # 10. begin a loop, creating threads for incoming clients
     # +ip+:: The IP address of the server. (Optional, can pass +nil+)
     # +port+:: The port the server uses.
-    public def start(ip, port)
+    public def start(ip, port, areas = "all")
         if @started
             log("This game object has already been started!")
             return
@@ -40,7 +40,7 @@ module GameSetup
         load_mobile_data
         load_item_data
         load_shop_data
-        load_reset_data
+        load_reset_data( areas )
         load_help_data
         load_account_data
         load_saved_player_data
@@ -202,9 +202,12 @@ module GameSetup
     end
 
     # load reset tables from database
-    protected def load_reset_data
-        # @base_reset_data = @db[:reset_base].where( area_id: [17, 23] ).to_hash(:id)
-        @base_reset_data = @db[:reset_base].to_hash(:id)
+    protected def load_reset_data( areas )
+        if areas == "lite"
+            @base_reset_data = @db[:reset_base].where( area_id: [17, 23] ).to_hash(:id)
+        else
+            @base_reset_data = @db[:reset_base].to_hash(:id)
+        end
         @mob_reset_data = @db[:reset_mobile].to_hash(:reset_id)
         @inventory_reset_data = @db[:reset_inventory_item].to_hash(:reset_id)
         @equipment_reset_data = @db[:reset_equipped_item].to_hash(:reset_id)
