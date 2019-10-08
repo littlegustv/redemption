@@ -10,7 +10,7 @@ class CommandAffects < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.output actor.show_affects(observer: actor)
         return true
     end

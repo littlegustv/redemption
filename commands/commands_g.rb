@@ -11,7 +11,7 @@ class CommandGet < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if ( targets = actor.target({ list: actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query(1) ) ) )
             targets.each do | target |
                 actor.get_item(target)
@@ -34,7 +34,7 @@ class CommandGive < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         case args.length
         when 0
             actor.output "Give what to whom?"
@@ -74,7 +74,7 @@ class CommandGoTo < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         area_target = actor.target({type: ["Area"]}.merge( args.first.to_s.to_query() )).first
         room_target = area_target.rooms.first if area_target
         if !area_target || !room_target
@@ -95,7 +95,7 @@ class CommandGroup < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         # Display group status
 
         if args.empty?

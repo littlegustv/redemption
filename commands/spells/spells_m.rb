@@ -53,7 +53,7 @@ class SpellManaDrain < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
             return
@@ -62,7 +62,7 @@ class SpellManaDrain < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -93,7 +93,7 @@ class SpellMassInvisibility < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         ( targets = @game.target( args.first.to_s.to_query.merge({ list: actor.room.occupants, visible_to: actor }) ) ).each do |target|
             target.apply_affect( AffectInvisibility.new( source: actor, target: target, level: level, game: @game ) )
         end
@@ -113,7 +113,7 @@ class SpellMirrorImage < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectMirrorImage.new( source: actor, target: actor, level: level, game: @game ) )
     end
 end

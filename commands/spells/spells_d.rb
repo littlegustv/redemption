@@ -13,7 +13,7 @@ class SpellDeathRune < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectDeathRune.new( source: actor, target: actor, level: level, game: @game ) )
     end
 
@@ -32,7 +32,7 @@ class SpellDestroyRune < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
     	if args.first.nil?
     		if actor.room.affected? "rune"
                 actor.room.remove_affect( "rune" )
@@ -68,7 +68,7 @@ class SpellDestroyTattoo < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
     	if args.first.nil? && actor.attacking.nil?
     		actor.output "Cast the spell on what now?"
     	else
@@ -76,7 +76,7 @@ class SpellDestroyTattoo < Spell
 	    end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
     	if ( target = actor.target({ list: actor.equipment, type: "tattoo" }.merge( args.first.to_s.to_query )).first )
     		actor.output "You focus your will and #{target} explodes into flames!"
     		target.destroy true
@@ -101,7 +101,7 @@ class SpellDetectInvisibility < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectDetectInvisibility.new( source: actor, target: actor, level: level, game: @game ) )
     end
 
@@ -120,7 +120,7 @@ class SpellDetectMagic < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             actor.output target.show_affects(observer: actor)
             return true

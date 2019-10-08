@@ -12,8 +12,8 @@ class CommandKill < Command
         )
     end
 
-    def attempt( actor, cmd, args )
-        keyword = @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.first
+    def attempt( actor, cmd, args, input )
+        keyword = @keywords.select{ |keyword| keyword.fuzzy_match( cmd.split(" ").first ) }.first
         if args.length <= 0
             actor.output "Who did you want to #{keyword}?"
             return false
@@ -25,7 +25,8 @@ class CommandKill < Command
             actor.output "You are already fighting!"
             return false
         elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            actor.do_round_of_attacks(target: kill_target)
+            kill_target.start_combat(actor)
+            actor.do_round_of_attacks
             return true
         else
             actor.output "I can't find anyone with that name."

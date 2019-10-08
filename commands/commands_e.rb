@@ -11,7 +11,7 @@ class CommandEquipment < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.output "You are using:"
         actor.show_equipment(actor)
         return true

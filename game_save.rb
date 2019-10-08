@@ -60,9 +60,7 @@ module GameSave
 
     # save a player and their items. saves md5 password hash if passed in.
     # returns the database id of the player
-    protected def save_player(player, md5 = nil)
-        single_call = !md5.nil?
-        md5 = @db[:saved_player_base].where(name: player.name).first[:md5] if md5.nil?
+    protected def save_player(player)
         saved_player_id = nil
         old_row = @db[:saved_player_base].where(name: player.name).first
         saved_player_id = old_row.dig(:id) if old_row
@@ -84,9 +82,6 @@ module GameSave
             position: player.position,
             alignment: player.alignment
         }
-        if md5
-            player_data[:md5] = md5
-        end
         if saved_player_id && @db[:saved_player_base].where(id:saved_player_id).first
             @db[:saved_player_base].where(id:saved_player_id).update(player_data)
         else
@@ -111,7 +106,6 @@ module GameSave
             save_player_item(item, saved_player_id)
         end
 
-        # save if single_call
         return saved_player_id
     end
 

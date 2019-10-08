@@ -12,7 +12,7 @@ class SkillSneak < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.apply_affect(AffectSneak.new(source: actor, target: actor, level: actor.level, game: @game))
         return true
     end

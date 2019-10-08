@@ -11,13 +11,14 @@ class CommandSay < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.length <= 0
             actor.output 'Say what?'
             return false
         else
-            actor.output "{yYou say '#{args.join(' ')}'{x"
-            actor.broadcast "{y%s says '#{args.join(' ')}'{x", actor.target( { not: actor, list: actor.room.occupants }), [actor]
+            message = input[/#{cmd} (.*)/, 1]
+            actor.output "{yYou say '#{message}'{x"
+            actor.broadcast "{y%s says '#{message}'{x", actor.target( { not: actor, list: actor.room.occupants }), [actor]
             return true
         end
     end
@@ -34,7 +35,7 @@ class CommandScore < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.output actor.score
         return true
     end
@@ -52,7 +53,7 @@ class CommandSell < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if ( shopkeeper = actor.target({ list: actor.room.occupants, affect: "shopkeeper" }).first )
             actor.target({ list: actor.inventory }.merge( args.first.to_s.to_query ) ).each do |sale|
                 if shopkeeper.spend( sale.cost )
@@ -81,7 +82,7 @@ class CommandSkills < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.output %Q(Skills:
 Level  1: #{ actor.skills.each_slice(2).map{ |row| "#{row[0].to_s.lpad(18)} 100%      #{row[1].to_s.lpad(18)} 100%" }.join("\n" + " "*10)})
         return true
@@ -99,7 +100,7 @@ class CommandSpells < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         actor.output %Q(Spells:
 Level  1: #{ actor.spells.each_slice(2).map{ |row| "#{row[0].to_s.lpad(18)} 100%      #{row[1].to_s.lpad(18)} 100%" }.join("\n" + " "*10)})
         return true
@@ -118,7 +119,7 @@ class CommandSleep < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         case actor.position
         when Constants::Position::SLEEP
             actor.output "You are already asleep."
@@ -146,8 +147,8 @@ class CommandStand < Command
         )
     end
 
-    def attempt( actor, cmd, args )
-        keyword = @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.first
+    def attempt( actor, cmd, args, input )
+        keyword = @keywords.select{ |keyword| keyword.fuzzy_match( cmd.split(" ").first ) }.first
         if keyword == "wake" && actor.position != Constants::Position::SLEEP
             actor.output "You're already awake!"
             return false

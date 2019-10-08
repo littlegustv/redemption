@@ -154,7 +154,7 @@ class Client
             while (@player = @game.players.select{ |p| p.id == c_row[:id] }.first).nil?
                 sleep(@@sleep_time) # wait until the player has been loaded by the game thread
             end
-            @player.input("look")
+            @player.login
             @client_state = Constants::ClientState::PLAYER
         elsif "quit".fuzzy_match(word1) || "exit".fuzzy_match(word1)
             @quit = true
@@ -326,10 +326,10 @@ class Client
 
     # do a single output
     def send_output(s)
-        s = s.gsub(/\n/, "\n\r")
         if s[-1] != "\n"
             s += "\n"
         end
+        s = s.gsub(/\n/, "\n\r")
         begin
             @client_connection.print s.replace_color_codes
         rescue StandardError => msg

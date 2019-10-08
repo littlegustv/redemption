@@ -50,6 +50,10 @@ class Mobile < GameObject
         @in_group = nil
         @deity = "Gabriel"
 
+        @casting = nil
+        @casting_args = nil
+        @casting_input = nil
+
         @stats = {
             success: 100,
             str: data[:str] || 0,
@@ -197,7 +201,7 @@ class Mobile < GameObject
 
     def do_command( input )
         cmd, args = input.sanitize.split " ", 2
-        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?([^\s\.\'\*]+|'[\w\s]+'?))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
+        @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?([^\s\.\'\*]+|'[\w\s]+'?))/i).map(&:first).map{ |arg| arg.gsub("'", "") }, input )
         # @game.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
     end
 
@@ -215,7 +219,7 @@ class Mobile < GameObject
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
             attacker.apply_affect( AffectKiller.new(source: attacker, target: attacker, level: 0, game: @game) ) if attacker.is_player?
-            do_command "yell 'Help I am being attacked by #{attacker}!'"
+            do_command "yell Help I am being attacked by #{attacker}!"
         end
         old_position = @position
         @position = Constants::Position::STAND
@@ -337,9 +341,12 @@ class Mobile < GameObject
     end
 
     # do a round of attacks against a target
-    def do_round_of_attacks(target:)
+    def do_round_of_attacks(target: nil)
+        if !target
+            target = @attacking
+        end
         stat( :attack_speed ).times do |attack|
-            weapon_hit(target: target)
+            weapon_hit(target: target) if target.attacking
         end
     end
 
@@ -661,9 +668,10 @@ class Mobile < GameObject
     #     @armor_class[index].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.armor( index ).to_i }.reduce(0, :+)
     # end
 
-    def cast( spell, args )
+    def cast( spell, args, input )
         @casting = spell
         @casting_args = args
+        @casting_input = input
     end
 
     def score

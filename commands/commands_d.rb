@@ -11,7 +11,7 @@ class CommandDrop < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if ( targets = actor.target({ visible_to: actor, list: actor.inventory.items }.merge( args.first.to_s.to_query(1) )) )
             targets.each do |target|
                 actor.drop_item(target)

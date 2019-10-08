@@ -13,7 +13,7 @@ class SpellCancellation < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.remove_affect( actor.affects.sample.keywords.first ) if actor.affects.count > 0
     end
 
@@ -239,7 +239,7 @@ class SpellCloakOfMind < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectCloakOfMind.new( source: nil, target: actor, level: actor.level, game: @game ) )
     end
 
@@ -296,7 +296,7 @@ class SpellCurse < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil? && actor.attacking.nil?
             actor.output "Cast the spell on who, now?"
         else
@@ -304,7 +304,7 @@ class SpellCurse < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking

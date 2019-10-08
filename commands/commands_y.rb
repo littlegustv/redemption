@@ -11,13 +11,14 @@ class CommandYell < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.length <= 0
             actor.output 'Yell what?'
             return false
         else
-            actor.output "{RYou yell '#{args.join(' ')}'{x"
-            actor.broadcast "{R%s yells '#{args.join(' ')}'{x", actor.target( { :not => actor, :area => actor.room.area }), [actor]
+            message = input[/#{cmd} (.*)/, 1]
+            actor.output "{RYou yell '#{message}'{x"
+            actor.broadcast "{R%s yells '#{message}'{x", actor.target( { :not => actor, :area => actor.room.area }), [actor]
             return true
         end
     end

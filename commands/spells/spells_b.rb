@@ -13,7 +13,7 @@ class SpellBarkskin < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectBarkSkin.new( source: nil, target: actor, level: actor.level, game: @game ) )
     end
 
@@ -32,7 +32,7 @@ class SpellBlastOfRot < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
     	if args.first.nil? && actor.attacking.nil?
     		actor.output "Cast the spell on who, now?"
     	else
@@ -40,7 +40,7 @@ class SpellBlastOfRot < Spell
 	    end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
     	if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -68,7 +68,7 @@ class SpellBladeRune < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil?
             actor.output "Cast the spell on what now?"
         else
@@ -76,7 +76,7 @@ class SpellBladeRune < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
             if target.affected? "blade rune"
                 actor.output "The existing blade rune repels your magic."
@@ -105,7 +105,7 @@ class SpellBlur < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectBlur.new( source: nil, target: actor, level: actor.level, game: @game ) )
     end
 
@@ -161,7 +161,7 @@ class SpellBurstRune < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
         if args.first.nil?
             actor.output "Cast the spell on what now?"
             return
@@ -170,7 +170,7 @@ class SpellBurstRune < Spell
         end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
             if target.affected? "burst rune"
                 actor.output "The existing burst rune repels your magic."

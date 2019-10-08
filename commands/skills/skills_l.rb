@@ -12,7 +12,7 @@ class SkillLivingStone < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if not actor.affected? "living stone"
             actor.apply_affect(AffectLivingStone.new(source: actor, target: actor, level: actor.level, game: @game))
             return true

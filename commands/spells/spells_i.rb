@@ -13,7 +13,7 @@ class SpellIceBolt < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
     	if args.first.nil? && actor.attacking.nil?
     		actor.output "Cast the spell on who, now?"
     	else
@@ -21,7 +21,7 @@ class SpellIceBolt < Spell
 	    end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -49,7 +49,7 @@ class SpellIgnoreWounds < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectIgnoreWounds.new( source: nil, target: actor, level: level, game: @game ) )
     end
 end
@@ -66,7 +66,7 @@ class SpellInvisibility < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil?
             target = actor

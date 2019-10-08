@@ -12,7 +12,7 @@ class CommandQuicken < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if not actor.affected? "haste"
             actor.apply_affect(AffectHaste.new(source: actor, target: actor, level: actor.level, game: @game))
             return true
@@ -36,7 +36,7 @@ class CommandQuit < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if cmd.downcase != "quit"
             actor.output "If you want to QUIT, you'll have to spell it out."
             return

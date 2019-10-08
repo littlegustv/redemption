@@ -13,7 +13,7 @@ class SpellAcidBlast < Spell
         )
     end
 
-    def cast( actor, cmd, args )
+    def cast( actor, cmd, args, input )
     	if args.first.nil? && actor.attacking.nil?
     		actor.output "Cast the spell on who, now?"
             return
@@ -22,7 +22,7 @@ class SpellAcidBlast < Spell
 	    end
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         target = nil
         if args.first.nil? && actor.attacking
             target = actor.attacking
@@ -51,7 +51,7 @@ class SpellAlarmRune < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         if actor.affected? "alarm rune"
             actor.output "You already sense others."
             return false
@@ -82,7 +82,7 @@ class SpellArmor < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectArmor.new( source: nil, target: actor, level: actor.level, game: @game ) )
     end
 

@@ -11,7 +11,7 @@ class CommandPeek < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if target.inventory.count > 0
                 actor.output "#{target} is carrying:\n#{target.inventory.items.map(&:to_s).join("\n")}"
@@ -39,7 +39,7 @@ class CommandPoison < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if not actor.affected? "poison"
             actor.apply_affect(AffectPoison.new(source: actor, target: actor, level: actor.level, game: @game))
             return true

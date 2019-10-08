@@ -10,7 +10,7 @@ class CommandLeave < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if actor.group.any?
             actor.output "You can't leave the group, you're the leader!"
             return false
@@ -36,7 +36,7 @@ class CommandList < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         ( shopkeepers = actor.target( list: actor.room.occupants, affect: "shopkeeper" ) ).each do |shopkeeper|
             actor.output %Q(#{shopkeeper}:
 #{'-'*shopkeeper.to_s.length}
@@ -64,7 +64,7 @@ class CommandLoadItem < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.length <= 0
             actor.output "Syntax: loaditem <id>"
             return false
@@ -92,7 +92,7 @@ class CommandLook < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.length <= 0
             actor.output actor.room.show( actor )
             return true
@@ -121,7 +121,7 @@ class CommandLore < Command
         )
     end
 
-    def attempt( actor, cmd, args )
+    def attempt( actor, cmd, args, input )
         if args.length <= 0
             actor.output "What did you want to lore?"
             return false

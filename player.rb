@@ -147,7 +147,7 @@ class Player < Mobile
             @lag -= elapsed
         elsif @casting
             if rand(1..100) <= stat(:success)
-                @casting.execute( self, @casting.name, @casting_args )
+                @casting.execute( self, @casting.name, @casting_args, @casting_input )
                 @casting = nil
                 @casting_args = []
             else

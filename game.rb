@@ -424,14 +424,14 @@ class Game
         end
     end
 
-    def do_command( actor, cmd, args = [] )
+    def do_command( actor, cmd, args = [], input = cmd )
         matches = (
             @commands.select { |command| command.check( cmd ) } +
             @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
         ).sort_by(&:priority)
 
         if matches.any?
-            matches.last.execute( actor, cmd, args )
+            matches.last.execute( actor, cmd, args, input )
             return
         end
 

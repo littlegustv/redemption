@@ -26,7 +26,7 @@ class AffectGuard < Affect
 
     def do_guard(data)
         if @target.can_see?(data[:mobile]) && data[:mobile].affected?("killer") && !data[:mobile].affected?("cloak of mind")
-        	@target.do_command "yell #{data[:mobile]} is a KILLER!  PROTECT THE INNOCENT!!  BANZAI!!"
+        	@target.do_command "yell #{data[:mobile]} is a KILLER! PROTECT THE INNOCENT!! BANZAI!!"
         	@target.start_combat data[:mobile]
         end
     end

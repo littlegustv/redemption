@@ -36,7 +36,7 @@ class SpellFireRune < Spell
         )
     end
 
-    def attempt( actor, cmd, args, level )
+    def attempt( actor, cmd, args, input, level )
     	if actor.room.affected? "fire rune"
     		actor.output "This room is already affected by the power of flames."
             return false
