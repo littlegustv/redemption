@@ -22,7 +22,7 @@ class AffectCharm < Affect
     end
 
     def send_complete_messages
-        @source.output "%s stops looking up to you", [@target] 
+        @source.output "%s stops looking up to you", [@target]
         @target.output "You feel more self-confident."
     end
 
@@ -119,7 +119,7 @@ class AffectCurse < Affect
 
     def send_start_messages
         @target.output "You feel unclean"
-        @source.output "%s looks very uncomfortable.", [@target]
+        @target.broadcast "%s looks very uncomfortable.", @game.target({list: @target.room.occupants, not: @target}), [@target]
     end
 
     def send_complete_messages

@@ -20,8 +20,8 @@ class GameObject
     def output( message, objects = [] )
     end
 
-    def broadcast( message, targets, objects = [] )
-        @game.broadcast message, targets, objects.to_a
+    def broadcast( message, targets, objects = [], send_to_sleeping: false)
+        @game.broadcast(message, targets, objects.to_a, send_to_sleeping: send_to_sleeping)
     end
 
     def target( query )
@@ -58,7 +58,7 @@ class GameObject
         }
     end
 
-    def can_see?
+    def can_see?(target)
         true
     end
 
@@ -118,7 +118,7 @@ class GameObject
             when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
                 existing_affects.each { |a| a.clear(silent: true) }
                 new_affect.send_refresh_messages if !silent
-                affects.push(new_affect)
+                affects.unshift(new_affect)
                 @game.add_affect(new_affect)
                 new_affect.start
             when :global_stack, :source_stack                      # stack with existing affect
@@ -129,7 +129,7 @@ class GameObject
                 return false
             when :multiple
                 new_affect.send_start_messages if !silent
-                affects.push(new_affect)
+                affects.unshift(new_affect)
                 @game.add_affect(new_affect)
                 new_affect.start
             else
@@ -138,7 +138,7 @@ class GameObject
             end
         else
             new_affect.send_start_messages if !silent
-            affects.push(new_affect)
+            affects.unshift(new_affect)
             @game.add_affect(new_affect)
             new_affect.start
         end
@@ -153,6 +153,9 @@ class GameObject
     #  some_mobile.apply_affect_flags(["infravision", "hatchling", "flying"])
     #
     def apply_affect_flags(flags, silent: false, array: nil)
+        if !self.respond_to?(:is_player?) || !self.is_player?
+            return
+        end
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class
@@ -181,14 +184,33 @@ class GameObject
 
     # Generates a hash to provide affect source fields for the database
     def db_source_fields
-        return { source_type: self.db_source_type,
-                 source_uuid: @uuid,
-                 source_id: (self.respond_to?(:id)) ? self.id : 0 }
+        source_data = { source_type: self.db_source_type,
+                        source_uuid: @uuid,
+                        source_id: (self.respond_to?(:id)) ? self.id : 0 }
+        return source_data
     end
 
     # Override this in subclasses to generate correct source_type strings
     def db_source_type
         return "GameObject"
+    end
+
+    # Show the affects on this object to an observer
+    def show_affects(observer:, show_hidden: false, full: true)
+        prefix = "#{show(self)} is"
+        if self == observer
+            prefix = "You are"
+        end
+        affs_to_show = self.affects
+        if !show_hidden
+            affs_to_show = affs_to_show.reject(&:hidden)
+        end
+        text = ( full ? "#{prefix} affected by the following spells:\n" : "" )
+        if affs_to_show.empty?
+            return ( full ? "#{prefix} not affected by any spells." : "")
+        else
+            return "#{text}#{ affs_to_show.map(&:summary).join("\n") }"
+        end
     end
 
 end

@@ -8,7 +8,7 @@ class CommandFlee < Command
             name: "flee",
             keywords: ["flee"],
             lag: 0.5,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -37,7 +37,7 @@ class CommandFollow < Command
             name: "follow",
             keywords: ["follow"],
             lag: 0,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

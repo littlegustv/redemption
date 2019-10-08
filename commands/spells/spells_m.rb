@@ -8,7 +8,7 @@ class SpellManaDrain < Spell
             name: "mana drain",
             keywords: ["mana drain"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -48,7 +48,7 @@ class SpellMassInvisibility < Spell
             name: "mass invisibility",
             keywords: ["mass invisibility"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -67,7 +67,7 @@ class SpellMirrorImage < Spell
             name: "mirror image",
             keywords: ["mirror image"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 5,
             usable_in_combat: false
         )

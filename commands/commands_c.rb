@@ -7,7 +7,7 @@ class CommandCast < Command
             game: game,
             name: "cast",
             keywords: ["cast"],
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             priority: 9999
         )
         @spells = game.spells
@@ -40,7 +40,7 @@ class CommandConsider < Command
             game: game,
             name: "consider",
             keywords: ["consider"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

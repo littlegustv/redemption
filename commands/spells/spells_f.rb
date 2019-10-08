@@ -8,7 +8,7 @@ class SpellFireRune < Spell
             name: "fire rune",
             keywords: ["fire rune"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

@@ -10,7 +10,7 @@ class SkillPaintPower < Skill
             name: "paint power",
             keywords: ["paint"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             usable_in_combat: false
         )
     end

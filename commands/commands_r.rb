@@ -7,7 +7,7 @@ class CommandRecall < Command
             game: game,
             name: "recall",
             keywords: ["recall", "/"],
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -23,7 +23,7 @@ class CommandRemove < Command
             game: game,
             name: "remove",
             keywords: ["remove"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -47,26 +47,26 @@ class CommandRest < Command
             game: game,
             name: "rest",
             keywords: ["sit", "rest"],
-            position: Position::SLEEP,
+            position: Constants::Position::SLEEP,
             usable_in_combat: false
         )
     end
 
     def attempt( actor, cmd, args )
         case actor.position
-        when Position::SLEEP
+        when Constants::Position::SLEEP
             actor.output "You wake up and rest."
             actor.broadcast "%s wakes up and begins to rest.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
-            actor.position = Position::REST
+            actor.position = Constants::Position::REST
             actor.look_room
             return true
-        when Position::REST
+        when Constants::Position::REST
             actor.output "You are already resting."
             return false
-        when Position::STAND
+        when Constants::Position::STAND
             actor.output "You sit down and rest."
             actor.broadcast "%s sits down and rests.", actor.target( { not: actor, list: actor.room.occupants}), [actor]
-            actor.position = Position::REST
+            actor.position = Constants::Position::REST
             return true
         else
             actor.output "You can't quite get comfortable enough."

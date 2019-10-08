@@ -8,7 +8,7 @@ class SpellPhantasmMonster < Spell
             name: "phantasm monster",
             keywords: ["phantasm monster"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -16,7 +16,7 @@ class SpellPhantasmMonster < Spell
     def attempt( actor, cmd, args, level )
         actor.output "You call forth phantasmic forces!"
         mob = @game.load_mob( 1844, actor.room )
-        @game.mobiles.push mob
+        @game.mobiles.unshift mob
         mob.apply_affect( AffectFollow.new( source: actor, target: mob, level: 1, game: @game ) )
         mob.apply_affect( AffectCharm.new( source: actor, target: mob, level: actor.level, game: @game ) )
     end
@@ -31,7 +31,7 @@ class SpellPhantomForce < Spell
             name: "phantom force",
             keywords: ["phantom force"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -68,7 +68,7 @@ class SpellPlague < Spell
             name: "plague",
             keywords: ["plague"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -107,7 +107,7 @@ class SpellPoison < Spell
             name: "poison",
             keywords: ["poison"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -145,7 +145,7 @@ class SpellProtection < Spell
             name: "protection",
             keywords: ["protection"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -170,7 +170,7 @@ class SpellPyrotechnics < Spell
             name: "pyrotechnics",
             keywords: ["pyrotechnics"],
             lag: 0.25,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

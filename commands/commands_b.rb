@@ -8,7 +8,7 @@ class CommandBlind < Command
             name: "blind",
             keywords: ["blind"],
             lag: 0.4,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 
@@ -32,7 +32,7 @@ class CommandBuy < Command
             name: "buy",
             keywords: ["buy"],
             lag: 0,
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -42,7 +42,7 @@ class CommandBuy < Command
 
                 if actor.spend( purchase.cost )
                     actor.output( "You buy #{purchase} for #{ purchase.to_price }." )
-                    actor.inventory.push @game.load_item( purchase.id, nil )
+                    actor.inventory.unshift @game.load_item( purchase.id, nil )
                 end
             end
         end.empty? and begin

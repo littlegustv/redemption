@@ -8,7 +8,7 @@ class SpellIceBolt < Spell
             name: "ice bolt",
             keywords: ["ice bolt"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -44,13 +44,13 @@ class SpellIgnoreWounds < Spell
             name: "ignore wounds",
             keywords: ["ignore wounds"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
 
     def attempt( actor, cmd, args, level )
-        actor.apply_affect( AffectIgnoreWounds.new( source: actor, target: actor, level: level, game: @game ) )
+        actor.apply_affect( AffectIgnoreWounds.new( source: nil, target: actor, level: level, game: @game ) )
     end
 end
 
@@ -61,7 +61,7 @@ class SpellInvisibility < Spell
             name: "invisibility",
             keywords: ["invisibility"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end

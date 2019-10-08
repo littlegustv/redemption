@@ -8,7 +8,7 @@ class SpellDeathRune < Spell
             name: "death rune",
             keywords: ["death rune"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -27,7 +27,7 @@ class SpellDestroyRune < Spell
             name: "destroy rune",
             keywords: ["destroy rune"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -63,7 +63,7 @@ class SpellDestroyTattoo < Spell
             name: "destroy tattoo",
             keywords: ["destroy tattoo"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -96,7 +96,7 @@ class SpellDetectInvisibility < Spell
             name: "detect invisibility",
             keywords: ["detect invisibility"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -115,14 +115,14 @@ class SpellDetectMagic < Spell
             name: "detect magic",
             keywords: ["detect magic"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
 
     def attempt( actor, cmd, args, level )
-        if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            actor.output "%s is affected by the following spells:\n#{ target.affects.map(&:summary).join("\n") }", [target]
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            actor.output target.show_affects(observer: actor)
             return true
         else
             actor.output "There is no one here with that name."

@@ -8,7 +8,7 @@ class SpellShackleRune < Spell
             name: "shackle rune",
             keywords: ["shackle rune"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -35,7 +35,7 @@ class SpellShield < Spell
             name: "shield",
             keywords: ["shield", "shield"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -54,7 +54,7 @@ class SpellSlow < Spell
             name: "slow",
             keywords: ["slow"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -93,7 +93,7 @@ class SpellStoneSkin < Spell
             name: "stoneskin",
             keywords: ["stone skin", "stoneskin"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -112,7 +112,7 @@ class SpellSummon < Spell
             name: "summon",
             keywords: ["summon"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 25
         )
     end

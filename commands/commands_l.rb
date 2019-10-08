@@ -6,7 +6,7 @@ class CommandLeave < Command
             game: game,
             name: "leave",
             keywords: ["leave"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -32,7 +32,7 @@ class CommandList < Command
             name: "list",
             keywords: ["list"],
             lag: 0,
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -60,7 +60,7 @@ class CommandLoadItem < Command
             name: "loaditem",
             keywords: ["loaditem"],
             priority: 1,
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -88,7 +88,7 @@ class CommandLook < Command
             name: "look",
             keywords: ["look"],
             priority: 200,
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -117,7 +117,7 @@ class CommandLore < Command
             game: game,
             name: "lore",
             keywords: ["lore"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

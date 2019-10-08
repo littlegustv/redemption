@@ -8,7 +8,7 @@ class SpellLightningBolt < Spell
             name: "lightning bolt",
             keywords: ["lightning bolt"],
             lag: 0.25,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

@@ -8,7 +8,7 @@ class SpellGate < Spell
             name: "gate",
             keywords: ["gate"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 25
         )
     end

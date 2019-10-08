@@ -8,7 +8,7 @@ class SkillLivingStone < Command
             name: "living stone",
             keywords: ["living stone", "stone", "living"],
             lag: 1,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

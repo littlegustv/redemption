@@ -7,7 +7,7 @@ class CommandPeek < Command
             game: game,
             name: "peek",
             keywords: ["peek"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 
@@ -35,7 +35,7 @@ class CommandPoison < Command
             game: game,
             name: "poison",
             keywords: ["poison"],
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

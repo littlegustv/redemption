@@ -7,7 +7,7 @@ class CommandInspect < Command
             game: game,
             name: "inspect",
             keywords: ["inspect"],
-            position: Position::REST
+            position: Constants::Position::REST
         )
     end
 

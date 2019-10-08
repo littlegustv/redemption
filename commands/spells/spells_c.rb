@@ -8,7 +8,7 @@ class SpellCancellation < Spell
             name: "cancellation",
             keywords: ["cancellation"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -27,7 +27,7 @@ class SpellCloakOfMind < Spell
             name: "cloak of mind",
             keywords: ["cloak of mind"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -46,7 +46,7 @@ class SpellCurse < Spell
             name: "curse",
             keywords: ["curse"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

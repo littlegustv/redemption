@@ -8,7 +8,7 @@ class CommandQuicken < Command
             name: "quicken",
             keywords: ["quicken"],
             lag: 0.5,
-            position: Position::STAND
+            position: Constants::Position::STAND
         )
     end
 

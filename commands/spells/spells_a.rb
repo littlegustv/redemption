@@ -8,7 +8,7 @@ class SpellAcidBlast < Spell
             name: "acid blast",
             keywords: ["acid", "blast", "acid blast"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -46,7 +46,7 @@ class SpellAlarmRune < Spell
             name: "alarm rune",
             keywords: ["alarm rune"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -77,7 +77,7 @@ class SpellArmor < Spell
             name: "armor",
             keywords: ["armor"],
             lag: 0.25,
-            position: Position::STAND,
+            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
