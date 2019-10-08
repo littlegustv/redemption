@@ -130,11 +130,11 @@ class Player < Mobile
             broadcast "%s has left the game.", @game.target({not: [self], list: @room.occupants}), self
         end
         @buffer = ""
-        if !silent
-            @client.send_output("Alas, all good things must come to an end.\n")
-            @client.list_characters
-        end
         if @client
+            if !silent
+                @client.send_output("Alas, all good things must come to an end.\n")
+                @client.list_characters
+            end
             @client.player = nil
             @client = nil
         end

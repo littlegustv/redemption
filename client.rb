@@ -1,5 +1,7 @@
 class Client
 
+    @@sleep_time = 0.005
+
     attr_accessor :player
     attr_accessor :client_connection
 
@@ -13,6 +15,7 @@ class Client
         @player = nil
         @tries = 0
         @scroll = 60 # unused?
+        @name = nil
     end
 
     # Main input loop
@@ -46,21 +49,21 @@ class Client
         account_row = nil
         name = nil
         while name.nil?
-            send_output("Enter your account username, or \"new\" for a new account.")
+            send_output("Enter your account name, or \"new\" for a new account.")
             name = get_input
             return if name.nil?
             if name != name.gsub(/[^0-9A-Za-z]/, '')
-                send_output("Illegal account username. Alphanumeric characters only, please.")
+                send_output("Illegal account name. Alphanumeric characters only, please.")
                 name = nil
             end
         end
         if "new".fuzzy_match(name) # new account
             name = nil
             while name.nil?
-                send_output("Please choose your account username.")
+                send_output("Please choose your account name.")
                 name = get_input
                 if name != name.gsub(/[^0-9A-Za-z]/, '')
-                    send_output("Illegal account username. Alphanumeric characters only, please.")
+                    send_output("Illegal account name. Alphanumeric characters only, please.")
                     name = nil
                 elsif @game.account_data.select{ |id, row| row[:name] == name }.first
                     send_output("That account name is already taken.")
@@ -94,7 +97,7 @@ class Client
             account_data = {name: name, md5: md5}
             @game.new_accounts.push(account_data) # add this account data to the list of accounts to be created
             while (account_row = @game.account_data.values.select{ |row| row[:name] == name }.first).nil?
-                sleep(0.005) # wait until the account exists in the database and has been loaded
+                sleep(@@sleep_time) # wait until the account exists in the database and has been loaded
             end
         else # try existing account
             send_output("Password:")
@@ -113,20 +116,26 @@ class Client
             end
         end
         @account_id = account_row[:id]
+        @name = account_row[:name]
         @game.client_account_ids.push(@account_id)
         @client_state = Constants::ClientState::ACCOUNT
-        send_output("\nWelcome, #{account_row[:name]}.\n")
+        send_output("\nWelcome, #{@name}.\n")
         list_characters
     end
 
     # Account management
     def do_account(input = nil)
+        send_output("{c<#{@name}>{x")
         if !input
             input = get_input
         end
         words = input.split(" ").to_a
-        word1 = (words.dig(0) || "???").to_s
+        word1 = words.dig(0).to_s
         word2 = words.dig(1).to_s
+        if word1 == ""
+            send_output("What's that? Try \"help\" to see what you can do from here.")
+            return
+        end
         if "new".fuzzy_match(word1)
             @client_state = Constants::ClientState::CREATION
             return
@@ -140,10 +149,10 @@ class Client
                 send_output("You don't have a character with that name.")
                 return
             end
-            send_output("Logging in as #{c_row[:name]}")
+            send_output("Logging in as #{c_row[:name]}.")
             @game.logging_players.push([c_row[:id], self])
             while (@player = @game.players.select{ |p| p.id == c_row[:id] }.first).nil?
-                sleep(0.005) # wait until the player has been loaded by the game thread
+                sleep(@@sleep_time) # wait until the player has been loaded by the game thread
             end
             @player.input("look")
             @client_state = Constants::ClientState::PLAYER
@@ -151,7 +160,7 @@ class Client
             @quit = true
         elsif "list".fuzzy_match(word1)
             list_characters
-        elsif "help".fuzzy_match(word1) || "?".fuzzy_match(word1)
+        elsif "help".fuzzy_match(word1)
             width = 24
             out = "\n#{"new".lpad(width)} Create a new character.\n" +
             "#{"play <character name>".lpad(width)} Play an existing character.\n" +
@@ -256,9 +265,10 @@ class Client
             class_id: class_id,
             alignment: alignment
         }
+        send_output("Creating #{name}...")
         @game.new_players.push(player_data)
         while (@game.saved_player_data.values.select{ |row| row[:name] == name }.first).nil?
-            sleep(0.005)
+            sleep(@@sleep_time)
         end
         list_characters
     end
@@ -269,6 +279,8 @@ class Client
         if @player
             @player.input(input)
         else
+            @client_state = Constants::ClientState::ACCOUNT
+            list_characters
             do_account(input)
         end
     end
@@ -276,6 +288,7 @@ class Client
     # list characters for a given player account and give some instructions on how to proceed
     def list_characters
         c_rows = @game.saved_player_data.values.select{ |row| row[:account_id] == @account_id.to_i }
+        c_rows = c_rows.sort_by{ |row| row[:name] }
         lines = []
         c_rows.each do |c_row|
             level = c_row[:level]
@@ -300,7 +313,7 @@ class Client
     def get_input
         raw = nil
         begin
-            raw = @client_connection.gets.chomp.to_s
+            raw = @client_connection.gets.chomp.to_s.sanitize
         rescue StandardError => msg
             log "Client #{@account_id} get_input: #{msg}"
             disconnect

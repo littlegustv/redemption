@@ -54,7 +54,9 @@ module GameSetup
         make_commands
 
         # perform a repop to populate the world with items and mobiles
-        repop
+        10.times do
+            repop
+        end
 
         @start_time = Time.now
         log( "Redemption is ready to rock on port #{port}!" )
