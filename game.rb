@@ -1,4 +1,5 @@
 require 'sequel'
+require 'logger'
 require_relative 'game_setup'
 require_relative 'game_save'
 

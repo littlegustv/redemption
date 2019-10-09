@@ -285,7 +285,7 @@ module GameSave
             source = @rooms[data[:source_id]]
         when "Player"
             # check active players
-            source = @players.values.select { |p| p.id == data[:source_id] }.first
+            source = @players.select { |p| p.id == data[:source_id] }.first
             if source # online player has been found
                 return source
             end
