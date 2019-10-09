@@ -94,6 +94,7 @@ module GameSetup
                              :username => sql_username,
                              :password => sql_password,
                              :database => "redemption" )
+        @db.loggers << Logger.new($stdout)
         log( "Database connection established." )
     end
 
