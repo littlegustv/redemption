@@ -285,7 +285,9 @@ class Game
     def repop
         @base_mob_reset_data.each do |reset_id, reset_data|
             reset = @mob_reset_data[reset_id]
-            if @mob_data[ reset[:mobile_id] ]
+            if !reset
+              log "[Reset not found] RESET ID: #{reset_id}"
+            elsif @mob_data[ reset[:mobile_id] ]
                 if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
                     @mobiles.add mob
