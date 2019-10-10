@@ -12,7 +12,7 @@ class Area < GameObject
     attr_reader :security
 
 	def initialize( data, game )
-        super(data[:name], game)
+        super(data[:name], data[:name].split(" "), game)
         @age = data[:age]
         @builders = data[:builders]
 		@continent = data[:continent]
@@ -23,7 +23,6 @@ class Area < GameObject
         @questable = data[:questable]
         @rooms = []
         @security = data[:security]
-        @keywords = data[:name].split(" ")
 	end
 
     def occupants

@@ -3,9 +3,9 @@ class GameObject
     attr_accessor :name, :keywords, :affects, :uuid, :active
     attr_reader :listeners, :room
 
-    def initialize( name, game )
+    def initialize( name, keywords, game )
         @name = name
-        @keywords = [name]
+        @keywords = keywords.to_a.map(&:downcase)
         @game = game
         @affects = []
         @listeners = {}
@@ -51,15 +51,21 @@ class GameObject
     end
 
     def fuzzy_match( query )
+        # self.match(/#{arg}/i)
         query.to_a.all?{ |q|
-            !(@keywords.bsearch{ |keyword|
-                keyword.fuzzy_match( q ) == true
-            }.nil?)
-            # @keywords.bsearch{ |keyword|
-            #     keyword.fuzzy_match( q )
-            # }
+            @keywords.any?{ |keyword|
+                keyword.fuzzy_match( q )
+            }
         }
     end
+
+    # def fuzzy_match( query )
+    #     query.to_a.all?{ |q|
+    #         @keywords.any?{ |keyword|
+    #             keyword.fuzzy_match( q )
+    #         }
+    #     }
+    # end
 
     def can_see?(target)
         true

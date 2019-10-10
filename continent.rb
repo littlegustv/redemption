@@ -6,7 +6,7 @@ class Continent < GameObject
     attr_reader :starting_room_id
 
     def initialize( data, game )
-        super(data[:name], game)
+        super(data[:name], data[:name].split(" "), game)
         @id = data[:id]
         @preposition = data[:preposition]
         @recall_room_id = data[:recall_room_id]

@@ -28,10 +28,9 @@ class Mobile < GameObject
     include MobileItem
 
     def initialize( data, game, room )
-        super(data[ :short_description ], game)
+        super(data[ :short_description ], data[:keywords], game)
         @attacking
         @lag = 0
-        @keywords = data[:keywords]
         @id = data[ :id ]
         @short_description = data[ :short_description ]
         @long_description = data[ :long_description ]

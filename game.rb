@@ -83,9 +83,9 @@ class Game
         @inactive_players = Hash.new        # inactive players - they've logged but not been garbage collected yet
         @logging_players = []               # ids of players waiting to be added to the game
         @quitting_players = []              # players who have placed themselves here are to be quit
-        @items = Set.new
+        @items = []
         @item_count = Hash.new
-        @mobiles = Set.new
+        @mobiles = []
         @mobile_count = Hash.new
 
         @affects = Set.new                  # Master list of all applied affects in the game
@@ -290,7 +290,7 @@ class Game
             elsif @mob_data[ reset[:mobile_id] ]
                 if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
-                    @mobiles.add mob
+                    @mobiles.unshift mob
 
                     @mobile_count[ reset[:mobile_id] ] = @mobile_count[ reset[:mobile_id] ].to_i + 1
 
@@ -433,7 +433,7 @@ class Game
                 item = Item.new( data, self, inventory )
             end
             if item
-                @items.add item
+                @items.unshift item
                 return item
             else
                 log "[Item creation unsuccessful]"
