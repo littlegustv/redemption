@@ -259,12 +259,15 @@ class Game
         targets = targets.select { |t| t.uuid == query[:uuid] }                                                     if query[:uuid]
         targets = targets.select { |t| query[:affect].to_a.any?{ |affect| t.affected?( affect.to_s ) } }            if query[:affect]
         targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
-        targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
         targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
         targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }                          if query[:area]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
+
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
+
+        targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
+
         targets = targets[0...query[:limit].to_i]                                                                   if query[:limit]
 
         query[:offset] == "all" || query[:offset].nil? ? offset = 0 : offset = [0, query[:offset].to_i - 1].max

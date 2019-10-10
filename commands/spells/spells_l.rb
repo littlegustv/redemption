@@ -58,7 +58,7 @@ class SpellLocateObject < Spell
 
     def attempt( actor, cmd, args, input, level )
         before = Time.now
-        targets = @game.target({type: "Item"}.merge(args.first.to_s.to_query))
+        targets = @game.target({type: "Item", visible_to: actor}.merge(args.first.to_s.to_query) )
         after = Time.now
         log "{rlocate{x #{after - before}"
         # puts targets

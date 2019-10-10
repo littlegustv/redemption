@@ -5,7 +5,14 @@ class GameObject
 
     def initialize( name, keywords, game )
         @name = name
-        @keywords = keywords.to_a.map(&:downcase)
+        @keywords = Set.new
+        keywords.to_a.each do |keyword|
+            keyword_string = keyword.dup
+            while keyword_string.length > 0
+                @keywords.add(keyword_string.to_sym)
+                keyword_string[-1] = ""
+            end
+        end
         @game = game
         @affects = []
         @listeners = {}
@@ -53,9 +60,10 @@ class GameObject
     def fuzzy_match( query )
         # self.match(/#{arg}/i)
         query.to_a.all?{ |q|
-            @keywords.any?{ |keyword|
-                keyword.fuzzy_match( q )
-            }
+            @keywords.include? q.downcase.to_sym
+            # @keywords.any?{ |keyword|
+            #     keyword.fuzzy_match( q )
+            # }
         }
     end
 
