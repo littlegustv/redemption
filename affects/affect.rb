@@ -3,6 +3,7 @@ class Affect
     attr_accessor :permanent
     attr_accessor :source
     attr_accessor :savable
+    attr_accessor :active
     attr_reader :application_type
     attr_reader :data
     attr_reader :hidden
@@ -11,6 +12,7 @@ class Affect
     attr_reader :name
     attr_reader :priority
     attr_reader :keywords
+    attr_reader :period
 
     def initialize(
         game:,
@@ -43,9 +45,9 @@ class Affect
         @permanent = permanent
         @hidden = hidden
         @savable = true
+        @active = true
 
         @clock = 0
-        @conditions = []
         @data = Hash.new                       # Additional data. Only "primitives". Saved to the database.
     end
 
@@ -89,7 +91,7 @@ class Affect
             end
         end
         @duration -= elapsed if !@permanent
-        if (@duration.to_i <= 0 && !@permanent) || (@conditions.length > 0 && @conditions.map { |condition| condition.evaluate }.include?(false))
+        if (@duration.to_i <= 0 && !@permanent)
             clear(silent: false)
         end
     end
@@ -166,32 +168,32 @@ end
 #  AffectCondition.new(some_mobile, [:room], :==, some_room, [])             # some_mobile.room == some_room
 #  AffectCondition.new(some_mobile, [:room, :area], :==, some_room, [:area]) # some_mobile.room.area == some_room.area
 #
-class AffectCondition
-
-    # Creates a new instance.
-    # +l_object+:: Base object on the lefthand side of the operator
-    # +l_symbols+:: Any methods to call on l_object at each +evaluate+
-    # +operator+:: The comparison operator
-    # +r_object+:: Base object on the righthand side of the operator
-    # +r_symbols+:: Any methods to call on r_object at each +evaluate+
-    def initialize(l_object, l_symbols, operator, r_object, r_symbols)
-        @l_object = (l_object.frozen?) ? l_object : WeakRef.new(l_object)
-        @l_symbols = l_symbols
-        @operator = operator
-        @r_object = (r_object.frozen?) ? r_object : WeakRef.new(r_object)
-        @r_symbols = r_symbols
-    end
-
-    # The affect will call this in +update+
-    def evaluate
-        if (!@l_object.frozen? && !@l_object.weakref_alive?) || (!@r_object.frozen? && !@r_object.weakref_alive?)
-            return false
-        end
-        l = @l_object
-        @l_symbols.each { |symbol| l = l.send(symbol) }
-        r = @r_object
-        @r_symbols.each { |symbol| r = r.send(symbol) }
-        return l.send(@operator, r)
-    end
-
-end
+# class AffectCondition
+#
+#     # Creates a new instance.
+#     # +l_object+:: Base object on the lefthand side of the operator
+#     # +l_symbols+:: Any methods to call on l_object at each +evaluate+
+#     # +operator+:: The comparison operator
+#     # +r_object+:: Base object on the righthand side of the operator
+#     # +r_symbols+:: Any methods to call on r_object at each +evaluate+
+#     def initialize(l_object, l_symbols, operator, r_object, r_symbols)
+#         @l_object = (l_object.frozen?) ? l_object : WeakRef.new(l_object)
+#         @l_symbols = l_symbols
+#         @operator = operator
+#         @r_object = (r_object.frozen?) ? r_object : WeakRef.new(r_object)
+#         @r_symbols = r_symbols
+#     end
+#
+#     # The affect will call this in +update+
+#     def evaluate
+#         if (!@l_object.frozen? && !@l_object.weakref_alive?) || (!@r_object.frozen? && !@r_object.weakref_alive?)
+#             return false
+#         end
+#         l = @l_object
+#         @l_symbols.each { |symbol| l = l.send(symbol) }
+#         r = @r_object
+#         @r_symbols.each { |symbol| r = r.send(symbol) }
+#         return l.send(@operator, r)
+#     end
+#
+# end

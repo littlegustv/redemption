@@ -1,5 +1,6 @@
 class Item < GameObject
 
+    attr_accessor :active
 	attr_accessor :wear_location
     attr_accessor :weight
     attr_accessor :type
@@ -23,6 +24,7 @@ class Item < GameObject
         @extra_flags = data[:extra_flags]
         @wear_flags = data[:wear_flags]
         @modifiers = data[:modifiers].merge( data[:ac] )
+        @active = true
         # @ac = data[:ac] || [0,0,0,0]
 
         move(parent_inventory)
@@ -170,7 +172,7 @@ class Tattoo < Item
         @runist = runist
         @duration = 600.0 * runist.level
         @slot = slot
-        @game.items.unshift self
+        @game.items.add self
     end
 
     def update(elapsed)

@@ -21,6 +21,9 @@ class Mobile < GameObject
     attr_reader :race_id
     attr_reader :class_id
     attr_reader :stats
+    attr_reader :hitpoints
+    attr_reader :manapoints
+    attr_reader :movepoints
 
     include MobileItem
 
@@ -234,10 +237,10 @@ class Mobile < GameObject
     end
 
     # sets mobiles attacking target to 'nil', so 'combat' method will no longer call a round of attacks
-    # 
+    #
     # then iterates through all room occupants that were targeting 'self' in combat and sets them to attack the next
     # mobile that is currently in combat with THEM
-    # 
+    #
     # if no new combatant is found, the new target is set to 'nil' which stops combat as well
 
     def stop_combat
@@ -639,7 +642,7 @@ class Mobile < GameObject
     end
 
     # Returns the value of a stat for a given key.
-    # Adjusts
+    # Adjusts for
     #
     #  some_mobile.stat(:str)
     #  some_mobile.stat(:max_wis)

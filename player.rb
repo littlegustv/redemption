@@ -1,12 +1,14 @@
 class Player < Mobile
 
     attr_reader :client
+    attr_reader :account_id
 
     def initialize( data, game, room, client )
         data[:keywords] = data[:name].to_a
         data[:short_description] = data[:name]
         data[:long_description] = "#{data[:name]} the Master Rune Maker is here."
         super(data, game, room)
+        @account_id = data[:account_id]
         @buffer = ""
         @delayed_buffer = ""
         @scroll = 60
@@ -33,17 +35,20 @@ class Player < Mobile
         end
         if !@active
             @affects.each do |affect|
+                affect.active = true
                 @game.add_affect(affect)
             end
             @inventory.items.each do |item|
                 @game.items << item
                 item.affects.each do |affect|
+                    affect.active = true
                     @game.add_affect(affect)
                 end
             end
             equipment.each do |item|
                 @game.items << item
                 item.affects.each do |affect|
+                    affect.active = true
                     @game.add_affect(affect)
                 end
             end

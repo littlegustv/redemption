@@ -41,7 +41,7 @@ class AffectPlague < Affect
     end
 
     def summary
-        super + "\n" + (" " * 24) + " : damage over time for #{ duration } hours"
+        super + "\n" + (" " * 24) + " : damage over time for #{ duration.to_i } seconds"
     end
 end
 

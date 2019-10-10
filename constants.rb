@@ -78,7 +78,7 @@ module Constants
     ELEMENTAL_CHANCE = 3
     module Interval
         FPS = 30
-        ROUND = FPS * 1		    # 1 second
+        ROUND = FPS * 1	    	# 1 second
         TICK = FPS * 60			# 1 minute
         REPOP = FPS * 3 * 60    # 3 minutes
         # REPOP = FPS * 4         # fast resets for testing
@@ -290,6 +290,7 @@ module Constants
         SpellInvisibility,
         SpellKnowAlignment,
         SpellLightningBolt,
+        SpellLocateObject,
         SpellManaDrain,
         SpellMassInvisibility,
         SpellMirrorImage,

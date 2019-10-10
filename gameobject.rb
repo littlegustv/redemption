@@ -52,9 +52,12 @@ class GameObject
 
     def fuzzy_match( query )
         query.to_a.all?{ |q|
-            @keywords.any?{ |keyword|
-                keyword.fuzzy_match( q )
-            }
+            !(@keywords.bsearch{ |keyword|
+                keyword.fuzzy_match( q ) == true
+            }.nil?)
+            # @keywords.bsearch{ |keyword|
+            #     keyword.fuzzy_match( q )
+            # }
         }
     end
 

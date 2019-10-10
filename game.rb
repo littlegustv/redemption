@@ -49,6 +49,9 @@ class Game
         @mobile_data = Hash.new             # Mobile table as hash     (uses :id as key)
         @item_data = Hash.new               # Item table as hash       (uses :id as key)
         @shop_data = Hash.new               # Shop table as hash       (uses :id as key)
+        @skill_data = Hash.new              # Skill table as hash      (uses :id as key)
+        @spell_data = Hash.new              # Spell table as hash      (uses :id as key)
+        @command_data = Hash.new            # Command table as hash    (uses :id as key)
 
         @base_reset_data = Hash.new             # Reset table as hash           (uses :id as key)
         @mob_reset_data = Hash.new              # Mob reset table as hash       (uses :reset_id as key)
@@ -57,6 +60,11 @@ class Game
         @room_item_reset_data = Hash.new        # Room item reset table as hash (uses :reset_id as key)
         @base_mob_reset_data = Hash.new         # Subset of @base_reset_data where :type is "mobile"
         @base_room_item_reset_data = Hash.new   # Subset of @base_reset_data where :type is "room_item"
+
+        @saved_player_id_max = 0                # max id in database table saved_player_base
+        @saved_player_affect_id_max = 0         # max id in database table saved_player_affect
+        @saved_player_item_id_max = 0           # max id in database table saved_player_item
+        @saved_player_item_affect_id_max = 0    # max id in database table saved_player_item_affect
 
         @help_data = Hash.new                   # Help table as hash  (uses :id as key)
         @account_data = Hash.new                # Account table as hash (uses :id  as key)
@@ -75,12 +83,12 @@ class Game
         @inactive_players = Hash.new        # inactive players - they've logged but not been garbage collected yet
         @logging_players = []               # ids of players waiting to be added to the game
         @quitting_players = []              # players who have placed themselves here are to be quit
-        @items = []
+        @items = Set.new
         @item_count = Hash.new
-        @mobiles = []
+        @mobiles = Set.new
         @mobile_count = Hash.new
 
-        @affects = []                       # Master list of all applied affects in the game
+        @affects = Set.new                  # Master list of all applied affects in the game
         @skills = []                        # Skill object array
         @spells = []                        # Spell object array
         @commands = []                      # Command object array
@@ -110,6 +118,7 @@ class Game
             @inactive_players.each do |name, player|
                 if !player.weakref_alive?
                     @inactive_players.delete(name)
+                    puts "#{name} has been deleted from memory."
                 end
             end
 
@@ -148,7 +157,6 @@ class Game
             if @frame_count % Constants::Interval::REPOP == 0
                 repop
             end
-
             update( 1.0 / Constants::Interval::FPS )
             send_to_client
             end_time = Time.now
@@ -188,8 +196,13 @@ class Game
         # @continents.values.each do | continent |
         #     continent.update(elapsed)
         # end
-        @affects.each do |affect|
-            affect.update(elapsed)
+        affects = @affects.to_a
+        affects.each do |affect|
+            if affect.active
+                affect.update(elapsed)
+            else
+                @affects.delete(affect)
+            end
         end
     end
 
@@ -235,7 +248,11 @@ class Game
             targets += @areas.values       if query[:type].to_a.include? "Area"
             targets += @continents.values  if query[:type].to_a.include? "Continent"
             targets += @players            if query[:type].to_a.include? "Player"
-            targets += @items              if query[:type].to_a.include? "Item"
+            if query[:type].to_a.include? "Item"
+                items = @items.to_a
+                # items = items.reject{ |item| !item.active }
+                targets += items
+            end
             targets += @mobiles            if query[:type].to_a.include? "Mobile"
         end
 
@@ -260,9 +277,9 @@ class Game
 
     def tick
         broadcast("{MMud newbies 'Hi everyone! It's a tick!!'{x", target({ list: @players } ), send_to_sleeping: true)
-        ( @players + @mobiles).each do | entity |
-            entity.tick
-        end
+        # ( @players + @mobiles).each do | entity |
+        #     entity.tick
+        # end
     end
 
     def repop
@@ -271,7 +288,7 @@ class Game
             if @mob_data[ reset[:mobile_id] ]
                 if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
-                    @mobiles.unshift mob
+                    @mobiles.add mob
 
                     @mobile_count[ reset[:mobile_id] ] = @mobile_count[ reset[:mobile_id] ].to_i + 1
 
@@ -414,7 +431,7 @@ class Game
                 item = Item.new( data, self, inventory )
             end
             if item
-                @items.unshift item
+                @items.add item
                 return item
             else
                 log "[Item creation unsuccessful]"
@@ -455,7 +472,9 @@ class Game
     end
 
     def add_affect(affect)
-        @affects.unshift(affect)
+        if !affect.permanent || affect.period
+            @affects.add(affect)
+        end
     end
 
     def remove_affect(affect)
@@ -541,10 +560,10 @@ class Game
             player.move_to_room(@starting_room) # just move players out
         end
         room.inventory.items.each do |item|
+            item.active = false
             item.affects.each do |affect|
-                remove_affect(affect)
+                affect.active = false
             end
-            @items.delete(item)
         end
         @rooms.delete(room.id)
     end
@@ -559,20 +578,15 @@ class Game
         mobile.move_to_room(self.new_inactive_room)
         mobile.deactivate
         mobile.affects.each do |affect|
-            remove_affect(affect)
+            affect.active = false
         end
-        mobile.inventory.items.each do |item|
+        mobile.items.each do |item|
+            item.active = false
             item.affects.each do |affect|
-                remove_affect(affect)
+                affect.active = false
             end
-            @items.delete(item)
         end
-        mobile.equipment.each do |item|
-            item.affects.each do |affect|
-                remove_affect(affect)
-            end
-            @items.delete(item)
-        end
+        @items -= mobile.items
         @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i - 1
         @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         @mobiles.delete(mobile)
@@ -583,20 +597,15 @@ class Game
         @inactive_players[player.name] = WeakRef.new(player)
         player.room.mobile_depart(player)
         player.affects.each do |affect|
-            remove_affect(affect)
+            affect.active = false
         end
-        player.inventory.items.each do |item|
+        player.items.each do |item|
+            item.active = false
             item.affects.each do |affect|
-                remove_affect(affect)
+                affect.active = false
             end
-            @items.delete(item)
         end
-        player.equipment.each do |item|
-            item.affects.each do |affect|
-                remove_affect(affect)
-            end
-            @items.delete(item)
-        end
+        # @items -= player.items
         player.deactivate
         @players.delete(player)
     end
@@ -604,10 +613,10 @@ class Game
     # destroy an item object
     def destroy_item(item)
         item.move(nil)          # remove its inventory references by moving it to a nil inventory
+        item.active = false
         item.affects.each do |affect|
-            remove_affect(affect)
+            affect.active = false
         end
-        @items.delete(item)
     end
 
     def inspect

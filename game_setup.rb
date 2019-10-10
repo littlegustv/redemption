@@ -8,12 +8,13 @@ module GameSetup
     # 2. Open a connection to the database.
     # 3. Cleans up database rows that were only relevant to the last instance of the game running
     # 4. Load database tables
-    # 5. construct continents, areas, rooms
-    # 6. construct skills, spells, commands
-    # 7. perform a game.repop
-    # 8. set start_time to now
-    # 9. start the game_loop thread
-    # 10. begin a loop, creating threads for incoming clients
+    # 5. Load max ids for saved_player tables
+    # 6. construct continents, areas, rooms
+    # 7. construct skills, spells, commands
+    # 8. perform game.repop
+    # 9. set start_time to now
+    # 10. start the game_loop thread
+    # 11. begin a loop, creating threads for incoming clients
     # +ip+:: The IP address of the server. (Optional, can pass +nil+)
     # +port+:: The port the server uses.
     public def start(ip, port, areas = "all")
@@ -44,6 +45,11 @@ module GameSetup
         load_help_data
         load_account_data
         load_saved_player_data
+        load_skill_data
+        load_spell_data
+        load_command_data
+
+        load_max_ids
 
         # construct objects
         make_continents
@@ -94,7 +100,7 @@ module GameSetup
                              :username => sql_username,
                              :password => sql_password,
                              :database => "redemption" )
-        @db.loggers << Logger.new($stdout)
+        # @db.loggers << Logger.new($stdout)
         log( "Database connection established." )
     end
 
@@ -237,6 +243,33 @@ module GameSetup
         log ( "Database load complete: Saved player data" )
     end
 
+    # load skill data from database
+    protected def load_skill_data
+        @skill_data = @db[:skill_base].to_hash(:id)
+        log ( "Database load complete: Skill data" )
+    end
+
+    # load spell data from database
+    protected def load_spell_data
+        @spell_data = @db[:spell_base].to_hash(:id)
+        log ( "Database load complete: Spell data" )
+    end
+
+    # load command data from database
+    protected def load_command_data
+        @command_data = @db[:command_base].to_hash(:id)
+        log ( "Database load complete: Command data" )
+    end
+
+    # load max ids for saved_player tables
+    protected def load_max_ids
+        @saved_player_id_max = @db[:saved_player_base].max(:id).to_i
+        @saved_player_affect_id_max = @db[:saved_player_affect].max(:id).to_i
+        @saved_player_item_id_max = @db[:saved_player_item].max(:id).to_i
+        @saved_player_item_affect_id_max = @db[:saved_player_item_affect].max(:id).to_i
+        log ( "Database load complete: Saved player id max values" )
+    end
+
     # Construct Continent objects
     protected def make_continents
         @continent_data.each do |id, row|
@@ -298,7 +331,7 @@ module GameSetup
     protected def make_skills
         Constants::SKILL_CLASSES.each do |skill_class|
             skill = skill_class.new(self)
-            row = @db[:skill_base].where(name: skill.name).first
+            row = @skill_data.values.select{ |row| row[:name] == skill.name }.first
             if row
                 skill.overwrite_attributes(row)
             else
@@ -313,7 +346,7 @@ module GameSetup
     protected def make_spells
         Constants::SPELL_CLASSES.each do |spell_class|
             spell = spell_class.new(self)
-            row = @db[:spell_base].where(name: spell.name).first
+            row = @spell_data.values.select{ |row| row[:name] == spell.name }.first
             if row
                 spell.overwrite_attributes(row)
             else
@@ -328,7 +361,7 @@ module GameSetup
     protected def make_commands
         Constants::COMMAND_CLASSES. each do |command_class|
             command = command_class.new(self)
-            row = @db[:command_base].where(name: command.name).first
+            row = @command_data.values.select{ |row| row[:name] == command.name }.first
             if row
                 command.overwrite_attributes(row)
             else

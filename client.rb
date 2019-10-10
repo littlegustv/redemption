@@ -49,7 +49,7 @@ class Client
         account_row = nil
         name = nil
         while name.nil?
-            send_output("Enter your account name, or \"new\" for a new account.")
+            send_output("Enter your account name or \"new\" for a new account.")
             name = get_input
             return if name.nil?
             if name != name.gsub(/[^0-9A-Za-z]/, '')
@@ -60,9 +60,11 @@ class Client
         if "new".fuzzy_match(name) # new account
             name = nil
             while name.nil?
-                send_output("Please choose your account name.")
+                send_output("Please choose your account name or \"back\" to cancel.")
                 name = get_input
-                if name != name.gsub(/[^0-9A-Za-z]/, '')
+                if name.downcase == "back"
+                    return
+                elsif name != name.gsub(/[^0-9A-Za-z]/, '')
                     send_output("Illegal account name. Alphanumeric characters only, please.")
                     name = nil
                 elsif @game.account_data.select{ |id, row| row[:name] == name }.first
