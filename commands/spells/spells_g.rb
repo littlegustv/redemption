@@ -14,6 +14,7 @@ class SpellGate < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
+        before = Time.now
         if ( target = @game.target({ type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
             actor.output "You step through a gate and vanish."
             @game.broadcast "%s steps through a gate and vanishes.", @game.target({ list: actor.room.occupants, not: actor }), [target]
@@ -22,6 +23,8 @@ class SpellGate < Spell
         else
             actor.output "You can't find anyone with that name."
         end
+        after = Time.now
+        log ("{rGate:{x #{(after - before)}")
     end
 
 end

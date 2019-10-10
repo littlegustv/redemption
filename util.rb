@@ -16,8 +16,9 @@ class String
     end
 
     def fuzzy_match( arg )
-        arg = arg.to_s if !arg
-        self[0, arg.length] == arg
+        arg = arg.to_s.downcase
+        self[0, arg.length].downcase == arg
+        # self.match(/#{arg}/i)
     end
     
     def capitalize_first

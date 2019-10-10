@@ -10,10 +10,9 @@ class Item < GameObject
     attr_reader :parent_inventory
 
     def initialize( data, game, parent_inventory )
-        super(data[:short_description], game)
+        super(data[:short_description], data[:keywords], game)
         @id = data[:id]
         @short_description = data[:short_description]
-        @keywords = data[:keywords]
         @level = data[:level]
         @weight = data[:weight]
         @cost = data[:cost]
