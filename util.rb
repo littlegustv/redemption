@@ -16,10 +16,10 @@ class String
     end
 
     def fuzzy_match( arg )
-        # self.match(/\A#{arg}/i)
+        arg = arg.to_s if !arg
         self[0, arg.length] == arg
     end
-
+    
     def capitalize_first
         slice(0, 1).to_s.capitalize + slice(1..-1).to_s
     end

@@ -61,7 +61,7 @@ class SpellLocateObject < Spell
         targets = @game.target({type: "Item"}.merge(args.first.to_s.to_query))
         after = Time.now
         log "{rlocate{x #{after - before}"
-        puts targets
+        # puts targets
         if !targets
             actor.output "Nothing like that in heaven or earth."
             return false
