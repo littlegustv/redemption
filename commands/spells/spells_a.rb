@@ -52,7 +52,9 @@ class SpellAlarmRune < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if actor.affected? "alarm rune"
+        data = {success: true}
+        @game.fire_event(actor, :event_try_alarm_rune, data)
+        if !data[:success]
             actor.output "You already sense others."
             return false
         elsif actor.room.affected? "alarm rune"
@@ -62,7 +64,6 @@ class SpellAlarmRune < Spell
             actor.output "You place an alarm rune on the ground, increasing your senses."
             actor.broadcast "%s places a strange rune on the ground.", actor.target({ list: actor.room.occupants, not: actor }), [actor]
             actor.room.apply_affect( AffectAlarmRune.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
-            actor.apply_affect( Affect.new( name: "alarm rune", keywords: [], source: actor, target: actor, level: actor.level, duration: 10, modifiers: { none: 0 }, game: @game ) )
             return true
         end
     end

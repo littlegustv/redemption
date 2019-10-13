@@ -63,7 +63,7 @@ module GameSetup
         10.times do
             repop
         end
-
+        
         @start_time = Time.now
         log( "Redemption is ready to rock on port #{port}!" )
 

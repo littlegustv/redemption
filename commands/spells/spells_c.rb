@@ -168,9 +168,9 @@ class SpellChainLightning < Spell
 
         damage = 100
         actor.deal_damage(target: target, damage: damage, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
-        while (damage -= 10) >= 0            
+        while (damage -= 10) >= 0
             target = actor.room.occupants.sample
-        
+
             if target == actor
                 @game.broadcast "The bolt arcs to %s...whoops!", @game.target({ list: actor.room.occupants, not: [target] }), [actor, target]
                 target.output "You are struck by your own lightning!"
@@ -204,6 +204,25 @@ class SpellCloakOfMind < Spell
 
     def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectCloakOfMind.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
+end
+
+class SpellCloudkill < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "cloudkill",
+            keywords: ["cloudkill"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.room.apply_affect( AffectCloudkill.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
     end
 
 end

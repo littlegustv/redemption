@@ -80,7 +80,7 @@ class Command
         @movement_cost = new_attr_hash[:movement_cost].to_i
         data_string = new_attr_hash[:data]
         if data_string && data_string.length > 0
-            data = JSON.parse(data_string, symbolize_names: true)
+            @data = JSON.parse(data_string, symbolize_names: true)
         end
     end
 

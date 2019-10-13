@@ -17,12 +17,12 @@ class AffectBarkSkin < Affect
 
     def send_start_messages
         @target.output "You are as mighty as an oak."
-        @target.broadcast "%s looks as mighty as an oak", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+        @target.broadcast "%s looks as mighty as an oak", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
         @target.output "The bark on your skin flakes off."
-        @target.broadcast "The bark on %s's skin flakes off.", @game.target({ list: @target.room.occupants, not: @target }), [@target]        
+        @target.broadcast "The bark on %s's skin flakes off.", @target.room.occupants - [@target], [@target]
     end
 
 end
@@ -44,7 +44,7 @@ class AffectBerserk < Affect
     end
 
     def send_start_messages
-        @target.broadcast("%s gets a wild look in %x eyes!", @target.target({list:@target.room.occupants, not: @target}), @target)
+        @target.broadcast("%s gets a wild look in %x eyes!", @target.room.occupants - [@target], @target)
         @target.output "Your pulse races as you are consumed by rage!"
     end
 
@@ -86,7 +86,7 @@ class AffectBladeRune < Affect
     end
 
     def send_start_messages
-        @source.broadcast("%s empowers %s with a blade rune.", @source.target({list: @source.room.occupants, not: @source}), [@source, @target])
+        @source.broadcast("%s empowers %s with a blade rune.", @target.room.occupants - [@source], [@source, @target])
         @source.output "You empower the %s with a blade rune!", @target
         @source.output @message
     end
@@ -113,15 +113,15 @@ class AffectBlind < Affect
     end
 
     def start
-        @target.add_event_listener(:event_try_can_see, self, :do_blindness)
+        @game.add_event_listener(@target, :event_try_can_see, self, :do_blindness)
     end
 
     def complete
-        @target.delete_event_listener(:event_try_can_see, self)
+        @game.remove_event_listener(@target, :event_try_can_see, self)
     end
 
     def send_start_messages
-        @target.broadcast "%s is blinded!", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "%s is blinded!", @target.room.occupants - [@target], [@target]
         @target.output "You can't see a thing!"
     end
 
@@ -152,12 +152,12 @@ class AffectBlur < Affect
 
     def send_start_messages
         @target.output "You become blurry."
-        @target.broadcast "%s's outline turns blurry.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+        @target.broadcast "%s's outline turns blurry.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
         @target.output "You come into focus."
-        @target.broadcast "%s comes into focus.", @game.target({ list: @target.room.occupants, not: @target }), [@target]        
+        @target.broadcast "%s comes into focus.", @target.room.occupants - [@target], [@target]
     end
 
 end
@@ -193,15 +193,31 @@ class AffectBurstRune < Affect
     end
 
     def start
-        @target.add_event_listener(:event_override_hit, self, :do_burst_rune)
+        @game.add_event_listener(@target, :event_item_wear, self, :add_burst_rune)
+        @game.add_event_listener(@target, :event_item_unwear, self, :remove_burst_rune)
+        if @target.equipped?
+            @game.add_event_listener(@target.carrier, :event_override_hit, self, :do_burst_rune)
+        end
     end
 
     def complete
-        @target.delete_event_listener(:event_override_hit, self)
+        @game.remove_event_listener(@target, :event_item_wear, self)
+        @game.remove_event_listener(@target, :event_item_unwear, self)
+        if @target.equipped?
+            @game.remove_event_listener(@target.carrier, :event_override_hit, self)
+        end
+    end
+
+    def add_burst_rune(data)
+        @game.add_event_listener(@target.carrier, :event_override_hit, self, :do_burst_rune)
+    end
+
+    def remove_burst_rune(data)
+        @game.remove_event_listener(@target.carrier, :event_override_hit, self)
     end
 
     def do_burst_rune(data)
-        if data[:confirm] == false && data[:weapon] == @target && data[:target] && rand(1..100) <= 25
+        if data[:confirm] == false && data[:weapon] == @target && data[:target] && rand(1..100) <= 125
             data[:source].output @hit_message
             data[:source].deal_damage(target: data[:target], damage: 100, noun: @noun, element: @element, type: Constants::Damage::MAGICAL)
             data[:confirm] = true
@@ -209,6 +225,7 @@ class AffectBurstRune < Affect
     end
 
     def send_start_messages
+        @source.broadcast("%s empowers %s with a burst rune.", @target.room.occupants - [@source], [@source, @target])
         @source.output "You empower the weapon with an elemental burst rune!"
         @source.output @apply_message
     end

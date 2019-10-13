@@ -18,18 +18,18 @@ class AffectVuln < Affect
     end
 
     def start
-        @target.add_event_listener(:event_calculate_damage, self, :do_vuln)
-        @target.add_event_listener(:event_display_vulns, self, :do_display)
+        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_vuln)
+        @game.add_event_listener(@target, :event_display_vulns, self, :do_display)
     end
 
     def complete
-        @target.delete_event_listener(:event_calculate_damage, self)
-        @target.delete_event_listener(:event_display_vulns, self)
+        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        @game.remove_event_listener(@target, :event_display_vulns, self)
     end
 
     def do_vuln(data)
-        if data[:target] == @target && data[:element] == @data[:element]
-            data[:damage] = (data[:damage] * 1.3).to_i
+        if data[:element] == @data[:element]
+            data[:damage] = (data[:damage] * Constants::Damage::VULN_MULTIPLIER).to_i
         end
     end
 

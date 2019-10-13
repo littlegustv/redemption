@@ -16,7 +16,7 @@ class AffectZeal < Affect
     end
 
     def start
-    	@target.add_event_listener(:event_calculate_weapon_hit_damage, self, :do_zeal)
+    	@game.add_event_listener(@target, :event_calculate_weapon_hit_damage, self, :do_zeal)
     end
 
     def send_start_messages
@@ -24,7 +24,7 @@ class AffectZeal < Affect
     end
 
     def complete
-		@target.add_event_listener(:event_calculate_weapon_hit_damage, self)
+		@game.remove_event_listener(@target, :event_calculate_weapon_hit_damage, self)
     end
 
     def send_complete_messages

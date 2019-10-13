@@ -142,17 +142,12 @@ class CommandStand < Command
         super(
             game: game,
             name: "stand",
-            keywords: ["stand", "wake"],
+            keywords: ["stand"],
             priority: 200
         )
     end
 
     def attempt( actor, cmd, args, input )
-        keyword = @keywords.select{ |keyword| keyword.fuzzy_match( cmd.split(" ").first ) }.first
-        if keyword == "wake" && actor.position != Constants::Position::SLEEP
-            actor.output "You're already awake!"
-            return false
-        end
         case actor.position
         when Constants::Position::SLEEP
             actor.output "You wake and stand up."

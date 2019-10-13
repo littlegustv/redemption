@@ -24,6 +24,7 @@ class Item < GameObject
         @wear_flags = data[:wear_flags]
         @modifiers = data[:modifiers].merge( data[:ac] )
         @active = true
+        @parent_inventory = nil
         # @ac = data[:ac] || [0,0,0,0]
 
         move(parent_inventory)
@@ -49,13 +50,13 @@ class Item < GameObject
 
     def name
         data = { description: @name }
-        @game.fire_event( :event_calculate_description, data, self )
+        @game.fire_event( self, :event_calculate_description, data )
         return data[:description]
     end
 
     def long
         data = { description: @long_description }
-        @game.fire_event( :event_calculate_description, data, self )
+        @game.fire_event( self, :event_calculate_description, data )
         return data[:description]
     end
 
@@ -67,7 +68,7 @@ class Item < GameObject
 %Q(
 Object '#{ @short_description }' is of type #{ @type }.
 Description: #{ @long_description }
-Keywords '#{ @keywords.join(' ') }'
+Keywords '#{ @keyword_string }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
 Extra flags: #{ @extraFlags }
 #{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
@@ -77,10 +78,16 @@ Extra flags: #{ @extraFlags }
     # move this item to another inventory - nil is passed when an item is going to be destroyed
     def move(new_inventory)
         if @parent_inventory
+            if equipped?
+                @game.fire_event(self, :event_item_unwear, {mobile: carrier})
+            end
             @parent_inventory.remove_item(self)
         end
         if new_inventory
             new_inventory.add_item(self)
+            if equipped?
+                @game.fire_event(self, :event_item_wear, {mobile: carrier})
+            end
         end
         @parent_inventory = new_inventory
     end
@@ -98,6 +105,21 @@ Extra flags: #{ @extraFlags }
     # or in another item
     def room
         return @parent_inventory.owner.room
+    end
+
+    # returns the gameobject that carries this item, whether it's the room that this object is on
+    # the floor in, a mobile with this item in a container, or just a mobile with this in an equip_slot
+    def carrier
+        owner = @parent_inventory.owner
+        while Item === owner
+            owner = owner.parent_inventory.owner
+        end
+        return owner
+    end
+
+    # true or false - item is equipped?
+    def equipped?
+        EquipSlot === @parent_inventory
     end
 
 end

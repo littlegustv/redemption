@@ -57,16 +57,22 @@ class SpellLocateObject < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        before = Time.now
-        targets = @game.target({type: "Item", visible_to: actor}.merge(args.first.to_s.to_query) )
-        after = Time.now
-        log "{rlocate{x #{after - before}"
-        # puts targets
-        if !targets
+        targets = []
+        if actor.can_see?(nil)
+            targets = @game.target_global_items(args.first.to_s.to_query).shuffle
+            total_found = targets.size
+            targets = actor.filter_visible_targets(targets, 10)
+        end
+        if targets.length == 0
             actor.output "Nothing like that in heaven or earth."
             return false
         end
-        # actor.deal_damage(target: target, damage: 100, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
+        out = targets.map{ |t| "%s is #{t.carrier.carried_by_string} %s." }.join("\n")
+        out += "\n\nYour focus breaks before revealing all of the objects." if targets.length < total_found
+        objects = targets.map{ |t| [t, t.carrier] }.flatten
+        actor.output(out, objects)
         return true
+        # actor.deal_damage(target: target, damage: 100, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
+
     end
 end

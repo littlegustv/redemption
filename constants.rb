@@ -71,6 +71,10 @@ module Constants
             PHYSICAL => "physical",
             MAGICAL => "magic"
         }
+
+        RESIST_MULTIPLIER = 0.7
+        VULN_MULTIPLIER = 1.3
+        PROTECTION_MULTIPLIER = 0.75
     end
 
     # chance (out of ten) of an elemental flag effect
@@ -242,6 +246,7 @@ module Constants
         CommandSpells,
         CommandSleep,
         CommandStand,
+        CommandWake,
         CommandWear,
         CommandWhere,
         CommandWhitespace,
@@ -274,6 +279,7 @@ module Constants
         SpellBurstRune,
         SpellCancellation,
         SpellCloakOfMind,
+        SpellCloudkill,
         SpellCurse,
         SpellDeathRune,
         SpellDestroyRune,
@@ -323,17 +329,28 @@ module Constants
     ]
 
     AFFECT_CLASS_HASH = {
+        "aggressive" =>             AffectAggressive,
         "alarm rune" =>             AffectAlarmRune,
+        "armor" =>                  AffectArmor,
+        "barkskin" =>               AffectBarkSkin,
         "berserk" =>                AffectBerserk,
         "blade rune" =>             AffectBladeRune,
         "blind" =>                  AffectBlind,
+        "blur" =>                   AffectBlur,
         "burst rune" =>             AffectBurstRune,
+        "charm" =>                  AffectCharm,
+        "cloak of mind" =>          AffectCloakOfMind,
+        "cloudkill" =>              AffectCloudkill,
         "corrosive" =>              AffectCorrosive,
+        "curse" =>                  AffectCurse,
+        "death rune" =>             AffectDeathRune,
         "detect invisibility" =>    AffectDetectInvisibility,
         "detect invisible" =>       AffectDetectInvisibility,
+        "detect_invis" =>           AffectDetectInvisibility,
         "enchant weapon" =>         AffectEnchantWeapon,
         "fireblind" =>              AffectFireBlind,
         "flooding" =>               AffectFlooding,
+        "follow" =>                 AffectFollow,
         "frost" =>                  AffectFrost,
         "guard" =>                  AffectGuard,
         "haste" =>                  AffectHaste,
@@ -344,32 +361,24 @@ module Constants
         "killer" =>                 AffectKiller,
         "living stone" =>           AffectLivingStone,
         "mirror image" =>           AffectMirrorImage,
+        "plague" =>                 AffectPlague,
         "poison" =>                 AffectPoison,
+        "protect_evil" =>           AffectProtectionEvil,
+        "protect_good" =>           AffectProtectionGood,
+        "protect_neutral" =>        AffectProtectionNeutral,
         "shackle" =>                AffectShackle,
         "shackle rune" =>           AffectShackleRune,
+        "shield" =>                 AffectShield,
         "shocking" =>               AffectShocking,
         "shopkeeper" =>             AffectShopkeeper,
         "slow" =>                   AffectSlow,
         "sneak" =>                  AffectSneak,
-        "stun" =>                   AffectStun,
-        "follow" =>                 AffectFollow,
-        "charm" =>                  AffectCharm,
-        "aggressive" =>             AffectAggressive,
-        "cloak of mind" =>          AffectCloakOfMind,
-        "vuln" =>                   AffectVuln,
-        "zeal" =>                   AffectZeal,
-        "curse" =>                  AffectCurse,
-        "plague" =>                 AffectPlague,
-        "protect_good" =>           AffectProtectionGood,
-        "protect_evil" =>           AffectProtectionEvil,
-        "protect_neutral" =>        AffectProtectionNeutral,
-        "weaken" =>                 AffectWeaken,
-        "death rune" =>             AffectDeathRune,
         "stoneskin" =>              AffectStoneSkin,
-        "barkskin" =>               AffectBarkSkin,
-        "shield" =>                 AffectShield,
-        "blur" =>                   AffectBlur,
-        "armor" =>                  AffectArmor,
+        "stun" =>                   AffectStun,
+        "vuln" =>                   AffectVuln,
+        "weaken" =>                 AffectWeaken,
+        "zeal" =>                   AffectZeal,
+        "spec_guard" =>             AffectGuard,
     }
 
     module ClientState

@@ -19,16 +19,16 @@ class AffectPlague < Affect
 
     def send_start_messages
         @target.output "You scream in agony as plague sores erupt from your skin."
-        @target.broadcast "%s screams in agony as plague sores erupt from their skin.", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "%s screams in agony as plague sores erupt from their skin.", @target.room.occupants - [@target], [@target]
     end
 
     def send_refresh_messages
         @target.output "You scream in agony as plague sores erupt from your skin."
-        @target.broadcast "%s screams in agony as plague sores erupt from their skin.", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "%s screams in agony as plague sores erupt from their skin.", @target.room.occupants - [@target], [@target]
     end
 
     def periodic
-        @target.broadcast "%s writhes in agony as plague sores erupt from their skin.", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "%s writhes in agony as plague sores erupt from their skin.", @target.room.occupants - [@target], [@target]
         @target.output "You writhe in agony from the plague."
         @target.receive_damage(source: nil, damage: 10, element: Constants::Element::DISEASE, type: Constants::Damage::MAGICAL, silent: true)
         (@target.room.occupants - [@target]).each do |occupant|
@@ -63,20 +63,20 @@ class AffectPoison < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{m%s looks very ill.{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{m%s looks very ill.{x", @target.room.occupants - [@target], [@target]
         # @target.output "{mYou feel poison coursing through your veins.{x"
         @target.output "You feel very sick."
     end
 
     def send_refresh_messages
-        @target.broadcast "{m%s looks very ill.{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{m%s looks very ill.{x", @target.room.occupants - [@target], [@target]
         # @target.output "{mYou feel poison coursing through your veins.{x"
         @target.output "You feel very sick."
     end
 
     def periodic
         @target.output "You shiver and suffer."
-        @target.broadcast("%s shivers and suffers.", @target.target({list: @target.room.occupants, not: @target}), @target)
+        @target.broadcast("%s shivers and suffers.", @target.room.occupants - [@target], @target)
         @target.receive_damage(source: nil, damage: 10, element: Constants::Element::POISON, type: Constants::Damage::MAGICAL, silent: true)
     end
 
@@ -85,7 +85,7 @@ class AffectPoison < Affect
     end
 
     def summary
-        super + "\n" + (" " * 24) + " : damage over time for #{ duration } hours"
+        super + "\n" + (" " * 24) + " : damage over time for #{ duration.to_i } seconds"
     end
 end
 
@@ -106,16 +106,16 @@ class AffectProtectionEvil < Affect
     end
 
     def start
-        @target.add_event_listener(:event_calculate_damage, self, :do_protection_evil)
+        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_evil)
     end
 
     def complete
-        @target.delete_event_listener(:event_calculate_damage, self)
+        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
     end
 
     def send_start_messages
         @target.output "You feel holy and pure."
-        @target.broadcast "%s is protected from evil.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+        @target.broadcast "%s is protected from evil.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
@@ -123,8 +123,9 @@ class AffectProtectionEvil < Affect
     end
 
     def do_protection_evil( data )
-        if data[:target] == @target && data[:source].alignment > 333
-            data[:damage] = ( data[:damage] * 0.75 ).to_i
+        return if !data[:source]
+        if data[:source].alignment > 333
+            data[:damage] = ( data[:damage] * Constants::Damage::PROTECTION_MULTIPLIER ).to_i
         end
     end
 
@@ -147,16 +148,16 @@ class AffectProtectionGood < Affect
     end
 
     def start
-        @target.add_event_listener(:event_calculate_damage, self, :do_protection_good)
+        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_good)
     end
 
     def complete
-        @target.delete_event_listener(:event_calculate_damage, self)
+        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
     end
 
     def send_start_messages
         @target.output "You feel aligned with darkness."
-        @target.broadcast "%s is protected from good.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+        @target.broadcast "%s is protected from good.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
@@ -164,8 +165,9 @@ class AffectProtectionGood < Affect
     end
 
     def do_protection_good( data )
-        if data[:target] == @target && data[:source].alignment < -333
-            data[:damage] = ( data[:damage] * 0.75 ).to_i
+        return if !data[:source]
+        if data[:source].alignment < -333
+            data[:damage] = ( data[:damage] * Constants::Damage::PROTECTION_MULTIPLIER ).to_i
         end
     end
 
@@ -188,11 +190,11 @@ class AffectProtectionNeutral < Affect
     end
 
     def start
-        @target.add_event_listener(:event_calculate_damage, self, :do_protection_neutral)
+        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_neutral)
     end
 
     def complete
-        @target.delete_event_listener(:event_calculate_damage, self)
+        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
     end
 
     def send_start_messages
@@ -205,8 +207,9 @@ class AffectProtectionNeutral < Affect
     end
 
     def do_protection_neutral( data )
-        if data[:target] == @target && data[:source].alignment <= 333 && data[:source].alignment >= -333
-            data[:damage] = ( data[:damage] * 0.75 ).to_i
+        return if !data[:source]
+        if data[:source].alignment <= 333 && data[:source].alignment >= -333
+            data[:damage] = ( data[:damage] * Constants::Damage::PROTECTION_MULTIPLIER ).to_i
         end
     end
 

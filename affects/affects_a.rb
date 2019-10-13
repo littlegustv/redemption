@@ -11,25 +11,37 @@ class AffectAggressive < Affect
             name: "aggressive",
             level:  0,
             duration: 1,
+            period: 2,
             permanent: true,
             hidden: true
         )
     end
 
-    def start
-        @target.add_event_listener(:event_mobile_enter, self, :do_aggro)
-    end
+    # def start
+    #     @game.add_event_listener(@target, :event_observe_mobile_enter, self, :do_aggro)
+    # end
+    #
+    # def complete
+    #     @game.remove_event_listener(@target, :event_observe_mobile_enter, self)
+    # end
+    #
+    # def do_aggro(data)
+    #     if @target.can_see?(data[:mobile]) && !data[:mobile].affected?("cloak of mind")
+    #         @game.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
+    #         @target.start_combat data[:mobile]
+    #         @target.do_round_of_attacks(target: data[:mobile])
+    #     end
+    # end
 
-    def complete
-        @target.delete_event_listener(:event_mobile_enter, self)
-    end
-
-    def do_aggro(data)
-        if @target.can_see?(data[:mobile]) && !data[:mobile].affected?("cloak of mind")
-            @game.broadcast "%s screams and attacks!!", @game.target({ list: @target.room.occupants, not: @target }), [@target]
-            @target.start_combat data[:mobile]
+    def periodic
+        player = @target.room.occupants.select{ |t| t.is_player? && @target.can_see?(t) }.shuffle.first
+        if player && !@target.attacking
+            @game.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
+            @target.start_combat player
+            @target.do_round_of_attacks(target: player)
         end
     end
+
 end
 
 class AffectAlarmRune < Affect
@@ -48,17 +60,20 @@ class AffectAlarmRune < Affect
     end
 
     def start
-        @target.add_event_listener(:event_mobile_enter, self, :do_alarm_rune)
+        @game.add_event_listener(@target, :event_calculate_room_description, self, :alarm_rune_description)
+        @game.add_event_listener(@target, :event_room_mobile_enter, self, :do_alarm_rune)
+        @game.add_event_listener(@source, :event_try_alarm_rune, self, :stop_alarm_rune)
     end
 
     def complete
-        @target.delete_event_listener(:event_mobile_enter, self)
-        @source.remove_affect "alarm rune"
+        @game.remove_event_listener(@target, :event_calculate_room_description, self)
+        @game.remove_event_listener(@target, :event_room_mobile_enter, self)
+        @game.remove_event_listener(@source, :event_try_alarm_rune, self)
     end
 
     def send_complete_messages
     	@source.output "Your connection with the alarm rune is broken."
-    	@source.broadcast "The rune of warding on this room vanishes.", @target.target({ list: @target.occupants })
+    	@source.broadcast "The rune of warding on this room vanishes.", @target.occupants
     end
 
     def do_alarm_rune(data)
@@ -67,6 +82,14 @@ class AffectAlarmRune < Affect
     	else
     		@source.output "{R%s has triggered your alarm rune!{x", [data[:mobile]]
 	    end
+    end
+
+    def stop_alarm_rune(data)
+        data[:success] = false
+    end
+
+    def alarm_rune_description(data)
+        data[:extra_show] += "\nA rune is on the floor, glowing softly."
     end
 
 end

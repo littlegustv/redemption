@@ -83,15 +83,24 @@ class Game
         @inactive_players = Hash.new        # inactive players - they've logged but not been garbage collected yet
         @logging_players = []               # ids of players waiting to be added to the game
         @quitting_players = []              # players who have placed themselves here are to be quit
-        @items = []
+        @items = Set.new
         @item_count = Hash.new
-        @mobiles = []
+        @mobiles = Set.new
         @mobile_count = Hash.new
+
+        @combat_mobs = Set.new
+
+        @item_keyword_map = Hash.new
+        @mobile_keyword_map = Hash.new
 
         @affects = Set.new                  # Master list of all applied affects in the game
         @skills = []                        # Skill object array
         @spells = []                        # Spell object array
         @commands = []                      # Command object array
+
+        @responders = Hash.new                  # Event responders
+        @responder_maintenance_count = 0        # current maintenance count
+        @responder_maintenance_per_frame = 20   # number of responders that are cleaned per frame
 
     end
 
@@ -101,18 +110,25 @@ class Game
             start_time = Time.now
             @frame_count += 1
 
+            before = Time.now
             # insert into the database any new accounts waiting
             @new_accounts.each do |account_data|
                 save_new_account(account_data)
                 @new_accounts.delete(account_data)
             end
+            after = Time.now
+            log "{gNew accounts:{x #{after - before}"
 
+            before = Time.now
             # insert into the database any new players waiting
             @new_players.each do |player_data|
                 save_new_player(player_data)
                 @new_players.delete(player_data)
             end
+            after = Time.now
+            log "{gNew players:{x #{after - before}"
 
+            before = Time.now
             # deal with inactive players that have been garbage collected
             # p "#{@frame_count} #{@inactive_players.keys}" if @inactive_players.length > 0
             @inactive_players.each do |name, player|
@@ -121,7 +137,10 @@ class Game
                     puts "#{name} has been deleted from memory."
                 end
             end
+            after = Time.now
+            log "{gInactive players:{x #{after - before}"
 
+            before = Time.now
             # load any players whose ids have been added to the logging_players queue
             @logging_players.each do |player_id, client|
                 @logging_players.delete([player_id, client])
@@ -139,33 +158,59 @@ class Game
                     @players.unshift(player)
                 end
             end
+            after = Time.now
+            log "{gLogging players:{x #{after - before}"
 
             # save every so often!
-            if @frame_count % Constants::Interval::AUTOSAVE == 0
+            # add one to the frame_count so it doesn't save on combat frames, etc
+            if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0
+                before = Time.now
                 save
+                after = Time.now
+                log "{gSave:{x #{after - before}"
             end
+
 
             # each combat ROUND
             if @frame_count % Constants::Interval::ROUND == 0
+                before = Time.now
                 combat
+                after = Time.now
+                log "{gCombat:{x #{after - before}"
             end
 
             if @frame_count % Constants::Interval::TICK == 0
+                before = Time.now
                 tick
+                after = Time.now
+                log "{gTick:{x #{after - before}"
             end
 
             if @frame_count % Constants::Interval::REPOP == 0
+                before = Time.now
                 repop
+                after = Time.now
+                log "{gRepop:{x #{after - before}"
             end
+            before = Time.now
             update( 1.0 / Constants::Interval::FPS )
+            after = Time.now
+            log "{gUpdate:{x #{after - before}"
+            # responder_maintenance
             send_to_client
             end_time = Time.now
             loop_computation_time = end_time - start_time
             sleep_time = ((1.0 / Constants::Interval::FPS) - loop_computation_time)
-            # total_time += loop_computation_time
+            total_time += loop_computation_time
+            log "{rTotal:{x #{end_time - start_time}"
+            puts ""
             # puts "#{sleep_time.to_s.ljust(22)} #{loop_computation_time.to_s.ljust(22)} #{(sleep_time - loop_computation_time > 0).to_s.ljust(22)} #{total_time / @frame_count}"
             if sleep_time < 0                   # Sleep until the next frame, if there's time leftover
                 log ("Negative sleep time detected: {c#{sleep_time}{x")
+                log "{CGC.stat:{x"
+                GC.stat.each do |k, v|
+                    puts "#{k}: #{v}"
+                end
             else
                 sleep(sleep_time)
             end
@@ -206,6 +251,22 @@ class Game
         end
     end
 
+    # @responders = Set.new                   # Event responders
+    # @responder_maintenance_count = 0        # current maintenance count
+    # @responder_maintenance_per_frame = 20   # number of responders that are cleaned per frame
+    # # clear out reponders whose objects have been deleted
+    # def responder_maintenance
+    #     target_count = [@responder_maintenance_count + @responder_maintenance_per_frame, @responders.size].min
+    #     while @responder_maintenance_count < target_count
+    #         if @r
+    #         @responder
+    #         @responder_maintenance_count += 1
+    #     end
+    #     if @responders.size == @responder_maintenance_count
+    #         @responder_maintenance_count = 0
+    #     end
+    # end
+
     def send_to_client
         @players.each do | player |
             player.send_to_client
@@ -213,11 +274,8 @@ class Game
     end
 
     def combat
-        @players.each do | player |
-            player.combat
-        end
-        @mobiles.each do | mobile |
-            mobile.combat
+        @combat_mobs.to_a.each do |mob|
+            mob.combat
         end
     end
 
@@ -232,8 +290,7 @@ class Game
 
     def target( query = {} )
         targets = []
-
-        if !query[:list].nil?
+        if query[:list]
             targets = query[:list].reject(&:nil?) # got a crash here once but don't know why - maybe a bad list passed in?
             if query[:type]
                 targets -= targets.select { |t| Area === t }      if !query[:type].to_a.include?("Area")
@@ -242,9 +299,7 @@ class Game
                 targets -= targets.select { |t| Item === t }      if !query[:type].to_a.include?("Item")
                 targets -= targets.select { |t| Mobile === t }    if !query[:type].to_a.include?("Mobile")
             end
-        elsif query[:type].nil?
-            targets = @areas.values + @players + @items + @mobiles
-        else
+        elsif query[:type]
             targets += @areas.values       if query[:type].to_a.include? "Area"
             targets += @continents.values  if query[:type].to_a.include? "Continent"
             targets += @players            if query[:type].to_a.include? "Player"
@@ -253,19 +308,18 @@ class Game
                 # items = items.reject{ |item| !item.active }
                 targets += items
             end
-            targets += @mobiles            if query[:type].to_a.include? "Mobile"
+            targets += @mobiles.to_a       if query[:type].to_a.include? "Mobile"
+
+        else
+            targets = @areas.values + @players + @items.to_a + @mobiles.to_a
         end
 
         targets = targets.select { |t| t.uuid == query[:uuid] }                                                     if query[:uuid]
         targets = targets.select { |t| query[:affect].to_a.any?{ |affect| t.affected?( affect.to_s ) } }            if query[:affect]
         targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
-        targets = targets.select { |t| query[:room].to_a.include? t.room }                                          if query[:room]
-        targets = targets.select { |t| t.room && query[:area].to_a.include?(t.room.area) }                          if query[:area]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
-
-        targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                       	if query[:keyword]
-
+        targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                           if query[:keyword]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
 
         targets = targets[0...query[:limit].to_i]                                                                   if query[:limit]
@@ -278,8 +332,37 @@ class Game
         return targets
     end
 
+    def target_global_items(query)
+        targets = []
+        query[:keyword].each do |keyword|
+            if @item_keyword_map[keyword]
+                if targets.length > 0
+                    targets = targets & @item_keyword_map[keyword].to_a
+                else
+                    targets = @item_keyword_map[keyword].to_a
+                end
+            end
+        end
+        return targets
+    end
+
+    def target_global_mobiles(query)
+        targets = []
+        query[:keyword].each do |keyword|
+            if @mobile_keyword_map[keyword]
+                if targets.length > 0
+                    targets = targets & @mobile_keyword_map[keyword].to_a
+                else
+                    targets = @mobile_keyword_map[keyword].to_a
+                end
+            end
+        end
+        return targets
+    end
+
     def tick
-        broadcast("{MMud newbies 'Hi everyone! It's a tick!!'{x", target({ list: @players } ), send_to_sleeping: true)
+        log "{YTick!{x"
+        broadcast("{MMud newbies 'Hi everyone! It's a tick!!'{x", @players, send_to_sleeping: true)
         # ( @players + @mobiles).each do | entity |
         #     entity.tick
         # end
@@ -293,14 +376,15 @@ class Game
             elsif @mob_data[ reset[:mobile_id] ]
                 if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
-                    @mobiles.unshift mob
+                    # @mobiles.add(mob)
+                    add_global_mobile(mob)
 
                     @mobile_count[ reset[:mobile_id] ] = @mobile_count[ reset[:mobile_id] ].to_i + 1
 
                     # inventory
                     @inventory_reset_data.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:item_id] ]
-                            item = load_item( item_reset[:item_id], mob.inventory )
+                            load_item( item_reset[:item_id], mob.inventory )
                         else
                             log "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@areas[@base_reset_data[item_reset_id][:area_id]]}"
                         end
@@ -436,7 +520,7 @@ class Game
                 item = Item.new( data, self, inventory )
             end
             if item
-                @items.unshift item
+                add_global_item(item)
                 return item
             else
                 log "[Item creation unsuccessful]"
@@ -468,22 +552,108 @@ class Game
     # Send an event to a list of objects
     #
     # Examples:
-    #  fire_event(:event_test, {}, some_mobile)
-    #  fire_event(:event_on_hit, data, some_mobile, some_room, some_room.area, some_mobile.equipment)
-    def fire_event(event, data, *objects)
-        objects.flatten.uniq.each do |object|
-            object.event(event, data)
+    #  fire_event(some_mobile, :event_test, {})
+    #  fire_event(some_mobile, :event_on_hit, data)
+    def fire_event(object, event, data)
+        if !( r = @responders.dig(object.uuid, event) )
+            return
+        end
+        r.each do |callback_object, callback, priority|
+            callback_object.send(callback, data)
         end
     end
 
-    def add_affect(affect)
+    def add_event_listener(object, event, callback_object, callback, priority = 100)
+        key = object.uuid
+        if !@responders[key]
+            @responders[key] = Hash.new
+        end
+        if !@responders[key][event]
+            @responders[key][event] = []
+        end
+        @responders[key][event].push([callback_object, callback, priority])
+        if @responders[key][event].size > 1 # if there are multiple, sort for priority
+            @responders[key][event].sort_by { |o, c, p| [p, c] }.reverse
+        end
+    end
+
+    def remove_event_listener(object, event, callback_object)
+        key = object.uuid
+        if @responders.dig(key, event)
+            @responders[key][event].reject!{ |t| t[0] == callback_object }
+        else
+            log ("Trying to remove event not registered in Game.")
+        end
+        if @responders.dig(key, event) && @responders.dig(key, event).empty?
+            @responders[key].delete(event)
+        end
+        if @responders.dig(key) && @responders.dig(key).empty?
+            @responders.delete(key)
+        end
+    end
+
+    def add_global_item(item)
+        @items.add(item)
+        item.keywords.each do |keyword|
+            if !@item_keyword_map[keyword]
+                @item_keyword_map[keyword] = Set.new([item])
+            else
+                @item_keyword_map[keyword].add(item)
+            end
+        end
+    end
+
+    def remove_global_item(item)
+        @items.delete(item)
+        item.keywords.each do |keyword|
+            if @item_keyword_map[keyword]
+                @item_keyword_map[keyword].delete(item)
+                if @item_keyword_map[keyword].size == 0
+                    @item_keyword_map.delete(keyword)
+                end
+            end
+        end
+    end
+
+    def add_global_mobile(mobile)
+        @mobiles.add(mobile)
+        mobile.keywords.each do |keyword|
+            if !@mobile_keyword_map[keyword]
+                @mobile_keyword_map[keyword] = Set.new([mobile])
+            else
+                @mobile_keyword_map[keyword].add(mobile)
+            end
+        end
+    end
+
+    def remove_global_mobile(mobile)
+        @mobiles.delete(mobile)
+        mobile.keywords.each do |keyword|
+            if @mobile_keyword_map[keyword]
+                @mobile_keyword_map[keyword].delete(mobile)
+                if @mobile_keyword_map[keyword].size == 0
+                    @mobile_keyword_map.delete(keyword)
+                end
+            end
+        end
+    end
+
+    def add_global_affect(affect)
         if !affect.permanent || affect.period
             @affects.add(affect)
         end
     end
 
-    def remove_affect(affect)
+    def remove_global_affect(affect)
         @affects.delete(affect)
+    end
+
+    def add_combat_mobile(mobile)
+        @combat_mobs.add(mobile)
+    end
+
+    def remove_combat_mobile(mobile)
+        @combat_mobs.delete(mobile)
     end
 
     # Object removal methods:
@@ -498,7 +668,7 @@ class Game
     # destroy a continent object
     def destroy_continent(continent)
         continent.affects.each do |affect|
-            remove_affect(affect)
+            remove_global_affect(affect)
         end
         areas = @areas.select{ |area| area.continent == continent}
         areas.each do |area|
@@ -521,7 +691,7 @@ class Game
     # destroy an area object
     def destroy_area(area)
         area.affects.each do |affect|
-            remove_affect(affect)
+            remove_global_affect(affect)
         end
         area.rooms.each do |room|
             destroy_room(room)
@@ -556,7 +726,7 @@ class Game
         end
 
         rooms.affects.each do |affect|
-            remove_affect(affect)
+            remove_global_affect(affect)
         end
         room.mobiles.each do |mobile|
             destroy_mobile(mobile)
@@ -586,12 +756,11 @@ class Game
             affect.active = false
         end
         mobile.items.each do |item|
-            item.active = false
+            remove_global_item(item)
             item.affects.each do |affect|
                 affect.active = false
             end
         end
-        @items -= mobile.items
         @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i - 1
         @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         @mobiles.delete(mobile)
@@ -600,17 +769,19 @@ class Game
     # destroy a player object
     def destroy_player(player)
         @inactive_players[player.name] = WeakRef.new(player)
-        player.room.mobile_depart(player)
+        player.room.mobile_exit(player)
         player.affects.each do |affect|
             affect.active = false
         end
         player.items.each do |item|
-            item.active = false
+            remove_global_item(item)
             item.affects.each do |affect|
                 affect.active = false
             end
         end
-        # @items -= player.items
+        start = Time.now
+        finish = Time.now
+        log ("{rItems:{x #{finish - start}")
         player.deactivate
         @players.delete(player)
     end

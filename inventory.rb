@@ -46,12 +46,6 @@ class Inventory
             ids_shown << item.id
         end
         return lines.join("\n")
-        string = ""
-        if (long)
-            string = targets.map{ |t| "      #{t.long}\n" }.join
-        end
-        string = targets.map{ |t| "#{t.name}" }.join("\n")
-        return string
     end
 
     def show_with_categories(observer:, long: false)

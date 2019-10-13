@@ -252,7 +252,20 @@ module GameSave
 
     # Load a player from the database. Returns the player object.
     def load_player(id, client)
+        start = Time.now
+        log "{R LOAD PLAYER:{x"
+
         player_data = @db[:saved_player_base].where(id: id).first
+        item_rows = @db[:saved_player_item].where(saved_player_id: player_data[:id]).all.reverse
+        all_item_affect_rows = @db[:saved_player_item_affect].where(saved_player_item_id: item_rows.map{ |row| row[:id] }).all.reverse
+        all_item_modifier_rows = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: all_item_affect_rows.map{ |row| row[:id]}).all.reverse
+        affect_rows = @db[:saved_player_affect].where(saved_player_id: player_data[:id]).all.reverse
+        all_modifier_rows = @db[:saved_player_affect_modifier].where(saved_player_affect_id: affect_rows.map{ |row| row[:id] }).all.reverse
+
+        finish = Time.now
+        log "{R   DATABASE:{x #{finish - start}"
+        start = Time.now
+
         if !player_data
             log "Trying to load invalid player: \"#{id}\""
             return
@@ -269,6 +282,9 @@ module GameSave
                              self,
                              @rooms[player_data[:room_id]] || @starting_room,
                              client)
+        finish = Time.now
+        log "{R   object created:{x #{finish - start}"
+        start = Time.now
         player.experience = player_data[:experience]
 
         player.stats[:str] = player_data[:str]
@@ -277,13 +293,15 @@ module GameSave
         player.stats[:con] = player_data[:con]
         player.stats[:wis] = player_data[:wis]
 
-
         player.quest_points = player_data[:quest_points]
         player.position = player_data[:position]
 
         item_saved_id_hash = Hash.new
         # load items
-        item_rows = @db[:saved_player_item].where(saved_player_id: player_data[:id]).all
+
+        finish = Time.now
+        log "{R   stats set:{x #{finish - start}"
+        start = Time.now
         item_rows.each do |row|
             item = load_item(row[:item_id], player.inventory)
             if row[:equipped] == 1
@@ -291,9 +309,10 @@ module GameSave
             end
             item_saved_id_hash[row[:id]] = item
         end
-
+        finish = Time.now
+        log "{R   items loaded:{x #{finish - start}"
+        start = Time.now
         # load player affects
-        affect_rows = @db[:saved_player_affect].where(saved_player_id: player_data[:id]).all
         affect_rows.each do |affect_row|
             affect_class = Constants::AFFECT_CLASS_HASH[affect_row[:name]]
             if affect_class
@@ -302,7 +321,7 @@ module GameSave
                     affect = affect_class.new(source: source, target: player, level: affect_row[:level], game: self)
                     affect.duration = affect_row[:duration]
                     modifiers = {}
-                    modifier_rows = @db[:saved_player_affect_modifier].where(saved_player_affect_id: affect_row[:id]).all
+                    modifier_rows = all_modifier_rows.select{ |row| row[:saved_player_affect_id] == affect_row[:id] }
                     modifier_rows.each do |modifier_row|
                         modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
                     end
@@ -312,10 +331,12 @@ module GameSave
                 end
             end
         end
-
+        finish = Time.now
+        log "{R   affects loaded:{x #{finish - start}"
+        start = Time.now
         # apply affects to items
         item_saved_id_hash.each do |saved_player_item_id, item|
-            item_affect_rows = @db[:saved_player_item_affect].where(saved_player_item_id: saved_player_item_id).all
+            item_affect_rows = all_item_affect_rows.select{ |row| row[:saved_player_item_id] == saved_player_item_id }
             item_affect_rows.each do |affect_row|
                 affect_class = Constants::AFFECT_CLASS_HASH[affect_row[:name]]
                 if affect_class
@@ -324,7 +345,7 @@ module GameSave
                         affect = affect_class.new(source: source, target: item, level: affect_row[:level], game: self)
                         affect.duration = affect_row[:duration]
                         modifiers = {}
-                        modifier_rows = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: affect_row[:id]).all
+                        modifier_rows = all_item_modifier_rows.select{ |row| row[:saved_player_item_affect_id] == affect_row[:id] }
                         modifier_rows.each do |modifier_row|
                             modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
                         end
@@ -335,15 +356,15 @@ module GameSave
                 end
             end
         end
-
+        finish = Time.now
+        log "{R   item affects loaded:{x #{finish - start}"
+        log "{RDONE{x"
         return player
-
     end
 
     # Find/load a source for an affect.
     # Returns the source (or nil if that was the affect's source) or false for a failure to find the source
     protected def find_affect_source(data, player, items)
-        targets = items.to_a
         source = nil
         if data[:source_type] == "Player"
             source = player if player.id == data[:source_id]

@@ -10,9 +10,9 @@ class Affect
     attr_reader :level
     attr_reader :modifiers
     attr_reader :name
-    attr_reader :priority
     attr_reader :keywords
     attr_reader :period
+    attr_reader :target
 
     def initialize(
         game:,
@@ -24,10 +24,10 @@ class Affect
         duration: 0,
         modifiers: {},
         period: nil,
-        priority: 100,
         application_type: :global_overwrite,
         permanent: false,
-        hidden: false
+        hidden: false,
+        savable: true
     )
         @game = game
         @source = source                        # GameObject that is the source of this affect - prefer nil when possible.
@@ -37,7 +37,6 @@ class Affect
         @level = level
         @duration = duration
         @modifiers = modifiers
-        @priority = priority
         @period = period
         @application_type = application_type   # :global_overwrite, :global_stack, :global_single,
                                                # :source_overwrite, :source_stack, :source_single,
@@ -48,7 +47,7 @@ class Affect
         @active = true
 
         @clock = 0
-        @data = Hash.new                       # Additional data. Only "primitives". Saved to the database.
+        @data = {}                             # Additional data. Only "primitives". Saved to the database.
     end
 
     # Override this method to output start messages.
@@ -100,7 +99,7 @@ class Affect
     def clear(silent: false)
         complete
         @target.affects.delete self
-        @game.remove_affect(self)
+        @game.remove_global_affect(self)
         send_complete_messages if !silent
     end
 

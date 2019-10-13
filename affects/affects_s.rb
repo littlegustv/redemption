@@ -22,11 +22,11 @@ class AffectShackle < Affect
     end
 
     def start
-        @target.add_event_listener(:event_mobile_enter, self, :do_shackles)
+        @game.add_event_listener(@target, :event_mobile_enter, self, :do_shackles)
     end
 
     def complete
-        @target.delete_event_listener(:event_mobile_enter, self)
+        @game.remove_event_listener(@target, :event_mobile_enter, self)
     end
 
     def send_start_messages
@@ -39,7 +39,7 @@ class AffectShackle < Affect
     end
 
     def do_shackles(data)
-        @target.broadcast "%s tries to move while magically shackled.", @target.target({ list: @target.room.occupants, not: @target }), [ @target ]
+        @target.broadcast "%s tries to move while magically shackled.", @target.room.occupants - [@target], [@target]
         @target.output "You struggle against the shackles!"
         @target.lag += 1
     end
@@ -61,16 +61,18 @@ class AffectShackleRune < Affect
     end
 
     def start
-        @target.add_event_listener(:event_mobile_enter, self, :do_shackle_rune)
+        @game.add_event_listener(@target, :event_calculate_room_description, self, :shackle_rune_description)
+        @game.add_event_listener(@target, :event_room_mobile_enter, self, :do_shackle_rune)
     end
 
     def complete
-        @target.delete_event_listener(:event_mobile_enter, self)
+        @game.remove_event_listener(@target, :event_calculate_room_description, self)
+        @game.remove_event_listener(@target, :event_room_mobile_enter, self)
     end
 
     def send_complete_mesages
         @source.output "You feel that movement is not being restricted by runes as much as it used to."
-        @source.broadcast "The rune of warding on this room vanishes.", @source.target({ list: @target.occupants })
+        @source.broadcast "The rune of warding on this room vanishes.", @target.occupants
     end
 
     def do_shackle_rune(data)
@@ -79,6 +81,10 @@ class AffectShackleRune < Affect
         else
             data[:mobile].apply_affect( AffectShackle.new(source: @source, target: data[:mobile], level: @source.level, game: @game) )
         end
+    end
+
+    def shackle_rune_description(data)
+        data[:extra_show] += "\nA rune is on the floor, glowing a deep green."
     end
 
 end
@@ -174,9 +180,6 @@ class AffectSneak < Affect
         @target.output "You are now visible."
     end
 
-    def do_bonus_equip(data)
-        data[:equip_slots] << @equip_slot
-    end
 end
 
 class AffectSlow < Affect

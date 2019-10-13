@@ -1,5 +1,60 @@
 require_relative 'command.rb'
 
+class CommandWake < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "wake",
+            keywords: ["wake"],
+            priority: 200
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        target = actor
+        if args.first
+            target = actor.target({ visible_to: actor, list: actor.room.occupants - [actor] }.merge( args.first.to_s.to_query(1) )).first
+        end
+        if target == actor
+            case actor.position
+            when Constants::Position::SLEEP
+                actor.output "You wake and stand up."
+                actor.broadcast "%s wakes and stands up.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
+                actor.position = Constants::Position::STAND
+                actor.look_room
+                return true
+            when Constants::Position::REST, Constants::Position::STAND
+                actor.output "You are already awake."
+                return false
+            else
+                actor.output "You can't quite get comfortable enough."
+                return false
+            end
+        elsif target
+            if target
+                case target.position
+                when Constants::Position::SLEEP
+                    target.output "%s wakes you up.", actor
+                    target.broadcast "%s wakes %s up.", actor.target( { list: actor.room.occupants }), [actor, target]
+                    target.position = Constants::Position::STAND
+                    target.look_room
+                    return true
+                when Constants::Position::REST, Constants::Position::STAND
+                    actor.output "They aren't asleep."
+                    return false
+                else
+                    actor.output "You can't quite get comfortable enough."
+                    return false
+                end
+            end
+        else
+            actor.output "You don't see anyone like that here."
+        end
+
+    end
+end
+
 class CommandWear < Command
 
     def initialize(game)

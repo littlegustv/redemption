@@ -21,7 +21,7 @@ class String
             # self[0, arg.length].downcase == arg
         # self.match(/#{arg}/i)
     end
-    
+
     def capitalize_first
         slice(0, 1).to_s.capitalize + slice(1..-1).to_s
     end
@@ -35,9 +35,9 @@ class String
             { offset: 0, quantity: "all", keyword: [""] }
         else
             {
-                offset: self.match(/(\d+|all)\./).to_a.last || 0,
-                quantity: self.match(/(\d+|all)\*/).to_a.last || default_quantity,
-                keyword: self.match(/((\d+|all).)?'?([a-zA-Z\s]+)'?/).to_a.last.to_s.split
+                offset: self[/(\d+|all)\./, 1] || 0,
+                quantity: self[/(\d+|all)\*/, 1] || default_quantity,
+                keyword: self[/((\d+|all).)?'?([a-zA-Z\s]+)'?/, 3].to_s.downcase.split(" ").map(&:to_sym).to_set
             }
         end
     end

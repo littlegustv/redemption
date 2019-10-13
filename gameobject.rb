@@ -5,9 +5,10 @@ class GameObject
 
     def initialize( name, keywords, game )
         @name = name
+        @keyword_string = keywords.to_a.join(" ").downcase
         @keywords = Set.new
         keywords.to_a.each do |keyword|
-            keyword_string = keyword.dup
+            keyword_string = keyword.dup.downcase
             while keyword_string.length > 0
                 @keywords.add(keyword_string.to_sym)
                 keyword_string[-1] = ""
@@ -50,7 +51,7 @@ class GameObject
     def show( looker )
         if looker.can_see? self
             data = { description: self.to_s }
-            @game.fire_event( :event_calculate_description, data, self )
+            @game.fire_event(self, :event_calculate_description, data )
             return data[:description]
         else
             to_someone
@@ -58,13 +59,10 @@ class GameObject
     end
 
     def fuzzy_match( query )
-        # self.match(/#{arg}/i)
-        query.to_a.all?{ |q|
-            @keywords.include? q.downcase.to_sym
-            # @keywords.any?{ |keyword|
-            #     keyword.fuzzy_match( q )
-            # }
-        }
+        if query == [""]
+            query = Set.new
+        end
+        return @keywords.superset?(query)
     end
 
     # def fuzzy_match( query )
@@ -79,39 +77,23 @@ class GameObject
         true
     end
 
-    def add_event_listener(event, responder, method)
-        if @listeners[event].nil?
-            @listeners[event] = {}
-        end
-        @listeners[event][responder] = method
-        @listeners[event] = Hash[@listeners[event].sort_by{ |responder, method| responder.priority * -1 }]
-    end
-
-    def delete_event_listener(event, responder)
-        if @listeners[event].nil?
-            return
-        end
-        @listeners[event].delete(responder)
-        if @listeners[event].empty?
-            @listeners.delete(event)
-        end
-    end
-
-    def clear_event_listeners
-        @listeners.each do |event, value|
-            value.each do |responder, method|
-                delete_event_listener(event, responder)
+    def filter_visible_targets(targets, limit = nil)
+        vis_targets = []
+        if limit
+            count = 0
+            targets.each do |t|
+                if can_see?(t)
+                    vis_targets.push(t)
+                    count += 1
+                end
+                if count == limit
+                    return vis_targets
+                end
             end
+        else
+            vis_targets = targets.select{ |t| can_see?(t) }
         end
-    end
-
-    def event(event, data)
-        if !@listeners[event]
-            return
-        end
-        @listeners[event]&.each do |responder, method|
-            responder.send method, data
-        end
+        return vis_targets
     end
 
     # Returns true if the GameObject is affected by an Affect with a matching keyword.
@@ -136,7 +118,7 @@ class GameObject
                 existing_affects.each { |a| a.clear(silent: true) }
                 new_affect.send_refresh_messages if !silent
                 affects.unshift(new_affect)
-                @game.add_affect(new_affect)
+                @game.add_global_affect(new_affect)
                 new_affect.start
             when :global_stack, :source_stack                      # stack with existing affect
                 existing_affects.first.send_refresh_messages if !silent
@@ -147,7 +129,7 @@ class GameObject
             when :multiple
                 new_affect.send_start_messages if !silent
                 affects.unshift(new_affect)
-                @game.add_affect(new_affect)
+                @game.add_global_affect(new_affect)
                 new_affect.start
             else
                 log "unknown application type #{affect.application_type} in apply_affect on affect #{affect} belonging to #{self}"
@@ -156,7 +138,7 @@ class GameObject
         else
             new_affect.send_start_messages if !silent
             affects.unshift(new_affect)
-            @game.add_affect(new_affect)
+            @game.add_global_affect(new_affect)
             new_affect.start
         end
         return true
@@ -225,6 +207,12 @@ class GameObject
         else
             return "#{text}#{ affs_to_show.map(&:summary).join("\n") }"
         end
+    end
+
+    # string used for locate object, etc
+    # <some item> is _in_ <some item>
+    def carried_by_string
+        return "in"
     end
 
 end

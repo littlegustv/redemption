@@ -13,9 +13,9 @@ class CommandKill < Command
     end
 
     def attempt( actor, cmd, args, input )
-        keyword = @keywords.select{ |keyword| keyword.fuzzy_match( cmd.split(" ").first ) }.first
+        keyword_used = @keywords.select{ |keyword| keyword.fuzzy_match( cmd.split(" ").first ) }.first
         if args.length <= 0
-            actor.output "Who did you want to #{keyword}?"
+            actor.output "Who did you want to #{keyword_used}?"
             return false
         end
         if actor.position < Constants::Position::STAND

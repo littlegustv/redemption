@@ -139,9 +139,9 @@ module MobileItem
     end
 
     def equip_slots
-        data = {equip_slots: (@race_equip_slots + @class_equip_slots)}
-        @game.fire_event(:event_get_equip_slots, data, self)
-        return (data[:equip_slots])
+        # data = {equip_slots: (@race_equip_slots + @class_equip_slots)}
+        # @game.fire_event(self, :event_get_equip_slots, data )
+        return @equip_slots
     end
 
     def items

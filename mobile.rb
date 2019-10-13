@@ -29,7 +29,7 @@ class Mobile < GameObject
 
     def initialize( data, game, room )
         super(data[ :short_description ], data[:keywords], game)
-        @attacking
+        @attacking = nil
         @lag = 0
         @id = data[ :id ]
         @short_description = data[ :short_description ]
@@ -37,6 +37,7 @@ class Mobile < GameObject
         @full_description = data[ :full_description ]
         @race_equip_slots = []
         @class_equip_slots = []
+        @equip_slots = []
         @skills = []
         @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
 
@@ -102,7 +103,7 @@ class Mobile < GameObject
         @inventory = Inventory.new(owner: self, game: @game)
 
         @room = room
-        @room.mobile_arrive(self) if @room
+        @room.mobile_enter(self) if @room
         @race_affects = []                  # list of affects applied by race
         @class_affects = []                  # list of affects applied by race
 
@@ -216,8 +217,6 @@ class Mobile < GameObject
             return
         end
 
-        @game.fire_event( :event_on_start_combat, {}, self )
-
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
             attacker.apply_affect( AffectKiller.new(source: attacker, target: attacker, level: 0, game: @game) ) if attacker.is_player?
@@ -232,6 +231,8 @@ class Mobile < GameObject
             @attacking = attacker
         end
 
+        @game.fire_event( self, :event_on_start_combat, {} )
+        @game.add_combat_mobile(self)
         attacker.start_combat( self ) if attacker.attacking.nil?
     end
 
@@ -244,8 +245,15 @@ class Mobile < GameObject
 
     def stop_combat
         @attacking = nil
+        @game.remove_combat_mobile(self)
         target({ attacking: self, list: @room.occupants }).each do |t|
-            t.attacking = target({ quantity: "all", attacking: t, list: t.room.occupants }).first
+            attacking_t = target({ quantity: "all", attacking: t, list: t.room.occupants })
+            if attacking_t.size > 0
+                t.attacking = attacking_t.first
+            else
+                @game.remove_combat_mobile(t)
+                t.attacking = nil
+            end
         end
     end
 
@@ -358,7 +366,7 @@ class Mobile < GameObject
         noun = custom_noun || weapon.noun
         hit = false
         override = { confirm: false, source: self, target: target, weapon: weapon }
-        @game.fire_event( :event_override_hit, override, self, target, equipment )
+        @game.fire_event( self, :event_override_hit, override )
         if override[:confirm]
             return
         end
@@ -370,11 +378,16 @@ class Mobile < GameObject
             damage = 0
         end
         data = { damage: damage, source: self, target: target, weapon: weapon }
-        @game.fire_event( :event_calculate_weapon_hit_damage, data, self )
-        deal_damage(target: target, damage: data[:damage], noun: weapon.noun, element: weapon.element, type: Constants::Damage::PHYSICAL)
+        @game.fire_event( self, :event_calculate_weapon_hit_damage, data )
+        deal_damage(target: target, damage: data[:damage], noun: noun, element: weapon.element, type: Constants::Damage::PHYSICAL)
         if hit
+            override = { confirm: false, source: self, target: target, weapon: weapon }
+            @game.fire_event( target, :event_override_receive_hit, override )
+            if override[:confirm]
+                return
+            end
             data = { damage: damage, source: self, target: attacking }
-            @game.fire_event(:event_on_hit, data, self, @room, @room.area, equipment)
+            @game.fire_event(self, :event_on_hit, data)
         end
         if @attacking
             weapon_flags(weapon) if data[:damage] > 0
@@ -398,13 +411,8 @@ class Mobile < GameObject
             damage = (damage * 0.1).to_i
         end
         calculation_data = { damage: damage, source: self, target: target, element: element, type: type }
-        @game.fire_event(:event_calculate_damage, calculation_data, self, equipment, target, target.equipment)
+        @game.fire_event(self, :event_calculate_damage, calculation_data)
         damage = calculation_data[:damage]
-        override = { confirm: false, source: self, target: target, damage: damage, noun: noun, element: element, type: type }
-        @game.fire_event( :event_override_damage, override, self, equipment, target, target.equipment )
-        if override[:confirm]
-            return
-        end
         target.receive_damage(source: self, damage: damage, noun: noun, element: element, type: type, silent: silent, anonymous: anonymous)
     end
 
@@ -422,7 +430,19 @@ class Mobile < GameObject
         if source && source != self
             self.start_combat( source )
         end
-        if type == Constants::Damage::PHYSICAL # phyiscal damage
+        override = { confirm: false, source: source, target: self, damage: damage, noun: noun, element: element, type: type }
+        @game.fire_event(self, :event_override_receive_damage, override)
+        if override[:confirm]
+            return
+        end
+        calculation_data = { damage: damage, source: source, target: self, element: element, type: type }
+        @game.fire_event(self, :event_calculate_receive_damage, calculation_data)
+        damage = calculation_data[:damage]
+        immune = calculation_data[:immune]
+        if immune
+            damage = 0
+        end
+        if type == Constants::Damage::PHYSICAL # physical damage
             if !silent
                 decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
                 if source && !anonymous
@@ -458,7 +478,7 @@ class Mobile < GameObject
         @basemanapoints += 10
         @basemovepoints += 10
         output "You raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices."
-        @game.fire_event(:event_on_level_up, {level: @level}, self, @room, @room.area, equipment)
+        @game.fire_event(self, :event_on_level_up, {level: @level})
     end
 
     def xp( target )
@@ -481,7 +501,7 @@ class Mobile < GameObject
             return
         end
         broadcast "%s is DEAD!!", target({ not: self, list: @room.occupants }), [self]
-        @game.fire_event( :event_on_die, {}, self )
+        @game.fire_event( self, :event_on_die, {} )
 
         @affects.each do |affect|
             affect.clear(silent: true)
@@ -510,10 +530,17 @@ class Mobile < GameObject
             return false
         else
             broadcast "%s leaves #{direction}.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
-            @game.fire_event( :event_mobile_exit, { mobile: self, direction: direction }, self, @room, @room.occupants - [self] )
+            @game.fire_event(self, :event_mobile_exit, { mobile: self, direction: direction })
+            old_room = @room
             move_to_room(@room.exits[direction.to_sym])
             broadcast "%s has arrived.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
-            @game.fire_event( :event_mobile_enter, { mobile: self }, self, @room, @room.occupants - [self] )
+            (old_room.occupants - [self]).select { |t| t.position == Constants::Position::STAND }.each do |t|
+                @game.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
+            end
+            @game.fire_event( self, :event_mobile_enter, { mobile: self } )
+            (@room.occupants - [self]).each do |t|
+                @game.fire_event( t, :event_observe_mobile_enter, {mobile: self} )
+            end
             return true
         end
     end
@@ -530,10 +557,10 @@ class Mobile < GameObject
         if @attacking && @attacking.room != room
             stop_combat
         end
-        @room&.mobile_depart(self)
+        @room&.mobile_exit(self)
         @room = room
         if @room
-            @room.mobile_arrive(self)
+            @room.mobile_enter(self)
             if @position == Constants::Position::SLEEP
                 output "Your dreams grow restless."
             else
@@ -546,7 +573,7 @@ class Mobile < GameObject
         output "You pray for transportation!"
         broadcast "%s prays for transportation!", target({ list: @room.occupants, not: self }), [self]
         data = { mobile: self, success: true }
-        @game.fire_event(:event_try_recall, data, self, @room.occupants, @room)
+        @game.fire_event(self, :event_try_recall, data)
 
         if data[:success]
             broadcast "%s disappears!", target({ list: @room.occupants, not: self }), [self]
@@ -555,7 +582,7 @@ class Mobile < GameObject
             broadcast "%s arrives in a puff of smoke!", target({ list: room.occupants, not: self }), [self]
             return true
         else
-            output "#{@deity} has forsaken you"
+            output "#{@deity} has forsaken you."
             return false
         end
     end
@@ -603,7 +630,7 @@ class Mobile < GameObject
 
     def long
         data = { description: @long_description }
-        @game.fire_event( :event_calculate_description, data, self )
+        @game.fire_event(self, :event_calculate_description, data )
         return data[:description]
     end
 
@@ -615,9 +642,16 @@ class Mobile < GameObject
     def can_see?(target)
         return true if target == self
         data = {chance: 100, target: target, observer: self}
-        @game.fire_event(:event_try_can_see, data, self, target, @room, @room.occupants, @room.area, equipment)
-        result = dice(1, 100) <= data[:chance].to_i
-        return result
+        @game.fire_event(self, :event_try_can_see, data)
+        @game.fire_event(target, :event_try_can_be_seen, data) if target
+        chance = data[:chance]
+        if chance >= 100
+            return true
+        elsif chance <= 0
+            return false
+        else
+            return chance >= dice(1, 100)
+        end
     end
 
     def carry_max
@@ -677,11 +711,10 @@ class Mobile < GameObject
     end
 
     def score
-        race_hash = @game.race_data[@race_id]
         element_data = {string: ""}
-        @game.fire_event( :event_display_vulns, element_data, self, equipment )
-        @game.fire_event( :event_display_resists, element_data, self, equipment )
-        @game.fire_event( :event_display_immunes, element_data, self, equipment )
+        @game.fire_event( self, :event_display_vulns, element_data)
+        @game.fire_event( self, :event_display_resists, element_data)
+        @game.fire_event( self, :event_display_immunes, element_data)
         if element_data[:string] == ""
             element_data[:string] = "\nNone."
         end
@@ -743,6 +776,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
             item.move(@inventory)
         end
         @race_equip_slots = []  # Clear old equip_slots
+        @equip_slots = []
         slots = @game.race_data.dig(@race_id, :equip_slots).to_a
         slots.each do |slot|
             row = @game.equip_slot_data[slot.to_i]
@@ -758,6 +792,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         old_equipment.each do |item| # try to wear all items that were equipped before
             wear(item: item, silent: true)
         end
+        @equip_slots = @race_equip_slots + @class_equip_slots
         @race_affects.each do |affect|
             affect.clear(silent: true)
         end
@@ -776,6 +811,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
             item.move(@inventory)
         end
         @class_equip_slots = []  # Clear old equip_slots
+        @equip_slots = []
         slots = @game.class_data.dig(@class_id, :equip_slots).to_a
         slots.each do |slot|
             row = @game.equip_slot_data[slot.to_i]
@@ -791,6 +827,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         old_equipment.each do |item| # try to wear all items that were equipped before
             wear(item: item, silent: true)
         end
+        @equip_slots = @race_equip_slots + @class_equip_slots
         @class_affects.each do |affect|
             affect.clear(silent: true)
         end
@@ -832,6 +869,10 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
     def do_visible
         remove_affect("invisibility")
         output "You are now visible."
+    end
+
+    def carried_by_string
+        return "carried by"
     end
 
 end

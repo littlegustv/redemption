@@ -176,7 +176,7 @@ class SpellBurstRune < Spell
                 actor.output "The existing burst rune repels your magic."
                 return false
             else
-                target.apply_affect( AffectBurstRune.new( source: actor, target: target, level: actor.level, game: @game ) )
+                target.apply_affect( AffectBurstRune.new( source: actor, target: target, level: level, game: @game ) )
                 return true
             end
         else

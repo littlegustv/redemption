@@ -36,20 +36,20 @@ class Player < Mobile
         if !@active
             @affects.each do |affect|
                 affect.active = true
-                @game.add_affect(affect)
+                @game.add_global_affect(affect)
             end
             @inventory.items.each do |item|
                 @game.items << item
                 item.affects.each do |affect|
                     affect.active = true
-                    @game.add_affect(affect)
+                    @game.add_global_affect(affect)
                 end
             end
             equipment.each do |item|
                 @game.items << item
                 item.affects.each do |affect|
                     affect.active = true
-                    @game.add_affect(affect)
+                    @game.add_global_affect(affect)
                 end
             end
         end
@@ -117,7 +117,7 @@ class Player < Mobile
     def die( killer )
         output "You have been KILLED!"
         broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
-        @game.fire_event( :event_on_die, {}, self )
+        @game.fire_event(self, :event_on_die, {} )
         stop_combat
         @affects.each do |affect|
             affect.clear(silent: true) if !affect.permanent

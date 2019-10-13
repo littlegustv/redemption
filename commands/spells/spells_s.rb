@@ -120,7 +120,7 @@ class SpellSlow < Spell
         target.start_combat( actor )
         return true
     end
-    
+
 end
 
 class SpellStoneSkin < Spell
@@ -156,7 +156,11 @@ class SpellSummon < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = @game.target({ type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        target = nil
+        if actor.can_see?(nil)
+            target = actor.filter_visible_targets(@game.target_global_mobiles(args.first.to_s.to_query).shuffle, 1).first
+        end
+        if target
             @game.broadcast "%s disappears suddenly.", @game.target({ list: target.room.occupants, not: target }), [target]
             @game.broadcast "%s arrives suddenly.", @game.target({ list: actor.room.occupants, not: target }), [target]
             target.move_to_room actor.room

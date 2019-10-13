@@ -14,9 +14,9 @@ class CommandOrder < Command
 
     def attempt( actor, cmd, args, input )
     	if ( target = actor.target({ list: actor.room.occupants, not: actor }.merge( args.shift.to_s.to_query ) ).first )
-	        @game.fire_event( :event_order, { master: actor, command: args.join(" ") }, target )
+	        @game.fire_event(  actor, :event_order, { command: args.join(" ") } )
 	    else
 	    	actor.output "Order whom to do what?"
-	    end
+        end
     end
 end

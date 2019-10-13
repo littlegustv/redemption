@@ -34,11 +34,13 @@ class Room < GameObject
 
     def show( looker )
         if looker.can_see? self
-
             out = "#{ @name }\n" +
             "#{ @description }\n" +
             "[Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]"
             item_list = @inventory.show(observer: looker, long: true)
+            description_data = {extra_show: ""}
+            @game.fire_event(self, :event_calculate_room_description, description_data)
+            out += description_data[:extra_show]
             out += "\n#{item_list}" if item_list.length > 0
             occupant_list = @game.target({ list: self.occupants, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "#{t.long}" }.join("\n")
             out += "\n#{occupant_list}" if occupant_list.length > 0
@@ -48,7 +50,7 @@ class Room < GameObject
         end
     end
 
-    def mobile_arrive(mobile)
+    def mobile_enter(mobile)
         if mobile.is_player?
             @players.delete(mobile)
             @players.unshift(mobile)
@@ -57,9 +59,10 @@ class Room < GameObject
             @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i + 1
             @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end
+        @game.fire_event(self, :event_room_mobile_enter, {mobile: mobile})
     end
 
-    def mobile_depart(mobile)
+    def mobile_exit(mobile)
         if mobile.is_player?
             @players.delete(mobile)
         else
@@ -67,6 +70,7 @@ class Room < GameObject
             @mobile_count[mobile.id] = @mobile_count[mobile.id] - 1
             @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end
+        @game.fire_event(self, :event_room_mobile_exit, {mobile: mobile})
     end
 
     # Returns true if the room contains ALL mobiles (an array of players and/or mobiles)

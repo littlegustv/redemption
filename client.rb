@@ -204,7 +204,7 @@ class Client
         race_rows = @game.race_data.values.select{ |row| row[:player_race] == 1 && row[:starter_race] == 1 }
         race_names = race_rows.map{ |row| row[:name] }
         send_output("The following races are available:\n" +
-        "#{race_names.map{ |name| name.lpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n")
+        "#{race_names.map{ |n| n.lpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n")
         while race_id.nil?
             send_output("What is your race (help for more information)?")
             race_input = get_input
@@ -346,6 +346,7 @@ class Client
         begin
             @client_connection.close
         rescue StandardError => msg
+            log(msg)
         end
         @client_connection = nil
         log("Disconnected client with account_id #{@account_id}")

@@ -18,18 +18,18 @@ class AffectResist < Affect
     end
 
     def start
-        @target.add_event_listener(:event_calculate_damage, self, :do_resist)
-        @target.add_event_listener(:event_display_resists, self, :do_display)
+        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_resist)
+        @game.add_event_listener(@target, :event_display_resists, self, :do_display)
     end
 
     def complete
-        @target.delete_event_listener(:event_calculate_damage, self)
-        @target.delete_event_listener(:event_display_resists, self)
+        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        @game.remove_event_listener(@target, :event_display_resists, self)
     end
 
     def do_resist(data)
-        if data[:target] == @target && data[:element] == @data[:element]
-            data[:damage] = (data[:damage] * 0.7).to_i
+        if data[:element] == @data[:element]
+            data[:damage] = (data[:damage] * Constants::Damage::RESIST_MULTIPLIER).to_i
         end
     end
 

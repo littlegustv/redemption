@@ -9,7 +9,7 @@ class AffectFireBlind < AffectBlind
     end
 
     def send_start_messages
-        @target.broadcast "{r%s is blinded by smoke!{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{r%s is blinded by smoke!{x", @target.room.occupants - [@target], [@target]
         @target.output "{rYour eyes tear up from smoke...you can't see a thing!{x"
     end
 
@@ -34,15 +34,17 @@ class AffectFireRune < Affect
     end
 
     def start
-        @target.add_event_listener(:event_mobile_enter, self, :do_fire_rune)
+        @game.add_event_listener(@target, :event_calculate_room_description, self, :fire_rune_description)
+        @game.add_event_listener(@target, :event_room_mobile_enter, self, :do_fire_rune)
     end
 
     def complete
-        @target.delete_event_listener(:event_mobile_enter, self)
+        @game.remove_event_listener(@target, :event_calculate_room_description, self)
+        @game.remove_event_listener(@target, :event_room_mobile_enter, self)
     end
 
     def send_complete_messages
-        @source.broadcast "The rune of flames on this room vanishes.", @target.target({ list: @target.occupants })
+        @source.broadcast "The rune of flames on this room vanishes.", @target.occupants
     end
 
     def do_fire_rune(data)
@@ -50,12 +52,15 @@ class AffectFireRune < Affect
     		@source.output "You sense the power of the room's rune and avoid it!"
     	elsif rand(0..100) < 50
     		data[:mobile].output "You are engulfed in flames as you enter the room!"
-    		data[:mobile].broadcast "%s has been engulfed in flames!", @game.target({ list: @target.occupants, not: data[:mobile] }), [data[:mobile]]
-            @source.deal_damage(target: data[:target], damage: 100, noun:"fireball", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
-            # data[:mobile].anonymous_damage(100, "flaming", true, "A fire rune's blast")
+    		data[:mobile].broadcast "%s has been engulfed in flames!", @target.room.occupants - [data[:mobile]], [data[:mobile]]
+            @source.deal_damage(target: data[:mobile], damage: 100, noun:"fireball", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
 	    else
 	    	data[:mobile].output "You sense the power of the room's rune and avoid it!"
 	    end
+    end
+
+    def fire_rune_description(data)
+        data[:extra_show] += "\nA rune is on the floor, glowing a vibrant orange."
     end
 
 end
@@ -77,12 +82,12 @@ class AffectFlooding < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{b%s coughes and chokes on the water.{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{b%s coughes and chokes on the water.{x", @target.room.occupants - [@target], [@target]
         @target.output "{bYou cough and choke on the water.{x"
     end
 
     def send_refresh_messages
-        @target.broadcast "{b%s coughes and chokes on the water.{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{b%s coughes and chokes on the water.{x", @target.room.occupants - [@target], [@target]
         @target.output "{bYou cough and choke on the water.{x"
     end
 
@@ -116,19 +121,20 @@ class AffectFollow < Affect
 
     def send_complete_messages
         @target.output "You stop following %s", [@source]
-        @source.output "%s stops following you", [@target] 
+        @source.output "%s stops following you", [@target]
     end
 
     def start
-        @target.add_event_listener(:event_mobile_exit, self, :do_follow)
+        @game.add_event_listener(@target, :event_observe_mobile_exit, self, :do_follow)
     end
 
     def complete
-        @target.delete_event_listener(:event_mobile_exit, self)
+        @game.remove_event_listener(@target, :event_observe_mobile_exit, self)
     end
 
     def do_follow( data )
         if data[:mobile] == @source
+            p data[:direction]
             @target.do_command data[:direction]
         end
     end
@@ -152,12 +158,12 @@ class AffectFrost < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{C%s turns blue and shivers.{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{C%s turns blue and shivers.{x", @target.room.occupants - [@target], [@target]
         @target.output "{CA chill sinks deep into your bones.{x"
     end
 
     def send_refresh_messages
-        @target.broadcast "{C%s turns blue and shivers.{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{C%s turns blue and shivers.{x", @target.room.occupants - [@target], [@target]
         @target.output "{CA chill sinks deep into your bones.{x"
     end
 

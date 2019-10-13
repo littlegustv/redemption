@@ -16,16 +16,16 @@ class AffectIgnoreWounds < Affect
     end
 
     def start
-        @target.add_event_listener(:event_override_damage, self, :do_ignore_wounds)
+        @game.add_event_listener(@target, :event_override_receive_damage, self, :do_ignore_wounds)
     end
 
     def complete
-        @target.delete_event_listener(:event_override_damage, self)
+        @game.remove_event_listener(@target, :event_override_receive_damage, self)
     end
 
     def send_start_messages
         @target.output "You close your eyes and forget about the pain."
-        @target.broadcast "%s closes %x eyes and forgets about the pain.", @target.target( list: @target.room.occupants, not: @target ), [@target]
+        @target.broadcast "%s closes %x eyes and forgets about the pain.", @target.room.occupants - [@target], [@target]
     end
 
     def end_complete_messages
@@ -34,10 +34,10 @@ class AffectIgnoreWounds < Affect
 
     def do_ignore_wounds(data)
         source = data[:source]
-        if source && data[:confirm] == false && @target == data[:target] && @target.attacking != source && rand(1..100) <= 50
+        if source && data[:confirm] == false && @target.attacking != source && rand(1..100) <= 50
             @target.output "You ignore the wounds inflicted by %s.", source
             source.output "Your wounds don't seem to affect %s!", @target
-            @target.broadcast("%s ignores the wounds inflicted by %s.", @target.target({list: @target.room.occupants, not: [@target, source]}), [@target, source] )
+            @target.broadcast("%s ignores the wounds inflicted by %s.", @target.room.occupants - [@target, source], [@target, source] )
             data[:confirm] = true
         end
     end
@@ -62,18 +62,18 @@ class AffectImmune < Affect
     end
 
     def start
-        @target.add_event_listener(:event_override_damage, self, :do_vuln)
-        @target.add_event_listener(:event_display_immunes, self, :do_display)
+        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_immune)
+        @game.add_event_listener(@target, :event_display_immunes, self, :do_display)
     end
 
     def complete
-        @target.delete_event_listener(:event_override_damage, self)
-        @target.delete_event_listener(:event_display_immunes, self)
+        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        @game.remove_event_listener(@target, :event_display_immunes, self)
     end
 
-    def do_vuln(data)
-        if data[:target] == @target && data[:element] == @data[:element]
-            override[:confirm] = true
+    def do_immune(data)
+        if data[:element] == @data[:element]
+            data[:immune] = true
         end
     end
 
@@ -100,26 +100,26 @@ class AffectInvisibility < Affect
     end
 
     def start
-        @target.add_event_listener(:event_on_start_combat, self, :do_remove_affect)
-        @target.add_event_listener(:event_try_can_see, self, :do_invisibility)
-        @target.add_event_listener(:event_calculate_description, self, :do_invisibility_aura)
+        @game.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
+        @game.add_event_listener(@target, :event_try_can_be_seen, self, :do_invisibility)
+        @game.add_event_listener(@target, :event_calculate_description, self, :do_invisibility_aura)
     end
 
     def complete
-        @target.delete_event_listener(:event_on_start_combat, self)
-        @target.delete_event_listener(:event_try_can_see, self)
-        @target.delete_event_listener(:event_calculate_description, self)
+        @game.remove_event_listener(@target, :event_on_start_combat, self)
+        @game.remove_event_listener(@target, :event_try_can_be_seen, self)
+        @game.remove_event_listener(@target, :event_calculate_description, self)
     end
 
     def send_start_messages
         @target.output "You fade out of existence."
-    	@game.broadcast "%s fades from existence.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+    	@game.broadcast "%s fades from existence.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
         @target.output "You fade into existence."
         room  = @target.room
-        @game.broadcast "%s fades into existence.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+        @game.broadcast "%s fades into existence.", @target.room.occupants - [@target], [@target]
     end
 
     def do_remove_affect(data)
@@ -127,9 +127,11 @@ class AffectInvisibility < Affect
     end
 
     def do_invisibility(data)
-    	if data[:target] == @target
-	        data[:chance] *= 0 unless data[:observer].affected? "detect invisibility"
-	    end
+        detect_data = { success: false }
+        @game.fire_event(data[:observer], :event_try_detect_invis, detect_data)
+        if !detect_data[:success]
+            data[:chance] = 0
+        end
     end
 
     def do_invisibility_aura(data)
