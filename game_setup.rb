@@ -219,6 +219,7 @@ module GameSetup
         @mob_reset_data = @db[:reset_mobile].to_hash(:reset_id)
         @inventory_reset_data = @db[:reset_inventory_item].to_hash(:reset_id)
         @equipment_reset_data = @db[:reset_equipped_item].to_hash(:reset_id)
+        @container_reset_data = @db[:reset_container_item].to_hash(:reset_id)
         @room_item_reset_data = @db[:reset_room_item].to_hash(:reset_id)
         @base_mob_reset_data = @base_reset_data.select{ |key, value| value[:type] == "mobile" }
         @base_room_item_reset_data = @base_reset_data.select{ |key, value| value[:type] == "room_item" }

@@ -61,6 +61,7 @@ class Game
         @mob_reset_data = Hash.new              # Mob reset table as hash       (uses :reset_id as key)
         @inventory_reset_data = Hash.new        # Inventory reset table as hash (uses :reset_id as key)
         @equipment_reset_data = Hash.new        # Equipment reset table as hash (uses :reset_id as key)
+        @container_reset_data = Hash.new        # Container reset table as hash (uses :reset_id as key)
         @room_item_reset_data = Hash.new        # Room item reset table as hash (uses :reset_id as key)
         @base_mob_reset_data = Hash.new         # Subset of @base_reset_data where :type is "mobile"
         @base_room_item_reset_data = Hash.new   # Subset of @base_reset_data where :type is "room_item"
@@ -369,7 +370,17 @@ class Game
                     # inventory
                     @inventory_reset_data.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
                         if @item_data[ item_reset[:item_id] ]
-                            load_item( item_reset[:item_id], mob.inventory )
+                            item = load_item( item_reset[:item_id], mob.inventory )
+                            #containers
+                            if Container === item
+                                @container_reset_data.select{ |id, container_reset| container_reset[:container_id] == item.id }.each do |container_item_reset_id, container_item_reset|
+                                    if @item_data[ container_item_reset[:item_id] ]
+                                        container_item = load_item( container_item_reset[:item_id], item.inventory )
+                                    else
+                                        log "[Container item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
+                                    end
+                                end
+                            end
                         else
                             log "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@areas[@base_reset_data[item_reset_id][:area_id]]}"
                         end
@@ -380,14 +391,22 @@ class Game
                         if @item_data[ item_reset[:item_id] ]
                             item = load_item( item_reset[:item_id], mob.inventory )
                             mob.wear(item: item, silent: true)
+                            #containers
+                            if Container === item
+                                @container_reset_data.select{ |id, container_reset| container_reset[:container_id] == item.id }.each do |container_item_reset_id, container_item_reset|
+                                    if @item_data[ container_item_reset[:item_id] ]
+                                        container_item = load_item( container_item_reset[:item_id], item.inventory )
+                                    else
+                                        log "[Container item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
+                                    end
+                                end
+                            end
                         else
                             log "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
                         end
                     end
 
-                    #containers ???
                 end
-
             else
                 log "[Mob not found] RESET ID: #{reset[:id]}, MOB ID: #{reset[:mobile_id]}"
             end
