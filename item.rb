@@ -145,6 +145,22 @@ class Weapon < Item
 
 end
 
+class Container < Item
+
+    attr_accessor :inventory
+
+	def initialize( data, game, parent_inventory )
+        super(data, game, parent_inventory)
+        @flags = data[:flags]
+        @max_item_weight = data[:max_item_weight]
+        @weight_multiplier = data[:weight_multiplier]
+        @max_total_weight = data[:max_total_weight]
+        @key_id = data[:key_id]
+        @inventory = Inventory.new(owner: self, game: game)
+    end
+
+end
+
 class Tattoo < Item
 
     attr_reader :brilliant

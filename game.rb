@@ -48,6 +48,10 @@ class Game
         @room_description_data = Hash.new   # Room desc rable as hash  (uses :id as key)
         @mobile_data = Hash.new             # Mobile table as hash     (uses :id as key)
         @item_data = Hash.new               # Item table as hash       (uses :id as key)
+        @item_modifiers = Hash.new
+        @ac_data = Hash.new                 # Item subtables           (use :item_id as key)
+        @weapon_data = Hash.new
+        @container_data = Hash.new
         @shop_data = Hash.new               # Shop table as hash       (uses :id as key)
         @skill_data = Hash.new              # Skill table as hash      (uses :id as key)
         @spell_data = Hash.new              # Spell table as hash      (uses :id as key)
@@ -497,6 +501,21 @@ class Game
                     log "[Weapon and/or Dice data not found] ITEM ID: #{id}"
                     item = Item.new( data, self, inventory )
                 end
+            elsif row[:type] == "container"
+                container_info = @container_data[ id ]
+                if container_info
+                    container_data = {
+                        flags: container_info[:flags],
+                        max_item_weight: container_info[:max_item_weight].to_i,
+                        weight_multiplier: container_info[:weight_multiplier].to_f,
+                        max_total_weight: container_info[:max_total_weight].to_i,
+                        key_id: container_info[:key_id].to_i,
+                    }
+                    item = Container.new( data.merge( container_data ), self, inventory )
+                else
+                    log "[Container data not found] ITEM ID: #{id}"
+                    item = Item.new( data, self, inventory )
+                end
             else
                 item = Item.new( data, self, inventory )
             end
@@ -761,9 +780,6 @@ class Game
                 affect.active = false
             end
         end
-        start = Time.now
-        finish = Time.now
-        log ("{rItems:{x #{finish - start}")
         player.deactivate
         @players.delete(player)
     end

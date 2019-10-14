@@ -63,7 +63,7 @@ module GameSetup
         10.times do
             repop
         end
-        
+
         @start_time = Time.now
         log( "Redemption is ready to rock on port #{port}!" )
 
@@ -199,6 +199,7 @@ module GameSetup
         @item_modifiers = @db[:item_modifier].to_hash_groups(:item_id)
         @ac_data = @db[:item_armor].to_hash(:item_id)
         @weapon_data = @db[:item_weapon].to_hash(:item_id)
+        @container_data = @db[:item_container].to_hash(:item_id)
         log("Database load complete: Item data")
     end
 

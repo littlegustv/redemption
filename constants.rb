@@ -234,6 +234,7 @@ module Constants
         CommandOrder,
         CommandPeek,
         CommandPoison,
+        CommandPut,
         CommandQuicken,
         CommandQuit,
         CommandRecall,

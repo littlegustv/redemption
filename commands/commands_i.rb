@@ -40,7 +40,6 @@ class CommandInventory < Command
         actor.output "You are carrying:"
         item_count = actor.target({list: actor.inventory.items, visible_to: actor}).length
         actor.output item_count > 0 ? "#{actor.inventory.show(observer: actor)}" : "Nothing."
-#{ actor.inventory.count <= 0 ? "     Nothing." : actor.inventory.group_by { |item| categorize( item.type ) }.map{ |type, list| "\n\r{c#{type}:{x\n\r#{list.map{ |i| "#{ actor.can_see?(i) ? i.to_s : i.to_someone }" }.join("\n\r")}" }.join("\n\r") })
         return true
     end
 end

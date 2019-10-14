@@ -96,6 +96,24 @@ class CommandLook < Command
         if args.length <= 0
             actor.output actor.room.show( actor )
             return true
+        elsif args.first == "in"
+            if !args[1]
+                actor.output "Look in what?"
+                return false
+            end
+            target = actor.target({ list: actor.items + actor.room.items, visible_to: actor }.merge( args[1].to_s.to_query )).first
+            if !target
+                actor.output "You don't see anything like that."
+                return false
+            elsif !(Container === target)
+                actor.output "That's not a container."
+                return false
+            else
+                actor.output( target.show(actor) + " holds:")
+                item_count = actor.target({list: target.inventory.items, visible_to: actor}).length
+                actor.output(item_count > 0 ? target.inventory.show(observer: actor) : "Nothing.")
+                return true
+            end
         elsif ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             actor.output %Q(#{target.full}
 #{target.condition}

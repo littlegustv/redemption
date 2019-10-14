@@ -103,6 +103,18 @@ module MobileItem
         return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_flag == "wield" }.map(&:item)
     end
 
+    # puts an item into a container
+    def put_item(item, container)
+        if item == container
+            output "That would be a bad idea."
+            return
+        end
+        output "You puts %s in %s.", [item, container]
+        broadcast "%s puts %s in %s.", @room.occupants - [self], [self, item, container]
+        item.move(container.inventory)
+    end
+
+    # Gets an item, regardless of where it is.
     def get_item(item)
         if !item.wear_flags.include? "take"
             output "You can't take #{ item }."
@@ -129,13 +141,6 @@ module MobileItem
         output("You drop %s.", [item])
         broadcast("%s drops %s.", target({ :not => self, :list => @room.occupants }), [self, item])
         item.move(@room.inventory)
-    end
-
-    def put_item(item, inventory)
-        container = inventory.owner
-        output("You put %s in %s.", [item, container])
-        broadcast("%s puts %s in %s.", target({ :not => self, :list => @room.occupants }), [self, item, container])
-        item.move(inventory)
     end
 
     def equip_slots

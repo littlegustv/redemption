@@ -12,9 +12,24 @@ class CommandGet < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( targets = actor.target({ list: actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query(1) ) ) )
-            targets.each do | target |
-                actor.get_item(target)
+        list = actor.room.items
+        if args.dig(1) == "from"
+            args[1] = args.dig(2)
+        end
+        if args.dig(1)
+            container = actor.target({ list: actor.items + actor.room.items, visible_to: actor }.merge(args[1].to_s.to_query)).first
+            if !container
+                actor.output "You don't see that container here."
+                return false
+            elsif !(Container === container)
+                actor.output "That's not a container."
+                return false
+            end
+            list = container.inventory.items
+        end
+        if ( targets = actor.target({ list: list, visible_to: actor }.merge( args.first.to_s.to_query(1) ) ) )
+            targets.each do |t|
+                actor.get_item(t)
             end
         else
             actor.output "You don't see that here."
