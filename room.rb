@@ -42,8 +42,8 @@ class Room < GameObject
             @game.fire_event(self, :event_calculate_room_description, description_data)
             out += description_data[:extra_show]
             out += "\n#{item_list}" if item_list.length > 0
-            occupant_list = @game.target({ list: self.occupants, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "#{t.long}" }.join("\n")
-            out += "\n#{occupant_list}" if occupant_list.length > 0
+            visible_occupant_longs = @game.target({ list: self.occupants, :not => looker, visible_to: looker }).map{ |t| t.show_long_description(observer: looker) }
+            out += "\n#{visible_occupant_longs.join("\n")}" if visible_occupant_longs.length > 0
             return out
         else
             return "You can't see a thing!"

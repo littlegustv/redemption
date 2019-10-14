@@ -50,13 +50,13 @@ class Item < GameObject
 
     def name
         data = { description: @name }
-        @game.fire_event( self, :event_calculate_description, data )
+        @game.fire_event( self, :event_calculate_aura_description, data )
         return data[:description]
     end
 
     def long
         data = { description: @long_description }
-        @game.fire_event( self, :event_calculate_description, data )
+        @game.fire_event( self, :event_calculate_aura_description, data )
         return data[:description]
     end
 

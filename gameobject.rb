@@ -51,7 +51,7 @@ class GameObject
     def show( looker )
         if looker.can_see? self
             data = { description: self.to_s }
-            @game.fire_event(self, :event_calculate_description, data )
+            @game.fire_event(self, :event_calculate_aura_description, data )
             return data[:description]
         else
             to_someone

@@ -634,6 +634,27 @@ class Mobile < GameObject
         return data[:description]
     end
 
+    def show_long_description(observer:)
+        data = {description: ""}
+        @game.fire_event(self, :event_calculate_aura_description, data)
+        if self.attacking
+            if self.attacking == observer
+                return data[:description] + @short_description + " is here, fighting YOU!"
+            else
+                return data[:description] + @short_description + " is here, fighting #{observer.can_see?(self.attacking) ? self.attacking.name : "someone"}."
+            end
+        else
+            case @position
+            when Constants::Position::SLEEP
+                return data[:description] + @short_description + " is sleeping here."
+            when Constants::Position::REST
+                return data[:description] + @short_description + " is resting here."
+            else
+                return data[:description] + @long_description
+            end
+        end
+    end
+
     def full
         @full_description
     end

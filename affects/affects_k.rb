@@ -17,11 +17,11 @@ class AffectKiller < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_description, self, :do_killer_flag)
+        @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_killer_flag)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_description, self)
+        @game.remove_event_listener(@target, :event_calculate_aura_description, self)
     end
 
     def do_killer_flag(data)

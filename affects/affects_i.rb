@@ -102,13 +102,13 @@ class AffectInvisibility < Affect
     def start
         @game.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
         @game.add_event_listener(@target, :event_try_can_be_seen, self, :do_invisibility)
-        @game.add_event_listener(@target, :event_calculate_description, self, :do_invisibility_aura)
+        @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_invisibility_aura)
     end
 
     def complete
         @game.remove_event_listener(@target, :event_on_start_combat, self)
         @game.remove_event_listener(@target, :event_try_can_be_seen, self)
-        @game.remove_event_listener(@target, :event_calculate_description, self)
+        @game.remove_event_listener(@target, :event_calculate_aura_description, self)
     end
 
     def send_start_messages

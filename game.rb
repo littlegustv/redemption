@@ -118,7 +118,7 @@ class Game
                 @new_accounts.delete(account_data)
             end
             after = Time.now
-            log "{gNew accounts:{x #{after - before}"
+            log "{gNew accounts:{x #{after - before}" if $VERBOSE
 
             before = Time.now
             # insert into the database any new players waiting
@@ -127,7 +127,7 @@ class Game
                 @new_players.delete(player_data)
             end
             after = Time.now
-            log "{gNew players:{x #{after - before}"
+            log "{gNew players:{x #{after - before}" if $VERBOSE
 
             before = Time.now
             # deal with inactive players that have been garbage collected
@@ -139,7 +139,7 @@ class Game
                 end
             end
             after = Time.now
-            log "{gInactive players:{x #{after - before}"
+            log "{gInactive players:{x #{after - before}" if $VERBOSE
 
             before = Time.now
             # load any players whose ids have been added to the logging_players queue
@@ -160,7 +160,7 @@ class Game
                 end
             end
             after = Time.now
-            log "{gLogging players:{x #{after - before}"
+            log "{gLogging players:{x #{after - before}" if $VERBOSE
 
             # save every so often!
             # add one to the frame_count so it doesn't save on combat frames, etc
@@ -168,7 +168,7 @@ class Game
                 before = Time.now
                 save
                 after = Time.now
-                log "{gSave:{x #{after - before}"
+                log "{gSave:{x #{after - before}" if $VERBOSE
             end
 
 
@@ -177,41 +177,37 @@ class Game
                 before = Time.now
                 combat
                 after = Time.now
-                log "{gCombat:{x #{after - before}"
+                log "{gCombat:{x #{after - before}" if $VERBOSE
             end
 
             if @frame_count % Constants::Interval::TICK == 0
                 before = Time.now
                 tick
                 after = Time.now
-                log "{gTick:{x #{after - before}"
+                log "{gTick:{x #{after - before}" if $VERBOSE
             end
 
             if @frame_count % Constants::Interval::REPOP == 0
                 before = Time.now
                 repop
                 after = Time.now
-                log "{gRepop:{x #{after - before}"
+                log "{gRepop:{x #{after - before}" if $VERBOSE
             end
             before = Time.now
             update( 1.0 / Constants::Interval::FPS )
             after = Time.now
-            log "{gUpdate:{x #{after - before}"
+            log "{gUpdate:{x #{after - before}" if $VERBOSE
             # responder_maintenance
             send_to_client
             end_time = Time.now
             loop_computation_time = end_time - start_time
             sleep_time = ((1.0 / Constants::Interval::FPS) - loop_computation_time)
             total_time += loop_computation_time
-            log "{rTotal:{x #{end_time - start_time}"
-            puts ""
+            log "{rTotal:{x #{end_time - start_time}" if $VERBOSE
+            puts "" if $VERBOSE
             # puts "#{sleep_time.to_s.ljust(22)} #{loop_computation_time.to_s.ljust(22)} #{(sleep_time - loop_computation_time > 0).to_s.ljust(22)} #{total_time / @frame_count}"
             if sleep_time < 0                   # Sleep until the next frame, if there's time leftover
                 log ("Negative sleep time detected: {c#{sleep_time}{x")
-                log "{CGC.stat:{x"
-                GC.stat.each do |k, v|
-                    puts "#{k}: #{v}"
-                end
             else
                 sleep(sleep_time)
             end
@@ -458,7 +454,7 @@ class Game
         # "Shopkeeper behavior" is handled as an affect, which is currently used only as a kind of 'flag' for the buy/sell commands
         #
         if not @shop_data[ id ].nil?
-            # mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0, game: self ) )
+            mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0, game: self ) )
         end
         return mob
     end
@@ -588,7 +584,7 @@ class Game
         end
     end
 
-    
+
     def remove_global_item(item)
         @items.delete(item)
         item.keywords.each do |keyword|
