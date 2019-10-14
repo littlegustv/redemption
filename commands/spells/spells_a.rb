@@ -62,7 +62,7 @@ class SpellAlarmRune < Spell
             return false
         else
             actor.output "You place an alarm rune on the ground, increasing your senses."
-            actor.broadcast "%s places a strange rune on the ground.", actor.target({ list: actor.room.occupants, not: actor }), [actor]
+            actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
             actor.room.apply_affect( AffectAlarmRune.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
             return true
         end

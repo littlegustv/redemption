@@ -18,7 +18,7 @@ class CommandYell < Command
         else
             message = input[/#{cmd} (.*)/, 1]
             actor.output "{RYou yell '#{message}'{x"
-            actor.broadcast "{R%s yells '#{message}'{x", actor.target( { :not => actor, :area => actor.room.area }), [actor]
+            actor.broadcast "{R%s yells '#{message}'{x", actor.room.area.players - [actor], [actor]
             return true
         end
     end

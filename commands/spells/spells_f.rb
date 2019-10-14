@@ -14,7 +14,7 @@ class SpellFireball < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.broadcast "%s summons a burning ball of fire!", actor.target({ not: actor, list: actor.room.occupants, type: ["Mobile", "Player"] }), [actor]
+        actor.broadcast "%s summons a burning ball of fire!", actor.room.occupants - [actor], [actor]
         actor.output "You summon a fireball!"
         ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
             actor.deal_damage(target: target, damage: 100, noun:"fireball", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
@@ -42,7 +42,7 @@ class SpellFireRune < Spell
             return false
     	else
     		actor.output "You place a fiery rune on the ground to singe your foes."
-    		actor.broadcast "%s places a strange rune on the ground.", actor.target({ list: actor.room.occupants, not: actor }), [actor]
+    		actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
     		actor.room.apply_affect( AffectFireRune.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
             return true
     	end

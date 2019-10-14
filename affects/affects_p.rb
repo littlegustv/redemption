@@ -199,7 +199,7 @@ class AffectProtectionNeutral < Affect
 
     def send_start_messages
         @target.output "You feel aligned with twilight."
-        @target.broadcast "%s is protected from neutral.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+        @target.broadcast "%s is protected from neutral.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages

@@ -132,7 +132,7 @@ class Player < Mobile
         @game.save
         stop_combat
         if !silent
-            broadcast "%s has left the game.", @game.target({not: [self], list: @room.occupants}), self
+            broadcast "%s has left the game.", @room.occupants - [self], self
         end
         @buffer = ""
         if @client

@@ -72,7 +72,5 @@ class SpellLocateObject < Spell
         objects = targets.map{ |t| [t, t.carrier] }.flatten
         actor.output(out, objects)
         return true
-        # actor.deal_damage(target: target, damage: 100, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
-
     end
 end

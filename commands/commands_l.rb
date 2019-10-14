@@ -37,7 +37,7 @@ class CommandList < Command
     end
 
     def attempt( actor, cmd, args, input )
-        ( shopkeepers = actor.target( list: actor.room.occupants, affect: "shopkeeper" ) ).each do |shopkeeper|
+        ( shopkeepers = actor.target( visible_to: actor, list: actor.room.occupants, affect: "shopkeeper" ) ).each do |shopkeeper|
             actor.output %Q(#{shopkeeper}:
 #{'-'*shopkeeper.to_s.length}
 [Lv Price Qty] Item
@@ -74,7 +74,7 @@ class CommandLoadItem < Command
                 actor.output "No such item."
                 return false
             end
-            actor.broadcast "Loaded item: #{item}", actor.target({ list: actor.room.occupants })
+            actor.broadcast "Loaded item: #{item}", actor.room.occupants
             return true
         end
     end

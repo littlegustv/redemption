@@ -56,7 +56,7 @@ class CommandRest < Command
         case actor.position
         when Constants::Position::SLEEP
             actor.output "You wake up and rest."
-            actor.broadcast "%s wakes up and begins to rest.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
+            actor.broadcast "%s wakes up and begins to rest.", actor.room.occupants - [actor], [actor]
             actor.position = Constants::Position::REST
             actor.look_room
             return true
@@ -65,7 +65,7 @@ class CommandRest < Command
             return false
         when Constants::Position::STAND
             actor.output "You sit down and rest."
-            actor.broadcast "%s sits down and rests.", actor.target( { not: actor, list: actor.room.occupants}), [actor]
+            actor.broadcast "%s sits down and rests.", actor.room.occupants - [actor], [actor]
             actor.position = Constants::Position::REST
             return true
         else

@@ -162,7 +162,7 @@ class SpellChainLightning < Spell
             actor.output "They aren't here."
             return false
         end
-        @game.broadcast "A lightning bolt leaps from %s's hand and arcs to %s.", @game.target({ list: actor.room.occupants, not: [actor, target] }), [actor, target]
+        @game.broadcast "A lightning bolt leaps from %s's hand and arcs to %s.", actor.room.occupants - [actor, target], [actor, target]
         actor.output "A lightning bolt leaps from your hand and arcs to %s.", [target]
         target.output "A lightning bolt leaps from %s's hand and strikes you!", [actor]
 
@@ -172,17 +172,17 @@ class SpellChainLightning < Spell
             target = actor.room.occupants.sample
 
             if target == actor
-                @game.broadcast "The bolt arcs to %s...whoops!", @game.target({ list: actor.room.occupants, not: [target] }), [actor, target]
+                @game.broadcast "The bolt arcs to %s...whoops!", actor.room.occupants - [target], [actor, target]
                 target.output "You are struck by your own lightning!"
             else
-                @game.broadcast "The bolt arcs to %s!", @game.target({ list: actor.room.occupants, not: [target] }), [target]
+                @game.broadcast "The bolt arcs to %s!", actor.room.occupants - [target], [target]
                 target.output "The bolt arcs to you!"
             end
 
             actor.deal_damage(target: target, damage: damage, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
         end
 
-        @game.broadcast "The bolt seems to have fizzled out.", @game.target({ list: actor.room.occupants, not: [target] })
+        @game.broadcast "The bolt seems to have fizzled out.", actor.room.occupants - [target]
         target.output "The bolt grounds out through your body."
 
         return true

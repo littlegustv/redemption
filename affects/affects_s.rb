@@ -31,7 +31,7 @@ class AffectShackle < Affect
 
     def send_start_messages
         @target.output "You are bound and restricted by runic shackles!"
-        @target.broadcast "%s has been bound by runic shackles!", @target.target({ list: @target.room.occupants, not: @target }), [ @target ]
+        @target.broadcast "%s has been bound by runic shackles!", @target.room.occupants - [@target], [ @target ]
     end
 
     def send_complete_messages
@@ -106,7 +106,7 @@ class AffectShield < Affect
 
     def send_start_messages
         @target.output "You are surrounded by a force shield."
-        @target.broadcast "%s is surrounded by a force shield.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+        @target.broadcast "%s is surrounded by a force shield.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
@@ -147,12 +147,12 @@ class AffectShocking < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{y%s jerks and twitches from the shock!{x", @target.room.occupants - [@target], [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
 
     def send_refresh_messages
-        @target.broadcast "{y%s jerks and twitches from the shock!{x", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "{y%s jerks and twitches from the shock!{x", @target.room.occupants - [@target], [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
 end
@@ -223,7 +223,7 @@ class AffectStoneSkin < Affect
 
     def send_start_messages
         @target.output "Your skin turns to stone."
-        @target.broadcast "%s's skin turns to stone.", @game.target({ list: @target.room.occupants, not: @target }), [@target]
+        @target.broadcast "%s's skin turns to stone.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages

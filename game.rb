@@ -89,6 +89,7 @@ class Game
         @mobile_count = Hash.new
 
         @combat_mobs = Set.new
+        @regen_mobs = Set.new
 
         @item_keyword_map = Hash.new
         @mobile_keyword_map = Hash.new
@@ -250,22 +251,6 @@ class Game
             end
         end
     end
-
-    # @responders = Set.new                   # Event responders
-    # @responder_maintenance_count = 0        # current maintenance count
-    # @responder_maintenance_per_frame = 20   # number of responders that are cleaned per frame
-    # # clear out reponders whose objects have been deleted
-    # def responder_maintenance
-    #     target_count = [@responder_maintenance_count + @responder_maintenance_per_frame, @responders.size].min
-    #     while @responder_maintenance_count < target_count
-    #         if @r
-    #         @responder
-    #         @responder_maintenance_count += 1
-    #     end
-    #     if @responders.size == @responder_maintenance_count
-    #         @responder_maintenance_count = 0
-    #     end
-    # end
 
     def send_to_client
         @players.each do | player |
@@ -603,6 +588,7 @@ class Game
         end
     end
 
+    
     def remove_global_item(item)
         @items.delete(item)
         item.keywords.each do |keyword|

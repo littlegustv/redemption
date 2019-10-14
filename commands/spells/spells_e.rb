@@ -14,7 +14,7 @@ class SpellEarthquake < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.broadcast "%s makes the earth tremble and shiver.", actor.target({ not: actor, list: actor.room.area.occupants, type: ["Mobile", "Player"] }), [actor]
+        actor.broadcast "%s makes the earth tremble and shiver.", actor.room.area.occupants - [actor], [actor]
         actor.output "The earth trembles beneath your feet!"
         ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
             actor.deal_damage(target: target, damage: 100, noun:"earthquake", element: Constants::Element::GEOLOGY, type: Constants::Damage::MAGICAL)
@@ -98,5 +98,5 @@ class SpellEnergyDrain < Spell
         actor.output "Wow....what a rush!"
         return true
     end
-    
+
 end

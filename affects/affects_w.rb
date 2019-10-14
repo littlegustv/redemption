@@ -17,12 +17,12 @@ class AffectWeaken < Affect
     end
 
     def send_start_messages
-        @target.broadcast "%s looks tired and weak.", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "%s looks tired and weak.", @target.room.occupants - [@target], [@target]
         @target.output "You feel your strength slip away."
     end
 
     def send_refresh_messages
-        @target.broadcast "%s looks tired and weak.", @game.target({ not: @target, list: @target.room.occupants }), [@target]
+        @target.broadcast "%s looks tired and weak.", @target.room.occupants - [@target], [@target]
         @target.output "You feel your strength slip away."
     end
 

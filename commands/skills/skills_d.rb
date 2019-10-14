@@ -2,7 +2,6 @@ require_relative 'skill.rb'
 
 class SkillDisarm < Skill
 
-
     def initialize(game)
         super(
             game: game,
@@ -21,10 +20,18 @@ class SkillDisarm < Skill
         	actor.output "They aren't wielding a weapon."
             return false
         else
+            target = actor.attacking
+            weapon = target.wielded.shuffle.first
+            if !target.can_unwear(weapon)
+                actor.output("Their weapon won't budge!")
+                return false
+            end
+            # stat check here?
         	actor.output "You disarm %s!", [actor.attacking]
         	actor.attacking.output "You have been disarmed!"
-        	actor.broadcast "%s disarms %s", actor.target({ not: [ actor, actor.attacking ], list: actor.room.occupants }), [actor, actor.attacking]
-        	actor.attacking.wielded.first.move actor.room.inventory
+        	actor.broadcast "%s disarms %s", actor.room.occupants - [ actor, actor.attacking ], [actor, actor.attacking]
+            weapon.move(actor.attacking.inventory)
+            actor.attacking.drop_item(weapon)
             return true
         end
     end
@@ -65,7 +72,7 @@ class SkillDirtKick < Skill
     def do_dirtkick( actor, target )
         if not target.affected? "blind"
             target.output "You are blinded by the dirt in your eyes!"
-            actor.broadcast "%s is blinded by the dirt in their eyes!", actor.target({ list: actor.room.occupants,  not: target }), [target]
+            actor.broadcast "%s is blinded by the dirt in their eyes!", actor.room.occupants - [target], [target]
             target.apply_affect(AffectBlind.new(source: actor, target: target, level: actor.level, game: @game))
             actor.deal_damage(target: target, damage: 5, noun:"bash", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: true)
         else

@@ -36,7 +36,7 @@ class SpellDestroyRune < Spell
     	if args.first.nil?
     		if actor.room.affected? "rune"
                 actor.room.remove_affect( "rune" )
-                actor.broadcast "The runes present in this room begin fade.", actor.target({ list: actor.room.occupants })
+                actor.broadcast "The runes present in this room begin fade.", actor.room.occupants
                 return true
             else
                 actor.output "There are no runes found."

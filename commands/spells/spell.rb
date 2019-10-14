@@ -67,7 +67,7 @@ class Spell < Command
             return false
 		else
 			actor.output "You utter the words '#{translate( @name )}'"
-			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.target({ not: actor, list: actor.room.occupants }), [actor]
+			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.room.occupants - [actor], [actor]
 
 			actor.cast( self, args, input )
             actor.lag += @lag

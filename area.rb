@@ -29,6 +29,14 @@ class Area < GameObject
         return @rooms.map { |room| room.occupants }.flatten
     end
 
+    def players
+        return @rooms.map { |room| room.players }.flatten
+    end
+
+    def mobiles
+        return @rooms.map { |room| room.mobiles }.flatten
+    end
+
     def items
         return @rooms.map { |room| room.items }.flatten
     end

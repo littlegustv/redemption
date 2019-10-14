@@ -20,7 +20,7 @@ class CommandWake < Command
             case actor.position
             when Constants::Position::SLEEP
                 actor.output "You wake and stand up."
-                actor.broadcast "%s wakes and stands up.", actor.target( { not: actor, list: actor.room.occupants }), [actor]
+                actor.broadcast "%s wakes and stands up.", actor.room.occupants - [actor], [actor]
                 actor.position = Constants::Position::STAND
                 actor.look_room
                 return true
@@ -35,8 +35,9 @@ class CommandWake < Command
             if target
                 case target.position
                 when Constants::Position::SLEEP
+                    actor.output "You wake %s up.", target
                     target.output "%s wakes you up.", actor
-                    target.broadcast "%s wakes %s up.", actor.target( { list: actor.room.occupants }), [actor, target]
+                    target.broadcast "%s wakes %s up.", actor.room.occupants - [actor], [actor, target]
                     target.position = Constants::Position::STAND
                     target.look_room
                     return true

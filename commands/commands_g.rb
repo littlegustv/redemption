@@ -112,23 +112,18 @@ class CommandGroup < Command
 
         # Look for a target
 
-        if ( target = actor.target({
-            type: ["Player"],
-            visible_to: actor,
-            keyword: args.first.to_s,
-            not: actor
-        }).first )
+        if ( target = actor.target({ list: actor.room.players, not: actor }.merge( args.first.to_s.to_query() )).first )
 
-        if actor.group.include? target
-            target.remove_from_group
-            return true
-        elsif target.in_group.nil? and target.group.empty?
-            target.add_to_group(actor)
-            return true
-        else
-            actor.output "They're already in a group."
-            return false
-        end
+            if actor.group.include? target
+                target.remove_from_group
+                return true
+            elsif target.in_group.nil? and target.group.empty?
+                target.add_to_group(actor)
+                return true
+            else
+                actor.output "They're already in a group."
+                return false
+            end
 
         else
             actor.output "You can't find them."
