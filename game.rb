@@ -373,9 +373,11 @@ class Game
                             item = load_item( item_reset[:item_id], mob.inventory )
                             #containers
                             if Container === item
-                                @container_reset_data.select{ |id, container_reset| container_reset[:container_id] == item.id }.each do |container_item_reset_id, container_item_reset|
+                                @container_reset_data.select{ |id, container_reset| container_reset[:parent_id] == item_reset_id }.each do |container_item_reset_id, container_item_reset|
                                     if @item_data[ container_item_reset[:item_id] ]
-                                        container_item = load_item( container_item_reset[:item_id], item.inventory )
+                                        [1, container_item_reset[:quantity]].max.times do
+                                            container_item = load_item( container_item_reset[:item_id], item.inventory )
+                                        end
                                     else
                                         log "[Container item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
                                     end
@@ -393,9 +395,11 @@ class Game
                             mob.wear(item: item, silent: true)
                             #containers
                             if Container === item
-                                @container_reset_data.select{ |id, container_reset| container_reset[:container_id] == item.id }.each do |container_item_reset_id, container_item_reset|
+                                @container_reset_data.select{ |id, container_reset| container_reset[:parent_id] == item_reset_id }.each do |container_item_reset_id, container_item_reset|
                                     if @item_data[ container_item_reset[:item_id] ]
-                                        container_item = load_item( container_item_reset[:item_id], item.inventory )
+                                        [1, container_item_reset[:quantity]].max.times do
+                                            container_item = load_item( container_item_reset[:item_id], item.inventory )
+                                        end
                                     else
                                         log "[Container item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
                                     end
