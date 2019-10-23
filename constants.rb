@@ -232,7 +232,6 @@ module Constants
         CommandLore,
         CommandMove,
         CommandOrder,
-        CommandPeek,
         CommandPoison,
         CommandPut,
         CommandQuicken,
@@ -333,7 +332,19 @@ module Constants
         SpellFarsight,
         SpellDispelMagic,
         SpellRemoveCurse,
-        SpellBlink
+        SpellBlink,
+        SpellHypnosis,
+        SpellCureLight,
+        SpellRefresh,
+        SpellCureBlindness,
+        SpellCureSerious,
+        SpellCureCritical,
+        SpellTeleport,
+        SpellWordOfRecall,
+        SpellCurePoison,
+        SpellCureDisease,
+        SpellHeal,
+        SpellMassHealing,
     ]
 
     AFFECT_CLASS_HASH = {

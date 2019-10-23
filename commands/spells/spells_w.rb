@@ -38,3 +38,25 @@ class SpellWeaken < Spell
     end
     
 end
+
+class SpellWordOfRecall < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "word of recall",
+            keywords: ["word of recall"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.shift.to_s.to_query ) ).first )
+            target.do_command "recall"
+        else
+            actor.output "There is no-one here with that name."
+        end
+    end
+end

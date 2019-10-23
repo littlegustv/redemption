@@ -23,6 +23,7 @@ class Game
     attr_reader :players
     attr_reader :logging_players
     attr_reader :client_account_ids
+    attr_reader :rooms
 
     include GameSetup
     include GameSave

@@ -265,6 +265,177 @@ class SpellColorSpray < Spell
     end
 end
 
+class SpellCureBlindness < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "cure blindness",
+            keywords: ["cure blindness"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 14
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        if target 
+            if target.affected? "blind"
+                target.output "Your vision returns!"
+                target.remove_affect "blind"
+            else
+                actor.output "They aren't blind."
+            end
+        else
+            actor.output "They aren't here."
+        end
+    end
+end
+
+class SpellCureCritical < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "cure critical",
+            keywords: ["cure critical"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 12
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        quantity = 50
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            target.output "You feel better!"
+            target.regen( quantity, 0, 0 )
+        elsif args.first.nil?
+            actor.output "You feel better"
+            actor.regen( quantity, 0, 0 )
+        else
+            actor.output "They aren't here."
+        end
+    end
+end
+
+class SpellCureDisease < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "cure disease",
+            keywords: ["cure disease"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 15
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        if target 
+            if target.affected? "plague"
+                target.output "You feel better!"
+                target.remove_affect "plague"
+            else
+                actor.output "They aren't infected."
+            end
+        else
+            actor.output "They aren't here."
+        end
+    end
+end
+
+class SpellCureLight < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "cure light",
+            keywords: ["cure light"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        quantity = 10
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            target.output "You feel better!"
+            target.regen( quantity, 0, 0 )
+        elsif args.first.nil?
+            actor.output "You feel better"
+            actor.regen( quantity, 0, 0 )
+        else
+            actor.output "They aren't here."
+        end
+    end
+end
+
+class SpellCurePoison < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "cure poison",
+            keywords: ["cure poison"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 14
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        if target 
+            if target.affected? "poison"
+                target.output "You feel better!"
+                target.remove_affect "poison"
+            else
+                actor.output "They aren't poisoned."
+            end
+        else
+            actor.output "They aren't here."
+        end
+    end
+end
+
+class SpellCureSerious < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "cure serious",
+            keywords: ["cure serious"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 11
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        quantity = 25
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            target.output "You feel better!"
+            target.regen( quantity, 0, 0 )
+        elsif args.first.nil?
+            actor.output "You feel better"
+            actor.regen( quantity, 0, 0 )
+        else
+            actor.output "They aren't here."
+        end
+    end
+end
+
 class SpellCurse < Spell
 
     def initialize(game)

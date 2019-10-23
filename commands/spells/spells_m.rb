@@ -75,10 +75,43 @@ class SpellManaDrain < Spell
         end
         actor.deal_damage(target: target, damage: 100, noun:"life drain", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
         target.use_mana( 10 )
+        actor.regen( 0, 10, 0 )
         target.output "You feel your energy slipping away!"
         actor.output "Wow....what a rush!"
         return true
     end
+end
+
+class SpellMassHealing < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "mass healing",
+            keywords: ["mass healing"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 13
+        )
+    end
+
+    def cast( actor, cmd, args, input )
+        if args.first.nil? && actor.attacking.nil?
+            actor.output "Cast the spell on who, now?"
+        else
+            super
+        end
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.target({ list: actor.room.occupants, visible_to: actor, not: actor.attacking }).reject{ |occ| occ.attacking == actor }.each do |occupant|
+            occupant.output "You feel less tired."
+            occupant.output "You feel better!"
+            occupant.regen( 100, 0, 50 )
+        end
+    end
+    
 end
 
 class SpellMassInvisibility < Spell

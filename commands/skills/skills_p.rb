@@ -38,21 +38,25 @@ class SkillPeek < Skill
             game: game,
             name: "peek",
             keywords: ["peek"],
-            lag: 0.25,
-            position: Constants::Position::STAND,
+            lag: 0.1,
+            position: Constants::Position::REST,
             usable_in_combat: false
         )
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            actor.output "%s is carrying:", [target]
-            item_count = actor.target({list: target.inventory.items, visible_to: actor}).length
-            actor.output item_count > 0 ? "#{target.inventory.show(observer: actor)}" : "Nothing."
-            return true
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            if target.inventory.count > 0
+                actor.output "#{target} is carrying:\n#{target.inventory.items.map(&:to_s).join("\n")}"
+                return true
+            else
+                actor.output "#{target} is carrying:\nNothing."
+                return true
+            end
         else
-            actor.output "You don't see them anywhere."
+            actor.output "You cannot seem to catch a glimpse."
             return false
         end
     end
+
 end

@@ -94,6 +94,7 @@ class SpellEnergyDrain < Spell
         end
         actor.deal_damage(target: target, damage: 100, noun:"life drain", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
         target.use_movement( 10 )
+        actor.regen( 0, 0, 10 )
         target.output "You feel your energy slipping away!"
         actor.output "Wow....what a rush!"
         return true

@@ -37,6 +37,35 @@ class SpellHarm < Spell
     end
 end
 
+class SpellHeal < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "heal",
+            keywords: ["heal"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 13
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        quantity = 100
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            target.output "You feel better!"
+            target.regen( quantity, 0, 0 )
+        elsif args.first.nil?
+            actor.output "You feel better"
+            actor.regen( quantity, 0, 0 )
+        else
+            actor.output "They aren't here."
+        end
+    end
+    
+end
+
 class SpellHurricane < Spell
 
     def initialize(game)
@@ -57,5 +86,29 @@ class SpellHurricane < Spell
     		actor.deal_damage(target: target, damage: 100, noun:"hurricane", element: Constants::Element::DROWNING, type: Constants::Damage::MAGICAL)
     	end
         return true
+    end
+end
+
+class SpellHypnosis < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "hypnosis",
+            keywords: ["hypnosis"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.shift.to_s.to_query ) ).first )
+            actor.output "You hypnotize %s", [target]
+            target.output "%s hypnotizes you to '#{args.join(" ")}'", [actor]
+            target.do_command args.join(" ")
+        else
+            actor.output "Order whom to do what?"
+        end
     end
 end

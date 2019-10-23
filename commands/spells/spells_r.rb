@@ -1,5 +1,41 @@
 require_relative 'spell.rb'
 
+class SpellRefresh < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "refresh",
+            keywords: ["refresh"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+            priority: 10
+        )
+    end
+
+    def cast( actor, cmd, args, input )
+        if args.first.nil? && actor.attacking.nil?
+            actor.output "Cast the spell on who, now?"
+        else
+            super
+        end
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        quantity = 50
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            target.output "You feel less tired."
+            target.regen( 0, 0, quantity )
+        elsif args.first.nil?
+            actor.output "You feel less tired."
+            actor.regen( 0, 0, quantity )
+        else
+            actor.output "They aren't here."
+        end
+    end
+end
+
 class SpellRemoveCurse < Spell
 
     def initialize(game)
