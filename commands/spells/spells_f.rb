@@ -1,5 +1,59 @@
 require_relative 'spell.rb'
 
+class SpellFarsight < Spell
+   
+    @@descriptors = [ "right there", "close by to the", "not too far", "off in the distance" ]
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "farsight",
+            keywords: ["farsight"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = nil
+        if actor.can_see?(nil)
+            target = actor.filter_visible_targets(@game.target_global_mobiles(args.first.to_s.to_query).shuffle, 1).first
+        end
+        if target
+            # right there!
+            actor.output target.room.occupants.map{ |occupant| "#{occupant}, #{describe(0, nil)}" }.join("\n")
+            # each direction
+            [:north, :south, :east, :west, :up, :down].each do |direction|
+                actor.output "You scan intently #{direction.to_s}"
+                actor.output scan( target.room, direction, 1 )
+            end
+        else
+            actor.output "You can't find anyone with that name."
+        end
+    end
+
+    def describe( distance, direction )
+        if distance == 0
+            return @@descriptors[ distance ]
+        else
+            return "#{@@descriptors[ distance ]} #{direction.to_s}"
+        end
+    end
+
+    def scan( room, direction, distance )
+        output = ""
+        if distance >= 3
+            return ""
+        elsif (newroom = room.exits[ direction ])
+            output += newroom.occupants.map{ |occupant| "#{occupant}, #{describe(distance, direction)}" }.join("\n")
+            return output + scan( newroom, direction, distance + 1 )
+        else
+            return ""
+        end
+    end
+end
+
 class SpellFireball < Spell
 
     def initialize(game)

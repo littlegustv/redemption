@@ -1,5 +1,34 @@
 require_relative 'spell.rb'
 
+class SpellRemoveCurse < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "remove curse",
+            keywords: ["remove curse"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if ( target = actor.target({ list: actor.room.occupants + actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            if target.affected? "curse"
+                target.remove_affect( "curse" )
+                return true
+            else
+                actor.output "There doesn't seem to be a curse on #{target}."
+            end
+        else
+            actor.output "There is no one here with that name."
+            return false
+        end
+    end
+
+end
+
 class SpellRukusMagna < Spell
 
     def initialize(game)

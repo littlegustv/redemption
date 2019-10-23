@@ -1,5 +1,46 @@
 require_relative 'skill.rb'
 
+class SkillBackstab < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "backstab",
+            keywords: ["backstab"],
+            lag: 1,
+            position: Constants::Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if args.length <= 0 and actor.attacking.nil?
+            actor.output "Who did you want to backstab?"
+            return false
+        end
+        if actor.position < Constants::Position::STAND
+            actor.output "You have to stand up first."
+            return false
+        elsif actor.attacking and args.length <= 0
+            do_backstab( actor, actor.attacking )
+            return true
+        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            do_backstab( actor, kill_target )
+            return true
+        else
+            actor.output "I can't find anyone with that name."
+            return false
+        end
+    end
+
+    def do_backstab( actor, target )
+        if target.condition_percent >= 50
+            actor.deal_damage(target: target, damage: 150, noun:"backstab", element: Constants::Element::PIERCE, type: Constants::Damage::PHYSICAL)
+        else
+            actor.output "%s is hurt and suspicious ... you can't sneak up.", [target]
+        end
+    end
+end
+
 class SkillBash < Skill
 
     def initialize(game)

@@ -267,6 +267,9 @@ module Constants
         SkillSneak,
         SkillTrip,
         SkillZeal,
+        SkillBackstab,
+        SkillPeek,
+        SkillSteal
     ]
 
     SPELL_CLASSES = [
@@ -326,7 +329,11 @@ module Constants
         SpellCauseSerious,
         SpellCauseCritical,
         SpellHarm,
-        SpellEarthquake
+        SpellEarthquake,
+        SpellFarsight,
+        SpellDispelMagic,
+        SpellRemoveCurse,
+        SpellBlink
     ]
 
     AFFECT_CLASS_HASH = {

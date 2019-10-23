@@ -92,6 +92,28 @@ class SpellBladeRune < Spell
     end
 end
 
+class SpellBlink < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "blink",
+            keywords: ["blink"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        newroom = actor.room.area.rooms.sample
+        @game.broadcast "%s blinks out of sight!", @game.target({ room: actor.room, not: actor }), [actor]
+        actor.output "You blink out of sight!"
+        actor.move_to_room newroom
+    end
+
+end
+
 class SpellBlur < Spell
 
     def initialize(game)

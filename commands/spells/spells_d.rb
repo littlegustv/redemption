@@ -130,3 +130,28 @@ class SpellDetectMagic < Spell
         end
     end
 end
+
+class SpellDispelMagic < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "dispel magic",
+            keywords: ["dispel magic"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            target.remove_affect( actor.affects.sample.keywords.first ) if target.affects.count > 0
+            return true
+        else
+            actor.output "There is no one here with that name."
+            return false
+        end
+    end
+
+end

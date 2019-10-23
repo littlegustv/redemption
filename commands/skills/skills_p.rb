@@ -30,3 +30,29 @@ class SkillPaintPower < Skill
     	end
     end
 end
+
+class SkillPeek < Skill
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "peek",
+            keywords: ["peek"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            usable_in_combat: false
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            actor.output "%s is carrying:", [target]
+            item_count = actor.target({list: target.inventory.items, visible_to: actor}).length
+            actor.output item_count > 0 ? "#{target.inventory.show(observer: actor)}" : "Nothing."
+            return true
+        else
+            actor.output "You don't see them anywhere."
+            return false
+        end
+    end
+end
