@@ -36,13 +36,15 @@ class CommandBuy < Command
         )
     end
 
-    def attempt( actor, cmd, args, input )
-        ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper", visible_to: actor ) ).each do |shopkeeper|
-            ( actor.target({ list: shopkeeper.inventory.items, visible_to: actor }.merge( args.first.to_s.to_query )) ).each do |purchase|
+    # buy and sell need a default quantity of '1', since otherwise the targeting system would buy the entire stock of a shop at once
 
-                if actor.spend( purchase.cost )
-                    actor.output( "You buy #{purchase} for #{ purchase.to_price }." )
-                    actor.inventory.items.unshift @game.load_item( purchase.id, nil )
+    def attempt( actor, cmd, args, input )
+        ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper", visible_to: actor, not: actor ) ).each do |shopkeeper|
+            ( actor.target({ list: shopkeeper.inventory.items, visible_to: actor }.merge( args.first.to_s.to_query( 1 ) )) ).each do |purchase|
+                if actor.spend( shopkeeper.sell_price( purchase ) )
+                    actor.output( "You buy #{purchase} for #{ shopkeeper.sell_price( purchase ) }." )
+                    shopkeeper.earn( shopkeeper.sell_price( purchase ) )
+                    purchase.move( actor.inventory )
                 end
             end
         end.empty? and begin

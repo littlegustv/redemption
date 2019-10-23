@@ -77,6 +77,11 @@ module Constants
         PROTECTION_MULTIPLIER = 0.75
     end
 
+    # full stock for shopkeepers
+    SHOP_FULL_STOCK = 5
+    # % markup on buy/sell transactions
+    SHOP_MARKUP = 0.05
+
     # chance (out of ten) of an elemental flag effect
 
     ELEMENTAL_CHANCE = 3

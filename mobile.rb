@@ -140,6 +140,18 @@ class Mobile < GameObject
         @wealth += n
     end
 
+    # shopkeeper specific, but where is the best place for this to be????
+
+    # calculate the selling price of an item based on the number currently in inventory
+    def sell_price( item )
+        return ( item.cost * ( 1 + Constants::SHOP_MARKUP * ( Constants::SHOP_FULL_STOCK - @inventory.item_count[ item.id ].to_i ) ) ).to_i
+    end
+
+    # buy price is set to the sell price when stock = (n + 1)
+    def buy_price( item )
+        return ( item.cost * ( 1 + Constants::SHOP_MARKUP * ( Constants::SHOP_FULL_STOCK - ( @inventory.item_count[ item.id ].to_i + 1 ) )) ).to_i
+    end
+
     def spend( n )
         net = @wealth - n
         if net < 0

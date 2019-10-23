@@ -370,7 +370,8 @@ class Game
 
                     # inventory
                     @inventory_reset_data.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
-                        if @item_data[ item_reset[:item_id] ]
+                        if @item_data[ item_reset[:item_id] ]                          
+
                             item = load_item( item_reset[:item_id], mob.inventory )
                             #containers
                             if Container === item

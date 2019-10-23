@@ -38,8 +38,8 @@ class Item < GameObject
         "something"
     end
 
-    def to_store_listing
-        "[#{@level.to_s.rpad(2)} #{@cost.to_s.rpad(5)} -- ] #{@short_description}"
+    def to_store_listing( quantity )
+        "[#{@level.to_s.rpad(2)} #{carrier.sell_price( self ).to_s.rpad(5)} #{ [quantity, 99].min.to_s.rpad(2) } ] #{@short_description}"
     end
 
     def to_price

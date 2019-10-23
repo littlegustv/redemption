@@ -37,12 +37,23 @@ class CommandList < Command
     end
 
     def attempt( actor, cmd, args, input )
-        ( shopkeepers = actor.target( visible_to: actor, list: actor.room.occupants, affect: "shopkeeper" ) ).each do |shopkeeper|
-            actor.output %Q(#{shopkeeper}:
-#{'-'*shopkeeper.to_s.length}
-[Lv Price Qty] Item
-#{ shopkeeper.inventory.items.map(&:to_store_listing).join("\n\r") }
-)
+        ( shopkeepers = actor.target( visible_to: actor, list: actor.room.occupants, affect: "shopkeeper", not: actor ) ).each do |shopkeeper|
+            
+            actor.output "#{shopkeeper}:"
+
+            ids_shown = []
+            lines = []
+            targets = @game.target({ list: shopkeeper.inventory.items, visible_to: actor, quantity: 'all' })
+            targets.each do |item|
+                if ids_shown.include?(item.id)
+                    next
+                end
+                quantity = targets.select{ |t| t.id == item.id }.length
+                lines << "#{item.to_store_listing( quantity )}"
+                ids_shown << item.id
+            end
+            actor.output lines.join("\n\r")
+
         end
         if shopkeepers.length <= 0
             actor.output "You can't do that here."
