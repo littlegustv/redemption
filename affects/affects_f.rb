@@ -97,6 +97,33 @@ class AffectFlooding < Affect
 
 end
 
+class AffectFly < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["fly"],
+            name: "fly",
+            modifiers: { none: 0 },
+            level:  level,
+            duration: 30,
+            application_type: :source_overwrite
+        )
+    end
+
+    def send_start_messages
+        @target.broadcast "%s's feet rise off the ground.", @target.room.occupants - [@target], [@target]
+        @target.output "Your feet rise off the ground."
+    end
+
+    def send_complete_messages
+        @target.output "You slowly float to the ground."
+    end
+
+end
+
 class AffectFollow < Affect
 
     def initialize(source:, target:, level:, game:)

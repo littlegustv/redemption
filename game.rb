@@ -24,6 +24,7 @@ class Game
     attr_reader :logging_players
     attr_reader :client_account_ids
     attr_reader :rooms
+    attr_reader :frame_count
 
     include GameSetup
     include GameSave
@@ -820,6 +821,13 @@ class Game
 
     def inspect
         "GAME OBJECT"
+    end
+
+    def time
+        hour = ( @frame_count / Constants::Interval::TICK ).to_i
+        day = ( hour / 24 ).to_i
+        year = 1 + ( day / ( 30 * Constants::Time::MONTHS.count )).to_i
+        return [ hour, day, year ]
     end
 
 end

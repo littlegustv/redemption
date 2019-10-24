@@ -1,5 +1,15 @@
 module Constants
 
+    module Time
+        DAYS = [ "the Moon", "the Bull", "Deception", "Thunder", "Freedom","the Great Gods", "the Sun" ]
+        MONTHS = [ 
+            "Winter", "the Winter Wolf", "the Frost Giant", "the Old Forces",
+            "the Grand Struggle", "the Spring", "Nature", "Futility", "the Dragon",
+            "the Sun", "the Heat", "the Battle", "the Dark Shades", "the Shadows",
+            "the Long Shadows", "the Ancient Darkness", "the Great Evil"
+        ]
+    end
+
     module Position
         SLEEP = 0
         REST = 1
@@ -258,6 +268,7 @@ module Constants
         CommandWho,
         CommandWorth,
         CommandYell,
+        CommandTime,
     ]
 
     SKILL_CLASSES = [
