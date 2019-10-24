@@ -48,7 +48,6 @@ class AffectDeathRune < Affect
 
 end
 
-
 class AffectDetectInvisibility < Affect
 
     def initialize(source:, target:, level:, game:)

@@ -351,9 +351,11 @@ class Game
     def tick
         log "{YTick!{x"
         broadcast("{MMud newbies 'Hi everyone! It's a tick!!'{x", @players, send_to_sleeping: true)
-        # ( @players + @mobiles).each do | entity |
-        #     entity.tick
-        # end
+        
+        # player tick is called, just to allow for some regen!!
+        ( @players ).each do | entity |
+            entity.tick
+        end
     end
 
     def repop

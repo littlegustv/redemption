@@ -271,7 +271,7 @@ class Mobile < GameObject
 
     # all this does right now is regen some HP
     def tick
-        regen 50, 15, 15
+        regen 100, 100, 100
     end
 
     def regen( hp, mp, mv )
@@ -291,10 +291,10 @@ class Mobile < GameObject
             if ( texts = Constants::ELEMENTAL_EFFECTS[ flag ] )
                 @attacking.output texts[0], [self]
                 @attacking.broadcast texts[1], target({ not: @attacking, list: @room.occupants }), [ @attacking, weapon ]
-                elemental_effect( @attacking, flag )
-                # @attacking.damage( 10, self )
-                return if @attacking.nil?
             end
+            elemental_effect( @attacking, flag )
+            # @attacking.damage( 10, self )
+            return if @attacking.nil?
         end
     end
 
@@ -313,6 +313,11 @@ class Mobile < GameObject
                 target.apply_affect(AffectFireBlind.new(target: target, source: self, level: self.level, game: @game))
             when "frost"
                 target.apply_affect( AffectFrost.new(target: target, source: self, level: self.level, game: @game))
+            when "demonic"
+                target.output "%s has assailed you with the demons of Hell!", self
+                broadcast "%s calls forth the demons of Hell upon %s!", @room.occupants - [self, target], [self, target]
+                output "You conjure forth the demons of hell!"
+                target.apply_affect( AffectCurse.new(target: target, source: self, level: self.level, game: @game))
             end
         end
     end

@@ -1,5 +1,45 @@
 require_relative 'affect.rb'
 
+class AffectScramble < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["scramble"],
+            name: "scramble",
+            level:  level,
+            duration: 30 * level,
+            modifiers: { none: 0 }
+        )
+    end
+
+    def start
+        @game.add_event_listener(@target, :event_communicate, self, :do_scramble)
+    end
+
+    def complete
+        @game.remove_event_listener(@target, :event_communicate, self)
+    end
+
+    def send_start_messages
+        @target.output "Your mother tongue now eludes you."
+        @target.broadcast "%s can no longer understand anything.", @target.room.occupants - [@target], [ @target ]
+    end
+
+    def send_complete_messages
+        @target.output "Your linguistic skills return to you."
+        @target.broadcast "%s remembers how to speak.", @target.room.occupants - [@target], [ @target ]
+    end
+
+    def do_scramble(data)
+        # shuffles the letters, then reduces any multi-spaces to single-spacese
+        data[:text] = data[:text].split("").shuffle.join("").gsub(/\s+/, " ")
+    end
+
+end
+
 ##
 # In Original Redemption, shackle just increases the movement point cost.  For now, I have replaced it with some lag.
 #

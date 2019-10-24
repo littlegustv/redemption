@@ -17,6 +17,11 @@ class CommandYell < Command
             return false
         else
             message = input[/#{cmd} (.*)/, 1]
+            
+            data = { text: message }
+            @game.fire_event( actor, :event_communicate, data )
+            message = data[:text]
+
             actor.output "{RYou yell '#{message}'{x"
             actor.broadcast "{R%s yells '#{message}'{x", actor.room.area.players - [actor], [actor]
             return true

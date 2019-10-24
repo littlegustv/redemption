@@ -375,14 +375,14 @@ module Constants
         SpellStun,
         SpellBless,
         SpellHolyWord,
+        SpellDemonFire,
+        SpellScramble,
         #here
-        # SpellDemonFire,
         # SpellRayOfTruth,
         # SpellCalm,
         # SpellCharmPerson,
         # SpellInfravision,
         # SpellPassDoor,
-        # SpellScramble,
         # SpellHeatMetal,
     ]
 
@@ -444,13 +444,12 @@ module Constants
         "frenzy" =>                 AffectFrenzy,
         "taunt" =>                  AffectTaunt,
         "bless" =>                  AffectBless,
+        "scramble" =>               AffectScramble,
         #here
         # "heat metal" =>             AffectHeatMetal,
         # "calm" =>                   AffectCalm,
-        # "demonfire" =>              AffectDemonFire,
         # "hide" =>                   AffectHide,
         # "pass door" =>              AffectPassDoor, 
-        # "scramble" =>               AffectScramble,
     }
 
     module ClientState

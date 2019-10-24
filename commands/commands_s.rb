@@ -17,6 +17,11 @@ class CommandSay < Command
             return false
         else
             message = input[/#{cmd} (.*)/, 1]
+            
+            data = { text: message }
+            @game.fire_event( actor, :event_communicate, data )
+            message = data[:text]
+
             actor.output "{yYou say '#{message}'{x"
             actor.broadcast "{y%s says '#{message}'{x", actor.room.occupants - [actor], [actor]
             return true

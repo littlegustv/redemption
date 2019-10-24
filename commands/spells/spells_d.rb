@@ -19,6 +19,61 @@ class SpellDeathRune < Spell
 
 end
 
+class SpellDemonFire < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "demonfire",
+            keywords: ["demonfire"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def cast( actor, cmd, args, input )
+        if args.first.nil? && actor.attacking.nil?
+            actor.output "Cast the spell on who, now?"
+            return
+        else
+            super
+        end
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = nil
+        if actor.alignment > -100
+            target = actor
+        elsif args.first.nil? && actor.attacking
+            target = actor.attacking
+        elsif !args.first.nil?
+            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        end
+
+        if !target
+            actor.output "They aren't here."
+            return false
+        end
+
+        if target == actor
+            actor.output "The demons turn upon you!"
+        else
+            actor.output "You conjure forth the demons of hell!"
+            target.output "%s has assailed you with the demons of Hell!", [actor]
+        end
+
+        actor.broadcast "%s calls forth the demons of Hell upon %s!", actor.room.occupants - [target, actor], [actor, target]
+        
+        actor.deal_damage(target: target, damage: 100, noun:"torments", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
+        actor.alignment = [ actor.alignment - 50, -1000 ].max
+
+        target.apply_affect( AffectCurse.new( source: nil, target: target, level: actor.level, game: @game ))
+
+        return true
+    end
+end
+
 class SpellDestroyRune < Spell
 
     def initialize(game)
