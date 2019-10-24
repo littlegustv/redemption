@@ -84,6 +84,29 @@ class SpellShockingGrasp < Spell
     end
 end
 
+class SpellSleep < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "sleep",
+            keywords: ["sleep"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            target.apply_affect( AffectSleep.new( source: nil, target: target, level: actor.level, game: @game ) )
+        else
+            actor.output "There is no one here with that name."
+        end
+    end
+
+end
+
 class SpellSlow < Spell
 
     def initialize(game)
@@ -138,6 +161,37 @@ class SpellStoneSkin < Spell
 
     def attempt( actor, cmd, args, input, level )
         actor.apply_affect( AffectStoneSkin.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
+end
+
+class SpellStun < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "stun",
+            keywords: ["stun"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if args.first.nil? && actor.attacking
+            target = actor.attacking
+        else
+            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        end
+        if target
+            target.apply_affect( AffectStun.new( source: nil, target: target, level: actor.level, game: @game ) )
+            target.start_combat( actor )
+            return true
+        else
+            actor.output "There is no one here with that name."
+            return false
+        end
     end
 
 end

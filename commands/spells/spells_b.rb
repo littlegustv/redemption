@@ -92,6 +92,70 @@ class SpellBladeRune < Spell
     end
 end
 
+class SpellBless < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "bless",
+            keywords: ["bless"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if args.first.nil?
+            actor.apply_affect( AffectBless.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        elsif ( target = @game.target({ list: actor.items + @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+            target.apply_affect( AffectBless.new( source: nil, target: target, level: actor.level, game: @game ) )
+        else
+            actor.output "There is no one here with that name."
+        end
+    end
+
+end
+
+class SpellBlindness < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "blindness",
+            keywords: ["blindness"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def cast( actor, cmd, args, input )
+        if args.first.nil? && actor.attacking.nil?
+            actor.output "Cast the spell on who, now?"
+        else
+            super
+        end
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = nil
+        if args.first.nil? && actor.attacking
+            target = actor.attacking
+        elsif !args.first.nil?
+            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        end
+        if !target
+            actor.output "They aren't here."
+            return false
+        end
+        target.apply_affect( AffectBlind.new( source: actor, target: target, level: actor.level, game: @game ) )
+        target.start_combat( actor )
+        return true
+    end
+
+end
+
 class SpellBlink < Spell
 
     def initialize(game)

@@ -19,11 +19,18 @@ class CommandWake < Command
         if target == actor
             case actor.position
             when Constants::Position::SLEEP
-                actor.output "You wake and stand up."
-                actor.broadcast "%s wakes and stands up.", actor.room.occupants - [actor], [actor]
-                actor.position = Constants::Position::STAND
-                actor.look_room
-                return true
+                data = { success: true }
+                @game.fire_event( actor, :event_try_wake, data )
+                if data[:success]
+                    actor.output "You wake and stand up."
+                    actor.broadcast "%s wakes and stands up.", actor.room.occupants - [actor], [actor]
+                    actor.position = Constants::Position::STAND
+                    actor.look_room
+                    return true
+                else
+                    actor.output "You can't wake up!"
+                    return false
+                end
             when Constants::Position::REST, Constants::Position::STAND
                 actor.output "You are already awake."
                 return false
@@ -35,12 +42,19 @@ class CommandWake < Command
             if target
                 case target.position
                 when Constants::Position::SLEEP
-                    actor.output "You wake %s up.", target
-                    target.output "%s wakes you up.", actor
-                    target.broadcast "%s wakes %s up.", actor.room.occupants - [actor], [actor, target]
-                    target.position = Constants::Position::STAND
-                    target.look_room
-                    return true
+                    data = { success: true }
+                    @game.fire_event( actor, :event_try_wake, data )
+                    if data[:success]
+                        actor.output "You wake %s up.", target
+                        target.output "%s wakes you up.", actor
+                        target.broadcast "%s wakes %s up.", actor.room.occupants - [actor], [actor, target]
+                        target.position = Constants::Position::STAND
+                        target.look_room
+                        return true
+                    else
+                        actor.output "You can't wake %s!", [target]
+                        return false
+                    end
                 when Constants::Position::REST, Constants::Position::STAND
                     actor.output "They aren't asleep."
                     return false

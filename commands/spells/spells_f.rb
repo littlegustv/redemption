@@ -138,3 +138,50 @@ class SpellFlamestrike < Spell
         return true
     end
 end
+
+class SpellFly < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "fly",
+            keywords: ["fly"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if args.first.nil?
+            actor.apply_affect( AffectFly.new( source: actor, target: actor, level: actor.level, game: @game ) )
+        elsif ( target = @game.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+            target.apply_affect( AffectFly.new( source: actor, target: target, level: actor.level, game: @game ) )
+        else
+            actor.output "There is no one here with that name."
+        end
+    end
+end
+
+class SpellFrenzy < Spell
+    def initialize(game)
+        super(
+            game: game,
+            name: "frenzy",
+            keywords: ["frenzy"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10,
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if args.first.nil?
+            actor.apply_affect( AffectFrenzy.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        elsif ( target = @game.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+            target.apply_affect( AffectFrenzy.new( source: nil, target: target, level: actor.level, game: @game ) )
+        else
+            actor.output "There is no one here with that name."
+        end
+    end
+end

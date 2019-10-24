@@ -9,6 +9,7 @@ class Room < GameObject
     attr_reader :mobiles
     attr_reader :mobile_count
     attr_reader :players
+    attr_reader :sector
 
     def initialize( id, name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
         super(name, name.split(" "), game)

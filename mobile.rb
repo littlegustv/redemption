@@ -536,10 +536,28 @@ class Mobile < GameObject
         @active = false
     end
 
+    # this COULD be handled with events, but they are so varied that I thought I'd try it this way first...
+    def can_move?( direction )
+        if (@room.sector == "air" || @room.exits[ direction.to_sym ].sector == "air") && !self.affected?("flying")
+            output "You can't fly!"
+            return false
+        else
+            return true
+        end
+
+        # - flooded rooms & boat/swimming/fly
+        # - doors and passdoor
+        # - blocked exits
+        # - others?
+
+    end
+
     def move( direction )
         if @room.exits[ direction.to_sym ].nil?
             output "Alas, you cannot go that way."
             return false
+        elsif not can_move? direction
+            # nothing
         else
             broadcast "%s leaves #{direction}.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
             @game.fire_event(self, :event_mobile_exit, { mobile: self, direction: direction })
@@ -605,6 +623,11 @@ class Mobile < GameObject
 
     def condition
         percent = condition_percent
+        
+        data = { percent: percent }
+        @game.fire_event( self, :event_show_condition, data )
+        percent = data[:percent]
+
         if (percent >= 100)
             return "#{self} is in excellent condition.\n"
         elsif (percent >= 90)

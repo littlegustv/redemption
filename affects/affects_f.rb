@@ -104,8 +104,8 @@ class AffectFly < Affect
             game: game,
             source: source,
             target: target,
-            keywords: ["fly"],
-            name: "fly",
+            keywords: ["flying"],
+            name: "flying",
             modifiers: { none: 0 },
             level:  level,
             duration: 30,
@@ -166,6 +166,32 @@ class AffectFollow < Affect
         end
     end
 
+end
+
+class AffectFrenzy < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["frenzy"],
+            name: "frenzy",
+            level:  level,
+            duration: level * 25,
+            modifiers: {damroll: (level / 10).to_i, hitroll: (level / 10).to_i, ac_pierce: level * 20, ac_bash: level * 20, ac_slash: level * 20 },
+            application_type: :global_single
+        )
+    end
+
+    def send_start_messages
+        @target.broadcast("%s gets a wild look in their eyes!", @target.room.occupants - [@target], @target)
+        @target.output "You are filled with holy wrath!"
+    end
+
+    def complete
+        @target.output "Your rage ebbs."
+    end
 end
 
 class AffectFrost < Affect

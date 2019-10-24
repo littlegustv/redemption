@@ -284,7 +284,11 @@ module Constants
         SkillZeal,
         SkillBackstab,
         SkillPeek,
-        SkillSteal
+        SkillSteal,
+        #here
+        # SkillEnvenom,
+        # SkillShadow,
+        # SkillHide, 
     ]
 
     SPELL_CLASSES = [
@@ -361,6 +365,25 @@ module Constants
         SpellCureDisease,
         SpellHeal,
         SpellMassHealing,
+        SpellFly,
+        SpellBlindness,
+        SpellSleep, 
+        SpellGrandeur,
+        SpellMinimation,
+        SpellFrenzy,
+        SpellTaunt,
+        SpellStun,
+        SpellBless,
+        SpellHolyWord,
+        #here
+        # SpellDemonFire,
+        # SpellRayOfTruth,
+        # SpellCalm,
+        # SpellCharmPerson,
+        # SpellInfravision,
+        # SpellPassDoor,
+        # SpellScramble,
+        # SpellHeatMetal,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -414,6 +437,20 @@ module Constants
         "weaken" =>                 AffectWeaken,
         "zeal" =>                   AffectZeal,
         "spec_guard" =>             AffectGuard,
+        "flying" =>                 AffectFly,
+        "sleep" =>                  AffectSleep,
+        "grandeur" =>               AffectGrandeur,
+        "minimation" =>             AffectMinimation,
+        "frenzy" =>                 AffectFrenzy,
+        "taunt" =>                  AffectTaunt,
+        "bless" =>                  AffectBless,
+        #here
+        # "heat metal" =>             AffectHeatMetal,
+        # "calm" =>                   AffectCalm,
+        # "demonfire" =>              AffectDemonFire,
+        # "hide" =>                   AffectHide,
+        # "pass door" =>              AffectPassDoor, 
+        # "scramble" =>               AffectScramble,
     }
 
     module ClientState

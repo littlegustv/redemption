@@ -29,3 +29,20 @@ class SpellGate < Spell
     end
 
 end
+
+class SpellGrandeur < Spell
+    def initialize(game)
+        super(
+            game: game,
+            name: "grandeur",
+            keywords: ["grandeur"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.apply_affect( AffectGrandeur.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+end

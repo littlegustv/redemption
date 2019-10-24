@@ -55,11 +55,18 @@ class CommandRest < Command
     def attempt( actor, cmd, args, input )
         case actor.position
         when Constants::Position::SLEEP
-            actor.output "You wake up and rest."
-            actor.broadcast "%s wakes up and begins to rest.", actor.room.occupants - [actor], [actor]
-            actor.position = Constants::Position::REST
-            actor.look_room
-            return true
+            data = { success: true }
+            @game.fire_event( actor, :event_try_wake, data )
+            if data[:success]
+                actor.output "You wake up and rest."
+                actor.broadcast "%s wakes up and begins to rest.", actor.room.occupants - [actor], [actor]
+                actor.position = Constants::Position::REST
+                actor.look_room
+                return true            
+            else
+                actor.output "You can't wake up!"
+                return false
+            end
         when Constants::Position::REST
             actor.output "You are already resting."
             return false

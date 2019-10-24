@@ -133,6 +133,23 @@ class SpellMassInvisibility < Spell
     end
 end
 
+class SpellMinimation < Spell
+    def initialize(game)
+        super(
+            game: game,
+            name: "minimation",
+            keywords: ["minimation"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.apply_affect( AffectMinimation.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+end
+
 class SpellMirrorImage < Spell
     def initialize(game)
         super(

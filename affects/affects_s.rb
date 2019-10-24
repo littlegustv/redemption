@@ -182,6 +182,41 @@ class AffectSneak < Affect
 
 end
 
+class AffectSleep < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["sleep"],
+            name: "sleep",
+            level:  level,
+            duration: 15,
+            modifiers: { none: 0 }
+        )
+    end
+
+    def start
+        @target.position = Constants::Position::SLEEP
+        @game.add_event_listener(@target, :event_try_wake, self, :do_slept)
+    end
+
+    def complete
+        @target.position = Constants::Position::STAND
+        @game.remove_event_listener(@target, :event_try_wake, self)
+    end
+
+    def send_start_messages
+        @target.output "You feel very sleepy ..... zzzzzz."
+    end
+
+    def do_slept(data)
+        data[:success] = false
+    end
+
+end
+
 class AffectSlow < Affect
 
     def initialize(source:, target:, level:, game:)
@@ -242,16 +277,13 @@ class AffectStun < Affect
             keywords: ["stun"],
             name: "stun",
             level:  level,
-            duration: 60,
-            modifiers: { none: 0 }
+            duration: 2,
+            modifiers: { success: -50 },
         )
     end
 
     def send_start_messages
-        @target.output "You are stunned but will probably recover."
-    end
-
-    def send_complete_messages
-        @target.output "You are no longer stunned."
+        @target.output "Bands of force crush you, leaving you stunned momentarily."
+        @target.broadcast "Bands of force stun %s momentarily.", @target.room.occupants - [@target], [@target]        
     end
 end

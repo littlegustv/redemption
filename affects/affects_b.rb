@@ -53,7 +53,7 @@ class AffectBerserk < Affect
     end
 
     def complete
-        @target.output "You feel yourself being less berzerky."
+        @target.output "You feel your pulse slow down."
     end
 
     def summary
@@ -94,6 +94,33 @@ class AffectBladeRune < Affect
     def send_complete_messages
         @source.output "The blade rune on %s fades away.", [@target]
     end
+end
+
+class AffectBless < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["bless"],
+            name: "bless",
+            level: level,
+            duration: level * 120,
+            modifiers: { hitroll: 5, saves: -5 }
+        )
+    end
+
+    def send_start_messages
+        @target.output "You feel righteous."
+        @target.broadcast "%s glows with a holy aura.", @target.room.occupants - [@target], [@target]
+    end
+
+    def send_complete_messages
+        @target.output "You feel less righteous."
+        @target.broadcast "%s's holy aura fades.", @target.room.occupants - [@target], [@target]
+    end
+
 end
 
 class AffectBlind < Affect
