@@ -24,7 +24,7 @@ module MobileItem
             if item.wear_flags.include?(equip_slot.wear_flag) && !equip_slot.item
                 if !silent
                     output(equip_slot.equip_message_self, [item])
-                    broadcast(equip_slot.equip_message_others, target({ :not => self, :list => @room.occupants }), [self, item])
+                    broadcast(equip_slot.equip_message_others, @room.occupants - [self], [self, item])
                 end
                 item.move(equip_slot)
                 return true

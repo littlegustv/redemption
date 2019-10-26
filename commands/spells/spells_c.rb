@@ -1,5 +1,32 @@
 require_relative 'spell.rb'
 
+class SpellCalm < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "calm",
+            keywords: ["calm"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.room.occupants.each do | entity |
+            entity.output "A wave of calm washes over you."
+            @game.broadcast "%s calms down and loses the will to fight.", entity.room.occupants - [entity], [entity]
+            entity.remove_affect "berserk"
+            entity.remove_affect "frenzy"
+            entity.remove_affect "taunt"
+            entity.stop_combat
+            entity.apply_affect( AffectCalm.new( source: nil, target: entity, level: actor.level, game: @game ) )
+        end
+    end
+
+end
+
 class SpellCancellation < Spell
 
     def initialize(game)
@@ -189,6 +216,37 @@ class SpellChainLightning < Spell
     end
 end
 
+class SpellCharmPerson < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "charm person",
+            keywords: ["charm person"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if ( target = @game.target( { list: actor.room.occupants - [actor], visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+            if rand(1..10) <= 5
+                actor.output "%s looks at you with adoring eyes.", [target]
+                target.output "Isn't %s just so nice??", [actor]
+                target.apply_affect( AffectFollow.new( source: actor, target: target, level: 1, game: @game ) )
+                target.apply_affect( AffectCharm.new( source: actor, target: target, level: actor.level, game: @game ) )
+            else
+                actor.output "You failed."
+                target.start_combat( actor )
+            end
+        else
+            actor.output "There is no one here with that name."
+        end
+    end
+
+end
+
 class SpellCloakOfMind < Spell
 
     def initialize(game)
@@ -262,6 +320,32 @@ class SpellColorSpray < Spell
         end
         actor.deal_damage(target: target, damage: 50, noun:"color spray", element: Constants::Element::LIGHT, type: Constants::Damage::MAGICAL)
         return true
+    end
+end
+
+class SpellContinualLight < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "continual light",
+            keywords: ["continual light"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if args.first.nil?
+            item = @game.load_item( 1952, actor.inventory )
+            actor.broadcast "%s twiddles their thumbs and %s appears.", actor.room.occupants - [actor], [actor, item]
+            actor.output "You twiddle your thumbs and %s appears.", [item]
+        elsif ( target = @game.target( { list: actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+            target.apply_affect( AffectGlowing.new( source: nil, target: target, level: actor.level, game: @game ))
+        else
+            actor.output "You don't see that here."
+        end
     end
 end
 

@@ -1,5 +1,34 @@
 require_relative 'skill.rb'
 
+class SkillShadow < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "shadow",
+            keywords: ["shadow"],
+            lag: 0.25,
+            position: Constants::Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if args.first.nil?
+            actor.remove_affect("follow")
+        elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            if actor.stat(:dex) >= target.stat(:int)
+                actor.apply_affect( AffectFollow.new( source: target, target: actor, level: 1, game: @game ), silent: true )
+                actor.output "You begin to secretly follow %s.", [target]
+            else
+                actor.output "Your attempt is painfully obvious."
+                actor.apply_affect( AffectFollow.new( source: target, target: actor, level: 1, game: @game ) )                
+            end
+        else
+            actor.output "They aren't here"
+        end
+    end
+end
+
 class SkillSneak < Skill
 
     def initialize(game)

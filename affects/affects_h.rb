@@ -69,3 +69,61 @@ class AffectHatchling < Affect
     end
 
 end
+
+class AffectHide < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["hide"],
+            name: "hide",
+            level:  level,
+            permanent: true,
+            modifiers: { none: 0 }
+        )
+    end
+
+    def start
+        @game.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
+        @game.add_event_listener(@target, :event_mobile_exit, self, :do_remove_affect)
+        @game.add_event_listener(@target, :event_try_can_be_seen, self, :do_hide)
+        @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_hide_aura)
+    end
+
+    def complete
+        @game.remove_event_listener(@target, :event_on_start_combat, self)
+        @game.remove_event_listener(@target, :event_mobile_exit, self)
+        @game.remove_event_listener(@target, :event_try_can_be_seen, self)
+        @game.remove_event_listener(@target, :event_calculate_aura_description, self)
+    end
+
+    def send_start_messages
+        @target.output "You fade out of existence."
+        @game.broadcast "%s fades from existence.", @target.room.occupants - [@target], [@target]
+    end
+
+    def send_complete_messages
+        @target.output "You fade into existence."
+        room  = @target.room
+        @game.broadcast "%s fades into existence.", @target.room.occupants - [@target], [@target]
+    end
+
+    def do_remove_affect(data)
+        clear
+    end
+
+    def do_hide(data)
+        if data[:observer].stat(:int) > @target.stat(:dex)
+            data[:chance] *= 1
+        else
+            data[:chance] *= 0
+        end
+    end
+
+    def do_hide_aura(data)
+        data[:description] = "(Hiding) " + data[:description]
+    end
+
+end

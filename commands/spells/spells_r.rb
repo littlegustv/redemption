@@ -1,5 +1,48 @@
 require_relative 'spell.rb'
 
+class SpellRayOfTruth < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "ray of truth",
+            keywords: ["ray of truth"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def cast( actor, cmd, args, input )
+        if args.first.nil? && actor.attacking.nil?
+            actor.output "Cast the spell on who, now?"
+            return
+        else
+            super
+        end
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = nil
+        if actor.alignment <= 100
+            actor.output "The energy explodes inside you!"
+            target = actor
+        elsif args.first.nil? && actor.attacking
+            target = actor.attacking
+        elsif !args.first.nil?
+            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        end
+        if !target
+            actor.output "They aren't here."
+            return false
+        end
+
+        actor.alignment = [ actor.alignment + 50, 1000 ].min
+        actor.deal_damage(target: target, damage: 50, noun: "divine power", element: Constants::Element::HOLY, type: Constants::Damage::MAGICAL)
+        return true
+    end
+end
+
 class SpellRefresh < Spell
 
     def initialize(game)

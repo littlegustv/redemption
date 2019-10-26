@@ -1,5 +1,27 @@
 require_relative 'affect.rb'
 
+class AffectCalm < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["calm"],
+            name: "calm",
+            level:  level,
+            duration: 60 * level,
+            application_type: :global_single,
+            modifiers: { hitroll: -5, damroll: -5 }
+        )
+    end
+
+    def send_complete_messages
+        @target.output "You have lost your peace of mind."
+    end
+
+end
+
 class AffectCharm < Affect
 
     def initialize(source:, target:, level:, game:)
@@ -11,7 +33,6 @@ class AffectCharm < Affect
             name: "charm",
             level:  level,
             duration: 60 * level,
-            hidden: true,
             application_type: :global_single
         )
     end

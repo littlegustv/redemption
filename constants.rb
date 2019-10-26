@@ -24,6 +24,10 @@ module Constants
         }
     end
 
+    module Materials
+        METAL = ["steel", "silver", "iron", "mithril", "brass", "adamantite", "bronze", "gold", "metal", "lead", "copper", "pewter", "rust"]
+    end
+
     module Element
         NONE = 0
         BASH = 1
@@ -288,10 +292,10 @@ module Constants
         SkillBackstab,
         SkillPeek,
         SkillSteal,
-        #here
-        # SkillEnvenom,
-        # SkillShadow,
-        # SkillHide, 
+        SkillShadow,
+        SkillEnvenom,
+        SkillHide, 
+        # SkillPickLock
     ]
 
     SPELL_CLASSES = [
@@ -313,6 +317,7 @@ module Constants
         SpellDetectInvisibility,
         SpellDetectMagic,
         SpellEnchantWeapon,
+        SpellEnchantArmor,
         SpellEnergyDrain,
         SpellFireRune,
         SpellGate,
@@ -381,12 +386,13 @@ module Constants
         SpellDemonFire,
         SpellScramble,
         SpellInfravision,
+        SpellContinualLight,
+        SpellCharmPerson,
+        SpellCalm,
+        SpellHeatMetal,
+        SpellRayOfTruth,
         #here
-        # SpellRayOfTruth,
-        # SpellCalm,
-        # SpellCharmPerson,
         # SpellPassDoor,
-        # SpellHeatMetal,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -409,6 +415,7 @@ module Constants
         "detect invisible" =>       AffectDetectInvisibility,
         "detect_invis" =>           AffectDetectInvisibility,
         "enchant weapon" =>         AffectEnchantWeapon,
+        "enchant armor" =>          AffectEnchantWeapon,
         "fireblind" =>              AffectFireBlind,
         "flooding" =>               AffectFlooding,
         "follow" =>                 AffectFollow,
@@ -454,10 +461,10 @@ module Constants
         "infravision" =>            AffectInfravision,
         "infrared" =>               AffectInfravision,
         "indoors" =>                AffectIndoors,
+        "calm" =>                   AffectCalm,
 
         #here
         # "heat metal" =>             AffectHeatMetal,
-        # "calm" =>                   AffectCalm,
         # "hide" =>                   AffectHide,
         # "pass door" =>              AffectPassDoor, 
     }

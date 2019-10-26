@@ -8,6 +8,7 @@ class Item < GameObject
     attr_reader :id
     attr_reader :wear_flags
     attr_reader :parent_inventory
+    attr_reader :material
 
     def initialize( data, game, parent_inventory )
         super(data[:short_description], data[:keywords], game)
@@ -27,7 +28,7 @@ class Item < GameObject
         @parent_inventory = nil
         # @ac = data[:ac] || [0,0,0,0]
 
-        apply_affect_flags( @extra_flags.split(","), silent: true )
+        apply_affect_flags( @extra_flags, silent: true )
 
         move(parent_inventory)
     end

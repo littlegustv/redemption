@@ -508,7 +508,7 @@ class Game
                 wear_location: row[:wear_flags].match(/(wear_\w+|wield|hold|light)/).to_a[1].to_s.gsub("wear_", ""),
                 wear_flags: row[:wear_flags].split(","),
                 material: row[:material],
-                extra_flags: row[:extra_flags],
+                extra_flags: row[:extra_flags].to_s.split(","),
                 modifiers: {},
                 ac: @ac_data[ id ].to_h.reject{ |k, v| [:id, :item_id].include?(k) }
             }

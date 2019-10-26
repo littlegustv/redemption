@@ -23,6 +23,42 @@ class SpellEarthquake < Spell
     end
 end
 
+class SpellEnchantArmor < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "enchant armor",
+            keywords: ["enchant armor", "enchant armour"],
+            lag: 2,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def cast( actor, cmd, args, input )
+        if args.first.nil?
+            actor.output "Cast the spell on what now?"
+        else
+            super
+        end
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if ( target = actor.target({ list: actor.inventory.items, item_type: "armor" }.merge( args.first.to_s.to_query )).first )
+            fail = 25
+            # dam =
+            affect = AffectEnchantArmor.new( source: nil, target: target, level: actor.level, game: @game )
+            affect.overwrite_modifiers({ ac_pierce: -1 * level, ac_slash: -1 * level, ac_bash: -1 * level, ac_magic: -1 * level })
+            target.apply_affect( affect )
+            return true
+        else
+            actor.output "You don't see that here."
+            return false
+        end
+    end
+end
+
 class SpellEnchantWeapon < Spell
 
     def initialize(game)

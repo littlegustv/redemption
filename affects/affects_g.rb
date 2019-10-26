@@ -15,6 +15,14 @@ class AffectGlowing < Affect
         )
     end
 
+    def send_start_messages
+        @game.broadcast "%s glows with a white light.", @target.room.occupants, [@target]
+    end
+
+    def send_complete_messages
+        @game.broadcast "%s loses its glow.", @target.room.occupants, [@target]
+    end
+
     def start
         @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_glowing_aura)
     end
