@@ -84,6 +84,45 @@ class AffectImmune < Affect
 
 end
 
+class AffectIndoors < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["indoors"],
+            name: "indoors",
+            level:  level,
+            duration: 60,
+        )
+    end
+end
+
+class AffectInfravision < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["infravision"],
+            name: "infravision",
+            level:  level,
+            duration: 60,
+        )
+    end
+
+    def send_start_messages
+        @target.output "Your eyes glow red."
+        @game.broadcast "%s's eyes glow red.", @target.room.occupants - [@target], [@target]
+    end
+
+    def send_complete_messages
+        @target.output "You no longer see in the dark."
+    end
+end
+
 class AffectInvisibility < Affect
 
     def initialize(source:, target:, level:, game:)

@@ -356,6 +356,8 @@ class Game
         ( @players ).each do | entity |
             entity.tick
         end
+
+        weather
     end
 
     def repop
@@ -830,6 +832,23 @@ class Game
         day = ( hour / 24 ).to_i
         year = 1 + ( day / ( 30 * Constants::Time::MONTHS.count )).to_i
         return [ hour, day, year ]
+    end
+
+    def daytime?
+        time.first.between?(Constants::Time::SUNRISE, Constants::Time::SUNSET)
+    end
+
+    def weather
+        # just day/night messages at the moment
+        if time.first == Constants::Time::SUNRISE
+            broadcast "The sun rises in the east.", @players
+        elsif time.first == Constants::Time::SUNRISE + 1
+            broadcast "The day has begun.", @players
+        elsif time.first == Constants::Time::SUNSET + 1
+            broadcast "The sun slowly disappears in the west.", @players
+        elsif time.first == Constants::Time::SUNSET + 1
+            broadcast "The night has begun.", @players
+        end
     end
 
 end

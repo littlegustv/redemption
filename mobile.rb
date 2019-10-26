@@ -704,6 +704,7 @@ class Mobile < GameObject
         return true if target == self
         data = {chance: 100, target: target, observer: self}
         @game.fire_event(self, :event_try_can_see, data)
+        @game.fire_event(self.room, :event_try_can_see_room, data)
         @game.fire_event(target, :event_try_can_be_seen, data) if target
         chance = data[:chance]
         if chance >= 100

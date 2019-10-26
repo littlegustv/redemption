@@ -80,7 +80,7 @@ class CommandLoadItem < Command
             actor.output "Syntax: loaditem <id>"
             return false
         else
-            item = actor.game.load_item( args.first.to_i, actor.inventory.items )
+            item = actor.game.load_item( args.first.to_i, actor.inventory )
             if !item
                 actor.output "No such item."
                 return false

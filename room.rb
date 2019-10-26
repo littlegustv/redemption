@@ -31,6 +31,8 @@ class Room < GameObject
         @mobile_count = {}
         @players = []
         @inventory = Inventory.new(owner: self, game: @game)
+
+        apply_affect_flags( @flags.to_a )
     end
 
     def show( looker )
@@ -38,17 +40,18 @@ class Room < GameObject
             out = "#{ @name }\n" +
             "#{ @description }\n" +
             "[Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]"
-            item_list = @inventory.show(observer: looker, long: true)
             description_data = {extra_show: ""}
             @game.fire_event(self, :event_calculate_room_description, description_data)
             out += description_data[:extra_show]
-            out += "\n#{item_list}" if item_list.length > 0
-            visible_occupant_longs = @game.target({ list: self.occupants, :not => looker, visible_to: looker }).map{ |t| t.show_long_description(observer: looker) }
-            out += "\n#{visible_occupant_longs.join("\n")}" if visible_occupant_longs.length > 0
-            return out
         else
-            return "You can't see a thing!"
+            out = "It is pitch black ..."
         end
+        item_list = @inventory.show(observer: looker, long: true)
+        out += "\n#{item_list}" if item_list.length > 0
+        
+        visible_occupant_longs = @game.target({ list: self.occupants, :not => looker, visible_to: looker }).map{ |t| t.show_long_description(observer: looker) }
+        out += "\n#{visible_occupant_longs.join("\n")}" if visible_occupant_longs.length > 0
+        return out
     end
 
     def mobile_enter(mobile)

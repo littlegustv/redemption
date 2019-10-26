@@ -99,6 +99,28 @@ class CommandWear < Command
 
 end
 
+class CommandWeather < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "weather",
+            keywords: ["weather"],
+            position: Constants::Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if actor.room.affected? "indoors"
+            actor.output "You can't see the weather indoors!"
+        else
+            actor.output "The sky is cloudy and a warm southerly breeze blows."
+        end
+        return true
+    end
+
+end
+
 class CommandWhere < Command
 
     def initialize(game)

@@ -1,5 +1,34 @@
 require_relative 'affect.rb'
 
+class AffectGlowing < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["glowing"],
+            name: "glowing",
+            level:  level,
+            duration: level.to_i * 60,
+            modifiers: { none: 0 }
+        )
+    end
+
+    def start
+        @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_glowing_aura)
+    end
+
+    def complete
+        @game.remove_event_listener(@target, :event_calculate_aura_description, self)
+    end
+
+    def do_glowing_aura(data)
+        data[:description] = "(Glowing) " + data[:description]
+    end
+
+end
+
 class AffectGrandeur < Affect
 
     def initialize(source:, target:, level:, game:)

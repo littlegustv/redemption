@@ -8,6 +8,8 @@ module Constants
             "the Sun", "the Heat", "the Battle", "the Dark Shades", "the Shadows",
             "the Long Shadows", "the Ancient Darkness", "the Great Evil"
         ]
+        SUNRISE = 6
+        SUNSET = 18
     end
 
     module Position
@@ -269,6 +271,7 @@ module Constants
         CommandWorth,
         CommandYell,
         CommandTime,
+        CommandWeather
     ]
 
     SKILL_CLASSES = [
@@ -377,11 +380,11 @@ module Constants
         SpellHolyWord,
         SpellDemonFire,
         SpellScramble,
+        SpellInfravision,
         #here
         # SpellRayOfTruth,
         # SpellCalm,
         # SpellCharmPerson,
-        # SpellInfravision,
         # SpellPassDoor,
         # SpellHeatMetal,
     ]
@@ -416,6 +419,7 @@ module Constants
         "ignore wounds" =>          AffectIgnoreWounds,
         "invisibility" =>           AffectInvisibility,
         "invisible" =>              AffectInvisibility,
+        "invis" =>                  AffectInvisibility,
         "killer" =>                 AffectKiller,
         "living stone" =>           AffectLivingStone,
         "mirror image" =>           AffectMirrorImage,
@@ -445,6 +449,12 @@ module Constants
         "taunt" =>                  AffectTaunt,
         "bless" =>                  AffectBless,
         "scramble" =>               AffectScramble,
+        "dark" =>                   AffectDark,
+        "glowing" =>                AffectGlowing,
+        "infravision" =>            AffectInfravision,
+        "infrared" =>               AffectInfravision,
+        "indoors" =>                AffectIndoors,
+
         #here
         # "heat metal" =>             AffectHeatMetal,
         # "calm" =>                   AffectCalm,

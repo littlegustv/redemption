@@ -54,6 +54,31 @@ class SpellIgnoreWounds < Spell
     end
 end
 
+class SpellInfravision < Spell
+    def initialize(game)
+        super(
+            game: game,
+            name: "infravision",
+            keywords: ["infravision"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = nil
+        if args.first.nil?
+            target = actor
+        elsif !(target = @game.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query() )).first)
+            actor.output "You don't see anything like that here."
+            return false
+        end
+        target.apply_affect( AffectInfravision.new( source: actor, target: target, level: level, game: @game ) )
+        return true
+    end
+end
+
 class SpellInvisibility < Spell
     def initialize(game)
         super(

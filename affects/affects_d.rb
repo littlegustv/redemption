@@ -1,5 +1,46 @@
 require_relative 'affect.rb'
 
+# this is NORMAL darkness, for the room affect, not the super-dark that black dragons get
+
+class AffectDark < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["dark"],
+            name: "dark",
+            level:  level,
+            duration: 60,
+        )
+    end
+
+    def start
+        @game.add_event_listener(@target, :event_try_can_see_room, self, :do_dark)
+    end
+
+    def complete
+        @game.remove_event_listener(@target, :event_try_can_see_room, self)
+    end
+
+    def do_dark( data )
+        if !@target.affected?("indoors") && @game.daytime?  # a dark room in daytime is lit by the sun (if it is outside)
+            # nothing
+        elsif !data[:observer].equipped("light").empty?     # a dark room is lit by an equipped light
+            # nothing
+        elsif data[:target].affected? "glowing"             # a glowing item is visible even in darkness
+            # nothing
+        elsif data[:observer].affected?("infravision") && ["Mobile", "Player"].include?(data[:target].class.to_s)
+            # nothing
+        else
+            data[:chance] *= 0
+        end
+        # log "#{data[:observer].affected?("infravision") && ["Mobile", "Player"].include?(data[:target].class.to_s)}"
+    end
+
+end
+
 class AffectDeathRune < Affect
 
     def initialize(source:, target:, level:, game:)

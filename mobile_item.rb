@@ -103,6 +103,11 @@ module MobileItem
         return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_flag == "wield" }.map(&:item)
     end
 
+    # return an array of equipped items in equip_slots with arbitrary wear flag
+    def equipped( slot )
+        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_flag == slot }.map(&:item)
+    end
+
     # puts an item into a container
     def put_item(item, container)
         if item == container

@@ -27,6 +27,8 @@ class Item < GameObject
         @parent_inventory = nil
         # @ac = data[:ac] || [0,0,0,0]
 
+        apply_affect_flags( @extra_flags.split(","), silent: true )
+
         move(parent_inventory)
     end
 
