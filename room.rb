@@ -39,7 +39,7 @@ class Room < GameObject
         if looker.can_see? self
             out = "#{ @name }\n" +
             "#{ @description }\n" +
-            "[Exits: #{ @exits.select { |direction, room| not room.nil? }.keys.join(", ") }]"
+            "[Exits: #{ @exits.select { |direction, room| not room.nil? }.map{ |k, v| v.to_s }.join(", ") }]"
             description_data = {extra_show: ""}
             @game.fire_event(self, :event_calculate_room_description, description_data)
             out += description_data[:extra_show]

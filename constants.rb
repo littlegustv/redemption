@@ -24,6 +24,17 @@ module Constants
         }
     end
 
+    module Directions
+        INVERSE = {
+            north: :south,
+            south: :north,
+            up: :down,
+            down: :up,
+            east: :west,
+            west: :east
+        }
+    end
+
     module Materials
         METAL = ["steel", "silver", "iron", "mithril", "brass", "adamantite", "bronze", "gold", "metal", "lead", "copper", "pewter", "rust"]
     end
@@ -275,7 +286,11 @@ module Constants
         CommandWorth,
         CommandYell,
         CommandTime,
-        CommandWeather
+        CommandWeather,
+        CommandOpen,
+        CommandClose,
+        CommandLock,
+        CommandUnlock,
     ]
 
     SKILL_CLASSES = [
@@ -391,8 +406,7 @@ module Constants
         SpellCalm,
         SpellHeatMetal,
         SpellRayOfTruth,
-        #here
-        # SpellPassDoor,
+        SpellPassDoor,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -462,11 +476,8 @@ module Constants
         "infrared" =>               AffectInfravision,
         "indoors" =>                AffectIndoors,
         "calm" =>                   AffectCalm,
-
-        #here
-        # "heat metal" =>             AffectHeatMetal,
-        # "hide" =>                   AffectHide,
-        # "pass door" =>              AffectPassDoor, 
+        "hide" =>                   AffectHide,
+        "pass door" =>              AffectPassDoor, 
     }
 
     module ClientState

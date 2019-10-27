@@ -1,5 +1,32 @@
 require_relative 'affect.rb'
 
+class AffectPassDoor < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["pass door"],
+            name: "pass door",
+            level:  level,
+            duration: 180 * level,
+            modifiers: { none: 0 },
+            application_type: :source_single
+        )
+    end
+
+    def send_start_messages
+        @target.output "You turn translucent."
+        @target.broadcast "%s turns translucent.", @target.room.occupants - [@target], [@target]
+    end
+
+    def send_complete_messages
+        @target.output "You feel solid again."
+    end
+
+end
+
 class AffectPlague < Affect
 
     def initialize(source:, target:, level:, game:)

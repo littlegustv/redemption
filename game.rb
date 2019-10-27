@@ -749,9 +749,10 @@ class Game
     # destroy a room object
     def destroy_room(room)
         @rooms.each do |other_room| # remove exits that go to the room being destroyed
-            other_room.exits.each do |direction, exit_room|
-                if exit_room == room
+            other_room.exits.each do |direction, exit|
+                if exit.desination == room
                     other_room[direction] = nil
+                    # destroy exit object as well?
                 end
             end
         end

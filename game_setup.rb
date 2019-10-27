@@ -304,6 +304,7 @@ module GameSetup
 
     # Construct room objects
     protected def make_rooms
+        exit_inverse_list = {}
         @room_data.each do |id, row|
             @rooms[id] = Room.new(
                 row[:id],
@@ -322,7 +323,25 @@ module GameSetup
         # assign each exit to its room in the hash (if the destination exists)
         @exit_data.each do |id, row|
             if @rooms[row[:room_id]] && @rooms[row[:to_room_id]]
-                @rooms[row[:room_id]].exits[row[:direction].to_sym] = @rooms[row[:to_room_id]]
+                exit = Exit.new(    row[:direction],
+                                    @rooms[row[:room_id]], 
+                                    @rooms[row[:to_room_id]], 
+                                    row[:flags].to_s.split(" "), 
+                                    row[:key_id], 
+                                    row[:keywords].split + [ row[:direction] ], # i.e. [oak,door,north] 
+                                    row[:description] )
+                @rooms[row[:room_id]].exits[row[:direction].to_sym] = exit
+                
+                # adds the exit to this list with the key :inverse-direction_room-origin-id
+                # 
+                # this is the direction/room pair that the exit on the "other side" will have
+                # 
+                # all of this is so that exits have 'paired' actions - a door is opened or closed at both ends
+                
+                exit_inverse_list[ "#{Constants::Directions::INVERSE[ row[:direction].to_sym ]}_#{row[:room_id]}".to_sym ] = exit
+                if (pair = exit_inverse_list[ "#{row[:direction]}_#{row[:to_room_id]}".to_sym ])
+                    exit.add_pair( pair )
+                end
             end
         end
         @starting_room = @rooms[@db[:continent_base].to_hash(:id)[2][:starting_room_id]]

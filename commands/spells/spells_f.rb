@@ -45,7 +45,7 @@ class SpellFarsight < Spell
         output = ""
         if distance >= 3
             return ""
-        elsif (newroom = room.exits[ direction ])
+        elsif ( newroom = room.exits[ direction ].destination )
             output += newroom.occupants.map{ |occupant| "#{occupant}, #{describe(distance, direction)}" }.join("\n")
             return output + scan( newroom, direction, distance + 1 )
         else

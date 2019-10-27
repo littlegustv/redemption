@@ -543,7 +543,7 @@ class Mobile < GameObject
 
     # this COULD be handled with events, but they are so varied that I thought I'd try it this way first...
     def can_move?( direction )
-        if (@room.sector == "air" || @room.exits[ direction.to_sym ].sector == "air") && !self.affected?("flying")
+        if (@room.sector == "air" || @room.exits[ direction.to_sym ].destination.sector == "air") && !self.affected?("flying")
             output "You can't fly!"
             return false
         else
@@ -567,16 +567,19 @@ class Mobile < GameObject
             broadcast "%s leaves #{direction}.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
             @game.fire_event(self, :event_mobile_exit, { mobile: self, direction: direction })
             old_room = @room
-            move_to_room(@room.exits[direction.to_sym])
-            broadcast "%s has arrived.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
-            (old_room.occupants - [self]).select { |t| t.position == Constants::Position::STAND }.each do |t|
-                @game.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
+            if @room.exits[direction.to_sym].move( self )
+                broadcast "%s has arrived.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
+                (old_room.occupants - [self]).select { |t| t.position == Constants::Position::STAND }.each do |t|
+                    @game.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
+                end
+                @game.fire_event( self, :event_mobile_enter, { mobile: self } )
+                (@room.occupants - [self]).each do |t|
+                    @game.fire_event( t, :event_observe_mobile_enter, {mobile: self} )
+                end
+                return true
+            else
+                return false
             end
-            @game.fire_event( self, :event_mobile_enter, { mobile: self } )
-            (@room.occupants - [self]).each do |t|
-                @game.fire_event( t, :event_observe_mobile_enter, {mobile: self} )
-            end
-            return true
         end
     end
 

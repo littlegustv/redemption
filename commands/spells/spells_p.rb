@@ -1,5 +1,24 @@
 require_relative 'spell.rb'
 
+class SpellPassDoor < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "pass door",
+            keywords: ["pass door"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.apply_affect( AffectPassDoor.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
+end
+
 class SpellPhantasmMonster < Spell
 
     def initialize(game)
