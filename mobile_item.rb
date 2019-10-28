@@ -108,6 +108,10 @@ module MobileItem
         return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_flag == slot }.map(&:item)
     end
 
+    def free?( slot )
+        return self.equip_slots.any?{ |equip_slot| equip_slot.item.nil? && equip_slot.wear_flag == slot }
+    end
+
     # puts an item into a container
     def put_item(item, container)
         if item == container

@@ -1,5 +1,23 @@
 require_relative 'skill.rb'
 
+class SkillLair < Skill
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "lair",
+            keywords: ["lair"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        actor.room.apply_affect( AffectLair.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
+    end
+
+end
+
 class SkillLivingStone < Command
 
     def initialize(game)

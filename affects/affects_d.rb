@@ -25,7 +25,9 @@ class AffectDark < Affect
     end
 
     def do_dark( data )
-        if !@target.affected?("indoors") && @game.daytime?  # a dark room in daytime is lit by the sun (if it is outside)
+        if data[:observer].affected?("dark_vision")
+            #nothing
+        elsif !@target.affected?("indoors") && @game.daytime?  # a dark room in daytime is lit by the sun (if it is outside)
             # nothing
         elsif !data[:observer].equipped("light").empty?     # a dark room is lit by an equipped light
             # nothing
@@ -36,7 +38,69 @@ class AffectDark < Affect
         else
             data[:chance] *= 0
         end
-        # log "#{data[:observer].affected?("infravision") && ["Mobile", "Player"].include?(data[:target].class.to_s)}"
+    end
+
+end
+
+class AffectDarkness < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["darkness"],
+            name: "darkness",
+            level:  level,
+            duration: 60 * level,
+        )
+    end
+
+    def start
+        @game.add_event_listener(@target, :event_try_can_see_room, self, :do_dark)
+        @game.add_event_listener(@target, :event_calculate_room_description, self, :darkness_description)
+    end
+
+    def complete
+        @game.remove_event_listener(@target, :event_try_can_see_room, self)
+        @game.remove_event_listener(@target, :event_calculate_room_description, self)
+    end
+
+    def darkness_description(data)
+        data[:extra_show] += "\nA cloud of inpenetrable darkness covers the room!"
+    end
+
+    def send_start_messages
+        @source.output "You plunge the room into absolute darkness!"
+        @game.broadcast "%s plunges the room into total darkness!", @target.occupants - [@source], [@source]
+    end
+
+    def send_complete_messages
+        @game.broadcast "The cloud of darkness is lifted from the room.", @target.occupants
+    end
+
+    def do_dark( data )
+        if data[:observer].affected?("dark_vision")
+            # nothing
+        else
+            data[:chance] *= 0
+        end
+    end
+
+end
+
+class AffectDarkVision < Affect
+
+    def initialize(source:, target:, level:, game:)
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["dark_vision"],
+            name: "dark_vision",
+            level:  level,
+            duration: 60,
+        )
     end
 
 end

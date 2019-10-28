@@ -133,7 +133,7 @@ class CommandWhere < Command
     end
 
     def attempt( actor, cmd, args, input )
-        targets = actor.target( { type: "Player", area: actor.room.area, visible_to: actor } )
+        targets = actor.target( {  list: actor.room.area.players, visible_to: actor, where_to: actor } )
         actor.output %Q(
 Current Area: #{ actor.room.area }. Level Range: ? ?
 Players near you:

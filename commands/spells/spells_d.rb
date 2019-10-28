@@ -1,5 +1,24 @@
 require_relative 'spell.rb'
 
+class SpellDarkness < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "darkness",
+            keywords: ["darkness"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.room.apply_affect( AffectDarkness.new( source: actor, target: actor.room, level: level, game: @game ) )
+    end
+
+end
+
 class SpellDeathRune < Spell
 
     def initialize(game)

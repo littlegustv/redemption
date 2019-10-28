@@ -310,7 +310,9 @@ module Constants
         SkillShadow,
         SkillEnvenom,
         SkillHide, 
-        # SkillPickLock
+        SkillPickLock,
+        SkillAppraise,
+        SkillLair,
     ]
 
     SPELL_CLASSES = [
@@ -407,6 +409,14 @@ module Constants
         SpellHeatMetal,
         SpellRayOfTruth,
         SpellPassDoor,
+        SpellCreateFood,
+        SpellCreateRose,
+        SpellCreateSpring,
+        SpellFloatingDisc,
+        SpellDarkness,
+        SpellKarma,
+        # SpellPortal,
+        # SpellNexus,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -477,7 +487,11 @@ module Constants
         "indoors" =>                AffectIndoors,
         "calm" =>                   AffectCalm,
         "hide" =>                   AffectHide,
-        "pass door" =>              AffectPassDoor, 
+        "pass door" =>              AffectPassDoor,
+        "darkness" =>               AffectDarkness,
+        "lair" =>                   AffectLair,
+        "karma" =>                  AffectKarma,
+        "dark_vision" =>            AffectDarkVision,
     }
 
     module ClientState

@@ -1,5 +1,24 @@
 require_relative 'spell.rb'
 
+class SpellKarma < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "karma",
+            keywords: ["karma"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.apply_affect( AffectKarma.new( source: nil, target: actor, level: actor.level, game: @game ) )
+    end
+
+end
+
 class SpellKnowAlignment < Spell
 
     def initialize(game)

@@ -60,3 +60,30 @@ class SkillPeek < Skill
     end
 
 end
+
+class SkillPickLock < Skill
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "pick lock",
+            keywords: ["pick lock"],
+            lag: 0.25,
+            position: Constants::Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if ( target = @game.target( { list: actor.room.exits.values }.merge( args.first.to_s.to_query ) ).first )
+            if rand(0...10) < 5
+                return target.unlock( actor, override: true )
+            else
+                actor.output "You failed."
+                return false
+            end
+        else
+            actor.output "There is no exit in that direction."
+            return false
+        end
+    end
+end

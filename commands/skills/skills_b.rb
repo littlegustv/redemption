@@ -57,7 +57,7 @@ class SkillBash < Skill
     def attempt( actor, cmd, args, input )
         target = nil
         if args.length > 0
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target({ list: actor.room.occupants + actor.room.exits.values, visible_to: actor }.merge( args.first.to_s.to_query )).first
         else
             target = actor.attacking
         end
@@ -78,11 +78,26 @@ class SkillBash < Skill
     end
 
     def do_bash( actor, target )
-        actor.output "You slam into %s, and send him flying!", [target]
-        target.output "%s sends you flying with a powerful bash!", [actor]
-        actor.broadcast "%s sends %s flying with a powerful bash!", actor.room.occupants - [ actor, target ], [actor, target]
-        actor.deal_damage(target: target, damage: 100, noun:"bash", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
-        target.lag += @data[:target_lag]
+        if target.class == Exit
+            unlocked = target.unlock( actor, silent: true, override: true )
+            opened = target.open( actor, silent: true, override: true )
+            # check both opened and unlocked seperately, since you might be bashing a closed, unlocked door
+            if opened || unlocked
+                actor.output "Bang!* You bash the door in."
+                @game.broadcast "%s bashes in the #{ target.short }.", actor.room.occupants - [actor], [actor]
+                if target.pair
+                    @game.broadcast "The #{ target.short } is suddenly thrown backwards!", target.pair.origin.occupants - [actor]
+                end
+            else
+                #
+            end
+        else
+            actor.output "You slam into %s, and send him flying!", [target]
+            target.output "%s sends you flying with a powerful bash!", [actor]
+            actor.broadcast "%s sends %s flying with a powerful bash!", actor.room.occupants - [ actor, target ], [actor, target]
+            actor.deal_damage(target: target, damage: 100, noun:"bash", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
+            target.lag += @data[:target_lag]
+        end
     end
 end
 

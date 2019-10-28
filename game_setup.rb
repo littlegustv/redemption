@@ -323,7 +323,8 @@ module GameSetup
         # assign each exit to its room in the hash (if the destination exists)
         @exit_data.each do |id, row|
             if @rooms[row[:room_id]] && @rooms[row[:to_room_id]]
-                exit = Exit.new(    row[:direction],
+                exit = Exit.new(    self,
+                                    row[:direction],
                                     @rooms[row[:room_id]], 
                                     @rooms[row[:to_room_id]], 
                                     row[:flags].to_s.split(" "), 

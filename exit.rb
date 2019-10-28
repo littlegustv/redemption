@@ -1,8 +1,8 @@
-class Exit
+class Exit < GameObject
 
-	attr_reader :destination, :origin
+	attr_reader :destination, :origin, :pair
 
-	def initialize( direction, origin, destination, flags, key_id, keywords, description = nil )
+	def initialize( game, direction, origin, destination, flags, key_id, keywords, description = nil )
 		@direction = direction
 		@origin = origin
 		@destination = destination
@@ -12,9 +12,9 @@ class Exit
 		@closed = @flags.include?("door")
 		@locked = @key_id != nil
 
-		@keywords = keywords
 		@description = description.to_s
 		@pair = nil
+		super( direction, keywords, game )
 	end
 
 	def add_pair( exit )
@@ -28,7 +28,7 @@ class Exit
     def fuzzy_match( query )
         query.to_a.all?{ |q|
             @keywords.any?{ |keyword|
-                keyword.fuzzy_match( q )
+                keyword.to_s.fuzzy_match( q )
             }
         }
     end
@@ -64,11 +64,11 @@ class Exit
 		end
 	end
 
-	def unlock( actor, silent: false )
+	def unlock( actor, silent: false, override: false )
 		if not @locked
 			actor.output "It isn't locked." unless silent
 			return false
-		elsif actor.items.map(&:id).include?(@key_id)
+		elsif actor.items.map(&:id).include?(@key_id) || override
 			
 			unless silent
 				actor.output "Click."
@@ -76,7 +76,7 @@ class Exit
 			end
 
 			@locked = false
-			@pair.unlock( actor, silent: true ) if @pair
+			@pair.unlock( actor, silent: true, override: override ) if @pair
 			return true
 		else
 			actor.output "You lack the key." unless silent
@@ -84,7 +84,7 @@ class Exit
 		end
 	end
 
-	def open( actor, silent: false )
+	def open( actor, silent: false, override: false )
 		if @locked
 			actor.output "It's locked." unless silent
 			return false
@@ -96,7 +96,7 @@ class Exit
 			end
 
 			@closed = false
-			@pair.open( actor, silent: true ) if @pair
+			@pair.open( actor, silent: true, override: override ) if @pair
 			return true
 		else
 			actor.output "It's already open." unless silent

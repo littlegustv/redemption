@@ -349,6 +349,95 @@ class SpellContinualLight < Spell
     end
 end
 
+class SpellFloatingDisc < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "floating disc",
+            keywords: ["floating disc"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        if actor.free?("wear_float")
+            actor.output "You create a floating disc."
+            actor.broadcast "%s has created a floating black disc.", actor.room.occupants - [actor], [actor]
+            disc = @game.load_item( 1954, actor.inventory )
+            actor.wear( item: disc )
+            return true
+        else
+            actor.output "Your airspace is too crowded for any more entities."
+            return false
+        end
+    end
+
+end
+
+class SpellCreateFood < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "create food",
+            keywords: ["create food"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        food = @game.load_item( 1951, actor.room.inventory )
+        actor.broadcast "%s suddenly appears.", actor.room.occupants, [food]
+    end
+
+end
+
+class SpellCreateRose < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "create rose",
+            keywords: ["create rose"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.output "You create a beautiful red rose."
+        actor.broadcast "%s has created a beautiful red rose.", actor.room.occupants - [actor], [actor]
+        @game.load_item( 846, actor.room.inventory )
+    end
+
+end
+
+class SpellCreateSpring < Spell
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "create spring",
+            keywords: ["create spring"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 5
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        spring = @game.load_item( 1953, actor.room.inventory )
+        actor.broadcast "%s flows from the ground.", actor.room.occupants, [spring]
+    end
+
+end
+
 class SpellCureBlindness < Spell
 
     def initialize(game)

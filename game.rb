@@ -309,6 +309,7 @@ class Game
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                           if query[:keyword]
         targets = targets.select { |t| query[:visible_to].can_see? t }                                              if query[:visible_to]
+        targets = targets.select { |t| query[:where_to].can_where? t }                                              if query[:where_to]
 
         targets = targets[0...query[:limit].to_i]                                                                   if query[:limit]
 
@@ -845,7 +846,7 @@ class Game
             broadcast "The sun rises in the east.", @players
         elsif time.first == Constants::Time::SUNRISE + 1
             broadcast "The day has begun.", @players
-        elsif time.first == Constants::Time::SUNSET + 1
+        elsif time.first == Constants::Time::SUNSET
             broadcast "The sun slowly disappears in the west.", @players
         elsif time.first == Constants::Time::SUNSET + 1
             broadcast "The night has begun.", @players

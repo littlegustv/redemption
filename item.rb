@@ -4,7 +4,7 @@ class Item < GameObject
 	attr_accessor :wear_location
     attr_accessor :weight
     attr_accessor :type
-    attr_reader :cost
+    attr_accessor :cost
     attr_reader :id
     attr_reader :wear_flags
     attr_reader :parent_inventory
