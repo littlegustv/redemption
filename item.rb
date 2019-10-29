@@ -129,7 +129,7 @@ end
 
 class Weapon < Item
 
-	attr_accessor :noun, :element, :flags
+	attr_accessor :noun, :element, :flags, :genre
 
 	def initialize( data, game, parent_inventory )
 		super(data, game, parent_inventory)
@@ -137,6 +137,7 @@ class Weapon < Item
 		@noun = data[:noun] || "pierce"
 		@flags = data[:flags] || []
 		@element = data[:element] || "iron"
+        @genre = data[:genre] || "exotic"
 		@dice_count = data[:dice_count] || 2
 		@dice_sides = data[:dice_sides] || 6
         @dice_bonus = data[:dice_bonus] || 0

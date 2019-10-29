@@ -25,6 +25,13 @@ module MobileItem
                 if !silent
                     output(equip_slot.equip_message_self, [item])
                     broadcast(equip_slot.equip_message_others, @room.occupants - [self], [self, item])
+                    if equip_slot.wear_flag == "wield"
+                        if proficient( item.genre )
+                            output "%s feels like a part of you!", [item]
+                        else
+                            output "You don't even know which end is up on %s.", [item]
+                        end
+                    end
                 end
                 item.move(equip_slot)
                 return true
@@ -36,6 +43,13 @@ module MobileItem
                     if !silent
                         output(equip_slot.equip_message_self, [item])
                         broadcast(equip_slot.equip_message_others, target({ :not => self, :list => @room.occupants }), [self, item])
+                        if equip_slot.wear_flag == "wield"
+                            if proficient( item.genre )
+                                output "%s feels like a part of you!", [item]
+                            else
+                                output "You don't even know which end is up on %s.", [item]
+                            end
+                        end
                     end
                     item.move(equip_slot)
                     return true

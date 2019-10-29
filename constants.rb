@@ -123,7 +123,7 @@ module Constants
 
     DAMAGE_DECORATORS = {
 		0 => ['miss', 'misses', 'clumsy', '.'],
-		4 => ['bruise', 'bruises', 'clumsy', '.'],
+		1 => ['bruise', 'bruises', 'clumsy', '.'],
 		8 => ['scrape', 'scrapes', 'wobbly', '.'],
 		12 => ['scratch', 'scratches', 'wobbly', '.'],
 		16 => ['lightly wound', 'lightly wounds', 'amateur', '.'],
@@ -492,6 +492,7 @@ module Constants
         "lair" =>                   AffectLair,
         "karma" =>                  AffectKarma,
         "dark_vision" =>            AffectDarkVision,
+        "regeneration" =>           AffectRegeneration,
     }
 
     module ClientState

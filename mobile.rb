@@ -124,6 +124,10 @@ class Mobile < GameObject
         (skills + spells).include? skill_name
     end
 
+    def proficient( weapon_type )
+        weapons.include? weapon_type
+    end
+
     def gold
         ( @wealth / 1000 ).floor
     end
@@ -275,6 +279,10 @@ class Mobile < GameObject
     end
 
     def regen( hp, mp, mv )
+        data = { hp: hp, mp: mp, mv: mv }
+        @game.fire_event( self, :event_calculate_regeneration, data )
+        hp, mp, mv = data.values
+        log("Regenning #{data}, #{hp}, #{mp}, #{mv}")
         @hitpoints = [@hitpoints + hp, maxhitpoints].min
         @manapoints = [@manapoints + mp, maxmanapoints].min
         @movepoints = [@movepoints + mv, maxmovepoints].min
@@ -350,6 +358,7 @@ class Mobile < GameObject
             cost: 0,
             long_description: "",
             type: "weapon",
+            genre: "hand to hand",
             wear_location: nil,
             material: "flesh",
             extra_flags: [],
@@ -387,7 +396,7 @@ class Mobile < GameObject
         if override[:confirm]
             return
         end
-        hit_chance = (hit_bonus + attack_rating - target.defense_rating( weapon ? weapon.element : "bash" ) ).clamp( 5, 95 )
+        hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon ? weapon.element : "bash" ) ).clamp( 5, 95 )
         if rand(0...100) < hit_chance
             damage = damage_rating(weapon: weapon) + damage_bonus
             hit = true
@@ -591,6 +600,10 @@ class Mobile < GameObject
         "[#{@level.to_s.rpad(2)} #{@game.race_data.dig(@race_id, :display_name).lpad(8)} #{@game.class_data.dig(@class_id, :name).capitalize.rpad(8)}] #{@short_description}"
     end
 
+    def weapons
+        @game.class_data.dig(@class_id, :weapons).to_s + @game.race_data.dig(@race_id, :weapons).to_s
+    end
+
     def move_to_room( room )
         if @attacking && @attacking.room != room
             stop_combat
@@ -655,8 +668,12 @@ class Mobile < GameObject
         end
     end
 
-    def attack_rating
-        (15 + (@level * 3 / 2))
+    def attack_rating( weapon )
+        if proficient( weapon.genre )
+            return (15 + (@level * 3 / 2))
+        else
+            return (15 + (@level * 3 / 2)) / 2
+        end
     end
 
     def defense_rating( element )
@@ -664,7 +681,11 @@ class Mobile < GameObject
     end
 
     def damage_rating(weapon:)
-        return weapon.damage + stat(:damroll)
+        if proficient( weapon.genre )
+            return weapon.damage + stat(:damroll)
+        else
+            return ( weapon.damage + stat(:damroll) ) / 2
+        end
     end
 
     def to_s
