@@ -282,7 +282,6 @@ class Mobile < GameObject
         data = { hp: hp, mp: mp, mv: mv }
         @game.fire_event( self, :event_calculate_regeneration, data )
         hp, mp, mv = data.values
-        log("Regenning #{data}, #{hp}, #{mp}, #{mv}")
         @hitpoints = [@hitpoints + hp, maxhitpoints].min
         @manapoints = [@manapoints + mp, maxmanapoints].min
         @movepoints = [@movepoints + mv, maxmovepoints].min

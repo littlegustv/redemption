@@ -550,6 +550,13 @@ class Game
             else
                 item = Item.new( data, self, inventory )
             end
+
+            if not @portal_data[ id ].nil?
+                # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
+                # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
+                item.apply_affect( AffectPortal.new( target: item, game: self, destination: @rooms[ @portal_data[id][:to_room_id] ] ) )
+            end
+
             if item
                 add_global_item(item)
                 return item

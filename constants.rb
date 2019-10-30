@@ -291,6 +291,7 @@ module Constants
         CommandClose,
         CommandLock,
         CommandUnlock,
+        CommandEnter,
     ]
 
     SKILL_CLASSES = [
@@ -415,8 +416,8 @@ module Constants
         SpellFloatingDisc,
         SpellDarkness,
         SpellKarma,
-        # SpellPortal,
-        # SpellNexus,
+        SpellPortal,
+        SpellNexus,
     ]
 
     AFFECT_CLASS_HASH = {
@@ -493,6 +494,7 @@ module Constants
         "karma" =>                  AffectKarma,
         "dark_vision" =>            AffectDarkVision,
         "regeneration" =>           AffectRegeneration,
+        "portal" =>                 AffectPortal,
     }
 
     module ClientState

@@ -48,6 +48,7 @@ module GameSetup
         load_skill_data
         load_spell_data
         load_command_data
+        load_portal_data
 
         load_max_ids
 
@@ -207,6 +208,11 @@ module GameSetup
     protected def load_shop_data
         @shop_data = @db[:shop_base].to_hash(:mobile_id)
         log("Database load complete: Shop data")
+    end
+
+    protected def load_portal_data
+        @portal_data = @db[:item_portal].to_hash(:item_id)
+        log("Database load complete: Portal data")
     end
 
     # load reset tables from database

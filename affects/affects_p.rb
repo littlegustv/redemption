@@ -116,6 +116,48 @@ class AffectPoison < Affect
     end
 end
 
+class AffectPortal < Affect
+
+    def initialize( target:, destination:, game: )
+        super(
+            game: game,
+            source: source,
+            target: target,
+            keywords: ["portal"],
+            name: "portal",
+            level:  0,
+            permanent: true,
+            application_type: :global_single
+        )
+        @destination = destination
+    end
+
+    def send_start_messages
+    end
+
+    def send_refresh_messages
+    end
+
+    def send_complete_messages
+    end
+
+    def start
+        @game.add_event_listener(@target, :event_try_enter, self, :do_portal)
+    end
+
+    def complete
+        @game.remove_event_listener(@target, :event_try_enter, self)
+    end
+
+    def do_portal( data )
+        data[:mobile].output "You enter %s.", [@target]
+        @game.broadcast "%s steps into %s.", @target.room.occupants - [data[:mobile]], [data[:mobile], @target]
+        data[:mobile].move_to_room( @destination )
+        @game.broadcast "%s has arrived through %s.", @destination.occupants - [data[:mobile]], [data[:mobile], @target]
+    end
+
+end
+
 class AffectProtectionEvil < Affect
 
     def initialize(source:, target:, level:, game:)
