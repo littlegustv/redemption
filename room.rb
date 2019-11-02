@@ -38,7 +38,7 @@ class Room < GameObject
     def show( looker )
         if looker.can_see? self
             out = "#{ @name }\n" +
-            "#{ @description }\n" +
+            "  #{ @description }\n" +
             "[Exits: #{ @exits.select { |direction, room| not room.nil? }.map{ |k, v| v.to_s }.join(", ") }]"
             description_data = {extra_show: ""}
             @game.fire_event(self, :event_calculate_room_description, description_data)
@@ -48,7 +48,7 @@ class Room < GameObject
         end
         item_list = @inventory.show(observer: looker, long: true)
         out += "\n#{item_list}" if item_list.length > 0
-        
+
         visible_occupant_longs = @game.target({ list: self.occupants, :not => looker, visible_to: looker }).map{ |t| t.show_long_description(observer: looker) }
         out += "\n#{visible_occupant_longs.join("\n")}" if visible_occupant_longs.length > 0
         return out
