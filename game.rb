@@ -1,5 +1,3 @@
-require 'sequel'
-require 'logger'
 require_relative 'game_setup'
 require_relative 'game_save'
 
@@ -107,36 +105,29 @@ class Game
         @commands = []                      # Command object array
 
         @responders = Hash.new                  # Event responders
-        @responder_maintenance_count = 0        # current maintenance count
-        @responder_maintenance_per_frame = 20   # number of responders that are cleaned per frame
 
     end
 
     def game_loop
+        last_gc_stat = {}
         total_time = 0
+        last_frame_time = Time.now
         loop do
             start_time = Time.now
             @frame_count += 1
 
-            before = Time.now
             # insert into the database any new accounts waiting
             @new_accounts.each do |account_data|
                 save_new_account(account_data)
                 @new_accounts.delete(account_data)
             end
-            after = Time.now
-            log "{gNew accounts:{x #{after - before}" if $VERBOSE
 
-            before = Time.now
             # insert into the database any new players waiting
             @new_players.each do |player_data|
                 save_new_player(player_data)
                 @new_players.delete(player_data)
             end
-            after = Time.now
-            log "{gNew players:{x #{after - before}" if $VERBOSE
 
-            before = Time.now
             # deal with inactive players that have been garbage collected
             # p "#{@frame_count} #{@inactive_players.keys}" if @inactive_players.length > 0
             @inactive_players.each do |name, player|
@@ -145,10 +136,7 @@ class Game
                     puts "#{name} has been deleted from memory."
                 end
             end
-            after = Time.now
-            log "{gInactive players:{x #{after - before}" if $VERBOSE
 
-            before = Time.now
             # load any players whose ids have been added to the logging_players queue
             @logging_players.each do |player_id, client|
                 @logging_players.delete([player_id, client])
@@ -166,58 +154,94 @@ class Game
                     @players.unshift(player)
                 end
             end
-            after = Time.now
-            log "{gLogging players:{x #{after - before}" if $VERBOSE
 
             # save every so often!
             # add one to the frame_count so it doesn't save on combat frames, etc
+            before = Time.now
             if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0
-                before = Time.now
                 save
-                after = Time.now
-                log "{gSave:{x #{after - before}" if $VERBOSE
             end
-
+            save_time = Time.now - before
 
             # each combat ROUND
-            if @frame_count % Constants::Interval::ROUND == 0
-                before = Time.now
-                combat
-                after = Time.now
-                log "{gCombat:{x #{after - before}" if $VERBOSE
-            end
-
-            if @frame_count % Constants::Interval::TICK == 0
-                before = Time.now
-                tick
-                after = Time.now
-                log "{gTick:{x #{after - before}" if $VERBOSE
-            end
-
-            if @frame_count % Constants::Interval::REPOP == 0
-                before = Time.now
-                repop
-                after = Time.now
-                log "{gRepop:{x #{after - before}" if $VERBOSE
-            end
             before = Time.now
-            update( 1.0 / Constants::Interval::FPS )
-            after = Time.now
-            log "{gUpdate:{x #{after - before}" if $VERBOSE
-            # responder_maintenance
+            if @frame_count % Constants::Interval::ROUND == 0
+                combat
+            end
+            round_time = Time.now - before
+
+            before = Time.now
+            if @frame_count % Constants::Interval::TICK == 0
+                tick
+            end
+            tick_time = Time.now - before
+
+            before = Time.now
+            if @frame_count % Constants::Interval::REPOP == 0
+                repop
+            end
+            repop_time = Time.now - before
+
+            before = Time.now
+            elapsed = Time.now - last_frame_time
+            last_frame_time = Time.now
+            update( elapsed )
+            update_time = Time.now - before
+
             send_to_client
+
             end_time = Time.now
             loop_computation_time = end_time - start_time
             sleep_time = ((1.0 / Constants::Interval::FPS) - loop_computation_time)
             total_time += loop_computation_time
-            log "{rTotal:{x #{end_time - start_time}" if $VERBOSE
-            puts "" if $VERBOSE
-            # puts "#{sleep_time.to_s.ljust(22)} #{loop_computation_time.to_s.ljust(22)} #{(sleep_time - loop_computation_time > 0).to_s.ljust(22)} #{total_time / @frame_count}"
-            if sleep_time < 0                   # Sleep until the next frame, if there's time leftover
-                log ("Negative sleep time detected: {c#{sleep_time}{x")
+
+            # Sleep until the next frame, if there's time left over
+            if sleep_time < 0 # try to figure out why there isn't!
+                gc_stat = GC.stat
+                if $VERBOSE
+                    lines = []
+                    gc_stat.each do |key, value|
+                        if value != last_gc_stat[key]
+                            lines << key.to_s.ljust(30) + last_gc_stat[key].to_s.ljust(14) + " -> " + value.to_s
+                        end
+                    end
+                    log lines.join("\n")
+                end
+                causes = []
+                if gc_stat[:minor_gc_count] != last_gc_stat[:minor_gc_count]
+                    causes << "  Minor Garbage Collection"
+                end
+                if gc_stat[:major_gc_count] != last_gc_stat[:major_gc_count]
+                    causes << "  Major Garbage Collection"
+                end
+                if (gc_stat[:heap_allocatable_pages] != last_gc_stat[:heap_allocatable_pages] ||
+                    gc_stat[:heap_available_slots] != last_gc_stat[:heap_available_slots] ||
+                    gc_stat[:heap_allocated_pages] != last_gc_stat[:heap_allocated_pages] )
+                    causes << "  Heap Allocation"
+                end
+                if gc_stat[:heap_free_slots] / (last_gc_stat[:heap_free_slots] || 1) > 3 # drastic increase in open heap slots
+                    causes << "  Freeing Heap Slots"
+                end
+                if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0
+                    causes << "  Save     {c%0.4f{x" % [save_time]
+                end
+                if @frame_count % Constants::Interval::ROUND == 0
+                    causes << "  Round    {c%0.4f{x" % [round_time]
+                end
+                if @frame_count % Constants::Interval::TICK == 0
+                    causes << "  Tick     {c%0.4f{x" % [tick_time]
+                end
+                if @frame_count % Constants::Interval::REPOP == 0
+                    causes << "  Repop    {c%0.4f{x" % [repop_time]
+                end
+                causes << "  Update   {c%0.4f{x" % [update_time]
+                percent_overage = (loop_computation_time * 100 / (1.0 / Constants::Interval::FPS) - 100).floor
+                log ("Frame {m#{frame_count}{x took {c#{percent_overage}\%{x too long - possible causes:\n#{causes.join("\n")}")
+
             else
-                sleep(sleep_time)
+                sleep(sleep_time) #
             end
+            last_gc_stat = GC.stat
         end
     end
 
@@ -350,9 +374,8 @@ class Game
     end
 
     def tick
-        log "{YTick!{x"
         broadcast("{MMud newbies 'Hi everyone! It's a tick!!'{x", @players, send_to_sleeping: true)
-        
+
         # player tick is called, just to allow for some regen!!
         ( @players ).each do | entity |
             entity.tick
@@ -376,7 +399,7 @@ class Game
 
                     # inventory
                     @inventory_reset_data.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
-                        if @item_data[ item_reset[:item_id] ]                          
+                        if @item_data[ item_reset[:item_id] ]
 
                             item = load_item( item_reset[:item_id], mob.inventory )
                             #containers
@@ -718,9 +741,9 @@ class Game
 
     def new_inactive_continent
         data = {
-            name: "inactive continent",
+            name: "inactive continent".freeze,
             id: 0,
-            preposition: "on",
+            preposition: "on".freeze,
             recall_room_id: 0,
             starting_room_id: 0
         }
@@ -740,12 +763,12 @@ class Game
 
     def new_inactive_area
         data = {
-            name: "inactive area",
+            name: "inactive area".freeze,
             age: 0,
-            builders: "no builders",
+            builders: "no builders".freeze,
             continent: self.new_inactive_continent,
-            control: "no control",
-            credits: "no credits",
+            control: "no control".freeze,
+            credits: "no credits".freeze,
             gateable: 0,
             id: 0,
             questable: 0,
@@ -784,7 +807,7 @@ class Game
     end
 
     def new_inactive_room
-        return Room.new(0, "inactive room", "no description", "no sector",
+        return Room.new(0, "inactive room".freeze, "no description".freeze, "no sector".freeze,
                 self.new_inactive_area, "", 0, 0, self)
     end
 

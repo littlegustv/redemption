@@ -42,7 +42,7 @@ class Item < GameObject
     end
 
     def to_store_listing( quantity )
-        "[#{@level.to_s.rpad(2)} #{carrier.sell_price( self ).to_s.rpad(5)} #{ [quantity, 99].min.to_s.rpad(2) } ] #{@short_description}"
+        "[#{@level.to_s.lpad(2)} #{carrier.sell_price( self ).to_s.lpad(5)} #{ [quantity, 99].min.to_s.lpad(2) } ] #{@short_description}"
     end
 
     def to_price
@@ -161,6 +161,10 @@ class Container < Item
         @max_total_weight = data[:max_total_weight]
         @key_id = data[:key_id]
         @inventory = Inventory.new(owner: self, game: game)
+    end
+
+    def get_item(item)
+        item.move(@inventory)
     end
 
 end

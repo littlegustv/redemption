@@ -137,7 +137,7 @@ class CommandWhere < Command
         actor.output %Q(
 Current Area: #{ actor.room.area }. Level Range: ? ?
 Players near you:
-#{ targets.map{ |t| "#{t.to_s.lpad(28)} #{t.room}" }.join("\n") })
+#{ targets.map{ |t| "#{t.to_s.rpad(28)} #{t.room}" }.join("\n") })
         return true
     end
 

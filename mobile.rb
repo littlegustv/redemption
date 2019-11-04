@@ -37,7 +37,6 @@ class Mobile < GameObject
         @full_description = data[ :full_description ]
         @race_equip_slots = []
         @class_equip_slots = []
-        @equip_slots = []
         @skills = []
         @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
 
@@ -596,7 +595,7 @@ class Mobile < GameObject
     end
 
     def who
-        "[#{@level.to_s.rpad(2)} #{@game.race_data.dig(@race_id, :display_name).lpad(8)} #{@game.class_data.dig(@class_id, :name).capitalize.rpad(8)}] #{@short_description}"
+        "[#{@level.to_s.lpad(2)} #{@game.race_data.dig(@race_id, :display_name).rpad(8)} #{@game.class_data.dig(@class_id, :name).capitalize.lpad(8)}] #{@short_description}"
     end
 
     def weapons
@@ -643,7 +642,7 @@ class Mobile < GameObject
 
     def condition
         percent = condition_percent
-        
+
         data = { percent: percent }
         @game.fire_event( self, :event_show_condition, data )
         percent = data[:percent]
@@ -727,7 +726,7 @@ class Mobile < GameObject
         return true if target == self
         data = {chance: 100, target: target, observer: self}
         @game.fire_event(self, :event_try_can_see, data)
-        @game.fire_event(self.room, :event_try_can_see_room, data)        
+        @game.fire_event(self.room, :event_try_can_see_room, data)
         @game.fire_event(target, :event_try_can_be_seen, data) if target
         chance = data[:chance]
         if chance >= 100
@@ -820,28 +819,28 @@ class Mobile < GameObject
 %Q(#{@short_description}
 Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
-{cLevel:{x     #{@level.to_s.lpad(26)} {cAge:{x       17 - 0(0) hours
-{cRace:{x      #{@game.race_data.dig(@race_id, :name).to_s.lpad(26)} {cSex:{x       male
-{cClass:{x     #{@game.class_data.dig(@class_id, :name).to_s.lpad(26)} {cDeity:{x     #{@deity}
-{cAlignment:{x #{@alignment.to_s.lpad(26)} {cDeity Points:{x 0
+{cLevel:{x     #{@level.to_s.rpad(26)} {cAge:{x       17 - 0(0) hours
+{cRace:{x      #{@game.race_data.dig(@race_id, :name).to_s.rpad(26)} {cSex:{x       male
+{cClass:{x     #{@game.class_data.dig(@class_id, :name).to_s.rpad(26)} {cDeity:{x     #{@deity}
+{cAlignment:{x #{@alignment.to_s.rpad(26)} {cDeity Points:{x 0
 {cPracs:{x     N/A                        {cTrains:{x    N/A
-{cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".lpad(26)} {cNext Level:{x #{@experience_to_level - @experience}
+{cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".rpad(26)} {cNext Level:{x #{@experience_to_level - @experience}
 {cQuest Points:{x #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
-{cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".lpad(26) } {cWeight:{x    #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
-{cGold:{x      #{ gold.to_s.lpad(26) } {cSilver:{x    #{ silver.to_s }
+{cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".rpad(26) } {cWeight:{x    #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
+{cGold:{x      #{ gold.to_s.rpad(26) } {cSilver:{x    #{ silver.to_s }
 ---------------------------------- Stats --------------------------------
-{cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".lpad(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
-{cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".lpad(26)} {cWimpy:{x     #{@wimpy}
+{cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".rpad(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
+{cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".rpad(26)} {cWimpy:{x     #{@wimpy}
 #{score_stat("str")}#{score_stat("con")}
 #{score_stat("int")}#{score_stat("wis")}
 #{score_stat("dex")}
-{cHitRoll:{x   #{ stat(:hitroll).to_s.lpad(26)} {cDamRoll:{x   #{ stat(:damroll) }
-{cDamResist:{x #{ stat(:damresist).to_s.lpad(26) } {cMagicDam:{x  #{ stat(:magicdam) }
+{cHitRoll:{x   #{ stat(:hitroll).to_s.rpad(26)} {cDamRoll:{x   #{ stat(:damroll) }
+{cDamResist:{x #{ stat(:damresist).to_s.rpad(26) } {cMagicDam:{x  #{ stat(:magicdam) }
 {cAttackSpd:{x #{ stat(:attack_speed) }
 -------------------------------- Elements -------------------------------#{element_data[:string]}
 --------------------------------- Armour --------------------------------
-{cPierce:{x    #{ (-1 * stat(:ac_pierce)).to_s.lpad(26) } {cBash:{x      #{ -1 * stat(:ac_bash) }
-{cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.lpad(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
+{cPierce:{x    #{ (-1 * stat(:ac_pierce)).to_s.rpad(26) } {cBash:{x      #{ -1 * stat(:ac_bash) }
+{cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.rpad(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
 You are #{Constants::Position::STRINGS[ @position ]}.)
@@ -857,7 +856,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         base += 3 if @game.class_data.dig(@class_id, :main_stat) == stat_name
         modified = stat(stat)
         max = stat(max_stat)
-        return "{c#{stat_name.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".lpad(27)}"
+        return "{c#{stat_name.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".rpad(27)}"
     end
 
     def skills
@@ -872,10 +871,9 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         @race_id = new_race_id
         old_equipment = self.equipment
         old_equipment.each do |item| # move all equipped items to inventory
-            item.move(@inventory)
+            get_item(item, silent: true)
         end
         @race_equip_slots = []  # Clear old equip_slots
-        @equip_slots = []
         slots = @game.race_data.dig(@race_id, :equip_slots).to_a
         slots.each do |slot|
             row = @game.equip_slot_data[slot.to_i]
@@ -891,7 +889,6 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         old_equipment.each do |item| # try to wear all items that were equipped before
             wear(item: item, silent: true)
         end
-        @equip_slots = @race_equip_slots + @class_equip_slots
         @race_affects.each do |affect|
             affect.clear(silent: true)
         end
@@ -907,10 +904,9 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         @class_id = new_class_id
         old_equipment = self.equipment
         old_equipment.each do |item| # move all equipped items to inventory
-            item.move(@inventory)
+            get_item(item, silent: true)
         end
         @class_equip_slots = []  # Clear old equip_slots
-        @equip_slots = []
         slots = @game.class_data.dig(@class_id, :equip_slots).to_a
         slots.each do |slot|
             row = @game.equip_slot_data[slot.to_i]
@@ -926,7 +922,6 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         old_equipment.each do |item| # try to wear all items that were equipped before
             wear(item: item, silent: true)
         end
-        @equip_slots = @race_equip_slots + @class_equip_slots
         @class_affects.each do |affect|
             affect.clear(silent: true)
         end

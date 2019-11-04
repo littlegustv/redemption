@@ -59,6 +59,7 @@ module MobileItem
         if !silent
             output "You can't wear that."
         end
+        get_item(item, silent: true)
         return false
     end
 
@@ -82,7 +83,7 @@ module MobileItem
             output("You stop using %s.", [item])
             broadcast("%s stops using %s.", target({ :not => self, :list => @room.occupants }), [self, item])
         end
-        item.move(self.inventory)
+        get_item(item, silent: true)
         return true
     end
 
@@ -91,7 +92,7 @@ module MobileItem
         objects = []
         lines = []
         self.equip_slots.each do |equip_slot|
-            line = "<#{equip_slot.list_prefix}>".lpad(22)
+            line = "<#{equip_slot.list_prefix}>".rpad(22)
             if equip_slot.item
                 line << "%s"
                 objects << equip_slot.item
@@ -127,53 +128,69 @@ module MobileItem
     end
 
     # puts an item into a container
-    def put_item(item, container)
+    def put_item(item, container, silent: false)
         if item == container
             output "That would be a bad idea."
             return
         end
-        output "You puts %s in %s.", [item, container]
-        broadcast "%s puts %s in %s.", @room.occupants - [self], [self, item, container]
-        item.move(container.inventory)
+        output "You puts %s in %s.", [item, container] if !silent
+        broadcast "%s puts %s in %s.", @room.occupants - [self], [self, item, container] if !silent
+        container.get_item(item)
+        # if @inventory && @inventory.items.size == 0
+        #     @inventory = nil
+        # end
     end
 
     # Gets an item, regardless of where it is.
-    def get_item(item)
+    def get_item(item, silent: false)
         if !item.wear_flags.include? "take"
             output "You can't take #{ item }."
             return
         end
-        if Item === (container = item.parent_inventory.owner)
-            output("You get %s from %s.", [item, container])
-            broadcast("%s gets %s from %s.", target({ :not => self, :list => @room.occupants }), [self, item, container])
+        if item.parent_inventory && Item === (container = item.parent_inventory.owner)
+            output("You get %s from %s.", [item, container]) if !silent
+            broadcast("%s gets %s from %s.", target({ :not => self, :list => @room.occupants }), [self, item, container]) if !silent
         else
-            output("You get %s.", [item])
-            broadcast("%s gets %s.", target({ :not => self, :list => @room.occupants }), [self, item])
+            output("You get %s.", [item]) if !silent
+            broadcast("%s gets %s.", target({ :not => self, :list => @room.occupants }), [self, item]) if !silent
         end
+        # if !@inventory # no inventory, create one
+        #     @inventory = Inventory.new(owner: self, game: @game)
+        # end
         item.move(@inventory)
     end
 
-    def give_item(item, mobile)
-        output("You give %s to %s.", [item, mobile])
-        mobile.output("%s gives you %s.", [self, item])
-        broadcast("%s gives %s to %s.", target({ :not => [self, mobile], :list => @room.occupants }), [self, item, mobile])
-        item.move(mobile.inventory)
+    def give_item(item, mobile, silent: false)
+        output("You give %s to %s.", [item, mobile]) if !silent
+        mobile.output("%s gives you %s.", [self, item]) if !silent
+        broadcast("%s gives %s to %s.", target({ :not => [self, mobile], :list => @room.occupants }), [self, item, mobile]) if !silent
+        mobile.get_item(item, silent: true)
+        # if @inventory && @inventory.items.size == 0
+        #     @inventory = nil
+        # end
     end
 
-    def drop_item(item)
-        output("You drop %s.", [item])
-        broadcast("%s drops %s.", target({ :not => self, :list => @room.occupants }), [self, item])
-        item.move(@room.inventory)
+    def drop_item(item, silent: false)
+        output("You drop %s.", [item]) if !silent
+        broadcast("%s drops %s.", target({ :not => self, :list => @room.occupants }), [self, item]) if !silent
+        @room.get_item(item)
+        # if @inventory && @inventory.items.size == 0
+        #     @inventory = nil
+        # end
     end
 
     def equip_slots
         # data = {equip_slots: (@race_equip_slots + @class_equip_slots)}
         # @game.fire_event(self, :event_get_equip_slots, data )
-        return @equip_slots
+        return @race_equip_slots + @class_equip_slots
     end
 
     def items
-        @inventory.items + equipment
+        if @inventory
+            return @inventory.items + equipment
+        else
+            return equipment
+        end
     end
 
 end

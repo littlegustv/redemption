@@ -94,7 +94,7 @@ class CommandSkills < Command
 
     def attempt( actor, cmd, args, input )
         actor.output %Q(Skills:
-Level  1: #{ actor.skills.each_slice(2).map{ |row| "#{row[0].to_s.lpad(18)} 100%      #{row[1].to_s.lpad(18)} 100%" }.join("\n" + " "*10)})
+Level  1: #{ actor.skills.each_slice(2).map{ |row| "#{row[0].to_s.rpad(18)} 100%      #{row[1].to_s.rpad(18)} 100%" }.join("\n" + " "*10)})
         return true
     end
 
@@ -112,7 +112,7 @@ class CommandSpells < Command
 
     def attempt( actor, cmd, args, input )
         actor.output %Q(Spells:
-Level  1: #{ actor.spells.each_slice(2).map{ |row| "#{row[0].to_s.lpad(18)} 100%      #{row[1].to_s.lpad(18)} 100%" }.join("\n" + " "*10)})
+Level  1: #{ actor.spells.each_slice(2).map{ |row| "#{row[0].to_s.rpad(18)} 100%      #{row[1].to_s.rpad(18)} 100%" }.join("\n" + " "*10)})
         return true
     end
 

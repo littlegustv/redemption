@@ -82,6 +82,9 @@ class Affect
     end
 
     def update( elapsed )
+        if !@active
+            return
+        end
         if @period
             @clock += elapsed
             if @clock >= @period
@@ -116,7 +119,7 @@ class Affect
 
     def summary
         if @modifiers.length > 0
-            return "Spell: #{@name.lpad(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
+            return "Spell: #{@name.rpad(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
         else
             return "Spell: #{@name}"
         end

@@ -3,6 +3,10 @@ require 'weakref'
 require 'digest'
 require 'json'
 require 'set'
+require 'sequel'
+require 'logger'
+# require 'rb-readline'
+# require 'pry'
 require_relative 'util'
 require_relative 'commands/commands'
 require_relative 'game'
@@ -21,6 +25,7 @@ require_relative 'commands/skills/skills'
 require_relative 'continent'
 require_relative 'constants'
 require_relative 'client'
+
 
 game = Game.new
 game.start(ARGV[0], ARGV[1] || 4000, ARGV[2] || "all")

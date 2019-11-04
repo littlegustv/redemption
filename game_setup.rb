@@ -29,7 +29,6 @@ module GameSetup
         # Open database connection
         connect_database
         clean_database
-
         # load database tables
         load_game_settings
         load_race_data
@@ -154,6 +153,13 @@ module GameSetup
     # Load the equip_slot_base table
     protected def load_equip_slot_data
         @equip_slot_data = @db[:equip_slot_base].to_hash(:id)
+        @equip_slot_data.each do |id, row|
+            row.each do |key, value|
+                if String === value
+                    value.freeze
+                end
+            end
+        end
         log ("Database load complete: Equip slot data")
     end
 
@@ -181,6 +187,13 @@ module GameSetup
     protected def load_mobile_data
         @mob_data = @db[:mobile_base].to_hash(:id)
         @mob_data.each do |id, row|
+            row.each do |key, value|
+                if String === value
+                    value.freeze
+                end
+            end
+        end
+        @mob_data.each do |id, row|
             row[:affect_flags] = row[:affect_flags].split(",")
             row[:off_flags] = row[:off_flags].split(",")
             row[:act_flags] = row[:act_flags].split(",")
@@ -197,6 +210,13 @@ module GameSetup
     # Load the item tables from database
     protected def load_item_data
         @item_data = @db[:item_base].to_hash(:id)
+        @item_data.each do |id, row|
+            row.each do |key, value|
+                if String === value
+                    value.freeze
+                end
+            end
+        end
         @item_modifiers = @db[:item_modifier].to_hash_groups(:item_id)
         @ac_data = @db[:item_armor].to_hash(:item_id)
         @weapon_data = @db[:item_weapon].to_hash(:item_id)
@@ -331,20 +351,20 @@ module GameSetup
             if @rooms[row[:room_id]] && @rooms[row[:to_room_id]]
                 exit = Exit.new(    self,
                                     row[:direction],
-                                    @rooms[row[:room_id]], 
-                                    @rooms[row[:to_room_id]], 
-                                    row[:flags].to_s.split(" "), 
-                                    row[:key_id], 
-                                    row[:keywords].split + [ row[:direction] ], # i.e. [oak,door,north] 
+                                    @rooms[row[:room_id]],
+                                    @rooms[row[:to_room_id]],
+                                    row[:flags].to_s.split(" "),
+                                    row[:key_id],
+                                    row[:keywords].split + [ row[:direction] ], # i.e. [oak,door,north]
                                     row[:description] )
                 @rooms[row[:room_id]].exits[row[:direction].to_sym] = exit
-                
+
                 # adds the exit to this list with the key :inverse-direction_room-origin-id
-                # 
+                #
                 # this is the direction/room pair that the exit on the "other side" will have
-                # 
+                #
                 # all of this is so that exits have 'paired' actions - a door is opened or closed at both ends
-                
+
                 exit_inverse_list[ "#{Constants::Directions::INVERSE[ row[:direction].to_sym ]}_#{row[:room_id]}".to_sym ] = exit
                 if (pair = exit_inverse_list[ "#{row[:direction]}_#{row[:to_room_id]}".to_sym ])
                     exit.add_pair( pair )

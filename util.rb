@@ -77,12 +77,12 @@ class String
         return count
     end
 
-    def lpad(n, fill=" ")
+    def rpad(n, fill=" ")
         n += self.color_code_length_offset
         return self.ljust(n, fill)
     end
 
-    def rpad(n, fill=" ")
+    def lpad(n, fill=" ")
         n += self.color_code_length_offset
         return self.rjust(n, fill)
     end
@@ -94,5 +94,6 @@ def dice( count, sides )
 end
 
 def log(s)
+    s = s.gsub(/\n/, "\n#{" " * 27} ")
     puts "{d[#{Time.now}]\033{x #{s}".replace_color_codes
 end

@@ -164,11 +164,11 @@ class Client
             list_characters
         elsif "help".fuzzy_match(word1)
             width = 24
-            out = "\n#{"new".lpad(width)} Create a new character.\n" +
-            "#{"play <character name>".lpad(width)} Play an existing character.\n" +
-            "#{"list".lpad(width)} List your available characters.\n" +
-            "#{"settings".lpad(width)} View and modify account settings.\n" +
-            "#{"quit".lpad(width)} Log out\n"
+            out = "\n#{"new".rpad(width)} Create a new character.\n" +
+            "#{"play <character name>".rpad(width)} Play an existing character.\n" +
+            "#{"list".rpad(width)} List your available characters.\n" +
+            "#{"settings".rpad(width)} View and modify account settings.\n" +
+            "#{"quit".rpad(width)} Log out\n"
             send_output(out)
         elsif "settings".fuzzy_match(word1)
             send_output("There are no settings just yet.")
@@ -204,7 +204,7 @@ class Client
         race_rows = @game.race_data.values.select{ |row| row[:player_race] == 1 && row[:starter_race] == 1 }
         race_names = race_rows.map{ |row| row[:name] }
         send_output("The following races are available:\n" +
-        "#{race_names.map{ |n| n.lpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n")
+        "#{race_names.map{ |n| n.rpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n")
         while race_id.nil?
             send_output("What is your race (help for more information)?")
             race_input = get_input
@@ -297,7 +297,7 @@ class Client
             race_name = @game.race_data.dig(c_row[:race_id], :display_name).to_s
             class_name = @game.class_data.dig(c_row[:class_id], :name).to_s
             name = c_row[:name]
-            lines << "[#{level.to_s.rpad(2)} #{race_name.lpad(8)} #{class_name.capitalize.rpad(8)}] #{name}"
+            lines << "[#{level.to_s.lpad(2)} #{race_name.rpad(8)} #{class_name.capitalize.lpad(8)}] #{name}"
         end
         if lines.length > 0
             send_output("Your characters:\n")

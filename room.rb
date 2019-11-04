@@ -87,7 +87,15 @@ class Room < GameObject
     end
 
     def items
-        return @inventory.items
+        if @inventory
+            return @inventory.items
+        else
+            return []
+        end
+    end
+
+    def get_item(item)
+        item.move(@inventory)
     end
 
     def db_source_type
