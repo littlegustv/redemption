@@ -99,13 +99,10 @@ module GameSetup
 
         end
 
-        profile "{R", "START" do
+        @start_time = Time.now
+        log( "Redemption is ready to rock on port #{port}!" )
 
-            @start_time = Time.now
-            log( "Redemption is ready to rock on port #{port}!" )
-
-        end
-            # binding.pry
+        # binding.pry
 
         # game update loop runs on a single thread
         Thread.start do

@@ -1,16 +1,18 @@
 require_relative 'inventory'
 
 # A slot for a single equipped item
-class EquipSlot < Inventory
+class EquipSlot
 
     # attr_reader :equip_message_self
     # attr_reader :equip_message_others
     # attr_reader :list_prefix
     # attr_reader :wear_flag
     attr_reader :item
+    attr_reader :owner
 
-    def initialize(slot:, owner:, game:)
-        super(owner: owner, game: game)
+    def initialize(slot, owner, game)
+        @game = game            # reference to the game object
+        @owner = owner          # the room/mobile/item that contains these items
         @slot = slot
         # @equip_message_self = equip_message_self        # String format for mobile doing the equipping
         # @equip_message_others = equip_message_others    # String format for others in the room

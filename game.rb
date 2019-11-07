@@ -227,15 +227,17 @@ class Game
     end
 
     def profile color, message, verbose = false
-        log "#{color}<<<<<<<<<<<<<<<<<<<<<<<<<<<< #{message} >>>>>>>>>>>>>>>>>>>>>>>>{x"
-        ObjectSpace.each_object.inject(Hash.new 0) { |h,o| h[o.class] += 1; h }.sort_by { |k,v| -v }.take(5).each { |klass, count| log "#{count.to_s.ljust(10)} #{klass}" }
         MemoryProfiler.start
         yield
         report = MemoryProfiler.stop
 
+        log "#{color}<<<<<<<<<<<<<<<<<<<<<<<<<<<< #{message} >>>>>>>>>>>>>>>>>>>>>>>>{x"
+        
         if verbose
             report.pretty_print
         end
+        
+        ObjectSpace.each_object.inject(Hash.new 0) { |h,o| h[o.class] += 1; h }.sort_by { |k,v| -v }.take(5).each { |klass, count| log "#{count.to_s.ljust(10)} #{klass}" }
         
         log "ALLOCATED #{ ( report.total_allocated_memsize / 10000 ) / 100.0 } MB"
         log "RETAINED #{ ( report.total_retained_memsize / 10000 ) / 100.0 } MB"

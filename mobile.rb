@@ -880,7 +880,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         slots.each do |slot|
             row = @game.equip_slot_data[slot.to_i]
             if row
-                @race_equip_slots << EquipSlot.new( slot: slot.to_i, owner: self, game: @game )
+                @race_equip_slots << EquipSlot.new( slot.to_i, self, @game )
                     # equip_message_self: row[:equip_message_self],
                     #                        equip_message_others: row[:equip_message_others],
                     #                        list_prefix: row[:list_prefix],
