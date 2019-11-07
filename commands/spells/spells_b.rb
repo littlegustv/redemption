@@ -14,7 +14,7 @@ class SpellBarkskin < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectBarkSkin.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        actor.apply_affect( AffectBarkSkin.new( nil, actor, actor.level, @game ) )
     end
 
 end
@@ -82,7 +82,7 @@ class SpellBladeRune < Spell
                 actor.output "The existing blade rune repels your magic."
                 return false
             else
-                target.apply_affect( AffectBladeRune.new( source: actor, target: target, level: actor.level, game: @game ) )
+                target.apply_affect( AffectBladeRune.new( actor, target, actor.level, @game ) )
                 return true
             end
         else
@@ -107,9 +107,9 @@ class SpellBless < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
-            actor.apply_affect( AffectBless.new( source: nil, target: actor, level: actor.level, game: @game ) )
+            actor.apply_affect( AffectBless.new( nil, actor, actor.level, @game ) )
         elsif ( target = @game.target({ list: actor.items + @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectBless.new( source: nil, target: target, level: actor.level, game: @game ) )
+            target.apply_affect( AffectBless.new( nil, target, actor.level, @game ) )
         else
             actor.output "There is no one here with that name."
         end
@@ -149,7 +149,7 @@ class SpellBlindness < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectBlind.new( source: actor, target: target, level: actor.level, game: @game ) )
+        target.apply_affect( AffectBlind.new( actor, target, actor.level, @game ) )
         target.start_combat( actor )
         return true
     end
@@ -192,7 +192,7 @@ class SpellBlur < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectBlur.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        actor.apply_affect( AffectBlur.new( nil, actor, actor.level, @game ) )
     end
 
 end
@@ -262,7 +262,7 @@ class SpellBurstRune < Spell
                 actor.output "The existing burst rune repels your magic."
                 return false
             else
-                target.apply_affect( AffectBurstRune.new( source: actor, target: target, level: level, game: @game ) )
+                target.apply_affect( AffectBurstRune.new( actor, target, level, @game ) )
                 return true
             end
         else

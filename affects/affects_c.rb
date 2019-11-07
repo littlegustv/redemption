@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectCalm < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -24,7 +24,7 @@ end
 
 class AffectCharm < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -63,7 +63,7 @@ end
 
 class AffectCloakOfMind < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -110,7 +110,7 @@ end
 
 class AffectCloudkill < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -180,7 +180,7 @@ end
 
 class AffectCorrosive < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -212,7 +212,7 @@ end
 
 class AffectCurse < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

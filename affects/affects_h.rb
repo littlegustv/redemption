@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectHaste < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -37,7 +37,7 @@ class AffectHatchling < Affect
         "white dragon" => [ "White wings fold up off your body and you test the air with them.", "Breath burns out of your maw, spilling the burning cold frost into the air.", "Your white hind claws cause the ground to harden and freeze." ]
     }
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -71,7 +71,7 @@ end
 
 class AffectHide < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

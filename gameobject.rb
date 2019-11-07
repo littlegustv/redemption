@@ -156,7 +156,7 @@ class GameObject
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class
-                affect = affect_class.new(source: self, target: self, level: 0, game: @game)
+                affect = affect_class.new(self, self, 0, @game)
                 affect.savable = false
                 affect.permanent = true
                 apply_affect(affect, silent)

@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectWeaken < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

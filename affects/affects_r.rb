@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectRegeneration < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -40,7 +40,7 @@ end
 
 class AffectResist < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

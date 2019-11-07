@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectFireBlind < AffectBlind
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super
         @keywords = ["fireblind", "blind"]
         @name = "fireblind"
@@ -21,7 +21,7 @@ end
 
 class AffectFireRune < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -67,7 +67,7 @@ end
 
 class AffectFlooding < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -99,7 +99,7 @@ end
 
 class AffectFly < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -126,7 +126,7 @@ end
 
 class AffectFollow < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -170,7 +170,7 @@ end
 
 class AffectFrenzy < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -196,7 +196,7 @@ end
 
 class AffectFrost < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

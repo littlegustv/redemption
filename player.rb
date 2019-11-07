@@ -4,10 +4,10 @@ class Player < Mobile
     attr_reader :account_id
 
     def initialize( data, game, room, client )
-        data[:keywords] = data[:name].to_a
+        data[:keywords] = data[:name]
         data[:short_description] = data[:name]
         data[:long_description] = "#{data[:name]} the Master Rune Maker is here."
-        super(data, game, room)
+        super(data, data[:race_id], data[:class_id], game, room)
         @account_id = data[:account_id]
         @buffer = ""
         @delayed_buffer = ""

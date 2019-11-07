@@ -17,11 +17,11 @@ class SkillShadow < Command
             actor.remove_affect("follow")
         elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if actor.stat(:dex) >= target.stat(:int)
-                actor.apply_affect( AffectFollow.new( source: target, target: actor, level: 1, game: @game ), silent: true )
+                actor.apply_affect( AffectFollow.new( target, actor, 1, @game ), silent: true )
                 actor.output "You begin to secretly follow %s.", [target]
             else
                 actor.output "Your attempt is painfully obvious."
-                actor.apply_affect( AffectFollow.new( source: target, target: actor, level: 1, game: @game ) )                
+                actor.apply_affect( AffectFollow.new( target, actor, 1, @game ) )                
             end
         else
             actor.output "They aren't here"
@@ -42,7 +42,7 @@ class SkillSneak < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        actor.apply_affect(AffectSneak.new(source: actor, target: actor, level: actor.level, game: @game))
+        actor.apply_affect(AffectSneak.new( actor, actor, actor.level, @game ))
         return true
     end
 end

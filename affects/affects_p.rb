@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectPassDoor < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -29,7 +29,7 @@ end
 
 class AffectPlague < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -59,7 +59,7 @@ class AffectPlague < Affect
         @target.output "You writhe in agony from the plague."
         @target.receive_damage(source: nil, damage: 10, element: Constants::Element::DISEASE, type: Constants::Damage::MAGICAL, silent: true)
         (@target.room.occupants - [@target]).each do |occupant|
-            occupant.apply_affect( AffectPlague.new( source: nil, target: occupant, level: @level, game: @game ) ) if rand(1...100) < 50
+            occupant.apply_affect( AffectPlague.new( nil, occupant, @level, @game ) ) if rand(1...100) < 50
         end
     end
 
@@ -74,7 +74,7 @@ end
 
 class AffectPoison < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -118,7 +118,7 @@ end
 
 class AffectPortal < Affect
 
-    def initialize( target:, destination:, game: )
+    def initialize( target, destination, game )
         super(
             game: game,
             source: source,
@@ -160,7 +160,7 @@ end
 
 class AffectProtectionEvil < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -202,7 +202,7 @@ end
 
 class AffectProtectionGood < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -244,7 +244,7 @@ end
 
 class AffectProtectionNeutral < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

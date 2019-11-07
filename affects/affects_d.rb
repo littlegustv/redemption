@@ -4,7 +4,7 @@ require_relative 'affect.rb'
 
 class AffectDark < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -44,7 +44,7 @@ end
 
 class AffectDarkness < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -91,7 +91,7 @@ end
 
 class AffectDarkVision < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -107,7 +107,7 @@ end
 
 class AffectDeathRune < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -155,7 +155,7 @@ end
 
 class AffectDetectInvisibility < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

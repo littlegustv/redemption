@@ -5,7 +5,7 @@ require 'json'
 require 'set'
 require 'pry'
 require 'objspace'
-require 'memory_profiler'
+require 'memory_profiler' if $VERBOSE
 # require 'allocation_tracer'
 # require 'pp'
 require_relative 'util'

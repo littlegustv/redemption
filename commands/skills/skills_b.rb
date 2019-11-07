@@ -115,7 +115,7 @@ class SkillBerserk < Skill
 
     def attempt( actor, cmd, args, input )
         if not actor.affected? "berserk"
-            actor.apply_affect(AffectBerserk.new(source: actor, target: actor, level: actor.level, game: @game))
+            actor.apply_affect(AffectBerserk.new( actor, actor, actor.level, @game ))
             return true
         else
             actor.output "You are already pretty mad."

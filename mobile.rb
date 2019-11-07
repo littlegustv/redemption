@@ -27,14 +27,14 @@ class Mobile < GameObject
 
     include MobileItem
 
-    def initialize( data, game, room )
-        super(data[ :short_description ], data[:keywords], game)
+    def initialize( data, race_id, class_id, game, room )
+        super(data[ :short_description ], data[:keywords].split(" "), game)
         @attacking = nil
         @lag = 0
         @id = data[ :id ]
-        @short_description = data[ :short_description ]
-        @long_description = data[ :long_description ]
-        @full_description = data[ :full_description ]
+        @short_description = data[ :short_desc ]
+        @long_description = data[ :long_desc ]
+        @full_description = data[ :full_desc ]
         @race_equip_slots = []
         @class_equip_slots = []
         @equip_slots = []
@@ -45,7 +45,7 @@ class Mobile < GameObject
         @experience_to_level = 1000
         @quest_points = 0
         @quest_points_to_remort = 1000
-        @alignment = data[ :alignment ].to_i
+        @alignment = data[ :align ].to_i
         @wealth = data[:wealth].to_i
         @wimpy = 0
         @active = true
@@ -72,17 +72,17 @@ class Mobile < GameObject
             hitroll: data[:hitroll] || rand(5...7),
             damroll: data[:damage] || 50,
             attack_speed: 1,
-            ac_pierce: data[:ac].to_a[0].to_i,
-            ac_bash: data[:ac].to_a[1].to_i,
-            ac_slash: data[:ac].to_a[2].to_i,
-            ac_magic: data[:ac].to_a[3].to_i,
+            ac_pierce: data[:ac_pierce].to_i,
+            ac_bash: data[:ac_bash].to_i,
+            ac_slash: data[:ac_slash].to_i,
+            ac_magic: data[:ac_magic].to_i,
         }
 
         @level = data[:level] || 1
-        @hitpoints = data[:hitpoints] || 500
+        @hitpoints = ( dice( data[:hp_dice_count].to_i, data[:hp_dice_sides].to_i ) + data[:hp_dice_bonus].to_i ) || 500
         @basehitpoints = @hitpoints
 
-        @manapoints = data[:manapoints] || 100
+        @manapoints = ( dice( data[:mana_dice_count].to_i, data[:mana_dice_sides].to_i ) + data[:mana_dice_bonus].to_i ) || 100
         @basemanapoints = @manapoints
 
         @movepoints = data[:movepoints] || 100
@@ -97,7 +97,7 @@ class Mobile < GameObject
         @swing_counter = 0
         @hand_to_hand = nil
 
-        @parts = data[:parts] || Constants::PARTS
+        @parts = data[:part_flags] || Constants::PARTS
 
         @position = Constants::Position::STAND
         @inventory = Inventory.new(owner: self, game: @game)
@@ -111,7 +111,7 @@ class Mobile < GameObject
         set_class_id(data[:class_id])
 
         apply_affect_flags(data[:affect_flags].to_a)
-        apply_affect_flags(data[:action_flags].to_a)
+        apply_affect_flags(data[:act_flags].to_a)
         apply_affect_flags(data[:specials].to_a)
     end
 
@@ -235,7 +235,7 @@ class Mobile < GameObject
 
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
-            attacker.apply_affect( AffectKiller.new(source: attacker, target: attacker, level: 0, game: @game) ) if attacker.is_player?
+            attacker.apply_affect( AffectKiller.new( attacker, attacker, 0, @game ) ) if attacker.is_player?
             do_command "yell Help I am being attacked by #{attacker}!"
         end
         old_position = @position
@@ -309,22 +309,22 @@ class Mobile < GameObject
         if rand(1..10) <= Constants::ELEMENTAL_CHANCE
             case element
             when "flooding"
-                target.apply_affect(AffectFlooding.new(target: target, source: self, level: self.level, game: @game))
+                target.apply_affect(AffectFlooding.new(self, target, self.level, @game))
             when "shocking"
-                target.apply_affect(AffectShocking.new(target: target, source: self, level: self.level, game: @game))
+                target.apply_affect(AffectShocking.new(self, target, self.level, @game))
             when "corrosive"
-                target.apply_affect(AffectCorrosive.new( target: target, source: self, level: self.level, game: @game))
+                target.apply_affect(AffectCorrosive.new(self, target, self.level, @game))
             when "poison"
-                target.apply_affect( AffectPoison.new( target: target, source: self, level: self.level, game: @game ) )
+                target.apply_affect( AffectPoison.new(self, target, self.level, @game) )
             when "flaming"
-                target.apply_affect(AffectFireBlind.new(target: target, source: self, level: self.level, game: @game))
+                target.apply_affect(AffectFireBlind.new(self, target, self.level, @game))
             when "frost"
-                target.apply_affect( AffectFrost.new(target: target, source: self, level: self.level, game: @game))
+                target.apply_affect( AffectFrost.new(self, target, self.level, @game))
             when "demonic"
                 target.output "%s has assailed you with the demons of Hell!", self
                 broadcast "%s calls forth the demons of Hell upon %s!", @room.occupants - [self, target], [self, target]
                 output "You conjure forth the demons of hell!"
-                target.apply_affect( AffectCurse.new(target: target, source: self, level: self.level, game: @game))
+                target.apply_affect( AffectCurse.new(self, target, self.level, @game))
             end
         end
     end
@@ -943,7 +943,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         element_flags.to_a.each do |flag|
             element = Constants::Element::STRINGS.select { |k, v| v == flag }.first
             next if !element
-            affect = affect_class.new(source: nil, target: self, level: 0, game: @game)
+            affect = affect_class.new(nil, self, 0, @game)
             affect.savable = false
             affect.overwrite_data({element: element[0]})
             apply_affect(affect, silent: true)
