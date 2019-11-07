@@ -107,7 +107,8 @@ class GameObject
     # +new_affect+:: The new affect to be applied
     #
     def apply_affect(new_affect, silent = false)
-        existing_affects = @affects.select { |a| a.shares_ancestors_with?(new_affect) }
+        # existing_affects = @affects.select { |a| a.shares_ancestors_with?(new_affect) }
+        existing_affects = @affects.select { |a| a.shares_keywords_with?(new_affect) }
         type = new_affect.application_type
         if [:source_overwrite, :source_stack, :source_single].include?(type)
             existing_affects.select! { |a| a.source == new_affect.source }

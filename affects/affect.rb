@@ -146,6 +146,10 @@ class Affect
         return !intersection.slice(0, intersection.index(Affect)).empty?  # slice the array elements preceding Affect: these will be common ancestors
     end                                                                   # if this array is empty after the slice, then there are no common ancestors
 
+    def shares_keywords_with?(affect)
+        @keywords.any? { |keyword| affect.keywords.include?(keyword) }
+    end
+
     # Overwrite the modifiers with a new set
     # (Probably only used when loading existing affects from database)
     def overwrite_modifiers(modifiers)
