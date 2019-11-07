@@ -4,15 +4,25 @@ class AffectGlowing < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["glowing"],
-            name: "glowing",
-            level:  level,
-            duration: level.to_i * 60,
-            modifiers: { none: 0 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            level * 60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "glowing",
+            keywords: ["glowing"],
+            application_type: :global_overwrite,
+        }
     end
 
     def send_start_messages
@@ -41,15 +51,25 @@ class AffectGrandeur < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["granduer", "grandeurminimation"],
-            name: "grandeur",
-            level:  level,
-            duration: 60 * level,
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "grandeur",
+            keywords: ["grandeur", "grandeurminimation"],
+            application_type: :global_single,
+        }
     end
 
     def start
@@ -79,18 +99,27 @@ class AffectGuard < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["guard"],
-            name: "guard",
-            level:  0,
-            duration: 1,
-            period: 2,
-            permanent: true,
-            hidden: true
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            2, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::HIDDEN, # visibility
+            true # savable
         )
     end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "guard",
+            keywords: ["guard"],
+            application_type: :global_overwrite,
+        }
+    end
+
     #
     # def start
     #     @game.add_event_listener(@target, :event_mobile_enter, self, :do_guard)
@@ -108,8 +137,12 @@ class AffectGuard < Affect
     # end
 
     def periodic
+        players = @target.room.players
+        if players.empty?
+            return
+        end
         if !@target.attacking
-            player = @target.room.occupants.select{ |t| t.affected?("killer") && @target.can_see?(t) }.shuffle.first
+            player = players.select{ |t| t.affected?("killer") && @target.can_see?(t) }.shuffle!.first
             if player
             	@target.do_command "yell #{player} is a KILLER! PROTECT THE INNOCENT!! BANZAI!!"
                 @target.start_combat player

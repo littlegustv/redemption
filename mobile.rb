@@ -38,7 +38,7 @@ class Mobile < GameObject
         @race_equip_slots = []
         @class_equip_slots = []
         @skills = []
-        @spells = [] + ["lightning bolt", "acid blast", "blast of rot", "pyrotechnics", "ice bolt"]
+        @spells = [] + ["lightning bolt".freeze, "acid blast".freeze, "blast of rot".freeze, "pyrotechnics".freeze, "ice bolt".freeze]
 
         @experience = 0
         @experience_to_level = 1000

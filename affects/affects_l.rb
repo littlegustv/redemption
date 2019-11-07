@@ -4,14 +4,25 @@ class AffectLair < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["lair"],
-            name: "lair",
-            level:  level,
-            duration: 60 * level,
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            level * 60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "lair",
+            keywords: ["lair"],
+            application_type: :global_overwrite,
+        }
     end
 
     def start
@@ -47,15 +58,31 @@ class AffectLivingStone < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["living stone"],
-            name: "living stone",
-            level:  level,
-            duration: 60,
-            modifiers: { damroll: 20, hitroll: 20, attack_speed: 3, ac_pierce: -20, armor_slash: -20 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            {
+                damroll: 20,
+                hitroll: 20,
+                attack_speed: 3,
+                ac_pierce: -20,
+                armor_slash: -20
+            }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "living stone",
+            keywords: ["living stone"],
+            application_type: :global_overwrite,
+        }
     end
 
     def send_start_messages

@@ -4,16 +4,25 @@ class AffectTaunt < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["taunt"],
-            name: "taunt",
-            level:  level,
-            duration: level * 25,
-            modifiers: {damroll: 7, hitroll: 7 },
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            147 + level * 3, # duration
+            {damroll: 7, hitroll: 7 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "taunt",
+            keywords: ["taunt"],
+            application_type: :global_single,
+        }
     end
 
     def send_start_messages

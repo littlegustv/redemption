@@ -4,17 +4,26 @@ class AffectVuln < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["vuln"],
-            name: "vuln",
-            level:  level,
-            permanent: true,
-            hidden: true,
-            application_type: :multiple
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            true, # permanent: false
+            Constants::AffectVisibility::HIDDEN, # visibility
+            true # savable
         )
-        @data[:element] = -1 # this gets set from outside of this class
+        @data = { element: -1 } # this gets set from outside of this class
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "vuln",
+            keywords: ["vuln"],
+            application_type: :multiple,
+        }
     end
 
     def start

@@ -4,16 +4,25 @@ class AffectWeaken < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["weaken"],
-            name: "weaken",
-            modifiers: {str: -10},
-            level:  level,
-            duration: 30 * level,
-            application_type: :global_overwrite
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            69 + level, # duration
+            { str: -10 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "weaken",
+            keywords: ["weaken"],
+            application_type: :global_single,
+        }
     end
 
     def send_start_messages

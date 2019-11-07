@@ -4,16 +4,25 @@ class AffectCalm < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["calm"],
-            name: "calm",
-            level:  level,
-            duration: 60 * level,
-            application_type: :global_single,
-            modifiers: { hitroll: -5, damroll: -5 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            { hitroll: -5, damroll: -5 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "calm",
+            keywords: ["calm"],
+            application_type: :global_single,
+        }
     end
 
     def send_complete_messages
@@ -26,15 +35,25 @@ class AffectCharm < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["charm"],
-            name: "charm",
-            level:  level,
-            duration: 60 * level,
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            210 + level * 10, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "charm",
+            keywords: ["charm"],
+            application_type: :global_single,
+        }
     end
 
     def send_start_messages
@@ -65,16 +84,25 @@ class AffectCloakOfMind < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["cloak of mind"],
-            name: "cloak of mind",
-            level:  level,
-            duration: 60 * level,
-            hidden: false,
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            27 * level * 3, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "cloak of mind",
+            keywords: ["cloak of mind"],
+            application_type: :global_single,
+        }
     end
 
     def start
@@ -112,17 +140,25 @@ class AffectCloudkill < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["cloudkill"],
-            name: "cloudkill",
-            level:  level,
-            duration: 60 + level,
-            period: 10,
-            hidden: false,
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            70 + level, # duration
+            nil, # modifiers: nil
+            10, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "cloudkill",
+            keywords: ["cloudkill"],
+            application_type: :global_single,
+        }
     end
 
     def start
@@ -182,16 +218,25 @@ class AffectCorrosive < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["corrosive"],
-            name: "corrosive",
-            modifiers: {ac_pierce: -10, ac_slash: -10, ac_bash: -10},
-            level:  level,
-            duration: 30,
-            application_type: :global_stack
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            30, # duration
+            { ac_pierce: -10, ac_slash: -10, ac_bash: -10 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "corrosive",
+            keywords: ["corrosive"],
+            application_type: :global_stack,
+        }
     end
 
     def send_start_messages
@@ -214,16 +259,25 @@ class AffectCurse < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["curse"],
-            name: "curse",
-            level:  level,
-            duration: 1 * level,
-            modifiers: { hitroll: -5 },
-            application_type: :global_single,
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            69 + level, # duration
+            { hitroll: -5 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "curse",
+            keywords: ["curse"],
+            application_type: :global_single,
+        }
     end
 
     def send_start_messages

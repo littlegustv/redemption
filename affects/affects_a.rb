@@ -4,17 +4,25 @@ class AffectAggressive < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["aggressive"],
-            name: "aggressive",
-            level:  0,
-            duration: 1,
-            period: 2,
-            permanent: true,
-            hidden: true
+            game, # game
+            source, # source
+            target, # target
+            0, # level
+            0, # duration
+            nil, # modifiers
+            2, # period
+            true, # permanent
+            Constants::AffectVisibility::HIDDEN, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "aggressive",
+            keywords: ["aggressive"],
+            application_type: :global_overwrite,
+        }
     end
 
     # def start
@@ -34,7 +42,11 @@ class AffectAggressive < Affect
     # end
 
     def periodic
-        player = @target.room.occupants.select{ |t| t.is_player? && @target.can_see?(t) }.shuffle.first
+        players = @target.room.players
+        if players.empty?
+            return
+        end
+        player = players.select{ |t| @target.can_see?(t) }.shuffle!.first
         if player && !@target.attacking
             @game.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
             @target.start_combat player
@@ -48,15 +60,25 @@ class AffectAlarmRune < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["alarm rune", "rune"],
-            name: "alarm rune",
-            level:  level,
-            duration: 120,
-            application_type: :source_overwrite
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            120, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "alarm rune",
+            keywords: ["alarm rune", "rune"],
+            application_type: :source_overwrite,
+        }
     end
 
     def start
@@ -98,15 +120,25 @@ class AffectArmor < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["armor", "armor"],
-            name: "armor",
-            level: level,
-            duration: level * 60,
-            modifiers: { ac_pierce: 10, ac_slash: 10, ac_bash: 10, ac_magic: 10 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            300, # duration
+            { ac_pierce: 10, ac_slash: 10, ac_bash: 10, ac_magic: 10 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "armor",
+            keywords: ["armor"],
+            application_type: :source_overwrite,
+        }
     end
 
     def send_start_messages

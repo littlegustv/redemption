@@ -4,15 +4,25 @@ class AffectRegeneration < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["regeneration"],
-            name: "regeneration",
-            level:  level,
-            duration: 30,
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            30, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::PASSIVE, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "regeneration",
+            keywords: ["regeneration"],
+            application_type: :global_single,
+        }
     end
 
     def start
@@ -42,17 +52,26 @@ class AffectResist < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["resist"],
-            name: "resist",
-            level:  level,
-            permanent: true,
-            hidden: true,
-            application_type: :multiple
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            true, # permanent: false
+            Constants::AffectVisibility::HIDDEN, # visibility
+            true # savable
         )
-        @data[:element] = -1 # this gets set from outside of this class
+        @data = { element: -1 } # this gets set from outside of this class
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "resist",
+            keywords: ["resist"],
+            application_type: :multiple,
+        }
     end
 
     def start

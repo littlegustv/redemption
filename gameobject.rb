@@ -5,7 +5,7 @@ class GameObject
 
     def initialize( name, keywords, game )
         @name = name
-        @keyword_string = keywords.to_a.join(" ").downcase
+        @keyword_string = keywords.to_a.join(" ".freeze).downcase
         @keywords = Set.new
         keywords.to_a.each do |keyword|
             keyword_string = keyword.dup.downcase

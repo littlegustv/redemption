@@ -219,7 +219,8 @@ class Game
                     gc_stat[:heap_allocated_pages] != last_gc_stat[:heap_allocated_pages] )
                     causes << "  Heap Allocation"
                 end
-                if gc_stat[:heap_free_slots] / (last_gc_stat[:heap_free_slots] || 1) > 3 # drastic increase in open heap slots
+                last_heap_free = last_gc_stat[:heap_free_slots] == 0 ? 1 : last_gc_stat[:heap_free_slots]
+                if gc_stat[:heap_free_slots] / last_heap_free > 3 # drastic increase in open heap slots
                     causes << "  Freeing Heap Slots"
                 end
                 if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0

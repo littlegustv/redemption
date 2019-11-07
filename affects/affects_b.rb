@@ -4,15 +4,25 @@ class AffectBarkSkin < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["barkskin", "armor"],
-            name: "barkskin",
-            level: level,
-            duration: level * 60,
-            modifiers: { ac_bash: 40 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            300, # duration
+            { ac_bash: 40 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "bark skin",
+            keywords: ["barkskin", "armor"],
+            application_type: :source_overwrite,
+        }
     end
 
     def send_start_messages
@@ -31,16 +41,25 @@ class AffectBerserk < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["berserk"],
-            name: "berserk",
-            level:  level,
-            duration: 60,
-            modifiers: {damroll: (level / 10).to_i, hitroll: (level / 10).to_i},
-            period: 1
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            {damroll: (level / 10).to_i, hitroll: (level / 10).to_i}, # modifiers: nil
+            1, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "berserk",
+            keywords: ["berserk"],
+            application_type: :source_overwrite,
+        }
     end
 
     def send_start_messages
@@ -74,15 +93,26 @@ class AffectBladeRune < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["blade rune", "rune"],
-            name: "blade rune",
-            level:  level,
-            duration: 60
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
         @message, @modifiers = @@TYPES.sample
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "blade rune",
+            keywords: ["blade rune", "rune"],
+            application_type: :source_overwrite,
+        }
     end
 
     def send_start_messages
@@ -100,15 +130,25 @@ class AffectBless < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["bless"],
-            name: "bless",
-            level: level,
-            duration: level * 120,
-            modifiers: { hitroll: 5, saves: -5 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            300, # duration
+            { hitroll: 5, saves: -5 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "bless",
+            keywords: ["bless"],
+            application_type: :source_overwrite,
+        }
     end
 
     def send_start_messages
@@ -127,16 +167,25 @@ class AffectBlind < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["blind"],
-            name: "blind",
-            level:  level,
-            duration: 30,
-            modifiers: {hitroll: -5},
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            30, # duration
+            { hitroll: -5 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "blind",
+            keywords: ["blind"],
+            application_type: :global_single,
+        }
     end
 
     def start
@@ -166,15 +215,25 @@ class AffectBlur < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["blur", "armor"],
-            name: "blur",
-            level: level,
-            duration: level * 60,
-            modifiers: { ac_slash: 40 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            300, # duration
+            { ac_slash: 40 }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "blur",
+            keywords: ["blur", "armor"],
+            application_type: :global_overwrite,
+        }
     end
 
     def send_start_messages
@@ -191,17 +250,23 @@ end
 
 class AffectBurstRune < Affect
 
+
+    @@NOUN = "elemental charged strike"
+
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["burst rune", "rune"],
-            name: "burst rune",
-            level:  level,
-            duration: 60
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
-        @elements = [
+        @Elements = [
             ["flooding", "Your weapon carries the {Dstrength{x of the {Btides!{x", "A {Dblack{x and {Bblue{x rune appears.", Constants::Element::DROWNING],
             ["corrosive", "Your attack explodes into {Gcorrosive {Bacid{x!", "A {Ggreen{x and {Bblue{x rune appears.", Constants::Element::ACID],
             ["frost", "The air is {Wtinged{x with {Bfrost{x as you strike!", "A {Bblue{x and {Wwhite{x rune appears.", Constants::Element::COLD],
@@ -209,14 +274,21 @@ class AffectBurstRune < Affect
             ["shocking", "You strike with the force of a {Ythunder {Bbolt!{x", "A {Ygold{x and {Bblue{x rune appears.", Constants::Element::LIGHTNING],
             ["flaming", "A {Wblast{x of {Rflames{x explodes from your weapon!", "A {Rred{x and {Wwhite{x rune appears.", Constants::Element::FIRE]
         ]
-        overwrite_data(@data)
-        @noun = "elemental charged strike"
+        overwrite_data(Hash.new)
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "burst rune",
+            keywords: ["burst rune", "rune"],
+            application_type: :global_single,
+        }
     end
 
     def overwrite_data(data)
         @data = data
         @data[:index] = rand(@elements.length) if !@data[:index]
-        @element_string, @hit_message, @apply_message, @element = @elements[@data[:index]]
+        @element_string, @hit_message, @apply_message, @element = @ELEMENTS[@data[:index]]
     end
 
     def start
@@ -246,7 +318,7 @@ class AffectBurstRune < Affect
     def do_burst_rune(data)
         if data[:confirm] == false && data[:weapon] == @target && data[:target] && rand(1..100) <= 125
             data[:source].output @hit_message
-            data[:source].deal_damage(target: data[:target], damage: 100, noun: @noun, element: @element, type: Constants::Damage::MAGICAL)
+            data[:source].deal_damage(target: data[:target], damage: 100, noun: @@NOUN, element: @element, type: Constants::Damage::MAGICAL)
             data[:confirm] = true
         end
     end

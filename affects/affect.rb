@@ -4,30 +4,24 @@ class Affect
     attr_accessor :source
     attr_accessor :savable
     attr_accessor :active
-    attr_reader :application_type
     attr_reader :data
-    attr_reader :hidden
+    attr_reader :visibility
     attr_reader :level
     attr_reader :modifiers
-    attr_reader :name
-    attr_reader :keywords
     attr_reader :period
     attr_reader :target
 
     def initialize(
-        game:,
-        source:,
-        target:,
-        keywords:,
-        name:,
-        level: 0,
-        duration: 0,
-        modifiers: {},
-        period: nil,
-        application_type: :global_overwrite,
-        permanent: false,
-        hidden: false,
-        savable: true
+        game,
+        source,
+        target,
+        level,
+        duration,
+        modifiers,
+        period,
+        permanent,
+        visibility,
+        savable
     )
         @game = game
         @source = source                        # GameObject that is the source of this affect - prefer nil when possible.
@@ -42,12 +36,12 @@ class Affect
                                                # :source_overwrite, :source_stack, :source_single,
                                                # :multiple
         @permanent = permanent
-        @hidden = hidden
+        @visibility = visibility
         @savable = true
         @active = true
 
         @clock = 0
-        @data = {}                             # Additional data. Only "primitives". Saved to the database.
+        @data = nil                            # Additional data. Only "primitives". Saved to the database.
     end
 
     # Override this method to output start messages.
@@ -114,14 +108,22 @@ class Affect
     end
 
     def modifier( key )
-        return @modifiers[ key ].to_i
+        if @modifiers
+            return @modifiers[ key ].to_i
+        else
+            return 0
+        end
     end
 
     def summary
-        if @modifiers.length > 0
+        if @modifiers && @modifiers.length > 0
             return "Spell: #{@name.rpad(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
         else
-            return "Spell: #{@name}"
+            if @permanent
+                return "Spell: #{@name}"
+            else
+                return "Spell: #{@name.rpad(17)} : modifies none by 0 ${ duration_string }"
+            end
         end
     end
 
@@ -136,8 +138,11 @@ class Affect
     # Combine modifiers from a new affect and renew duration of this affect to
     # the longer duration of the two
     def stack(new_affect)
-        new_affect.modifiers.each do |stat, bonus|
-            @modifiers[stat] = bonus + (@modifiers[stat] || 0)
+        if new_affect.modifiers
+            @modifiers = @modifiers || Hash.new
+            new_affect.modifiers.each do |stat, bonus|
+                @modifiers[stat] = bonus + (@modifiers[stat] || 0)
+            end
         end
         @duration = [@duration.to_i, new_affect.duration.to_i].max
     end
@@ -164,6 +169,30 @@ class Affect
     def overwrite_data(data)
         @data = data
     end
+
+    # REMOVE FROM HERE ON
+
+    def name
+        return self.class.affect_info[:name]
+    end
+
+    def keywords
+        return self.class.affect_info[:keywords]
+    end
+
+    def application_type
+        return self.class.affect_info[:application_type]
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "affect_name",
+            keywords: ["affect_keywords"],
+            application_type: :global_overwrite,
+        }
+    end
+
+    # STOP REMOVAL
 
 end
 

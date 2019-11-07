@@ -4,15 +4,25 @@ class AffectZeal < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["zeal"],
-            name: "zeal",
-            level:  level,
-            permanent: true,
-            modifiers: { none: 0 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            0, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            true, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "zeal",
+            keywords: ["zeal"],
+            application_type: :global_single,
+        }
     end
 
     def start

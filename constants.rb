@@ -1,8 +1,20 @@
 module Constants
 
+    module AffectVisibility
+        NORMAL = 0
+        PASSIVE = 1
+        HIDDEN = 2
+
+        STRINGS = {
+            NORMAL => "normal",
+            PASSIVE => "passive",
+            HIDDEN => "hidden",
+        }
+    end
+
     module Time
         DAYS = [ "the Moon", "the Bull", "Deception", "Thunder", "Freedom","the Great Gods", "the Sun" ]
-        MONTHS = [ 
+        MONTHS = [
             "Winter", "the Winter Wolf", "the Frost Giant", "the Old Forces",
             "the Grand Struggle", "the Spring", "Nature", "Futility", "the Dragon",
             "the Sun", "the Heat", "the Battle", "the Dark Shades", "the Shadows",
@@ -312,7 +324,7 @@ module Constants
         SkillSteal,
         SkillShadow,
         SkillEnvenom,
-        SkillHide, 
+        SkillHide,
         SkillPickLock,
         SkillAppraise,
         SkillLair,
@@ -395,7 +407,7 @@ module Constants
         SpellMassHealing,
         SpellFly,
         SpellBlindness,
-        SpellSleep, 
+        SpellSleep,
         SpellGrandeur,
         SpellMinimation,
         SpellFrenzy,

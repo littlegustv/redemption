@@ -4,15 +4,25 @@ class AffectHaste < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["haste"],
-            name: "haste",
-            level:  level,
-            duration: 120,
-            modifiers: {dex: [1, (level / 10).to_i].max, attack_speed: 1, str: 10}
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            120, # duration
+            {dex: 1 + (level / 12).floor.to_i, attack_speed: 1}, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "haste",
+            keywords: ["haste"],
+            application_type: :global_overwrite,
+        }
     end
 
     def send_start_messages
@@ -39,16 +49,25 @@ class AffectHatchling < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["hatchling"],
-            name: "hatchling",
-            level:  level,
-            permanent: true,
-            hidden: true,
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            true, # permanent: false
+            Constants::AffectVisibility::HIDDEN, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "hatchling",
+            keywords: ["hatchling"],
+            application_type: :global_single,
+        }
     end
 
     def start
@@ -73,15 +92,25 @@ class AffectHide < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["hide"],
-            name: "hide",
-            level:  level,
-            permanent: true,
-            modifiers: { none: 0 }
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            { none: 0 }, # modifiers: nil
+            nil, # period: nil
+            true, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "hide",
+            keywords: ["hide"],
+            application_type: :global_overwrite,
+        }
     end
 
     def start

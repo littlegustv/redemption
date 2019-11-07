@@ -4,15 +4,31 @@ class AffectMinimation < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["minimation", "grandeurminimation"],
-            name: "minimation",
-            level:  level,
-            duration: 60 * level,
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            level * 60, # duration
+            {
+                damroll: 20,
+                hitroll: 20,
+                attack_speed: 3,
+                ac_pierce: -20,
+                armor_slash: -20
+            }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "minimation",
+            keywords: ["minimation", "grandeurminimation"],
+            application_type: :global_single,
+        }
     end
 
     def start
@@ -42,16 +58,26 @@ class AffectMirrorImage < Affect
 
     def initialize(source, target, level, game)
         super(
-            game: game,
-            source: source,
-            target: target,
-            keywords: ["mirror image"],
-            name: "mirror image",
-            level:  level,
-            duration: 120,
-            application_type: :global_single
+            game, # game
+            source, # source
+            target, # target
+            level, # level
+            120, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
         )
         @health = 5
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "mirror image",
+            keywords: ["mirror image"],
+            application_type: :global_single,
+        }
     end
 
     def start
