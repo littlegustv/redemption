@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectScramble < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -48,7 +48,7 @@ end
 
 class AffectShackle < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -88,7 +88,7 @@ end
 
 class AffectShackleRune < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -119,7 +119,7 @@ class AffectShackleRune < Affect
         if data[:mobile] == @source # || rand(0..100) < 50
             data[:mobile].output "You sense the power of the room's rune and avoid it!"
         else
-            data[:mobile].apply_affect( AffectShackle.new(source: @source, target: data[:mobile], level: @source.level, game: @game) )
+            data[:mobile].apply_affect( AffectShackle.new( @source, data[:mobile], @source.level, @game ) )
         end
     end
 
@@ -131,7 +131,7 @@ end
 
 class AffectShield < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -157,7 +157,7 @@ end
 
 class AffectShopkeeper < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -173,7 +173,7 @@ end
 
 class AffectShocking < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -199,7 +199,7 @@ end
 
 class AffectSneak < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -224,7 +224,7 @@ end
 
 class AffectSleep < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -259,7 +259,7 @@ end
 
 class AffectSlow < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -283,7 +283,7 @@ end
 
 class AffectStoneSkin < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -309,7 +309,7 @@ end
 
 class AffectStun < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

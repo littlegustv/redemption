@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectAggressive < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -46,7 +46,7 @@ end
 
 class AffectAlarmRune < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -96,7 +96,7 @@ end
 
 class AffectArmor < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

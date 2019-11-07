@@ -90,7 +90,12 @@ class String
 end
 
 def dice( count, sides )
-    count.times.collect{ rand(1..sides) }.sum
+    n = 0
+    count.times do
+        n += rand(1..sides)
+    end
+    return n
+    # count.times.collect{ rand(1..sides) }.sum
 end
 
 def log(s)

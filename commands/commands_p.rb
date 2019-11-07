@@ -13,12 +13,47 @@ class CommandPoison < Command
 
     def attempt( actor, cmd, args, input )
         if not actor.affected? "poison"
-            actor.apply_affect(AffectPoison.new(source: actor, target: actor, level: actor.level, game: @game))
+            actor.apply_affect(AffectPoison.new( actor, actor, actor.level, @game ))
             return true
         else
             actor.output "You are already poisoned."
             return false
         end
+    end
+
+end
+
+class CommandProfile < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "profile",
+            keywords: ["profile"],
+            position: Constants::Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        report = MemoryProfiler.stop
+        puts report.pretty_print
+    end
+
+end
+
+class CommandPry < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "pry",
+            keywords: ["pry"],
+            position: Constants::Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        binding.pry
     end
 
 end

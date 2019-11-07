@@ -292,6 +292,8 @@ module Constants
         CommandLock,
         CommandUnlock,
         CommandEnter,
+        CommandPry,
+        CommandProfile,
     ]
 
     SKILL_CLASSES = [

@@ -14,7 +14,7 @@ class CommandQuicken < Command
 
     def attempt( actor, cmd, args, input )
         if not actor.affected? "haste"
-            actor.apply_affect(AffectHaste.new(source: actor, target: actor, level: actor.level, game: @game))
+            actor.apply_affect(AffectHaste.new( actor, actor, actor.level, @game ))
             return true
         else
             actor.output "You are already moving as fast as you can!"

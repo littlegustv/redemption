@@ -63,7 +63,7 @@ class SpellAlarmRune < Spell
         else
             actor.output "You place an alarm rune on the ground, increasing your senses."
             actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
-            actor.room.apply_affect( AffectAlarmRune.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
+            actor.room.apply_affect( AffectAlarmRune.new( actor, actor.room, actor.level, @game ) )
             return true
         end
     end
@@ -84,7 +84,7 @@ class SpellArmor < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectArmor.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        actor.apply_affect( AffectArmor.new( nil, actor, actor.level, @game ) )
     end
 
 end

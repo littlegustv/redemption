@@ -48,7 +48,7 @@ class SpellEnchantArmor < Spell
         if ( target = actor.target({ list: actor.inventory.items, item_type: "armor" }.merge( args.first.to_s.to_query )).first )
             fail = 25
             # dam =
-            affect = AffectEnchantArmor.new( source: nil, target: target, level: actor.level, game: @game )
+            affect = AffectEnchantArmor.new( nil, target, actor.level, @game )
             affect.overwrite_modifiers({ ac_pierce: -1 * level, ac_slash: -1 * level, ac_bash: -1 * level, ac_magic: -1 * level })
             target.apply_affect( affect )
             return true
@@ -84,7 +84,7 @@ class SpellEnchantWeapon < Spell
         if ( target = actor.target({ list: actor.inventory.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
             fail = 25
             # dam =
-            affect = AffectEnchantWeapon.new( source: nil, target: target, level: actor.level, game: @game )
+            affect = AffectEnchantWeapon.new( nil, target, actor.level, @game )
             affect.overwrite_modifiers({hitroll: level, damroll: 10})
             target.apply_affect( affect )
             return true

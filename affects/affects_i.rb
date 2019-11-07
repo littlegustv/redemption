@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectIgnoreWounds < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -46,7 +46,7 @@ end
 
 class AffectImmune < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -86,7 +86,7 @@ end
 
 class AffectIndoors < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -101,7 +101,7 @@ end
 
 class AffectInfravision < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -125,7 +125,7 @@ end
 
 class AffectInvisibility < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

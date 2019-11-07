@@ -14,7 +14,7 @@ class SpellDarkness < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.room.apply_affect( AffectDarkness.new( source: actor, target: actor.room, level: level, game: @game ) )
+        actor.room.apply_affect( AffectDarkness.new( actor, actor.room, level, @game ) )
     end
 
 end
@@ -33,7 +33,7 @@ class SpellDeathRune < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectDeathRune.new( source: actor, target: actor, level: level, game: @game ) )
+        actor.apply_affect( AffectDeathRune.new( actor, actor, level, @game ) )
     end
 
 end
@@ -87,7 +87,7 @@ class SpellDemonFire < Spell
         actor.deal_damage(target: target, damage: 100, noun:"torments", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
         actor.alignment = [ actor.alignment - 50, -1000 ].max
 
-        target.apply_affect( AffectCurse.new( source: nil, target: target, level: actor.level, game: @game ))
+        target.apply_affect( AffectCurse.new( nil, target, actor.level, @game ))
 
         return true
     end
@@ -176,7 +176,7 @@ class SpellDetectInvisibility < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectDetectInvisibility.new( source: actor, target: actor, level: level, game: @game ) )
+        actor.apply_affect( AffectDetectInvisibility.new( actor, actor, level, @game ) )
     end
 
 end

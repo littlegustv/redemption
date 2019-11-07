@@ -24,6 +24,8 @@ module GameSetup
         end
         @started = true
 
+        # MemoryProfiler.start
+
         # start TCPServer
         start_server(ip, port)
         # Open database connection
@@ -36,36 +38,70 @@ module GameSetup
         load_equip_slot_data
         load_continent_data
         load_area_data
-        load_room_data
-        load_mobile_data
-        load_item_data
-        load_shop_data
-        load_reset_data( areas )
-        load_help_data
-        load_account_data
-        load_saved_player_data
-        load_skill_data
-        load_spell_data
-        load_command_data
-        load_portal_data
 
-        load_max_ids
+        profile "{c", "ROOM DATA" do
+        
+            load_room_data
 
-        # construct objects
-        make_continents
-        make_areas
-        make_rooms
-        make_skills
-        make_spells
-        make_commands
+        end
 
-        # perform a repop to populate the world with items and mobiles
-        10.times do
-            repop
+        profile "{c", "MOBILE DATA" do
+        
+            load_mobile_data
+
+        end
+        
+        profile "{c", "ITEM (AND MISC) DATA" do
+        
+            load_item_data
+            load_shop_data
+            load_reset_data( areas )
+            load_help_data
+            load_account_data
+            load_saved_player_data
+            load_skill_data
+            load_spell_data
+            load_command_data
+            load_portal_data
+
+            load_max_ids
+
+        end
+
+        profile "{M", "'MAKE CONTINENTS'" do
+
+            # construct objects
+            make_continents
+            make_areas
+
+        end
+
+        profile "{M", "MAKE ROOMS" do
+
+            make_rooms
+        
+        end
+        
+        profile "{M", "MAKE SKILLS, SPELLS, COMMANDS" do
+            make_skills
+            make_spells
+            make_commands
+        end
+
+
+        profile "{G", "REPOP", true do
+
+            # perform a repop to populate the world with items and mobiles
+            10.times do
+                repop
+            end
+
         end
 
         @start_time = Time.now
         log( "Redemption is ready to rock on port #{port}!" )
+
+        # binding.pry
 
         # game update loop runs on a single thread
         Thread.start do
@@ -100,6 +136,7 @@ module GameSetup
                              :username => sql_username,
                              :password => sql_password,
                              :database => "redemption" )
+        
         # @db.loggers << Logger.new($stdout)
         log( "Database connection established." )
     end
@@ -179,7 +216,7 @@ module GameSetup
     protected def load_room_data
         @room_data = @db[:room_base].to_hash(:id)
         @exit_data = @db[:room_exit].to_hash(:id)
-        @room_description_data = @db[:room_description].to_hash(:id)
+        @room_description_data = @db[:room_description].to_hash(:id)        
         log ( "Database load complete: Rooms" )
     end
 

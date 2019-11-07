@@ -124,13 +124,13 @@ class SpellHolyWord < Spell
         if args.first.nil?
             actor.output "A warm feeling runs through your body."
             actor.regen 100, 0, 0
-            actor.apply_affect( AffectBless.new( source: nil, target: actor, level: actor.level, game: @game ) )
-            actor.apply_affect( AffectFrenzy.new( source: nil, target: actor, level: actor.level, game: @game ) )
+            actor.apply_affect( AffectBless.new( nil, actor, actor.level, @game ) )
+            actor.apply_affect( AffectFrenzy.new( nil, actor, actor.level, @game ) )
         elsif ( target = @game.target({ list: actor.items + actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
             target.output "A warm feeling runs through your body."
             target.regen 100, 0, 0
-            target.apply_affect( AffectBless.new( source: nil, target: target, level: actor.level, game: @game ) )
-            target.apply_affect( AffectFrenzy.new( source: nil, target: target, level: actor.level, game: @game ) )
+            target.apply_affect( AffectBless.new( nil, target, actor.level, @game ) )
+            target.apply_affect( AffectFrenzy.new( nil, target, actor.level, @game ) )
         else
             actor.output "There is no one here with that name."
         end

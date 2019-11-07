@@ -21,7 +21,7 @@ class SpellCalm < Spell
             entity.remove_affect "frenzy"
             entity.remove_affect "taunt"
             entity.stop_combat
-            entity.apply_affect( AffectCalm.new( source: nil, target: entity, level: actor.level, game: @game ) )
+            entity.apply_affect( AffectCalm.new( nil, entity, actor.level, @game ) )
         end
     end
 
@@ -234,8 +234,8 @@ class SpellCharmPerson < Spell
             if rand(1..10) <= 5
                 actor.output "%s looks at you with adoring eyes.", [target]
                 target.output "Isn't %s just so nice??", [actor]
-                target.apply_affect( AffectFollow.new( source: actor, target: target, level: 1, game: @game ) )
-                target.apply_affect( AffectCharm.new( source: actor, target: target, level: actor.level, game: @game ) )
+                target.apply_affect( AffectFollow.new( actor, target, 1, @game ) )
+                target.apply_affect( AffectCharm.new( actor, target, actor.level, @game ) )
             else
                 actor.output "You failed."
                 target.start_combat( actor )
@@ -261,7 +261,7 @@ class SpellCloakOfMind < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectCloakOfMind.new( source: nil, target: actor, level: actor.level, game: @game ) )
+        actor.apply_affect( AffectCloakOfMind.new( nil, actor, actor.level, @game ) )
     end
 
 end
@@ -280,7 +280,7 @@ class SpellCloudkill < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.room.apply_affect( AffectCloudkill.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
+        actor.room.apply_affect( AffectCloudkill.new( actor, actor.room, actor.level, @game ) )
     end
 
 end
@@ -342,7 +342,7 @@ class SpellContinualLight < Spell
             actor.broadcast "%s twiddles their thumbs and %s appears.", actor.room.occupants - [actor], [actor, item]
             actor.output "You twiddle your thumbs and %s appears.", [item]
         elsif ( target = @game.target( { list: actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
-            target.apply_affect( AffectGlowing.new( source: nil, target: target, level: actor.level, game: @game ))
+            target.apply_affect( AffectGlowing.new( nil, target, actor.level, @game ))
         else
             actor.output "You don't see that here."
         end
@@ -641,7 +641,7 @@ class SpellCurse < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectCurse.new( source: actor, target: target, level: actor.level, game: @game ) )
+        target.apply_affect( AffectCurse.new( actor, target, actor.level, @game ) )
         target.start_combat( actor )
         return true
     end

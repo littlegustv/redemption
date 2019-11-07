@@ -14,7 +14,7 @@ class SkillEnvenom < Skill
 
     def attempt( actor, cmd, args, input )
         if ( target = @game.target({ list: actor.items, item_type: "weapon", visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
-	        target.apply_affect( AffectPoison.new( source: nil, target: target, level: actor.level, game: @game ) )
+	        target.apply_affect( AffectPoison.new( nil, target, actor.level, @game ) )
         end
         return true
     end

@@ -173,6 +173,16 @@ class Game
             before = Time.now
             if @frame_count % Constants::Interval::TICK == 0
                 tick
+<<<<<<< HEAD
+=======
+                after = Time.now
+                # if @frame_count != 0
+                #     Thread.start do
+                #         GC.start
+                #     end
+                # end
+                log "{gTick:{x #{after - before}" if $VERBOSE
+>>>>>>> dff413a125bff6e44d52346a5ede64b8287fd3b6
             end
             tick_time = Time.now - before
 
@@ -242,6 +252,28 @@ class Game
                 sleep(sleep_time) #
             end
             last_gc_stat = GC.stat
+        end
+    end
+
+    def profile color, message, verbose = false
+        
+        MemoryProfiler.start if $VERBOSE
+        
+        yield
+
+        if $VERBOSE
+            report = MemoryProfiler.stop
+
+            log "#{color}<<<<<<<<<<<<<<<<<<<<<<<<<<<< #{message} >>>>>>>>>>>>>>>>>>>>>>>>{x"
+            
+            if verbose
+                report.pretty_print
+            end
+
+            ObjectSpace.each_object.inject(Hash.new 0) { |h,o| h[o.class] += 1; h }.sort_by { |k,v| -v }.take(5).each { |klass, count| log "#{count.to_s.ljust(10)} #{klass}" }
+            
+            log "ALLOCATED #{ ( report.total_allocated_memsize / 10000 ) / 100.0 } MB"
+            log "RETAINED #{ ( report.total_retained_memsize / 10000 ) / 100.0 } MB"
         end
     end
 
@@ -392,6 +424,7 @@ class Game
             elsif @mob_data[ reset[:mobile_id] ]
                 if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
+                    
                     # @mobiles.add(mob)
                     add_global_mobile(mob)
 
@@ -462,57 +495,59 @@ class Game
         row = @mob_data[ id ]
         race_matches = @race_data.select{ |k, v| v[:name] == row[:race] }
         race_id = 0
+        class_id = 0
         if race_matches.any?
             race_id = race_matches.first[0]
         end
-        mob = Mobile.new( {
-                id: id,
-                keywords: row[:keywords].split(" "),
-                short_description: row[:short_desc],
-                long_description: row[:long_desc],
-                full_description: row[:full_desc],
-                race_id: race_id,
-                action_flags: row[:act_flags],
-                affect_flags: row[:affect_flags],
-                alignment: row[:align].to_i,
-                # mobgroup??
-                hitroll: row[:hitroll].to_i,
-                hitpoints: dice( row[:hp_dice_count].to_i, row[:hp_dice_sides].to_i ) + row[:hp_dice_bonus].to_i,
-                #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
-                hp_range: [500, 1000],
-                # mana: row[:manaRange].split("-").map(&:to_i).first,
-                manapoints: dice( row[:mana_dice_count].to_i, row[:mana_dice_sides].to_i ) + row[:mana_dice_bonus].to_i,
-                movepoints: 100,
-                #damage_range: row[:damageRange].split("-").map(&:to_i),
-                # damage_range: [10, 20],
-                damage_dice_sides: row[:damage_dice_sides].to_i,
-                damage_dice_count: row[:damage_dice_count].to_i,
-                damage_dice_bonus: row[:damage_dice_bonus].to_i,
-                hand_to_hand_noun: row[:hand_to_hand_noun], # pierce, slash, none, etc.
-                ac: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
-                offensive_flags: row[:off_flags],
-                immune_flags: row[:immune_flags],
-                resist_flags: row[:resist_flags],
-                vulnerable_flags: row[:vuln_flags],
-                starting_position: row[:start_position],
-                default_position: row[:default_position],
-                sex: row[:sex],
-                wealth: row[:wealth].to_i,
-                form_flags: row[:form_flags],
-                specials: row[:specials],
-                parts: row[:part_flags],
-                size: row[:size],
-                material: row[:material],
-                level: row[:level]
-            },
-            self,
-            room
-        )
+        mob = Mobile.new( row, race_id, class_id, self, room )
+        # mob = Mobile.new( {
+        #         id: id,
+        #         keywords: row[:keywords].split(" "),
+        #         short_description: row[:short_desc],
+        #         long_description: row[:long_desc],
+        #         full_description: row[:full_desc],
+        #         race_id: race_id,
+        #         action_flags: row[:act_flags],
+        #         affect_flags: row[:affect_flags],
+        #         alignment: row[:align].to_i,
+        #         # mobgroup??
+        #         hitroll: row[:hitroll].to_i,
+        #         hitpoints: dice( row[:hp_dice_count].to_i, row[:hp_dice_sides].to_i ) + row[:hp_dice_bonus].to_i,
+        #         #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
+        #         hp_range: [500, 1000],
+        #         # mana: row[:manaRange].split("-").map(&:to_i).first,
+        #         manapoints: dice( row[:mana_dice_count].to_i, row[:mana_dice_sides].to_i ) + row[:mana_dice_bonus].to_i,
+        #         movepoints: 100,
+        #         #damage_range: row[:damageRange].split("-").map(&:to_i),
+        #         # damage_range: [10, 20],
+        #         damage_dice_sides: row[:damage_dice_sides].to_i,
+        #         damage_dice_count: row[:damage_dice_count].to_i,
+        #         damage_dice_bonus: row[:damage_dice_bonus].to_i,
+        #         hand_to_hand_noun: row[:hand_to_hand_noun], # pierce, slash, none, etc.
+        #         ac: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
+        #         offensive_flags: row[:off_flags],
+        #         immune_flags: row[:immune_flags],
+        #         resist_flags: row[:resist_flags],
+        #         vulnerable_flags: row[:vuln_flags],
+        #         starting_position: row[:start_position],
+        #         default_position: row[:default_position],
+        #         sex: row[:sex],
+        #         wealth: row[:wealth].to_i,
+        #         form_flags: row[:form_flags],
+        #         specials: row[:specials],
+        #         parts: row[:part_flags],
+        #         size: row[:size],
+        #         material: row[:material],
+        #         level: row[:level]
+        #     },
+        #     self,
+        #     room
+        # )
         #
         # "Shopkeeper behavior" is handled as an affect, which is currently used only as a kind of 'flag' for the buy/sell commands
         #
         if not @shop_data[ id ].nil?
-            mob.apply_affect( AffectShopkeeper.new( source: mob, target: mob, level: 0, game: self ) )
+            mob.apply_affect( AffectShopkeeper.new( mob, mob, 0, self ) )
         end
         return mob
     end
@@ -577,7 +612,7 @@ class Game
             if not @portal_data[ id ].nil?
                 # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
                 # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
-                item.apply_affect( AffectPortal.new( target: item, game: self, destination: @rooms[ @portal_data[id][:to_room_id] ] ) )
+                item.apply_affect( AffectPortal.new( item, @rooms[ @portal_data[id][:to_room_id] ], self ) )
             end
 
             if item

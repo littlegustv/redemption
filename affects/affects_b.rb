@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectBarkSkin < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -29,7 +29,7 @@ end
 
 class AffectBerserk < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -72,7 +72,7 @@ class AffectBladeRune < Affect
         [ "The weapon is endowed with killing dweomers.", { damroll: 10 } ]
     ]
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -98,7 +98,7 @@ end
 
 class AffectBless < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -125,7 +125,7 @@ end
 
 class AffectBlind < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -164,7 +164,7 @@ end
 
 class AffectBlur < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -191,7 +191,7 @@ end
 
 class AffectBurstRune < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

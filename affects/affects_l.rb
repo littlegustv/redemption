@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectLair < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -45,7 +45,7 @@ end
 
 class AffectLivingStone < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

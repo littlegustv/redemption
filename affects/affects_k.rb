@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectKarma < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         @texts = {
             str: "%s karma grows stronger!",
             dex: "%s karma moves faster!",
@@ -40,7 +40,7 @@ end
 
 class AffectKiller < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

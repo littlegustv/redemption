@@ -50,7 +50,7 @@ class SpellIgnoreWounds < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectIgnoreWounds.new( source: nil, target: actor, level: level, game: @game ) )
+        actor.apply_affect( AffectIgnoreWounds.new( nil, actor, level, @game ) )
     end
 end
 
@@ -74,7 +74,7 @@ class SpellInfravision < Spell
             actor.output "You don't see anything like that here."
             return false
         end
-        target.apply_affect( AffectInfravision.new( source: actor, target: target, level: level, game: @game ) )
+        target.apply_affect( AffectInfravision.new( actor, target, level, @game ) )
         return true
     end
 end
@@ -99,7 +99,7 @@ class SpellInvisibility < Spell
             actor.output "You don't see anything like that here."
             return false
         end
-        target.apply_affect( AffectInvisibility.new( source: actor, target: target, level: level, game: @game ) )
+        target.apply_affect( AffectInvisibility.new( actor, target, level, @game ) )
         return true
     end
 end

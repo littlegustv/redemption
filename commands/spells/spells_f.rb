@@ -97,7 +97,7 @@ class SpellFireRune < Spell
     	else
     		actor.output "You place a fiery rune on the ground to singe your foes."
     		actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
-    		actor.room.apply_affect( AffectFireRune.new( source: actor, target: actor.room, level: actor.level, game: @game ) )
+    		actor.room.apply_affect( AffectFireRune.new( actor, actor.room, actor.level, @game ) )
             return true
     	end
     end
@@ -154,9 +154,9 @@ class SpellFly < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
-            actor.apply_affect( AffectFly.new( source: actor, target: actor, level: actor.level, game: @game ) )
+            actor.apply_affect( AffectFly.new( actor, actor, actor.level, @game ) )
         elsif ( target = @game.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectFly.new( source: actor, target: target, level: actor.level, game: @game ) )
+            target.apply_affect( AffectFly.new( actor, target, actor.level, @game ) )
         else
             actor.output "There is no one here with that name."
         end
@@ -177,9 +177,9 @@ class SpellFrenzy < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
-            actor.apply_affect( AffectFrenzy.new( source: nil, target: actor, level: actor.level, game: @game ) )
+            actor.apply_affect( AffectFrenzy.new( nil, actor, actor.level, @game ) )
         elsif ( target = @game.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectFrenzy.new( source: nil, target: target, level: actor.level, game: @game ) )
+            target.apply_affect( AffectFrenzy.new( nil, target, actor.level, @game ) )
         else
             actor.output "There is no one here with that name."
         end

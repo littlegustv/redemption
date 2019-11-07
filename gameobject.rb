@@ -11,7 +11,7 @@ class GameObject
             keyword_string = keyword.dup.downcase
             while keyword_string.length > 0
                 @keywords.add(keyword_string.to_sym)
-                keyword_string[-1] = ""
+                keyword_string.chop!
             end
         end
         @game = game
@@ -107,7 +107,8 @@ class GameObject
     # +new_affect+:: The new affect to be applied
     #
     def apply_affect(new_affect, silent = false)
-        existing_affects = @affects.select { |a| a.shares_ancestors_with?(new_affect) }
+        # existing_affects = @affects.select { |a| a.shares_ancestors_with?(new_affect) }
+        existing_affects = @affects.select { |a| a.shares_keywords_with?(new_affect) }
         type = new_affect.application_type
         if [:source_overwrite, :source_stack, :source_single].include?(type)
             existing_affects.select! { |a| a.source == new_affect.source }
@@ -155,7 +156,7 @@ class GameObject
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class
-                affect = affect_class.new(source: self, target: self, level: 0, game: @game)
+                affect = affect_class.new(self, self, 0, @game)
                 affect.savable = false
                 affect.permanent = true
                 apply_affect(affect, silent)

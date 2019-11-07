@@ -305,7 +305,7 @@ module GameSave
             if affect_class
                 source = find_affect_source(affect_row, player, player.items)
                 if source != false # source can be nil, just not false - see find_affect_source
-                    affect = affect_class.new(source: source, target: player, level: affect_row[:level], game: self)
+                    affect = affect_class.new(source, player, affect_row[:level], self)
                     affect.duration = affect_row[:duration]
                     modifiers = {}
                     modifier_rows = all_modifier_rows.select{ |row| row[:saved_player_affect_id] == affect_row[:id] }
@@ -326,7 +326,7 @@ module GameSave
                 if affect_class
                     source = find_affect_source(affect_row, player, player.items)
                     if source != false # source can be nil, just not false - see find_affect_source
-                        affect = affect_class.new(source: source, target: item, level: affect_row[:level], game: self)
+                        affect = affect_class.new(source, item, affect_row[:level], self)
                         affect.duration = affect_row[:duration]
                         modifiers = {}
                         modifier_rows = all_item_modifier_rows.select{ |row| row[:saved_player_item_affect_id] == affect_row[:id] }

@@ -2,7 +2,7 @@ require_relative 'affect.rb'
 
 class AffectGlowing < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -39,7 +39,7 @@ end
 
 class AffectGrandeur < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,
@@ -77,7 +77,7 @@ end
 
 class AffectGuard < Affect
 
-    def initialize(source:, target:, level:, game:)
+    def initialize(source, target, level, game)
         super(
             game: game,
             source: source,

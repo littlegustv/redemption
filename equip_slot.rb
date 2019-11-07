@@ -1,21 +1,40 @@
 require_relative 'inventory'
 
 # A slot for a single equipped item
-class EquipSlot < Inventory
+class EquipSlot
 
-    attr_reader :equip_message_self
-    attr_reader :equip_message_others
-    attr_reader :list_prefix
-    attr_reader :wear_flag
+    # attr_reader :equip_message_self
+    # attr_reader :equip_message_others
+    # attr_reader :list_prefix
+    # attr_reader :wear_flag
     attr_reader :item
+    attr_reader :owner
 
-    def initialize(equip_message_self:, equip_message_others:, list_prefix:, wear_flag:, owner:, game:)
-        super(owner: owner, game: game)
-        @equip_message_self = equip_message_self        # String format for mobile doing the equipping
-        @equip_message_others = equip_message_others    # String format for others in the room
-        @list_prefix = list_prefix                      # ex. worn about body, worn on feet, etc
-        @wear_flag = wear_flag                          # wear_body, wear_wrist, etc
+    def initialize(slot, owner, game)
+        @game = game            # reference to the game object
+        @owner = owner          # the room/mobile/item that contains these items
+        @slot = slot
+        # @equip_message_self = equip_message_self        # String format for mobile doing the equipping
+        # @equip_message_others = equip_message_others    # String format for others in the room
+        # @list_prefix = list_prefix                      # ex. worn about body, worn on feet, etc
+        # @wear_flag = wear_flag                          # wear_body, wear_wrist, etc
         @item = nil                                     # the item that is equipped in this slot (or nil)
+    end
+
+    def equip_message_self
+        @game.equip_slot_data.dig( @slot, :equip_message_self )
+    end
+
+    def equip_message_others
+        @game.equip_slot_data.dig( @slot, :equip_message_others )
+    end
+
+    def list_prefix
+        @game.equip_slot_data.dig( @slot, :list_prefix )
+    end
+
+    def wear_flag
+        @game.equip_slot_data.dig( @slot, :wear_flag )
     end
 
     def items
