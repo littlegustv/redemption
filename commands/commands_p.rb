@@ -23,6 +23,41 @@ class CommandPoison < Command
 
 end
 
+class CommandProfile < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "profile",
+            keywords: ["profile"],
+            position: Constants::Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        report = MemoryProfiler.stop
+        puts report.pretty_print
+    end
+
+end
+
+class CommandPry < Command
+
+    def initialize(game)
+        super(
+            game: game,
+            name: "pry",
+            keywords: ["pry"],
+            position: Constants::Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        binding.pry
+    end
+
+end
+
 class CommandPut < Command
 
     def initialize(game)

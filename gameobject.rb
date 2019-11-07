@@ -11,7 +11,7 @@ class GameObject
             keyword_string = keyword.dup.downcase
             while keyword_string.length > 0
                 @keywords.add(keyword_string.to_sym)
-                keyword_string[-1] = ""
+                keyword_string.chop!
             end
         end
         @game = game
