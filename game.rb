@@ -173,16 +173,6 @@ class Game
             before = Time.now
             if @frame_count % Constants::Interval::TICK == 0
                 tick
-<<<<<<< HEAD
-=======
-                after = Time.now
-                # if @frame_count != 0
-                #     Thread.start do
-                #         GC.start
-                #     end
-                # end
-                log "{gTick:{x #{after - before}" if $VERBOSE
->>>>>>> dff413a125bff6e44d52346a5ede64b8287fd3b6
             end
             tick_time = Time.now - before
 
@@ -256,22 +246,22 @@ class Game
     end
 
     def profile color, message, verbose = false
-        
+
         MemoryProfiler.start if $VERBOSE
-        
+
         yield
 
         if $VERBOSE
             report = MemoryProfiler.stop
 
             log "#{color}<<<<<<<<<<<<<<<<<<<<<<<<<<<< #{message} >>>>>>>>>>>>>>>>>>>>>>>>{x"
-            
+
             if verbose
                 report.pretty_print
             end
 
             ObjectSpace.each_object.inject(Hash.new 0) { |h,o| h[o.class] += 1; h }.sort_by { |k,v| -v }.take(5).each { |klass, count| log "#{count.to_s.ljust(10)} #{klass}" }
-            
+
             log "ALLOCATED #{ ( report.total_allocated_memsize / 10000 ) / 100.0 } MB"
             log "RETAINED #{ ( report.total_retained_memsize / 10000 ) / 100.0 } MB"
         end
@@ -424,7 +414,7 @@ class Game
             elsif @mob_data[ reset[:mobile_id] ]
                 if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
                     mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
-                    
+
                     # @mobiles.add(mob)
                     add_global_mobile(mob)
 
