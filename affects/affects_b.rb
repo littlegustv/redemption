@@ -110,7 +110,7 @@ class AffectBladeRune < Affect
     def self.affect_info
         return @info || @info = {
             name: "blade rune",
-            keywords: ["blade rune", "rune"],
+            keywords: ["blade rune"],
             application_type: :source_overwrite,
         }
     end
@@ -266,7 +266,7 @@ class AffectBurstRune < Affect
             Constants::AffectVisibility::NORMAL, # visibility
             true # savable
         )
-        @Elements = [
+        @ELEMENTS = [
             ["flooding", "Your weapon carries the {Dstrength{x of the {Btides!{x", "A {Dblack{x and {Bblue{x rune appears.", Constants::Element::DROWNING],
             ["corrosive", "Your attack explodes into {Gcorrosive {Bacid{x!", "A {Ggreen{x and {Bblue{x rune appears.", Constants::Element::ACID],
             ["frost", "The air is {Wtinged{x with {Bfrost{x as you strike!", "A {Bblue{x and {Wwhite{x rune appears.", Constants::Element::COLD],
@@ -280,14 +280,14 @@ class AffectBurstRune < Affect
     def self.affect_info
         return @info || @info = {
             name: "burst rune",
-            keywords: ["burst rune", "rune"],
+            keywords: ["burst rune"],
             application_type: :global_single,
         }
     end
 
     def overwrite_data(data)
         @data = data
-        @data[:index] = rand(@elements.length) if !@data[:index]
+        @data[:index] = rand(@ELEMENTS.length) if !@data[:index]
         @element_string, @hit_message, @apply_message, @element = @ELEMENTS[@data[:index]]
     end
 

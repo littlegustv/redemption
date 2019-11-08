@@ -196,13 +196,15 @@ module GameSave
             affect_data.merge!(affect.source.db_source_fields)
         end
         query_hash[:player_affect] << hash_to_insert_query_values(affect_data)
-        affect.modifiers.each do |key, value|
-            modifier_data = {
-                saved_player_affect_id: @saved_player_affect_id_max,
-                field: key.to_s,
-                value: value
-            }
-            query_hash[:player_affect_modifier] << hash_to_insert_query_values(modifier_data)
+        if affect.modifiers
+            affect.modifiers.each do |key, value|
+                modifier_data = {
+                    saved_player_affect_id: @saved_player_affect_id_max,
+                    field: key.to_s,
+                    value: value
+                }
+                query_hash[:player_affect_modifier] << hash_to_insert_query_values(modifier_data)
+            end
         end
     end
 
@@ -245,13 +247,15 @@ module GameSave
             affect_data.merge!(affect.source.db_source_fields)
         end
         query_hash[:player_item_affect] << hash_to_insert_query_values(affect_data)
-        affect.modifiers.each do |key, value|
-            modifier_data = {
-                saved_player_item_affect_id: @saved_player_item_affect_id_max,
-                field: key.to_s,
-                value: value
-            }
-            query_hash[:player_item_affect_modifier] << hash_to_insert_query_values(modifier_data)
+        if affect.modifiers
+            affect.modifiers.each do |key, value|
+                modifier_data = {
+                    saved_player_item_affect_id: @saved_player_item_affect_id_max,
+                    field: key.to_s,
+                    value: value
+                }
+                query_hash[:player_item_affect_modifier] << hash_to_insert_query_values(modifier_data)
+            end
         end
     end
 
@@ -325,7 +329,9 @@ module GameSave
                 affect_class = Constants::AFFECT_CLASS_HASH[affect_row[:name]]
                 if affect_class
                     source = find_affect_source(affect_row, player, player.items)
-                    if source != false # source can be nil, just not false - see find_affect_source
+                    if affect_row[:name] == "portal"
+                        # need to make portal use standard initialize args
+                    elsif source != false # source can be nil, just not false - see find_affect_source
                         affect = affect_class.new(source, item, affect_row[:level], self)
                         affect.duration = affect_row[:duration]
                         modifiers = {}

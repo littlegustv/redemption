@@ -686,7 +686,7 @@ class Mobile < GameObject
     end
 
     def to_s
-        @short_description
+        @short_description.to_s
     end
 
     def long

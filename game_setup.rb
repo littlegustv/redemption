@@ -218,7 +218,7 @@ module GameSetup
     protected def load_mobile_data
         @mob_data = @db[:mobile_base].to_hash(:id)
         @mob_data.each do |id, row|
-            # row[:keywords] = row[:keywords].split(" "),
+            row[:keywords] = row[:keywords].split(" ")
             row[:affect_flags] = row[:affect_flags].split(",")
             row[:off_flags] = row[:off_flags].split(",")
             row[:act_flags] = row[:act_flags].split(",")
@@ -252,9 +252,9 @@ module GameSetup
             end
             row[:modifiers].merge(@ac_data[ id ].to_h.reject{ |k, v| [:id, :item_id].include?(k) })
             if row[:type] == "weapon"
-                row.merge(@weapon_data[ id ])
+                row.merge!( @weapon_data[ id ].reject!{ |k, v| k == :id } )
             elsif row[:type] == "container"
-                row.merge(@container_data[ id ])
+                row.merge!(@container_data[ id ])
             end
         end
         log("Database load complete: Item data")

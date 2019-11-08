@@ -546,7 +546,13 @@ class Game
     def load_item( id, inventory )
         item = nil
         if ( row = @item_data[ id ] )
-            item = Item.new( row, self, inventory )
+            if row[:noun]
+                item = Weapon.new( row, self, inventory )
+            elsif row[:type] == "container"
+                item = Container.new( row, self, inventory )
+            else
+                item = Item.new( row, self, inventory )
+            end
 
             if not @portal_data[ id ].nil?
                 # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )

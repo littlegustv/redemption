@@ -46,7 +46,7 @@ class GameObject
     end
 
     def to_s
-        @name
+        @name.to_s
     end
 
     def to_someone
