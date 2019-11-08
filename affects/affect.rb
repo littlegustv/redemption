@@ -86,9 +86,11 @@ class Affect
                 @clock = 0
             end
         end
-        @duration -= elapsed if !@permanent
-        if (@duration.to_i <= 0 && !@permanent)
-            clear(silent: false)
+        if !@permanent
+            @duration -= elapsed
+            if @duration <= 0
+                clear(silent: false)
+            end
         end
     end
 

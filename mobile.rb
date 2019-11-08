@@ -28,7 +28,7 @@ class Mobile < GameObject
     include MobileItem
 
     def initialize( data, race_id, class_id, game, room )
-        super(data[ :short_description ], data[:keywords].split(" "), game)
+        super(data[ :short_description ], data[:keywords], game)
         @attacking = nil
         @lag = 0
         @id = data[ :id ]
@@ -357,7 +357,6 @@ class Mobile < GameObject
             long_description: "",
             type: "weapon",
             genre: "hand to hand",
-            wear_location: nil,
             material: "flesh",
             extra_flags: [],
             wear_flags: [],

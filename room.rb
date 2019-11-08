@@ -11,14 +11,9 @@ class Room < GameObject
     attr_reader :players
     attr_reader :sector
 
-    def initialize( id, name, description, sector, area, flags, hp_regen, mana_regen, game, exits = {} )
-        super(name, name.split(" "), game)
+    def initialize( id, name, description, sector, area, flags, hp_regen, mana_regen, game)
+        super(name, nil, game)
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
-        @exits.each do | direction, room |                  # Exits exist as a hash.
-            if not exits[ direction ].nil?                  #  Key is direction (as a string)
-                @exits[ direction ] = exits[ direction ]    #  Value is the room object in that direction.
-            end
-        end
         @id = id
         @description = description
         @sector = sector

@@ -40,19 +40,19 @@ module GameSetup
         load_area_data
 
         profile "{c", "ROOM DATA" do
-        
+
             load_room_data
 
         end
 
         profile "{c", "MOBILE DATA" do
-        
+
             load_mobile_data
 
         end
-        
+
         profile "{c", "ITEM (AND MISC) DATA" do
-        
+
             load_item_data
             load_shop_data
             load_reset_data( areas )
@@ -79,15 +79,16 @@ module GameSetup
         profile "{M", "MAKE ROOMS" do
 
             make_rooms
-        
+
         end
-        
+
         profile "{M", "MAKE SKILLS, SPELLS, COMMANDS" do
             make_skills
             make_spells
             make_commands
         end
 
+        clear_tables
 
         profile "{G", "REPOP", true do
 
@@ -136,7 +137,7 @@ module GameSetup
                              :username => sql_username,
                              :password => sql_password,
                              :database => "redemption" )
-        
+
         # @db.loggers << Logger.new($stdout)
         log( "Database connection established." )
     end
@@ -190,13 +191,6 @@ module GameSetup
     # Load the equip_slot_base table
     protected def load_equip_slot_data
         @equip_slot_data = @db[:equip_slot_base].to_hash(:id)
-        @equip_slot_data.each do |id, row|
-            row.each do |key, value|
-                if String === value
-                    value.freeze
-                end
-            end
-        end
         log ("Database load complete: Equip slot data")
     end
 
@@ -216,7 +210,7 @@ module GameSetup
     protected def load_room_data
         @room_data = @db[:room_base].to_hash(:id)
         @exit_data = @db[:room_exit].to_hash(:id)
-        @room_description_data = @db[:room_description].to_hash(:id)        
+        @room_description_data = @db[:room_description].to_hash(:id)
         log ( "Database load complete: Rooms" )
     end
 
@@ -224,13 +218,7 @@ module GameSetup
     protected def load_mobile_data
         @mob_data = @db[:mobile_base].to_hash(:id)
         @mob_data.each do |id, row|
-            row.each do |key, value|
-                if String === value
-                    value.freeze
-                end
-            end
-        end
-        @mob_data.each do |id, row|
+            # row[:keywords] = row[:keywords].split(" "),
             row[:affect_flags] = row[:affect_flags].split(",")
             row[:off_flags] = row[:off_flags].split(",")
             row[:act_flags] = row[:act_flags].split(",")
@@ -244,20 +232,31 @@ module GameSetup
         log("Database load complete: Mobile data")
     end
 
-    # Load the item tables from database
+    # Load the item tables from database and merge them together
     protected def load_item_data
         @item_data = @db[:item_base].to_hash(:id)
-        @item_data.each do |id, row|
-            row.each do |key, value|
-                if String === value
-                    value.freeze
-                end
-            end
-        end
         @item_modifiers = @db[:item_modifier].to_hash_groups(:item_id)
         @ac_data = @db[:item_armor].to_hash(:item_id)
         @weapon_data = @db[:item_weapon].to_hash(:item_id)
+        @weapon_data.each do |id, row|
+            row[:flags] = row[:flags].to_s.split(",")
+        end
         @container_data = @db[:item_container].to_hash(:item_id)
+        @item_data.each do |id, row|
+            row[:keywords] = row[:keywords].split(" ")
+            row[:extra_flags] = row[:extra_flags].to_s.split(",")
+            row[:wear_flags] = row[:wear_flags].split(",")
+            row[:modifiers] = Hash.new
+            @item_modifiers[ id ].to_a.each do |modifier|
+                row[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
+            end
+            row[:modifiers].merge(@ac_data[ id ].to_h.reject{ |k, v| [:id, :item_id].include?(k) })
+            if row[:type] == "weapon"
+                row.merge(@weapon_data[ id ])
+            elsif row[:type] == "container"
+                row.merge(@container_data[ id ])
+            end
+        end
         log("Database load complete: Item data")
     end
 
@@ -375,7 +374,7 @@ module GameSetup
                 row[:description],
                 row[:sector],
                 @areas[row[:area_id]],
-                row[:flags].to_s.split(" "),
+                row[:flags].split(" "),
                 row[:hp_regen].to_i,
                 row[:mana_regen].to_i,
                 self
@@ -390,7 +389,7 @@ module GameSetup
                                     row[:direction],
                                     @rooms[row[:room_id]],
                                     @rooms[row[:to_room_id]],
-                                    row[:flags].to_s.split(" "),
+                                    row[:flags].split(" "),
                                     row[:key_id],
                                     row[:keywords].split + [ row[:direction] ], # i.e. [oak,door,north]
                                     row[:description] )
@@ -455,5 +454,18 @@ module GameSetup
             @commands.push command
         end
         log("Commands constructed.")
+    end
+
+    # release unnecessary tables (already been populated, etc)
+    protected def clear_tables
+        @continent_data = nil
+        @area_data = nil
+        @room_data = nil
+        @exit_data = nil
+        @room_description_data = nil
+        @item_modifiers = nil
+        @ac_data = nil
+        @weapon_data = nil
+        @container_data = nil
     end
 end

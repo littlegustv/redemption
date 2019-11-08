@@ -546,59 +546,7 @@ class Game
     def load_item( id, inventory )
         item = nil
         if ( row = @item_data[ id ] )
-            data = {
-                id: id,
-                short_description: row[:short_desc],
-                long_description: row[:long_desc],
-                keywords: row[:keywords].split(" "),
-                weight: row[:weight].to_i,
-                cost: row[:cost].to_i,
-                type: row[:type],
-                level: row[:level].to_i,
-                wear_location: row[:wear_flags].match(/(wear_\w+|wield|hold|light)/).to_a[1].to_s.gsub("wear_", ""),
-                wear_flags: row[:wear_flags].split(","),
-                material: row[:material],
-                extra_flags: row[:extra_flags].to_s.split(","),
-                modifiers: {},
-                ac: @ac_data[ id ].to_h.reject{ |k, v| [:id, :item_id].include?(k) }
-            }
-            @item_modifiers[ id ].to_a.each do |modifier|
-                data[:modifiers][ modifier[:field].to_sym ] = modifier[:value]
-            end
-            if row[:type] == "weapon"
-                weapon_info = @weapon_data[ id ]
-                if weapon_info
-                    weapon_data = {
-                        noun: weapon_info[:noun],
-                        genre: weapon_info[:type],
-                        flags: weapon_info[:flags].split(","),
-                        element: weapon_info[:element],
-                        dice_sides: weapon_info[:dice_sides].to_i,
-                        dice_count: weapon_info[:dice_count].to_i
-                    }
-                    item = Weapon.new( data.merge( weapon_data ), self, inventory )
-                else
-                    log "[Weapon and/or Dice data not found] ITEM ID: #{id}"
-                    item = Item.new( data, self, inventory )
-                end
-            elsif row[:type] == "container"
-                container_info = @container_data[ id ]
-                if container_info
-                    container_data = {
-                        flags: container_info[:flags],
-                        max_item_weight: container_info[:max_item_weight].to_i,
-                        weight_multiplier: container_info[:weight_multiplier].to_f,
-                        max_total_weight: container_info[:max_total_weight].to_i,
-                        key_id: container_info[:key_id].to_i,
-                    }
-                    item = Container.new( data.merge( container_data ), self, inventory )
-                else
-                    log "[Container data not found] ITEM ID: #{id}"
-                    item = Item.new( data, self, inventory )
-                end
-            else
-                item = Item.new( data, self, inventory )
-            end
+            item = Item.new( row, self, inventory )
 
             if not @portal_data[ id ].nil?
                 # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )

@@ -5,14 +5,19 @@ class GameObject
 
     def initialize( name, keywords, game )
         @name = name
-        @keyword_string = keywords.to_a.join(" ".freeze).downcase
-        @keywords = Set.new
-        keywords.to_a.each do |keyword|
-            keyword_string = keyword.dup.downcase
-            while keyword_string.length > 0
-                @keywords.add(keyword_string.to_sym)
-                keyword_string.chop!
+        if keywords
+            @keyword_string = keywords.to_a.join(" ".freeze).downcase
+            @keywords = Set.new
+            keywords.to_a.each do |keyword|
+                keyword_string = keyword.downcase
+                while keyword_string.length > 0
+                    @keywords.add(keyword_string.to_sym)
+                    keyword_string.chop!
+                end
             end
+        else
+            @keyword_string = "".freeze
+            @keywords = nil
         end
         @game = game
         @affects = []

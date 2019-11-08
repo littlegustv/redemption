@@ -1,7 +1,6 @@
 class Item < GameObject
 
     attr_accessor :active
-	attr_accessor :wear_location
     attr_accessor :weight
     attr_accessor :type
     attr_accessor :cost
@@ -11,19 +10,17 @@ class Item < GameObject
     attr_reader :material
 
     def initialize( data, game, parent_inventory )
-        super(data[:short_description], data[:keywords], game)
+        super(data[:short_desc], data[:keywords], game)
         @id = data[:id]
-        @short_description = data[:short_description]
+        @short_description = data[:short_desc]
         @level = data[:level]
         @weight = data[:weight]
         @cost = data[:cost]
-        @long_description = data[:long_description]
+        @long_description = data[:long_desc]
         @type = data[:type]
-        @wear_location = data[:wear_location]
         @material = data[:material]
         @extra_flags = data[:extra_flags]
         @wear_flags = data[:wear_flags]
-        @modifiers = data[:modifiers].merge( data[:ac] )
         @active = true
         @parent_inventory = nil
         # @ac = data[:ac] || [0,0,0,0]
@@ -209,7 +206,6 @@ class Tattoo < Item
             weight: 0,
             cost: 0,
             type: "tattoo",
-            wear_location: slot.gsub(/\_\d/, ""),
             material: "tattoo",
             extraFlags: "noremove",
             ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
