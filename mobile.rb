@@ -78,10 +78,10 @@ class Mobile < GameObject
         }
 
         @level = data[:level] || 1
-        @hitpoints = ( dice( data[:hp_dice_count].to_i, data[:hp_dice_sides].to_i ) + data[:hp_dice_bonus].to_i ) || 500
+        @hitpoints = data[:hp_dice_count].nil? ? 500 : ( dice( data[:hp_dice_count].to_i, data[:hp_dice_sides].to_i ) + data[:hp_dice_bonus].to_i )
         @basehitpoints = @hitpoints
 
-        @manapoints = ( dice( data[:mana_dice_count].to_i, data[:mana_dice_sides].to_i ) + data[:mana_dice_bonus].to_i ) || 100
+        @manapoints = data[:mana_dice_count].nil? ? 100 : ( dice( data[:mana_dice_count].to_i, data[:mana_dice_sides].to_i ) + data[:mana_dice_bonus].to_i )
         @basemanapoints = @manapoints
 
         @movepoints = data[:movepoints] || 100
@@ -106,8 +106,8 @@ class Mobile < GameObject
         @race_affects = []                  # list of affects applied by race
         @class_affects = []                  # list of affects applied by race
 
-        set_race_id(data[:race_id])
-        set_class_id(data[:class_id])
+        set_race_id(race_id)
+        set_class_id(class_id)
 
         apply_affect_flags(data[:affect_flags].to_a)
         apply_affect_flags(data[:act_flags].to_a)
@@ -667,9 +667,9 @@ class Mobile < GameObject
 
     def attack_rating( weapon )
         if proficient( weapon.genre )
-            return (15 + (@level * 3 / 2))
+            return stat(:hitroll) + (15 + (@level * 3 / 2))
         else
-            return (15 + (@level * 3 / 2)) / 2
+            return stat(:hitroll) + (15 + (@level * 3 / 2)) * 0.7  # attacking with unfamiliar weapon has a 30% hit chance penalty
         end
     end
 
@@ -778,7 +778,7 @@ class Mobile < GameObject
     #  some_mobile.stat(:max_wis)
     #  some_mobile.stat(:damroll)
     def stat(key)
-        stat = (@game.race_data[@race_id][key] || 0) + @stats[key].to_i
+        stat = (@game.race_data.dig( @race_id, key ) || 0) + @stats[key].to_i
         class_main_stat = @game.class_data.dig(@class_id, :main_stat).to_s
         if key.to_s == class_main_stat # class main stat bonus
             stat += 3

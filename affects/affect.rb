@@ -60,6 +60,10 @@ class Affect
     def send_complete_messages
     end
 
+    def hidden
+        @visibility == Constants::AffectVisibility::HIDDEN
+    end
+
     # Override this method to perform actions and logic.
     # This is also where you add event listeners. Make sure you remove them in +complete+.
     #

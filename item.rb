@@ -61,7 +61,7 @@ class Item < GameObject
     end
 
     def modifier( key )
-        return @modifiers[ key ].to_i
+        return @modifiers.nil? ? 0 : @modifiers[ key ].to_i
     end
 
     def lore
@@ -71,7 +71,7 @@ Description: #{ @long_description }
 Keywords '#{ @keyword_string }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
 Extra flags: #{ @extraFlags }
-#{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") }
+#{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") if not @modifiers.nil? }
 ) +  show_affects(observer: nil, full: false)
     end
 
