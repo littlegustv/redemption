@@ -4,16 +4,16 @@ class AffectFireBlind < AffectBlind
 
     def initialize(source, target, level, game)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
-            60, # duration
-            nil, # modifiers: nil
-            nil, # period: nil
-            false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
-            true # savable
+            game, # game
+            # 60, # duration
+            # nil, # modifiers: nil
+            # nil, # period: nil
+            # false, # permanent: false
+            # Constants::AffectVisibility::NORMAL, # visibility
+            # true # savable
         )
     end
 
