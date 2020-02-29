@@ -3,7 +3,13 @@ module MobileItem
 
     # returns true if the mobile can wear a given item
     def can_wear(item:, silent: false)
-        return true
+        if item.level <= self.level
+            return true
+        else
+            output "You must be level #{ item.level } to use #{ item.to_s }."
+            broadcast "%s tries to use %s but is too inexperienced.", @room.occupants - [ self ], [ self, item ]
+            return false
+        end
     end
 
     # returns true if mobile can unwear a given item

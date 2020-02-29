@@ -105,6 +105,7 @@ module Constants
     module Damage
         PHYSICAL = 0
         MAGICAL = 1
+        MODIFIER = 0.6
 
         STRINGS = {
             PHYSICAL => "physical",

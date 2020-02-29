@@ -5,8 +5,8 @@ class Player < Mobile
 
     def initialize( data, game, room, client )
         data[:keywords] = data[:name]
-        data[:short_description] = data[:name]
-        data[:long_description] = "#{data[:name]} the Master Rune Maker is here."
+        data[:short_desc] = data[:name]
+        data[:long_desc] = "#{data[:name]} the Master Rune Maker is here."
         super(data, data[:race_id], data[:class_id], game, room)
         @account_id = data[:account_id]
         @buffer = ""

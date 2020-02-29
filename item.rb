@@ -8,6 +8,7 @@ class Item < GameObject
     attr_reader :wear_flags
     attr_reader :parent_inventory
     attr_reader :material
+    attr_reader :level
 
     def initialize( data, game, parent_inventory )
         super(data[:short_desc], data[:keywords], game)
@@ -23,6 +24,7 @@ class Item < GameObject
         @wear_flags = data[:wear_flags]
         @active = true
         @parent_inventory = nil
+        @level = data[:level] || 0
         # @ac = data[:ac] || [0,0,0,0]
 
         apply_affect_flags( @extra_flags, silent: true )

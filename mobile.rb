@@ -28,7 +28,7 @@ class Mobile < GameObject
     include MobileItem
 
     def initialize( data, race_id, class_id, game, room )
-        super(data[ :short_description ], data[:keywords], game)
+        super(data[ :short_desc ], data[:keywords], game)
         @attacking = nil
         @lag = 0
         @id = data[ :id ]
@@ -69,7 +69,7 @@ class Mobile < GameObject
             max_wis: data[:max_wis] || 0,
             max_dex: data[:max_dex] || 0,
             hitroll: data[:hitroll] || rand(5...7),
-            damroll: data[:damage] || 50,
+            damroll: data[:damage] || 0,
             attack_speed: 1,
             ac_pierce: data[:ac_pierce].to_i,
             ac_bash: data[:ac_bash].to_i,
@@ -78,14 +78,14 @@ class Mobile < GameObject
         }
 
         @level = data[:level] || 1
-        @hitpoints = data[:hp_dice_count].nil? ? 500 : ( dice( data[:hp_dice_count].to_i, data[:hp_dice_sides].to_i ) + data[:hp_dice_bonus].to_i )
-        @basehitpoints = @hitpoints
+        @basehitpoints = data[:hp_dice_count].nil? ? 10 : ( dice( data[:hp_dice_count].to_i, data[:hp_dice_sides].to_i ) + data[:hp_dice_bonus].to_i )
+        @hitpoints = maxhitpoints
 
-        @manapoints = data[:mana_dice_count].nil? ? 100 : ( dice( data[:mana_dice_count].to_i, data[:mana_dice_sides].to_i ) + data[:mana_dice_bonus].to_i )
-        @basemanapoints = @manapoints
+        @basemanapoints = data[:mana_dice_count].nil? ? 100 : ( dice( data[:mana_dice_count].to_i, data[:mana_dice_sides].to_i ) + data[:mana_dice_bonus].to_i )
+        @manapoints = maxmanapoints
 
-        @movepoints = data[:movepoints] || 100
-        @basemovepoints = @movepoints
+        @basemovepoints = data[:movepoints] || 100
+        @movepoints = maxmovepoints
 
         # @damage_range = data[:damage_range] || nil
         # @noun = data[:attack] || nil
@@ -385,14 +385,23 @@ class Mobile < GameObject
 
     # Hit a target using weapon for damage
     def weapon_hit(target:, damage_bonus: 0, hit_bonus: 0, custom_noun: nil, weapon: nil)
+        
+        # get data from weapon item or hand-to-hand
+
         weapon = weapon || weapon_for_next_hit
         noun = custom_noun || weapon.noun
         hit = false
+        
+        # check for override event - i.e. burst rune
+
         override = { confirm: false, source: self, target: target, weapon: weapon }
         @game.fire_event( self, :event_override_hit, override )
         if override[:confirm]
             return
         end
+        
+        # calculate hit chance ... I guess burst rune auto-hits?
+
         hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon ? weapon.element : "bash" ) ).clamp( 5, 95 )
         if rand(0...100) < hit_chance
             damage = damage_rating(weapon: weapon) + damage_bonus
@@ -400,10 +409,18 @@ class Mobile < GameObject
         else
             damage = 0
         end
+        
+        # modify hit damage
+
         data = { damage: damage, source: self, target: target, weapon: weapon }
         @game.fire_event( self, :event_calculate_weapon_hit_damage, data )
-        deal_damage(target: target, damage: data[:damage], noun: noun, element: weapon.element, type: Constants::Damage::PHYSICAL)
+
+        deal_damage(target: target, damage: ( Constants::Damage::MODIFIER * data[:damage] ).to_i, noun: noun, element: weapon.element, type: Constants::Damage::PHYSICAL)
+        
         if hit
+        
+            # maybe THIS is burst rune?
+
             override = { confirm: false, source: self, target: target, weapon: weapon }
             @game.fire_event( target, :event_override_receive_hit, override )
             if override[:confirm]
@@ -412,6 +429,7 @@ class Mobile < GameObject
             data = { damage: damage, source: self, target: attacking }
             @game.fire_event(self, :event_on_hit, data)
         end
+
         if @attacking
             weapon_flags(weapon) if data[:damage] > 0
         end
@@ -430,9 +448,9 @@ class Mobile < GameObject
         if !target || !target.active # if this is inactive, it can still deal damage
             return
         end
-        if !is_player?
-            damage = (damage * 0.1).to_i
-        end
+        # if !is_player?
+        #     damage = (damage * 0.1).to_i
+        # end
         calculation_data = { damage: damage, source: self, target: target, element: element, type: type }
         @game.fire_event(self, :event_calculate_damage, calculation_data)
         damage = calculation_data[:damage]
@@ -760,15 +778,15 @@ class Mobile < GameObject
     end
 
     def maxhitpoints
-        @basehitpoints
+        @basehitpoints + @level * ( 10 + ( stat(:wis) / 5 ).to_i + ( stat(:con) / 2 ).to_i )
     end
 
     def maxmanapoints
-        @basemanapoints
+        @basemanapoints + @level * ( 10 + ( stat(:wis) / 5 ).to_i + ( stat(:int) / 3 ).to_i )
     end
 
     def maxmovepoints
-        @basemovepoints
+        @basemovepoints + @level * ( 10 + ( stat(:wis) / 5 ).to_i + ( stat(:dex) / 3 ).to_i )
     end
 
     # Returns the value of a stat for a given key.
