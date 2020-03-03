@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillLair < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "lair",
             keywords: ["lair"],
             lag: 0.25,
@@ -13,16 +12,15 @@ class SkillLair < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        actor.room.apply_affect( AffectLair.new( actor, actor.room, actor.level, @game ) )
+        actor.room.apply_affect( AffectLair.new( actor, actor.room, actor.level ) )
     end
 
 end
 
 class SkillLivingStone < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "living stone",
             keywords: ["living stone", "stone", "living"],
             lag: 1,
@@ -32,7 +30,7 @@ class SkillLivingStone < Command
 
     def attempt( actor, cmd, args, input )
         if not actor.affected? "living stone"
-            actor.apply_affect(AffectLivingStone.new( actor, actor, actor.level, @game ))
+            actor.apply_affect(AffectLivingStone.new( actor, actor, actor.level ))
             return true
         else
             actor.output "You did not manage to turn to stone."

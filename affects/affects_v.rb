@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectVuln < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -27,13 +26,13 @@ class AffectVuln < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_vuln)
-        @game.add_event_listener(@target, :event_display_vulns, self, :do_display)
+        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_vuln)
+        Game.instance.add_event_listener(@target, :event_display_vulns, self, :do_display)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
-        @game.remove_event_listener(@target, :event_display_vulns, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        Game.instance.remove_event_listener(@target, :event_display_vulns, self)
     end
 
     def do_vuln(data)

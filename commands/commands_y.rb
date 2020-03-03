@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandYell < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "yell",
             keywords: ["yell"],
             position: Constants::Position::REST
@@ -17,9 +16,9 @@ class CommandYell < Command
             return false
         else
             message = input[/#{cmd} (.*)/, 1]
-            
+
             data = { text: message }
-            @game.fire_event( actor, :event_communicate, data )
+            Game.instance.fire_event( actor, :event_communicate, data )
             message = data[:text]
 
             actor.output "{RYou yell '#{message}'{x"

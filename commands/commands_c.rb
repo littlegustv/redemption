@@ -2,15 +2,14 @@ require_relative 'command.rb'
 
 class CommandCast < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cast",
             keywords: ["cast"],
             position: Constants::Position::STAND,
             priority: 9999
         )
-        @spells = game.spells
+        @spells = Game.instance.spells
     end
 
     def attempt( actor, cmd, args, input )
@@ -35,9 +34,8 @@ end
 
 class CommandClose < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "close",
             keywords: ["close"],
             lag: 0.25,
@@ -46,7 +44,7 @@ class CommandClose < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = @game.target( { list: actor.room.exits.values }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = Game.instance.target( { list: actor.room.exits.values }.merge( args.first.to_s.to_query ) ).first )
             return target.close( actor )
         else
             actor.output "There is no exit in that direction."
@@ -57,9 +55,8 @@ end
 
 class CommandConsider < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "consider",
             keywords: ["consider"],
             position: Constants::Position::REST

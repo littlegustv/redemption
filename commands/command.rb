@@ -5,7 +5,6 @@ class Command
     # Set what you need to here, but most of it is overwritten by values in the database,
     # if they can be found.
     def initialize(
-        game: nil,
         name: "defaultcommand",
         priority: 100,
         keywords: ["defaultcommand"],
@@ -16,7 +15,6 @@ class Command
         mana_cost: 0,
         movement_cost: 0
     )
-        @game = game
         @priority = priority
         @keywords = keywords
         @lag = lag

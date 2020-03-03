@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectScramble < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -26,11 +25,11 @@ class AffectScramble < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_communicate, self, :do_scramble)
+        Game.instance.add_event_listener(@target, :event_communicate, self, :do_scramble)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_communicate, self)
+        Game.instance.remove_event_listener(@target, :event_communicate, self)
     end
 
     def send_start_messages
@@ -58,9 +57,8 @@ end
 
 class AffectShackle < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -82,11 +80,11 @@ class AffectShackle < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_mobile_enter, self, :do_shackles)
+        Game.instance.add_event_listener(@target, :event_mobile_enter, self, :do_shackles)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_mobile_enter, self)
+        Game.instance.remove_event_listener(@target, :event_mobile_enter, self)
     end
 
     def send_start_messages
@@ -108,9 +106,8 @@ end
 
 class AffectShackleRune < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -132,13 +129,13 @@ class AffectShackleRune < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_room_description, self, :shackle_rune_description)
-        @game.add_event_listener(@target, :event_room_mobile_enter, self, :do_shackle_rune)
+        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :shackle_rune_description)
+        Game.instance.add_event_listener(@target, :event_room_mobile_enter, self, :do_shackle_rune)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_room_description, self)
-        @game.remove_event_listener(@target, :event_room_mobile_enter, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
+        Game.instance.remove_event_listener(@target, :event_room_mobile_enter, self)
     end
 
     def send_complete_mesages
@@ -150,7 +147,7 @@ class AffectShackleRune < Affect
         if data[:mobile] == @source # || rand(0..100) < 50
             data[:mobile].output "You sense the power of the room's rune and avoid it!"
         else
-            data[:mobile].apply_affect( AffectShackle.new( @source, data[:mobile], @source.level, @game ) )
+            data[:mobile].apply_affect( AffectShackle.new( @source, data[:mobile], @source.level, Game.instance ) )
         end
     end
 
@@ -162,9 +159,8 @@ end
 
 class AffectShield < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -198,9 +194,8 @@ end
 
 class AffectShopkeeper < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -225,9 +220,8 @@ end
 
 class AffectShocking < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -261,9 +255,8 @@ end
 
 class AffectSneak < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -296,9 +289,8 @@ end
 
 class AffectSleep < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -321,12 +313,12 @@ class AffectSleep < Affect
 
     def start
         @target.position = Constants::Position::SLEEP
-        @game.add_event_listener(@target, :event_try_wake, self, :do_slept)
+        Game.instance.add_event_listener(@target, :event_try_wake, self, :do_slept)
     end
 
     def complete
         @target.position = Constants::Position::STAND
-        @game.remove_event_listener(@target, :event_try_wake, self)
+        Game.instance.remove_event_listener(@target, :event_try_wake, self)
     end
 
     def send_start_messages
@@ -341,9 +333,8 @@ end
 
 class AffectSlow < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -375,9 +366,8 @@ end
 
 class AffectStoneSkin < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -411,9 +401,8 @@ end
 
 class AffectStun < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level

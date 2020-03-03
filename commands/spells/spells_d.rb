@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellDarkness < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "darkness",
             keywords: ["darkness"],
             lag: 0.25,
@@ -14,16 +13,15 @@ class SpellDarkness < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.room.apply_affect( AffectDarkness.new( actor, actor.room, level, @game ) )
+        actor.room.apply_affect( AffectDarkness.new( actor, actor.room, level ) )
     end
 
 end
 
 class SpellDeathRune < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "death rune",
             keywords: ["death rune"],
             lag: 0.25,
@@ -33,16 +31,15 @@ class SpellDeathRune < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectDeathRune.new( actor, actor, level, @game ) )
+        actor.apply_affect( AffectDeathRune.new( actor, actor, level ) )
     end
 
 end
 
 class SpellDemonFire < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "demonfire",
             keywords: ["demonfire"],
             lag: 0.25,
@@ -83,11 +80,11 @@ class SpellDemonFire < Spell
         end
 
         actor.broadcast "%s calls forth the demons of Hell upon %s!", actor.room.occupants - [target, actor], [actor, target]
-        
+
         actor.deal_damage(target: target, damage: 100, noun:"torments", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
         actor.alignment = [ actor.alignment - 50, -1000 ].max
 
-        target.apply_affect( AffectCurse.new( nil, target, actor.level, @game ))
+        target.apply_affect( AffectCurse.new( nil, target, actor.level ))
 
         return true
     end
@@ -95,9 +92,8 @@ end
 
 class SpellDestroyRune < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "destroy rune",
             keywords: ["destroy rune"],
             lag: 0.25,
@@ -131,9 +127,8 @@ end
 
 class SpellDestroyTattoo < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "destroy tattoo",
             keywords: ["destroy tattoo"],
             lag: 0.25,
@@ -164,9 +159,8 @@ end
 
 class SpellDetectInvisibility < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "detect invisibility",
             keywords: ["detect invisibility"],
             lag: 0.25,
@@ -176,16 +170,15 @@ class SpellDetectInvisibility < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectDetectInvisibility.new( actor, actor, level, @game ) )
+        actor.apply_affect( AffectDetectInvisibility.new( actor, actor, level ) )
     end
 
 end
 
 class SpellDetectMagic < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "detect magic",
             keywords: ["detect magic"],
             lag: 0.25,
@@ -207,9 +200,8 @@ end
 
 class SpellDispelMagic < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "dispel magic",
             keywords: ["dispel magic"],
             lag: 0.25,

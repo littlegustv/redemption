@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectCalm < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -33,9 +32,8 @@ end
 
 class AffectCharm < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -67,11 +65,11 @@ class AffectCharm < Affect
     end
 
     def start
-        @game.add_event_listener(@source, :event_order, self, :do_order)
+        Game.instance.add_event_listener(@source, :event_order, self, :do_order)
     end
 
     def complete
-        @game.remove_event_listener(@source, :event_order, self)
+        Game.instance.remove_event_listener(@source, :event_order, self)
     end
 
     def do_order( data )
@@ -82,9 +80,8 @@ end
 
 class AffectCloakOfMind < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -106,19 +103,19 @@ class AffectCloakOfMind < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_try_can_be_seen, self, :do_cloak_of_mind)
-        @game.add_event_listener(@target, :event_on_start_combat, self, :clear)
+        Game.instance.add_event_listener(@target, :event_try_can_be_seen, self, :do_cloak_of_mind)
+        Game.instance.add_event_listener(@target, :event_on_start_combat, self, :clear)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_try_can_be_seen, self)
-        @game.remove_event_listener(@target, :event_on_start_combat, self)
+        Game.instance.remove_event_listener(@target, :event_try_can_be_seen, self)
+        Game.instance.remove_event_listener(@target, :event_on_start_combat, self)
     end
 
     def do_cloak_of_mind(data)
         if !data[:observer].is_player?
             detect_data = { success: false }
-            @game.fire_event(data[:observer], :event_try_detect_invis, detect_data)
+            Game.instance.fire_event(data[:observer], :event_try_detect_invis, detect_data)
             if !detect_data[:success]
                 data[:chance] = 0
             end
@@ -138,9 +135,8 @@ end
 
 class AffectCloudkill < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -162,20 +158,20 @@ class AffectCloudkill < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_room_description, self, :cloudkill_description)
-        @game.add_event_listener(@target, :event_room_mobile_enter, self, :add_damage_listener)
-        @game.add_event_listener(@target, :event_room_mobile_exit, self, :remove_damage_listener)
+        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :cloudkill_description)
+        Game.instance.add_event_listener(@target, :event_room_mobile_enter, self, :add_damage_listener)
+        Game.instance.add_event_listener(@target, :event_room_mobile_exit, self, :remove_damage_listener)
         @target.occupants.each do |t|
-            @game.add_event_listener(t, :event_calculate_damage, self, :cloudkill_poison_damage_calc)
+            Game.instance.add_event_listener(t, :event_calculate_damage, self, :cloudkill_poison_damage_calc)
         end
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_room_description, self)
-        @game.remove_event_listener(@target, :event_room_mobile_enter, self)
-        @game.remove_event_listener(@target, :event_room_mobile_exit, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
+        Game.instance.remove_event_listener(@target, :event_room_mobile_enter, self)
+        Game.instance.remove_event_listener(@target, :event_room_mobile_exit, self)
         @target.occupants.each do |t|
-            @game.remove_event_listener(t, :event_calculate_damage, self)
+            Game.instance.remove_event_listener(t, :event_calculate_damage, self)
         end
     end
 
@@ -184,11 +180,11 @@ class AffectCloudkill < Affect
     end
 
     def add_damage_listener(data)
-        @game.add_event_listener(data[:mobile], :event_calculate_damage, self, :cloudkill_poison_damage_calc)
+        Game.instance.add_event_listener(data[:mobile], :event_calculate_damage, self, :cloudkill_poison_damage_calc)
     end
 
     def remove_damage_listener(data)
-        @game.remove_event_listener(data[:mobile], :event_calculate_damage, self)
+        Game.instance.remove_event_listener(data[:mobile], :event_calculate_damage, self)
     end
 
     def cloudkill_poison_damage_calc(data)
@@ -216,9 +212,8 @@ end
 
 class AffectCorrosive < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -257,9 +252,8 @@ end
 
 class AffectCurse < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -290,11 +284,11 @@ class AffectCurse < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_try_recall, self, :do_cursed)
+        Game.instance.add_event_listener(@target, :event_try_recall, self, :do_cursed)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_try_recall, self)
+        Game.instance.remove_event_listener(@target, :event_try_recall, self)
     end
 
     def do_cursed( data )

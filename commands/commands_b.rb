@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandBlind < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "blind",
             keywords: ["blind"],
             lag: 0.4,
@@ -15,7 +14,7 @@ class CommandBlind < Command
     def attempt( actor, cmd, args, input )
         if not actor.affected? "blind"
             actor.output "You have been blinded!"
-            actor.apply_affect(AffectBlind.new( actor, actor, actor.level, @game ))
+            actor.apply_affect(AffectBlind.new( actor, actor, actor.level ))
             return true
         else
             actor.output "You are already blind!"
@@ -26,9 +25,8 @@ end
 
 class CommandBuy < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "buy",
             keywords: ["buy"],
             lag: 0,

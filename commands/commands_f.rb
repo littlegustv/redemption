@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandFlee < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "flee",
             keywords: ["flee"],
             lag: 0.5,
@@ -31,9 +30,8 @@ end
 
 class CommandFollow < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "follow",
             keywords: ["follow"],
             lag: 0,
@@ -45,7 +43,7 @@ class CommandFollow < Command
         if args.first.nil?
             actor.remove_affect("follow")
         elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            actor.apply_affect( AffectFollow.new( target, actor, 1, @game ) )
+            actor.apply_affect( AffectFollow.new( target, actor, 1 ) )
         else
             actor.output "They aren't here"
         end

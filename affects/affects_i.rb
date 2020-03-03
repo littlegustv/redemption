@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectIgnoreWounds < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -26,11 +25,11 @@ class AffectIgnoreWounds < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_override_receive_damage, self, :do_ignore_wounds)
+        Game.instance.add_event_listener(@target, :event_override_receive_damage, self, :do_ignore_wounds)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_override_receive_damage, self)
+        Game.instance.remove_event_listener(@target, :event_override_receive_damage, self)
     end
 
     def send_start_messages
@@ -56,9 +55,8 @@ end
 
 class AffectImmune < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -81,13 +79,13 @@ class AffectImmune < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_immune)
-        @game.add_event_listener(@target, :event_display_immunes, self, :do_display)
+        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_immune)
+        Game.instance.add_event_listener(@target, :event_display_immunes, self, :do_display)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
-        @game.remove_event_listener(@target, :event_display_immunes, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        Game.instance.remove_event_listener(@target, :event_display_immunes, self)
     end
 
     def do_immune(data)
@@ -105,9 +103,8 @@ end
 
 class AffectIndoors < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -132,9 +129,8 @@ end
 
 class AffectInfravision < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -157,7 +153,7 @@ class AffectInfravision < Affect
 
     def send_start_messages
         @target.output "Your eyes glow red."
-        @game.broadcast "%s's eyes glow red.", @target.room.occupants - [@target], [@target]
+        Game.instance.broadcast "%s's eyes glow red.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
@@ -167,9 +163,8 @@ end
 
 class AffectInvisibility < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -191,26 +186,26 @@ class AffectInvisibility < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
-        @game.add_event_listener(@target, :event_try_can_be_seen, self, :do_invisibility)
-        @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_invisibility_aura)
+        Game.instance.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
+        Game.instance.add_event_listener(@target, :event_try_can_be_seen, self, :do_invisibility)
+        Game.instance.add_event_listener(@target, :event_calculate_aura_description, self, :do_invisibility_aura)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_on_start_combat, self)
-        @game.remove_event_listener(@target, :event_try_can_be_seen, self)
-        @game.remove_event_listener(@target, :event_calculate_aura_description, self)
+        Game.instance.remove_event_listener(@target, :event_on_start_combat, self)
+        Game.instance.remove_event_listener(@target, :event_try_can_be_seen, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_aura_description, self)
     end
 
     def send_start_messages
         @target.output "You fade out of existence."
-    	@game.broadcast "%s fades from existence.", @target.room.occupants - [@target], [@target]
+    	Game.instance.broadcast "%s fades from existence.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
         @target.output "You fade into existence."
         room  = @target.room
-        @game.broadcast "%s fades into existence.", @target.room.occupants - [@target], [@target]
+        Game.instance.broadcast "%s fades into existence.", @target.room.occupants - [@target], [@target]
     end
 
     def do_remove_affect(data)
@@ -219,7 +214,7 @@ class AffectInvisibility < Affect
 
     def do_invisibility(data)
         detect_data = { success: false }
-        @game.fire_event(data[:observer], :event_try_detect_invis, detect_data)
+        Game.instance.fire_event(data[:observer], :event_try_detect_invis, detect_data)
         if !detect_data[:success]
             data[:chance] = 0
         end

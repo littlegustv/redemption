@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectBarkSkin < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -39,9 +38,8 @@ end
 
 class AffectBerserk < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -91,9 +89,8 @@ class AffectBladeRune < Affect
         [ "The weapon is endowed with killing dweomers.", { damroll: 10 } ]
     ]
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -128,9 +125,8 @@ end
 
 class AffectBless < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -165,9 +161,8 @@ end
 
 class AffectBlind < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -189,11 +184,11 @@ class AffectBlind < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_try_can_see, self, :do_blindness)
+        Game.instance.add_event_listener(@target, :event_try_can_see, self, :do_blindness)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_try_can_see, self)
+        Game.instance.remove_event_listener(@target, :event_try_can_see, self)
     end
 
     def send_start_messages
@@ -213,9 +208,8 @@ end
 
 class AffectBlur < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -253,9 +247,8 @@ class AffectBurstRune < Affect
 
     @@NOUN = "elemental charged strike"
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -292,27 +285,27 @@ class AffectBurstRune < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_item_wear, self, :add_burst_rune)
-        @game.add_event_listener(@target, :event_item_unwear, self, :remove_burst_rune)
+        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_burst_rune)
+        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_burst_rune)
         if @target.equipped?
-            @game.add_event_listener(@target.carrier, :event_override_hit, self, :do_burst_rune)
+            Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_burst_rune)
         end
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_item_wear, self)
-        @game.remove_event_listener(@target, :event_item_unwear, self)
+        Game.instance.remove_event_listener(@target, :event_item_wear, self)
+        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
         if @target.equipped?
-            @game.remove_event_listener(@target.carrier, :event_override_hit, self)
+            Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
         end
     end
 
     def add_burst_rune(data)
-        @game.add_event_listener(@target.carrier, :event_override_hit, self, :do_burst_rune)
+        Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_burst_rune)
     end
 
     def remove_burst_rune(data)
-        @game.remove_event_listener(@target.carrier, :event_override_hit, self)
+        Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
     end
 
     def do_burst_rune(data)

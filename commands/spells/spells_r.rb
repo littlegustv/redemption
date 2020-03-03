@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellRayOfTruth < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "ray of truth",
             keywords: ["ray of truth"],
             lag: 0.25,
@@ -45,9 +44,8 @@ end
 
 class SpellRefresh < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "refresh",
             keywords: ["refresh"],
             lag: 0.25,
@@ -81,9 +79,8 @@ end
 
 class SpellRemoveCurse < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "remove curse",
             keywords: ["remove curse"],
             lag: 0.25,
@@ -110,9 +107,8 @@ end
 
 class SpellRukusMagna < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "rukus magna",
             keywords: ["rukus magna"],
             lag: 0.25,

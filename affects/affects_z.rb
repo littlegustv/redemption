@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectZeal < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -26,7 +25,7 @@ class AffectZeal < Affect
     end
 
     def start
-    	@game.add_event_listener(@target, :event_calculate_weapon_hit_damage, self, :do_zeal)
+    	Game.instance.add_event_listener(@target, :event_calculate_weapon_hit_damage, self, :do_zeal)
     end
 
     def send_start_messages
@@ -34,7 +33,7 @@ class AffectZeal < Affect
     end
 
     def complete
-		@game.remove_event_listener(@target, :event_calculate_weapon_hit_damage, self)
+		Game.instance.remove_event_listener(@target, :event_calculate_weapon_hit_damage, self)
     end
 
     def send_complete_messages

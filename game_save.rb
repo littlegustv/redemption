@@ -282,7 +282,6 @@ module GameSave
                                class_id: player_data[:class_id],
                                wealth: player_data[:wealth],
                              },
-                             self,
                              @rooms[player_data[:room_id]] || @starting_room,
                              client)
         player.experience = player_data[:experience]
@@ -309,7 +308,7 @@ module GameSave
             if affect_class
                 source = find_affect_source(affect_row, player, player.items)
                 if source != false # source can be nil, just not false - see find_affect_source
-                    affect = affect_class.new(source, player, affect_row[:level], self)
+                    affect = affect_class.new(source, player, affect_row[:level])
                     affect.duration = affect_row[:duration]
                     modifiers = {}
                     modifier_rows = all_modifier_rows.select{ |row| row[:saved_player_affect_id] == affect_row[:id] }
@@ -332,7 +331,7 @@ module GameSave
                     if affect_row[:name] == "portal"
                         # need to make portal use standard initialize args
                     elsif source != false # source can be nil, just not false - see find_affect_source
-                        affect = affect_class.new(source, item, affect_row[:level], self)
+                        affect = affect_class.new(source, item, affect_row[:level])
                         affect.duration = affect_row[:duration]
                         modifiers = {}
                         modifier_rows = all_item_modifier_rows.select{ |row| row[:saved_player_item_affect_id] == affect_row[:id] }

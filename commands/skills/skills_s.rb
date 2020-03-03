@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillShadow < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "shadow",
             keywords: ["shadow"],
             lag: 0.25,
@@ -17,11 +16,11 @@ class SkillShadow < Command
             actor.remove_affect("follow")
         elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if actor.stat(:dex) >= target.stat(:int)
-                actor.apply_affect( AffectFollow.new( target, actor, 1, @game ), silent: true )
+                actor.apply_affect( AffectFollow.new( target, actor, 1 ), silent: true )
                 actor.output "You begin to secretly follow %s.", [target]
             else
                 actor.output "Your attempt is painfully obvious."
-                actor.apply_affect( AffectFollow.new( target, actor, 1, @game ) )                
+                actor.apply_affect( AffectFollow.new( target, actor, 1 ) )
             end
         else
             actor.output "They aren't here"
@@ -31,9 +30,8 @@ end
 
 class SkillSneak < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "sneak",
             keywords: ["sneak"],
             lag: 0,
@@ -42,16 +40,15 @@ class SkillSneak < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        actor.apply_affect(AffectSneak.new( actor, actor, actor.level, @game ))
+        actor.apply_affect(AffectSneak.new( actor, actor, actor.level ))
         return true
     end
 end
 
 class SkillSteal < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "steal",
             keywords: ["steal"],
             lag: 0.25,
@@ -62,7 +59,7 @@ class SkillSteal < Skill
 
     def attempt( actor, cmd, args, input )
         if ( mobile_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args[1].to_s.to_query )).first )
-            if ( item_target = actor.target({ list: mobile_target.inventory.items, visible_to: actor }.merge( args[0].to_s.to_query )).first )                
+            if ( item_target = actor.target({ list: mobile_target.inventory.items, visible_to: actor }.merge( args[0].to_s.to_query )).first )
                 actor.output "You pocket %s.", [ item_target ]
                 actor.output "Got it!"
                 item_target.move(actor.inventory)

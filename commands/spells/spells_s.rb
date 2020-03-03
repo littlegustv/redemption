@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellScramble < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "scramble",
             keywords: ["scramble"],
             lag: 0.25,
@@ -32,7 +31,7 @@ class SpellScramble < Spell
             actor.output "There is no one here with that name."
             return false
         end
-        target.apply_affect( AffectScramble.new( actor, target, actor.level, @game ) )
+        target.apply_affect( AffectScramble.new( actor, target, actor.level ) )
         target.start_combat( actor )
         return true
     end
@@ -41,9 +40,8 @@ end
 
 class SpellShackleRune < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "shackle rune",
             keywords: ["shackle rune"],
             lag: 0.25,
@@ -59,7 +57,7 @@ class SpellShackleRune < Spell
     	else
     		actor.output "You place a shackle on the ground preventing easy movement."
     		actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
-    		actor.room.apply_affect( AffectShackleRune.new( actor, actor.room, actor.level, @game ) )
+    		actor.room.apply_affect( AffectShackleRune.new( actor, actor.room, actor.level ) )
             return true
     	end
     end
@@ -68,9 +66,8 @@ end
 class SpellShield < Spell
 
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "shield",
             keywords: ["shield", "shield"],
             lag: 0.25,
@@ -80,16 +77,15 @@ class SpellShield < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectShield.new( nil, actor, actor.level, @game ) )
+        actor.apply_affect( AffectShield.new( nil, actor, actor.level ) )
     end
 
 end
 
 class SpellShockingGrasp < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "shocking grasp",
             keywords: ["shocking grasp"],
             lag: 0.25,
@@ -125,9 +121,8 @@ end
 
 class SpellSleep < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "sleep",
             keywords: ["sleep"],
             lag: 0.25,
@@ -138,7 +133,7 @@ class SpellSleep < Spell
 
     def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectSleep.new( nil, target, actor.level, @game ) )
+            target.apply_affect( AffectSleep.new( nil, target, actor.level ) )
         else
             actor.output "There is no one here with that name."
         end
@@ -148,9 +143,8 @@ end
 
 class SpellSlow < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "slow",
             keywords: ["slow"],
             lag: 0.25,
@@ -178,7 +172,7 @@ class SpellSlow < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectSlow.new( actor, target, actor.level, @game ) )
+        target.apply_affect( AffectSlow.new( actor, target, actor.level ) )
         target.start_combat( actor )
         return true
     end
@@ -187,9 +181,8 @@ end
 
 class SpellStoneSkin < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "stoneskin",
             keywords: ["stone skin", "stoneskin"],
             lag: 0.25,
@@ -199,16 +192,15 @@ class SpellStoneSkin < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectStoneSkin.new( nil, actor, actor.level, @game ) )
+        actor.apply_affect( AffectStoneSkin.new( nil, actor, actor.level ) )
     end
 
 end
 
 class SpellStun < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "stun",
             keywords: ["stun"],
             lag: 0.25,
@@ -224,7 +216,7 @@ class SpellStun < Spell
             target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
         end
         if target
-            target.apply_affect( AffectStun.new( nil, target, actor.level, @game ) )
+            target.apply_affect( AffectStun.new( nil, target, actor.level ) )
             target.start_combat( actor )
             return true
         else
@@ -237,9 +229,8 @@ end
 
 class SpellSummon < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "summon",
             keywords: ["summon"],
             lag: 0.25,
@@ -251,11 +242,11 @@ class SpellSummon < Spell
     def attempt( actor, cmd, args, input, level )
         target = nil
         if actor.can_see?(nil)
-            target = actor.filter_visible_targets(@game.target_global_mobiles(args.first.to_s.to_query).shuffle, 1).first
+            target = actor.filter_visible_targets(Game.instance.target_global_mobiles(args.first.to_s.to_query).shuffle, 1).first
         end
         if target
-            @game.broadcast "%s disappears suddenly.", target.room.occupants - [target], [target]
-            @game.broadcast "%s arrives suddenly.", actor.room.occupants - [target], [target]
+            Game.instance.broadcast "%s disappears suddenly.", target.room.occupants - [target], [target]
+            Game.instance.broadcast "%s arrives suddenly.", actor.room.occupants - [target], [target]
             target.move_to_room actor.room
             target.output "%s has summoned you!", [actor]
         else

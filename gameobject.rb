@@ -3,7 +3,7 @@ class GameObject
     attr_accessor :name, :keywords, :affects, :uuid, :active
     attr_reader :listeners, :room
 
-    def initialize( name, keywords, game )
+    def initialize( name, keywords )
         @name = name
         if keywords
             @keyword_string = keywords.to_a.join(" ".freeze).downcase
@@ -19,10 +19,9 @@ class GameObject
             @keyword_string = "".freeze
             @keywords = nil
         end
-        @game = game
         @affects = []
         @listeners = {}
-        @uuid = @game.new_uuid
+        @uuid = Game.instance.new_uuid
         @active = true
     end
 
@@ -34,11 +33,11 @@ class GameObject
     end
 
     def broadcast( message, targets, objects = [], send_to_sleeping: false)
-        @game.broadcast(message, targets, objects.to_a, send_to_sleeping: send_to_sleeping)
+        Game.instance.broadcast(message, targets, objects.to_a, send_to_sleeping: send_to_sleeping)
     end
 
     def target( query )
-        @game.target query
+        Game.instance.target query
     end
 
     def to_a
@@ -56,7 +55,7 @@ class GameObject
     def show( looker )
         if looker.can_see? self
             data = { description: self.to_s }
-            @game.fire_event(self, :event_calculate_aura_description, data )
+            Game.instance.fire_event(self, :event_calculate_aura_description, data )
             return data[:description]
         else
             to_someone
@@ -124,7 +123,7 @@ class GameObject
                 existing_affects.each { |a| a.clear(silent: true) }
                 new_affect.send_refresh_messages if !silent
                 affects.unshift(new_affect)
-                @game.add_global_affect(new_affect)
+                Game.instance.add_global_affect(new_affect)
                 new_affect.start
             when :global_stack, :source_stack                      # stack with existing affect
                 existing_affects.first.send_refresh_messages if !silent
@@ -135,7 +134,7 @@ class GameObject
             when :multiple
                 new_affect.send_start_messages if !silent
                 affects.unshift(new_affect)
-                @game.add_global_affect(new_affect)
+                Game.instance.add_global_affect(new_affect)
                 new_affect.start
             else
                 log "unknown application type #{affect.application_type} in apply_affect on affect #{affect} belonging to #{self}"
@@ -144,7 +143,7 @@ class GameObject
         else
             new_affect.send_start_messages if !silent
             affects.unshift(new_affect)
-            @game.add_global_affect(new_affect)
+            Game.instance.add_global_affect(new_affect)
             new_affect.start
         end
         return true
@@ -161,7 +160,7 @@ class GameObject
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class
-                affect = affect_class.new(self, self, 0, @game)
+                affect = affect_class.new(self, self, 0)
                 affect.savable = false
                 affect.permanent = true
                 apply_affect(affect, silent)

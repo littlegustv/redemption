@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillTrip < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "trip",
             keywords: ["trip"],
             lag: 2,
@@ -38,7 +37,7 @@ class SkillTrip < Skill
         target.output "%s trips you and you go down!", [actor]
         actor.broadcast "%s trips %s, sending them to the ground.", actor.room.occupants - [ actor, target ], [actor, target]
         actor.deal_damage(target: target, damage: 5, noun:"trip", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
-        target.apply_affect(Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }, game: @game))
+        target.apply_affect(Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }))
     end
 
 end

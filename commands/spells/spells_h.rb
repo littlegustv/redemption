@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellHarm < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "harm",
             keywords: ["harm"],
             lag: 0.25,
@@ -39,9 +38,8 @@ end
 
 class SpellHeal < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "heal",
             keywords: ["heal"],
             lag: 0.25,
@@ -63,14 +61,13 @@ class SpellHeal < Spell
             actor.output "They aren't here."
         end
     end
-    
+
 end
 
 class SpellHeatMetal < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "heat metal",
             keywords: ["heat metal"],
             lag: 0.25,
@@ -109,9 +106,8 @@ end
 
 class SpellHolyWord < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "holy word",
             keywords: ["holy word"],
             lag: 0.5,
@@ -124,13 +120,13 @@ class SpellHolyWord < Spell
         if args.first.nil?
             actor.output "A warm feeling runs through your body."
             actor.regen 100, 0, 0
-            actor.apply_affect( AffectBless.new( nil, actor, actor.level, @game ) )
-            actor.apply_affect( AffectFrenzy.new( nil, actor, actor.level, @game ) )
-        elsif ( target = @game.target({ list: actor.items + actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+            actor.apply_affect( AffectBless.new( nil, actor, actor.level ) )
+            actor.apply_affect( AffectFrenzy.new( nil, actor, actor.level ) )
+        elsif ( target = Game.instance.target({ list: actor.items + actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
             target.output "A warm feeling runs through your body."
             target.regen 100, 0, 0
-            target.apply_affect( AffectBless.new( nil, target, actor.level, @game ) )
-            target.apply_affect( AffectFrenzy.new( nil, target, actor.level, @game ) )
+            target.apply_affect( AffectBless.new( nil, target, actor.level ) )
+            target.apply_affect( AffectFrenzy.new( nil, target, actor.level ) )
         else
             actor.output "There is no one here with that name."
         end
@@ -140,9 +136,8 @@ end
 
 class SpellHurricane < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "hurricane",
             keywords: ["hurricane"],
             lag: 0.25,
@@ -163,9 +158,8 @@ end
 
 class SpellHypnosis < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "hypnosis",
             keywords: ["hypnosis"],
             lag: 0.25,

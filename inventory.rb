@@ -6,8 +6,7 @@ class Inventory
     attr_reader :item_count
     attr_reader :owner
 
-    def initialize(owner:, game:)
-        @game = game            # reference to the game object
+    def initialize(owner)
         @owner = owner          # the room/mobile/item that contains these items
         @items = []             # List of items in this inventory
         @item_count = {}        # Item count hash (uses :id as key)
@@ -16,7 +15,7 @@ class Inventory
     def show(observer:, long: false)
         ids_shown = []
         lines = []
-        targets = @game.target({ list: self.items, visible_to: observer, quantity: 'all' })
+        targets = Game.instance.target({ list: self.items, visible_to: observer, quantity: 'all' })
         targets.each do |item|
             if ids_shown.include?(item.id)
                 next
@@ -50,7 +49,7 @@ class Inventory
     end
 
     def show_with_categories(observer:, long: false)
-        @game.target({ list: self.items, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "\n      #{t.long}" }.join
+        Game.instance.target({ list: self.items, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "\n      #{t.long}" }.join
     end
 
     # returns the number of items

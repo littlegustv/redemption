@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectAggressive < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             0, # level
@@ -26,16 +25,16 @@ class AffectAggressive < Affect
     end
 
     # def start
-    #     @game.add_event_listener(@target, :event_observe_mobile_enter, self, :do_aggro)
+    #     Game.instance.add_event_listener(@target, :event_observe_mobile_enter, self, :do_aggro)
     # end
     #
     # def complete
-    #     @game.remove_event_listener(@target, :event_observe_mobile_enter, self)
+    #     Game.instance.remove_event_listener(@target, :event_observe_mobile_enter, self)
     # end
     #
     # def do_aggro(data)
     #     if @target.can_see?(data[:mobile]) && !data[:mobile].affected?("cloak of mind")
-    #         @game.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
+    #         Game.instance.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
     #         @target.start_combat data[:mobile]
     #         @target.do_round_of_attacks(target: data[:mobile])
     #     end
@@ -48,7 +47,7 @@ class AffectAggressive < Affect
         end
         player = players.select{ |t| @target.can_see?(t) }.shuffle!.first
         if player && !@target.attacking
-            @game.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
+            Game.instance.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
             @target.start_combat player
             @target.do_round_of_attacks(target: player)
         end
@@ -58,9 +57,8 @@ end
 
 class AffectAlarmRune < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -82,15 +80,15 @@ class AffectAlarmRune < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_room_description, self, :alarm_rune_description)
-        @game.add_event_listener(@target, :event_room_mobile_enter, self, :do_alarm_rune)
-        @game.add_event_listener(@source, :event_try_alarm_rune, self, :stop_alarm_rune)
+        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :alarm_rune_description)
+        Game.instance.add_event_listener(@target, :event_room_mobile_enter, self, :do_alarm_rune)
+        Game.instance.add_event_listener(@source, :event_try_alarm_rune, self, :stop_alarm_rune)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_room_description, self)
-        @game.remove_event_listener(@target, :event_room_mobile_enter, self)
-        @game.remove_event_listener(@source, :event_try_alarm_rune, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
+        Game.instance.remove_event_listener(@target, :event_room_mobile_enter, self)
+        Game.instance.remove_event_listener(@source, :event_try_alarm_rune, self)
     end
 
     def send_complete_messages
@@ -118,9 +116,8 @@ end
 
 class AffectArmor < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level

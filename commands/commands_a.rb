@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandAffects < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "affects",
             keywords: ["affects"]
         )

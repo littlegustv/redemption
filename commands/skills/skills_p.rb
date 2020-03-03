@@ -4,9 +4,8 @@ class SkillPaintPower < Skill
 
 	@@slots = [ "torso", "head", "arms", "wrist_1", "wrist_2" ]
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "paint power",
             keywords: ["paint"],
             lag: 0.25,
@@ -33,9 +32,8 @@ end
 
 class SkillPeek < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "peek",
             keywords: ["peek"],
             lag: 0.1,
@@ -63,9 +61,8 @@ end
 
 class SkillPickLock < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "pick lock",
             keywords: ["pick lock"],
             lag: 0.25,
@@ -74,7 +71,7 @@ class SkillPickLock < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = @game.target( { list: actor.room.exits.values }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = Game.instance.target( { list: actor.room.exits.values }.merge( args.first.to_s.to_query ) ).first )
             if rand(0...10) < 5
                 return target.unlock( actor, override: true )
             else

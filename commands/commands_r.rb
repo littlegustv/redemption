@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandRecall < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "recall",
             keywords: ["recall", "/"],
             position: Constants::Position::STAND
@@ -18,9 +17,8 @@ end
 
 class CommandRemove < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "remove",
             keywords: ["remove"],
             position: Constants::Position::REST
@@ -42,9 +40,8 @@ end
 
 class CommandRest < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "rest",
             keywords: ["sit", "rest"],
             position: Constants::Position::SLEEP,
@@ -56,13 +53,13 @@ class CommandRest < Command
         case actor.position
         when Constants::Position::SLEEP
             data = { success: true }
-            @game.fire_event( actor, :event_try_wake, data )
+            Game.instance.fire_event( actor, :event_try_wake, data )
             if data[:success]
                 actor.output "You wake up and rest."
                 actor.broadcast "%s wakes up and begins to rest.", actor.room.occupants - [actor], [actor]
                 actor.position = Constants::Position::REST
                 actor.look_room
-                return true            
+                return true
             else
                 actor.output "You can't wake up!"
                 return false

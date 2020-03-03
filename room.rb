@@ -11,8 +11,8 @@ class Room < GameObject
     attr_reader :players
     attr_reader :sector
 
-    def initialize( id, name, description, sector, area, flags, hp_regen, mana_regen, game)
-        super(name, nil, game)
+    def initialize( id, name, description, sector, area, flags, hp_regen, mana_regen)
+        super(name, nil)
         @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
         @id = id
         @description = description
@@ -25,7 +25,7 @@ class Room < GameObject
         @mobiles = []
         @mobile_count = {}
         @players = []
-        @inventory = Inventory.new(owner: self, game: @game)
+        @inventory = Inventory.new(self)
 
         apply_affect_flags( @flags.to_a )
     end
@@ -36,7 +36,7 @@ class Room < GameObject
             "  #{ @description }\n" +
             "[Exits: #{ @exits.select { |direction, room| not room.nil? }.map{ |k, v| v.to_s }.join(", ") }]"
             description_data = {extra_show: ""}
-            @game.fire_event(self, :event_calculate_room_description, description_data)
+            Game.instance.fire_event(self, :event_calculate_room_description, description_data)
             out += description_data[:extra_show]
         else
             out = "It is pitch black ..."
@@ -44,7 +44,7 @@ class Room < GameObject
         item_list = @inventory.show(observer: looker, long: true)
         out += "\n#{item_list}" if item_list.length > 0
 
-        visible_occupant_longs = @game.target({ list: self.occupants, :not => looker, visible_to: looker }).map{ |t| t.show_long_description(observer: looker) }
+        visible_occupant_longs = Game.instance.target({ list: self.occupants, :not => looker, visible_to: looker }).map{ |t| t.show_long_description(observer: looker) }
         out += "\n#{visible_occupant_longs.join("\n")}" if visible_occupant_longs.length > 0
         return out
     end
@@ -58,7 +58,7 @@ class Room < GameObject
             @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i + 1
             @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end
-        @game.fire_event(self, :event_room_mobile_enter, {mobile: mobile})
+        Game.instance.fire_event(self, :event_room_mobile_enter, {mobile: mobile})
     end
 
     def mobile_exit(mobile)
@@ -69,7 +69,7 @@ class Room < GameObject
             @mobile_count[mobile.id] = @mobile_count[mobile.id] - 1
             @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end
-        @game.fire_event(self, :event_room_mobile_exit, {mobile: mobile})
+        Game.instance.fire_event(self, :event_room_mobile_exit, {mobile: mobile})
     end
 
     # Returns true if the room contains ALL mobiles (an array of players and/or mobiles)

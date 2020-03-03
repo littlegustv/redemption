@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellAcidBlast < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "acid blast",
             keywords: ["acid", "blast", "acid blast"],
             lag: 0.25,
@@ -40,9 +39,8 @@ end
 
 class SpellAlarmRune < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "alarm rune",
             keywords: ["alarm rune"],
             lag: 0.25,
@@ -53,7 +51,7 @@ class SpellAlarmRune < Spell
 
     def attempt( actor, cmd, args, input, level )
         data = {success: true}
-        @game.fire_event(actor, :event_try_alarm_rune, data)
+        Game.instance.fire_event(actor, :event_try_alarm_rune, data)
         if !data[:success]
             actor.output "You already sense others."
             return false
@@ -63,7 +61,7 @@ class SpellAlarmRune < Spell
         else
             actor.output "You place an alarm rune on the ground, increasing your senses."
             actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
-            actor.room.apply_affect( AffectAlarmRune.new( actor, actor.room, actor.level, @game ) )
+            actor.room.apply_affect( AffectAlarmRune.new( actor, actor.room, actor.level ) )
             return true
         end
     end
@@ -72,9 +70,8 @@ end
 class SpellArmor < Spell
 
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "armor",
             keywords: ["armor"],
             lag: 0.25,
@@ -84,7 +81,7 @@ class SpellArmor < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectArmor.new( nil, actor, actor.level, @game ) )
+        actor.apply_affect( AffectArmor.new( nil, actor, actor.level ) )
     end
 
 end

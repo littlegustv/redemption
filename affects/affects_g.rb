@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectGlowing < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -26,19 +25,19 @@ class AffectGlowing < Affect
     end
 
     def send_start_messages
-        @game.broadcast "%s glows with a white light.", @target.room.occupants, [@target]
+        Game.instance.broadcast "%s glows with a white light.", @target.room.occupants, [@target]
     end
 
     def send_complete_messages
-        @game.broadcast "%s loses its glow.", @target.room.occupants, [@target]
+        Game.instance.broadcast "%s loses its glow.", @target.room.occupants, [@target]
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_glowing_aura)
+        Game.instance.add_event_listener(@target, :event_calculate_aura_description, self, :do_glowing_aura)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_aura_description, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_aura_description, self)
     end
 
     def do_glowing_aura(data)
@@ -49,9 +48,8 @@ end
 
 class AffectGrandeur < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -73,11 +71,11 @@ class AffectGrandeur < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_show_condition, self, :do_condition)
+        Game.instance.add_event_listener(@target, :event_show_condition, self, :do_condition)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_show_condition, self)
+        Game.instance.remove_event_listener(@target, :event_show_condition, self)
     end
 
     def send_start_messages
@@ -97,9 +95,8 @@ end
 
 class AffectGuard < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -122,11 +119,11 @@ class AffectGuard < Affect
 
     #
     # def start
-    #     @game.add_event_listener(@target, :event_mobile_enter, self, :do_guard)
+    #     Game.instance.add_event_listener(@target, :event_mobile_enter, self, :do_guard)
     # end
     #
     # def complete
-    #     @game.remove_event_listener(@target, :event_mobile_enter, self)
+    #     Game.instance.remove_event_listener(@target, :event_mobile_enter, self)
     # end
     #
     # def do_guard(data)

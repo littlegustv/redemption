@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillAppraise < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "appraise",
             keywords: ["appraise"],
             position: Constants::Position::STAND,
@@ -21,7 +20,7 @@ class SkillAppraise < Skill
             if target.affected? "appraised"
             	actor.output "%s has already been appraised.", [target]
             else
-            	target.apply_affect( Affect.new( name: "appraised", permanent: true, keywords: ["appraised"], target: target, source: nil, game: @game ) )
+            	target.apply_affect( Affect.new( name: "appraised", permanent: true, keywords: ["appraised"], target: target, source: nil ) )
             	target.cost *= 1.15
             	actor.output "%s glitters and shines more brightly as you appraise it.", [target]
             	actor.broadcast "%s glitters and shines more brightly as %s appraises it.", actor.room.occupants - [actor], [target, actor]

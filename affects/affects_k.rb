@@ -13,9 +13,8 @@ class AffectKarma < Affect
         damroll: "%s karma is more deadly!"
     }
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -52,9 +51,8 @@ end
 
 class AffectKiller < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -76,11 +74,11 @@ class AffectKiller < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_killer_flag)
+        Game.instance.add_event_listener(@target, :event_calculate_aura_description, self, :do_killer_flag)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_aura_description, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_aura_description, self)
     end
 
     def do_killer_flag(data)

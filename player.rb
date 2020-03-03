@@ -3,11 +3,11 @@ class Player < Mobile
     attr_reader :client
     attr_reader :account_id
 
-    def initialize( data, game, room, client )
+    def initialize( data, room, client )
         data[:keywords] = data[:name]
         data[:short_desc] = data[:name]
         data[:long_desc] = "#{data[:name]} the Master Rune Maker is here."
-        super(data, data[:race_id], data[:class_id], game, room)
+        super(data, data[:race_id], data[:class_id], room)
         @account_id = data[:account_id]
         @buffer = ""
         @delayed_buffer = ""
@@ -25,10 +25,10 @@ class Player < Mobile
             @client.player = nil
             @client = nil
         end
-        @game.destroy_player(self)
+        Game.instance.destroy_player(self)
     end
 
-    # this method basically has to undo a @game.destroy_player(self) call
+    # this method basically has to undo a Game.instance.destroy_player(self) call
     def reconnect( client )
         if @client
             @client.disconnect
@@ -36,20 +36,20 @@ class Player < Mobile
         if !@active
             @affects.each do |affect|
                 affect.active = true
-                @game.add_global_affect(affect)
+                Game.instance.add_global_affect(affect)
             end
             @inventory.items.each do |item|
-                @game.items << item
+                Game.instance.items << item
                 item.affects.each do |affect|
                     affect.active = true
-                    @game.add_global_affect(affect)
+                    Game.instance.add_global_affect(affect)
                 end
             end
             equipment.each do |item|
-                @game.items << item
+                Game.instance.items << item
                 item.affects.each do |affect|
                     affect.active = true
-                    @game.add_global_affect(affect)
+                    Game.instance.add_global_affect(affect)
                 end
             end
         end
@@ -117,19 +117,19 @@ class Player < Mobile
     def die( killer )
         output "You have been KILLED!"
         broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
-        @game.fire_event(self, :event_on_die, {} )
+        Game.instance.fire_event(self, :event_on_die, {} )
         stop_combat
         @affects.each do |affect|
             affect.clear(silent: true) if !affect.permanent
         end
-        room = @game.recall_room( @room.continent )
+        room = Game.instance.recall_room( @room.continent )
         move_to_room( room )
         @hitpoints = 10
         @position = Constants::Position::REST
     end
 
     def quit(silent: false)
-        @game.save
+        Game.instance.save
         stop_combat
         if !silent
             broadcast "%s has left the game.", @room.occupants - [self], self

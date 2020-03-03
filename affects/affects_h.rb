@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectHaste < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -47,9 +46,8 @@ class AffectHatchling < Affect
         "white dragon" => [ "White wings fold up off your body and you test the air with them.", "Breath burns out of your maw, spilling the burning cold frost into the air.", "Your white hind claws cause the ground to harden and freeze." ]
     }
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -71,17 +69,17 @@ class AffectHatchling < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_on_level_up, self, :hatch)
+        Game.instance.add_event_listener(@target, :event_on_level_up, self, :hatch)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_on_level_up, self)
+        Game.instance.remove_event_listener(@target, :event_on_level_up, self)
     end
 
     def hatch(data)
         if data[:level] >= 2
             race_name = @@HATCHLING_MESSAGES.keys.sample
-            @target.set_race_id(@game.race_data.select { |k, v| v[:name] == race_name }.first[0])
+            @target.set_race_id(Game.instance.race_data.select { |k, v| v[:name] == race_name }.first[0])
             @target.output("#{@@HATCHLING_MESSAGES[ race_name ].join("\n")}")
         end
     end
@@ -90,9 +88,8 @@ end
 
 class AffectHide < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -114,28 +111,28 @@ class AffectHide < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
-        @game.add_event_listener(@target, :event_mobile_exit, self, :do_remove_affect)
-        @game.add_event_listener(@target, :event_try_can_be_seen, self, :do_hide)
-        @game.add_event_listener(@target, :event_calculate_aura_description, self, :do_hide_aura)
+        Game.instance.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
+        Game.instance.add_event_listener(@target, :event_mobile_exit, self, :do_remove_affect)
+        Game.instance.add_event_listener(@target, :event_try_can_be_seen, self, :do_hide)
+        Game.instance.add_event_listener(@target, :event_calculate_aura_description, self, :do_hide_aura)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_on_start_combat, self)
-        @game.remove_event_listener(@target, :event_mobile_exit, self)
-        @game.remove_event_listener(@target, :event_try_can_be_seen, self)
-        @game.remove_event_listener(@target, :event_calculate_aura_description, self)
+        Game.instance.remove_event_listener(@target, :event_on_start_combat, self)
+        Game.instance.remove_event_listener(@target, :event_mobile_exit, self)
+        Game.instance.remove_event_listener(@target, :event_try_can_be_seen, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_aura_description, self)
     end
 
     def send_start_messages
         @target.output "You fade out of existence."
-        @game.broadcast "%s fades from existence.", @target.room.occupants - [@target], [@target]
+        Game.instance.broadcast "%s fades from existence.", @target.room.occupants - [@target], [@target]
     end
 
     def send_complete_messages
         @target.output "You fade into existence."
         room  = @target.room
-        @game.broadcast "%s fades into existence.", @target.room.occupants - [@target], [@target]
+        Game.instance.broadcast "%s fades into existence.", @target.room.occupants - [@target], [@target]
     end
 
     def do_remove_affect(data)
