@@ -1,9 +1,8 @@
 require_relative 'command.rb'
 
 class CommandLeave < Command
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "leave",
             keywords: ["leave"],
             position: Constants::Position::REST
@@ -26,9 +25,8 @@ end
 
 class CommandList < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "list",
             keywords: ["list"],
             lag: 0,
@@ -38,12 +36,12 @@ class CommandList < Command
 
     def attempt( actor, cmd, args, input )
         ( shopkeepers = actor.target( visible_to: actor, list: actor.room.occupants, affect: "shopkeeper", not: actor ) ).each do |shopkeeper|
-            
+
             actor.output "#{shopkeeper}:"
 
             ids_shown = []
             lines = []
-            targets = @game.target({ list: shopkeeper.inventory.items, visible_to: actor, quantity: 'all' })
+            targets = Game.instance.target({ list: shopkeeper.inventory.items, visible_to: actor, quantity: 'all' })
             targets.each do |item|
                 if ids_shown.include?(item.id)
                     next
@@ -65,9 +63,8 @@ class CommandList < Command
 end
 
 class CommandLoadItem < Command
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "loaditem",
             keywords: ["loaditem"],
             priority: 1,
@@ -93,9 +90,8 @@ end
 
 class CommandLock < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "lock",
             keywords: ["lock"],
             lag: 0.25,
@@ -104,7 +100,7 @@ class CommandLock < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = @game.target( { list: actor.room.exits.values }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = Game.instance.target( { list: actor.room.exits.values }.merge( args.first.to_s.to_query ) ).first )
             return target.lock( actor )
         else
             actor.output "There is no exit in that direction."
@@ -115,9 +111,8 @@ end
 
 class CommandLook < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "look",
             keywords: ["look"],
             priority: 200,
@@ -163,9 +158,8 @@ end
 
 class CommandLore < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "lore",
             keywords: ["lore"],
             position: Constants::Position::REST

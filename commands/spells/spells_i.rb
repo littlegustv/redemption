@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellIceBolt < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "ice bolt",
             keywords: ["ice bolt"],
             lag: 0.25,
@@ -38,9 +37,8 @@ class SpellIceBolt < Spell
 end
 
 class SpellIgnoreWounds < Spell
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "ignore wounds",
             keywords: ["ignore wounds"],
             lag: 0.25,
@@ -50,14 +48,13 @@ class SpellIgnoreWounds < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectIgnoreWounds.new( nil, actor, level, @game ) )
+        actor.apply_affect( AffectIgnoreWounds.new( nil, actor, level ) )
     end
 end
 
 class SpellInfravision < Spell
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "infravision",
             keywords: ["infravision"],
             lag: 0.25,
@@ -70,19 +67,18 @@ class SpellInfravision < Spell
         target = nil
         if args.first.nil?
             target = actor
-        elsif !(target = @game.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query() )).first)
+        elsif !(target = Game.instance.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query() )).first)
             actor.output "You don't see anything like that here."
             return false
         end
-        target.apply_affect( AffectInfravision.new( actor, target, level, @game ) )
+        target.apply_affect( AffectInfravision.new( actor, target, level ) )
         return true
     end
 end
 
 class SpellInvisibility < Spell
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "invisibility",
             keywords: ["invisibility"],
             lag: 0.25,
@@ -95,11 +91,11 @@ class SpellInvisibility < Spell
         target = nil
         if args.first.nil?
             target = actor
-        elsif !(target = @game.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query() )).first)
+        elsif !(target = Game.instance.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query() )).first)
             actor.output "You don't see anything like that here."
             return false
         end
-        target.apply_affect( AffectInvisibility.new( actor, target, level, @game ) )
+        target.apply_affect( AffectInvisibility.new( actor, target, level ) )
         return true
     end
 end

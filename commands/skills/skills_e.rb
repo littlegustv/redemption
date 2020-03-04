@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillEnvenom < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "envenom",
             keywords: ["envenom"],
             lag: 0.25,
@@ -13,8 +12,8 @@ class SkillEnvenom < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = @game.target({ list: actor.items, item_type: "weapon", visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
-	        target.apply_affect( AffectPoison.new( nil, target, actor.level, @game ) )
+        if ( target = Game.instance.target({ list: actor.items, item_type: "weapon", visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+	        target.apply_affect( AffectPoison.new( nil, target, actor.level ) )
         end
         return true
     end

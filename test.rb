@@ -3,7 +3,7 @@ require 'memory_profiler'
 
 class Game
 	@@source = 'abcdefghijklmnopqrstuvwxyz'
-	
+
 	def initialize
 		@hash = {}
 		@array = []

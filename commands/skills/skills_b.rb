@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillBackstab < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "backstab",
             keywords: ["backstab"],
             lag: 1,
@@ -43,9 +42,8 @@ end
 
 class SkillBash < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "bash",
             keywords: ["bash"],
             lag: 2,
@@ -84,9 +82,9 @@ class SkillBash < Skill
             # check both opened and unlocked seperately, since you might be bashing a closed, unlocked door
             if opened || unlocked
                 actor.output "Bang!* You bash the door in."
-                @game.broadcast "%s bashes in the #{ target.short }.", actor.room.occupants - [actor], [actor]
+                Game.instance.broadcast "%s bashes in the #{ target.short }.", actor.room.occupants - [actor], [actor]
                 if target.pair
-                    @game.broadcast "The #{ target.short } is suddenly thrown backwards!", target.pair.origin.occupants - [actor]
+                    Game.instance.broadcast "The #{ target.short } is suddenly thrown backwards!", target.pair.origin.occupants - [actor]
                 end
             else
                 #
@@ -103,9 +101,8 @@ end
 
 class SkillBerserk < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "berserk",
             keywords: ["berserk"],
             lag: 0.5,
@@ -115,7 +112,7 @@ class SkillBerserk < Skill
 
     def attempt( actor, cmd, args, input )
         if not actor.affected? "berserk"
-            actor.apply_affect(AffectBerserk.new( actor, actor, actor.level, @game ))
+            actor.apply_affect(AffectBerserk.new( actor, actor, actor.level ))
             return true
         else
             actor.output "You are already pretty mad."

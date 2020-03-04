@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellMagicMissile < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "magic missile",
             keywords: ["magic missile"],
             lag: 0.25,
@@ -42,9 +41,8 @@ end
 
 class SpellManaDrain < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "mana drain",
             keywords: ["mana drain"],
             lag: 0.25,
@@ -84,9 +82,8 @@ end
 
 class SpellMassHealing < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "mass healing",
             keywords: ["mass healing"],
             lag: 0.25,
@@ -111,13 +108,12 @@ class SpellMassHealing < Spell
             occupant.regen( 100, 0, 50 )
         end
     end
-    
+
 end
 
 class SpellMassInvisibility < Spell
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "mass invisibility",
             keywords: ["mass invisibility"],
             lag: 0.25,
@@ -127,16 +123,15 @@ class SpellMassInvisibility < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        ( targets = @game.target( args.first.to_s.to_query.merge({ list: actor.room.occupants, visible_to: actor }) ) ).each do |target|
-            target.apply_affect( AffectInvisibility.new( actor, target, level, @game ) )
+        ( targets = Game.instance.target( args.first.to_s.to_query.merge({ list: actor.room.occupants, visible_to: actor }) ) ).each do |target|
+            target.apply_affect( AffectInvisibility.new( actor, target, level ) )
         end
     end
 end
 
 class SpellMinimation < Spell
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "minimation",
             keywords: ["minimation"],
             lag: 0.25,
@@ -146,14 +141,13 @@ class SpellMinimation < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectMinimation.new( nil, actor, actor.level, @game ) )
+        actor.apply_affect( AffectMinimation.new( nil, actor, actor.level ) )
     end
 end
 
 class SpellMirrorImage < Spell
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "mirror image",
             keywords: ["mirror image"],
             lag: 0.25,
@@ -164,6 +158,6 @@ class SpellMirrorImage < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectMirrorImage.new( actor, actor, level, @game ) )
+        actor.apply_affect( AffectMirrorImage.new( actor, actor, level ) )
     end
 end

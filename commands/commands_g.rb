@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandGet < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "get",
             keywords: ["get", "take"],
             position: Constants::Position::REST
@@ -40,9 +39,8 @@ end
 
 class CommandGive < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "give",
             keywords: ["give"],
             position: Constants::Position::REST
@@ -81,9 +79,8 @@ end
 
 class CommandGoTo < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "goto",
             keywords: ["goto"]
         )
@@ -101,9 +98,8 @@ class CommandGoTo < Command
 end
 
 class CommandGroup < Command
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "group",
             keywords: ["group"],
             position: Constants::Position::REST

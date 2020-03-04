@@ -161,7 +161,7 @@ module MobileItem
             broadcast("%s gets %s.", target({ :not => self, :list => @room.occupants }), [self, item]) if !silent
         end
         # if !@inventory # no inventory, create one
-        #     @inventory = Inventory.new(owner: self, game: @game)
+        #     @inventory = Inventory.new(self)
         # end
         item.move(@inventory)
     end
@@ -187,7 +187,7 @@ module MobileItem
 
     def equip_slots
         # data = {equip_slots: (@race_equip_slots + @class_equip_slots)}
-        # @game.fire_event(self, :event_get_equip_slots, data )
+        # Game.instance.fire_event(self, :event_get_equip_slots, data )
         return @race_equip_slots + @class_equip_slots
     end
 

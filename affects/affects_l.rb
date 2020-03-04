@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectLair < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -26,13 +25,13 @@ class AffectLair < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_try_where_room, self, :do_lair)
-        @game.add_event_listener(@target, :event_calculate_room_description, self, :lair_description)
+        Game.instance.add_event_listener(@target, :event_try_where_room, self, :do_lair)
+        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :lair_description)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_try_where_room, self)
-        @game.remove_event_listener(@target, :event_calculate_room_description, self)
+        Game.instance.remove_event_listener(@target, :event_try_where_room, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
     end
 
     def lair_description(data)
@@ -41,11 +40,11 @@ class AffectLair < Affect
 
     def send_start_messages
         @source.output "Welcome to your new lair!"
-        @game.broadcast "%s has claimed this room as their lair.", @target.occupants - [@source], [@source]
+        Game.instance.broadcast "%s has claimed this room as their lair.", @target.occupants - [@source], [@source]
     end
 
     def send_complete_messages
-        @game.broadcast "The dragon's lair vanishes as the sands of time claim it once again.", @target.occupants
+        Game.instance.broadcast "The dragon's lair vanishes as the sands of time claim it once again.", @target.occupants
     end
 
     def do_lair( data )
@@ -56,9 +55,8 @@ end
 
 class AffectLivingStone < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level

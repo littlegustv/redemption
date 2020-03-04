@@ -1,12 +1,11 @@
 require_relative 'spell.rb'
 
 class SpellFarsight < Spell
-   
+
     @@descriptors = [ "right there", "close by to the", "not too far", "off in the distance" ]
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "farsight",
             keywords: ["farsight"],
             lag: 0.25,
@@ -18,7 +17,7 @@ class SpellFarsight < Spell
     def attempt( actor, cmd, args, input, level )
         target = nil
         if actor.can_see?(nil)
-            target = actor.filter_visible_targets(@game.target_global_mobiles(args.first.to_s.to_query).shuffle, 1).first
+            target = actor.filter_visible_targets(Game.instance.target_global_mobiles(args.first.to_s.to_query).shuffle, 1).first
         end
         if target
             # right there!
@@ -56,9 +55,8 @@ end
 
 class SpellFireball < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "fireball",
             keywords: ["fireball"],
             lag: 0.25,
@@ -79,9 +77,8 @@ end
 
 class SpellFireRune < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "fire rune",
             keywords: ["fire rune"],
             lag: 0.25,
@@ -97,7 +94,7 @@ class SpellFireRune < Spell
     	else
     		actor.output "You place a fiery rune on the ground to singe your foes."
     		actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
-    		actor.room.apply_affect( AffectFireRune.new( actor, actor.room, actor.level, @game ) )
+    		actor.room.apply_affect( AffectFireRune.new( actor, actor.room, actor.level ) )
             return true
     	end
     end
@@ -105,9 +102,8 @@ end
 
 class SpellFlamestrike < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "flamestrike",
             keywords: ["flamestrike"],
             lag: 0.25,
@@ -141,9 +137,8 @@ end
 
 class SpellFly < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "fly",
             keywords: ["fly"],
             lag: 0.25,
@@ -154,9 +149,9 @@ class SpellFly < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
-            actor.apply_affect( AffectFly.new( actor, actor, actor.level, @game ) )
-        elsif ( target = @game.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectFly.new( actor, target, actor.level, @game ) )
+            actor.apply_affect( AffectFly.new( actor, actor, actor.level ) )
+        elsif ( target = Game.instance.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+            target.apply_affect( AffectFly.new( actor, target, actor.level ) )
         else
             actor.output "There is no one here with that name."
         end
@@ -164,9 +159,8 @@ class SpellFly < Spell
 end
 
 class SpellFrenzy < Spell
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "frenzy",
             keywords: ["frenzy"],
             lag: 0.25,
@@ -177,9 +171,9 @@ class SpellFrenzy < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
-            actor.apply_affect( AffectFrenzy.new( nil, actor, actor.level, @game ) )
-        elsif ( target = @game.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectFrenzy.new( nil, target, actor.level, @game ) )
+            actor.apply_affect( AffectFrenzy.new( nil, actor, actor.level ) )
+        elsif ( target = Game.instance.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+            target.apply_affect( AffectFrenzy.new( nil, target, actor.level ) )
         else
             actor.output "There is no one here with that name."
         end

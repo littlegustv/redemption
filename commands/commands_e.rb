@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandEnter < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "enter",
             keywords: ["enter"],
             position: Constants::Position::REST
@@ -12,9 +11,9 @@ class CommandEnter < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = @game.target({ list: actor.room.items }.merge( args.first.to_s.to_query )).first )
+        if ( target = Game.instance.target({ list: actor.room.items }.merge( args.first.to_s.to_query )).first )
             data = { mobile: actor, success: false, failure_message: "You can't enter that." }
-            @game.fire_event( target, :event_try_enter, data)
+            Game.instance.fire_event( target, :event_try_enter, data)
             if !data[:success]
                 actor.output data[:failure_message]
             end
@@ -28,9 +27,8 @@ end
 
 class CommandEquipment < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "equipment",
             keywords: ["equipment"],
             position: Constants::Position::REST

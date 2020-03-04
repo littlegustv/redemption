@@ -10,8 +10,8 @@ class Item < GameObject
     attr_reader :material
     attr_reader :level
 
-    def initialize( data, game, parent_inventory )
-        super(data[:short_desc], data[:keywords], game)
+    def initialize( data, parent_inventory )
+        super(data[:short_desc], data[:keywords])
         @id = data[:id]
         @short_description = data[:short_desc]
         @level = data[:level]
@@ -24,6 +24,7 @@ class Item < GameObject
         @wear_flags = data[:wear_flags]
         @active = true
         @parent_inventory = nil
+        @modifiers = Hash.new
         @level = data[:level] || 0
         # @ac = data[:ac] || [0,0,0,0]
 
@@ -52,13 +53,13 @@ class Item < GameObject
 
     def name
         data = { description: @name }
-        @game.fire_event( self, :event_calculate_aura_description, data )
+        Game.instance.fire_event( self, :event_calculate_aura_description, data )
         return data[:description]
     end
 
     def long
         data = { description: @long_description }
-        @game.fire_event( self, :event_calculate_aura_description, data )
+        Game.instance.fire_event( self, :event_calculate_aura_description, data )
         return data[:description]
     end
 
@@ -81,22 +82,22 @@ Extra flags: #{ @extraFlags }
     def move(new_inventory)
         if @parent_inventory
             if equipped?
-                @game.fire_event(self, :event_item_unwear, {mobile: carrier})
+                Game.instance.fire_event(self, :event_item_unwear, {mobile: carrier})
             end
             @parent_inventory.remove_item(self)
         end
         if new_inventory
             new_inventory.add_item(self)
             if equipped?
-                @game.fire_event(self, :event_item_wear, {mobile: carrier})
+                Game.instance.fire_event(self, :event_item_wear, {mobile: carrier})
             end
         end
         @parent_inventory = new_inventory
     end
 
-    # alias for @game.destroy_item(self)
+    # alias for Game.instance.destroy_item(self)
     def destroy
-        @game.destroy_item(self)
+        Game.instance.destroy_item(self)
     end
 
     def db_source_type
@@ -130,8 +131,8 @@ class Weapon < Item
 
 	attr_accessor :noun, :element, :flags, :genre
 
-	def initialize( data, game, parent_inventory )
-		super(data, game, parent_inventory)
+	def initialize( data, parent_inventory )
+		super(data, parent_inventory)
 
 		@noun = data[:noun] || "pierce"
 		@flags = data[:flags] || []
@@ -152,14 +153,14 @@ class Container < Item
 
     attr_accessor :inventory
 
-	def initialize( data, game, parent_inventory )
-        super(data, game, parent_inventory)
+	def initialize( data, parent_inventory )
+        super(data, parent_inventory)
         @flags = data[:flags]
         @max_item_weight = data[:max_item_weight]
         @weight_multiplier = data[:weight_multiplier]
         @max_total_weight = data[:max_total_weight]
         @key_id = data[:key_id]
-        @inventory = Inventory.new(owner: self, game: game)
+        @inventory = Inventory.new(self)
     end
 
     def get_item(item)
@@ -215,7 +216,7 @@ class Tattoo < Item
         @runist = runist
         @duration = 600.0 * runist.level
         @slot = slot
-        @game.items.add self
+        Game.instance.items.add self
     end
 
     def update(elapsed)
@@ -230,7 +231,7 @@ class Tattoo < Item
         @runist.magic_hit(@runist, 100, "burning flesh", "flaming") if damage
         @runist.output "Your tattoo crumbles into dust." if not damage
         @runist.equipment[ @slot.to_sym ] = nil
-        @game.items.delete self
+        Game.instance.items.delete self
     end
 
     def lore

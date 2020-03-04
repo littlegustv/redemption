@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectRegeneration < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -26,13 +25,13 @@ class AffectRegeneration < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_regeneration, self, :do_regeneration_bonus)
-        @game.add_event_listener(@target, :event_on_hit, self, :do_regeneration_recovery)
+        Game.instance.add_event_listener(@target, :event_calculate_regeneration, self, :do_regeneration_bonus)
+        Game.instance.add_event_listener(@target, :event_on_hit, self, :do_regeneration_recovery)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_regeneration, self)
-        @game.remove_event_listener(@target, :event_on_hit, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_regeneration, self)
+        Game.instance.remove_event_listener(@target, :event_on_hit, self)
     end
 
     def do_regeneration_bonus(data)
@@ -50,9 +49,8 @@ end
 
 class AffectResist < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -75,13 +73,13 @@ class AffectResist < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_resist)
-        @game.add_event_listener(@target, :event_display_resists, self, :do_display)
+        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_resist)
+        Game.instance.add_event_listener(@target, :event_display_resists, self, :do_display)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
-        @game.remove_event_listener(@target, :event_display_resists, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        Game.instance.remove_event_listener(@target, :event_display_resists, self)
     end
 
     def do_resist(data)

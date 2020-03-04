@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellLightningBolt < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "lightning bolt",
             keywords: ["lightning bolt"],
             lag: 0.25,
@@ -38,9 +37,8 @@ end
 
 class SpellLocateObject < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "locate object",
             keywords: ["locate object"],
             lag: 0.25,
@@ -59,7 +57,7 @@ class SpellLocateObject < Spell
     def attempt( actor, cmd, args, input, level )
         targets = []
         if actor.can_see?(nil)
-            targets = @game.target_global_items(args.first.to_s.to_query).shuffle
+            targets = Game.instance.target_global_items(args.first.to_s.to_query).shuffle
             total_found = targets.size
             targets = actor.filter_visible_targets(targets, 10)
         end

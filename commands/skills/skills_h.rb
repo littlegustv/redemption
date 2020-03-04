@@ -1,9 +1,8 @@
 require_relative 'skill.rb'
 
 class SkillHide < Skill
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "hide",
             keywords: ["hide"],
             lag: 0.25,
@@ -12,6 +11,6 @@ class SkillHide < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        actor.apply_affect( AffectHide.new( nil, actor, actor.level, @game ) )
+        actor.apply_affect( AffectHide.new( nil, actor, actor.level ) )
     end
 end

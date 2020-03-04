@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandSay < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "say",
             keywords: ["say", "'"],
             position: Constants::Position::REST
@@ -17,9 +16,9 @@ class CommandSay < Command
             return false
         else
             message = input[/#{cmd} (.*)/, 1]
-            
+
             data = { text: message }
-            @game.fire_event( actor, :event_communicate, data )
+            Game.instance.fire_event( actor, :event_communicate, data )
             message = data[:text]
 
             actor.output "{yYou say '#{message}'{x"
@@ -32,9 +31,8 @@ end
 
 class CommandScore < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "score",
             keywords: ["score"]
         )
@@ -48,9 +46,8 @@ end
 
 class CommandSell < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "sell",
             keywords: ["sell"],
             lag: 0,
@@ -63,7 +60,7 @@ class CommandSell < Command
     def attempt( actor, cmd, args, input )
         if ( shopkeeper = actor.target({ visible_to: actor, list: actor.room.occupants, affect: "shopkeeper", not: actor }).first )
             actor.target({ visible_to: actor, list: actor.inventory.items }.merge( args.first.to_s.to_query( 1 ) ) ).each do |sale|
-                
+
                 # we are selling, the shopkeeper is buying, so wer use the shopkeeper 'buy price'
 
                 if shopkeeper.spend( shopkeeper.buy_price( sale ) )
@@ -84,9 +81,8 @@ end
 
 class CommandSkills < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "skills",
             keywords: ["skills"]
         )
@@ -102,9 +98,8 @@ end
 
 class CommandSpells < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "spells",
             keywords: ["spells"]
         )
@@ -120,9 +115,8 @@ end
 
 class CommandSleep < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "sleep",
             keywords: ["sleep"],
             usable_in_combat: false
@@ -148,9 +142,8 @@ end
 
 class CommandStand < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "stand",
             keywords: ["stand"],
             priority: 200

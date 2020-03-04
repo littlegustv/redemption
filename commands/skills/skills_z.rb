@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillZeal < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "zeal",
             keywords: ["zeal"],
             lag: 0.1,
@@ -14,7 +13,7 @@ class SkillZeal < Skill
 
     def attempt( actor, cmd, args, input )
     	if not actor.affected? "zeal"
-	        actor.apply_affect(AffectZeal.new( nil, actor, actor.level, @game ))
+	        actor.apply_affect(AffectZeal.new( nil, actor, actor.level ))
             return true
 	    else
 	    	actor.remove_affect "zeal"

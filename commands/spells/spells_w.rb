@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellWeaken < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "weaken",
             keywords: ["weaken"],
             lag: 0.25,
@@ -32,18 +31,17 @@ class SpellWeaken < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectWeaken.new( actor, target, actor.level, @game ) )
+        target.apply_affect( AffectWeaken.new( actor, target, actor.level ) )
         target.start_combat( actor )
         return true
     end
-    
+
 end
 
 class SpellWordOfRecall < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "word of recall",
             keywords: ["word of recall"],
             lag: 0.25,

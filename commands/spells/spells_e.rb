@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellEarthquake < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "earthquake",
             keywords: ["earthquake"],
             lag: 0.25,
@@ -25,9 +24,8 @@ end
 
 class SpellEnchantArmor < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "enchant armor",
             keywords: ["enchant armor", "enchant armour"],
             lag: 2,
@@ -48,7 +46,7 @@ class SpellEnchantArmor < Spell
         if ( target = actor.target({ list: actor.inventory.items, item_type: "armor" }.merge( args.first.to_s.to_query )).first )
             fail = 25
             # dam =
-            affect = AffectEnchantArmor.new( nil, target, actor.level, @game )
+            affect = AffectEnchantArmor.new( nil, target, actor.level )
             affect.overwrite_modifiers({ ac_pierce: -1 * level, ac_slash: -1 * level, ac_bash: -1 * level, ac_magic: -1 * level })
             target.apply_affect( affect )
             return true
@@ -61,9 +59,8 @@ end
 
 class SpellEnchantWeapon < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "enchant weapon",
             keywords: ["enchant weapon"],
             lag: 2,
@@ -84,7 +81,7 @@ class SpellEnchantWeapon < Spell
         if ( target = actor.target({ list: actor.inventory.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
             fail = 25
             # dam =
-            affect = AffectEnchantWeapon.new( nil, target, actor.level, @game )
+            affect = AffectEnchantWeapon.new( nil, target, actor.level )
             affect.overwrite_modifiers({hitroll: level, damroll: 10})
             target.apply_affect( affect )
             return true
@@ -97,9 +94,8 @@ end
 
 class SpellEnergyDrain < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "energy drain",
             keywords: ["energy drain"],
             lag: 0.25,

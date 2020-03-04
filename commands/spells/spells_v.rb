@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellVentriloquate < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "ventriloquate",
             keywords: ["ventriloquate"],
             lag: 0.25,

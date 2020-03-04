@@ -2,12 +2,11 @@ require_relative 'affect.rb'
 
 class AffectFireBlind < AffectBlind
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
             source, # source
             target, # target
             level, # level
-            game, # game
             # 60, # duration
             # nil, # modifiers: nil
             # nil, # period: nil
@@ -38,9 +37,8 @@ end
 
 class AffectFireRune < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -62,13 +60,13 @@ class AffectFireRune < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_room_description, self, :fire_rune_description)
-        @game.add_event_listener(@target, :event_room_mobile_enter, self, :do_fire_rune)
+        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :fire_rune_description)
+        Game.instance.add_event_listener(@target, :event_room_mobile_enter, self, :do_fire_rune)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_room_description, self)
-        @game.remove_event_listener(@target, :event_room_mobile_enter, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
+        Game.instance.remove_event_listener(@target, :event_room_mobile_enter, self)
     end
 
     def send_complete_messages
@@ -95,9 +93,8 @@ end
 
 class AffectFlooding < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -136,9 +133,8 @@ end
 
 class AffectFly < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -172,9 +168,8 @@ end
 
 class AffectFollow < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -206,11 +201,11 @@ class AffectFollow < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_observe_mobile_exit, self, :do_follow)
+        Game.instance.add_event_listener(@target, :event_observe_mobile_exit, self, :do_follow)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_observe_mobile_exit, self)
+        Game.instance.remove_event_listener(@target, :event_observe_mobile_exit, self)
     end
 
     def do_follow( data )
@@ -224,9 +219,8 @@ end
 
 class AffectFrenzy < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -265,9 +259,8 @@ end
 
 class AffectFrost < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level

@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandVisible < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "visible",
             keywords: ["visible"],
             position: Constants::Position::REST

@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandWake < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "wake",
             keywords: ["wake"],
             priority: 200
@@ -20,7 +19,7 @@ class CommandWake < Command
             case actor.position
             when Constants::Position::SLEEP
                 data = { success: true }
-                @game.fire_event( actor, :event_try_wake, data )
+                Game.instance.fire_event( actor, :event_try_wake, data )
                 if data[:success]
                     actor.output "You wake and stand up."
                     actor.broadcast "%s wakes and stands up.", actor.room.occupants - [actor], [actor]
@@ -43,7 +42,7 @@ class CommandWake < Command
                 case target.position
                 when Constants::Position::SLEEP
                     data = { success: true }
-                    @game.fire_event( actor, :event_try_wake, data )
+                    Game.instance.fire_event( actor, :event_try_wake, data )
                     if data[:success]
                         actor.output "You wake %s up.", target
                         target.output "%s wakes you up.", actor
@@ -72,9 +71,8 @@ end
 
 class CommandWear < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "wear",
             keywords: ["wear", "hold", "wield"],
             position: Constants::Position::REST
@@ -101,9 +99,8 @@ end
 
 class CommandWeather < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "weather",
             keywords: ["weather"],
             position: Constants::Position::REST
@@ -123,9 +120,8 @@ end
 
 class CommandWhere < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "where",
             keywords: ["where"],
             position: Constants::Position::REST
@@ -145,9 +141,8 @@ end
 
 class CommandWhitespace < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "whitespace",
             keywords: [""],
             priority: 99999
@@ -163,9 +158,8 @@ end
 
 class CommandWho < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "who",
             keywords: ["who"],
             priority: 200
@@ -175,7 +169,7 @@ class CommandWho < Command
     def attempt( actor, cmd, args, input )
         targets = actor.target( { type: "Player", visible_to: actor } )
         out = ""
-        @game.continents.values.each do |continent|
+        Game.instance.continents.values.each do |continent|
             out += "----==== Characters #{continent.preposition} #{continent.name} ====----\n"
             out += "\n#{ targets.select{ |t| t.room.continent == continent }.map(&:who).join("\n")}\n\n"
         end
@@ -188,9 +182,8 @@ end
 
 class CommandWorth < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "worth",
             keywords: ["worth"],
             priority: 200,

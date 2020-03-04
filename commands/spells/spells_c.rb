@@ -2,9 +2,8 @@ require_relative 'spell.rb'
 
 class SpellCalm < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "calm",
             keywords: ["calm"],
             lag: 0.25,
@@ -16,12 +15,12 @@ class SpellCalm < Spell
     def attempt( actor, cmd, args, input, level )
         actor.room.occupants.each do | entity |
             entity.output "A wave of calm washes over you."
-            @game.broadcast "%s calms down and loses the will to fight.", entity.room.occupants - [entity], [entity]
+            Game.instance.broadcast "%s calms down and loses the will to fight.", entity.room.occupants - [entity], [entity]
             entity.remove_affect "berserk"
             entity.remove_affect "frenzy"
             entity.remove_affect "taunt"
             entity.stop_combat
-            entity.apply_affect( AffectCalm.new( nil, entity, actor.level, @game ) )
+            entity.apply_affect( AffectCalm.new( nil, entity, actor.level ) )
         end
     end
 
@@ -29,9 +28,8 @@ end
 
 class SpellCancellation < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cancellation",
             keywords: ["cancellation"],
             lag: 0.25,
@@ -48,9 +46,8 @@ end
 
 class SpellCauseLight < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cause light",
             keywords: ["cause light"],
             lag: 0.25,
@@ -85,9 +82,8 @@ end
 
 class SpellCauseSerious < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cause serious",
             keywords: ["cause serious"],
             lag: 0.25,
@@ -122,9 +118,8 @@ end
 
 class SpellCauseCritical < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cause critical",
             keywords: ["cause critical"],
             lag: 0.25,
@@ -159,9 +154,8 @@ end
 
 class SpellChainLightning < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "chain lightning",
             keywords: ["chain lightning"],
             lag: 0.5,
@@ -189,7 +183,7 @@ class SpellChainLightning < Spell
             actor.output "They aren't here."
             return false
         end
-        @game.broadcast "A lightning bolt leaps from %s's hand and arcs to %s.", actor.room.occupants - [actor, target], [actor, target]
+        Game.instance.broadcast "A lightning bolt leaps from %s's hand and arcs to %s.", actor.room.occupants - [actor, target], [actor, target]
         actor.output "A lightning bolt leaps from your hand and arcs to %s.", [target]
         target.output "A lightning bolt leaps from %s's hand and strikes you!", [actor]
 
@@ -199,17 +193,17 @@ class SpellChainLightning < Spell
             target = actor.room.occupants.sample
 
             if target == actor
-                @game.broadcast "The bolt arcs to %s...whoops!", actor.room.occupants - [target], [actor, target]
+                Game.instance.broadcast "The bolt arcs to %s...whoops!", actor.room.occupants - [target], [actor, target]
                 target.output "You are struck by your own lightning!"
             else
-                @game.broadcast "The bolt arcs to %s!", actor.room.occupants - [target], [target]
+                Game.instance.broadcast "The bolt arcs to %s!", actor.room.occupants - [target], [target]
                 target.output "The bolt arcs to you!"
             end
 
             actor.deal_damage(target: target, damage: damage, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
         end
 
-        @game.broadcast "The bolt seems to have fizzled out.", actor.room.occupants - [target]
+        Game.instance.broadcast "The bolt seems to have fizzled out.", actor.room.occupants - [target]
         target.output "The bolt grounds out through your body."
 
         return true
@@ -218,9 +212,8 @@ end
 
 class SpellCharmPerson < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "charm person",
             keywords: ["charm person"],
             lag: 0.25,
@@ -230,12 +223,12 @@ class SpellCharmPerson < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = @game.target( { list: actor.room.occupants - [actor], visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = Game.instance.target( { list: actor.room.occupants - [actor], visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
             if rand(1..10) <= 5
                 actor.output "%s looks at you with adoring eyes.", [target]
                 target.output "Isn't %s just so nice??", [actor]
-                target.apply_affect( AffectFollow.new( actor, target, 1, @game ) )
-                target.apply_affect( AffectCharm.new( actor, target, actor.level, @game ) )
+                target.apply_affect( AffectFollow.new( actor, target, 1 ) )
+                target.apply_affect( AffectCharm.new( actor, target, actor.level ) )
             else
                 actor.output "You failed."
                 target.start_combat( actor )
@@ -249,9 +242,8 @@ end
 
 class SpellCloakOfMind < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cloak of mind",
             keywords: ["cloak of mind"],
             lag: 0.25,
@@ -261,16 +253,15 @@ class SpellCloakOfMind < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectCloakOfMind.new( nil, actor, actor.level, @game ) )
+        actor.apply_affect( AffectCloakOfMind.new( nil, actor, actor.level ) )
     end
 
 end
 
 class SpellCloudkill < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cloudkill",
             keywords: ["cloudkill"],
             lag: 0.25,
@@ -280,16 +271,15 @@ class SpellCloudkill < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.room.apply_affect( AffectCloudkill.new( actor, actor.room, actor.level, @game ) )
+        actor.room.apply_affect( AffectCloudkill.new( actor, actor.room, actor.level ) )
     end
 
 end
 
 class SpellColorSpray < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "colour spray",
             keywords: ["color spray", "colour spray"],
             lag: 0.25,
@@ -325,9 +315,8 @@ end
 
 class SpellContinualLight < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "continual light",
             keywords: ["continual light"],
             lag: 0.25,
@@ -338,11 +327,11 @@ class SpellContinualLight < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
-            item = @game.load_item( 1952, actor.inventory )
+            item = Game.instance.load_item( 1952, actor.inventory )
             actor.broadcast "%s twiddles their thumbs and %s appears.", actor.room.occupants - [actor], [actor, item]
             actor.output "You twiddle your thumbs and %s appears.", [item]
-        elsif ( target = @game.target( { list: actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
-            target.apply_affect( AffectGlowing.new( nil, target, actor.level, @game ))
+        elsif ( target = Game.instance.target( { list: actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+            target.apply_affect( AffectGlowing.new( nil, target, actor.level ))
         else
             actor.output "You don't see that here."
         end
@@ -351,9 +340,8 @@ end
 
 class SpellFloatingDisc < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "floating disc",
             keywords: ["floating disc"],
             lag: 0.25,
@@ -366,7 +354,7 @@ class SpellFloatingDisc < Spell
         if actor.free?("wear_float")
             actor.output "You create a floating disc."
             actor.broadcast "%s has created a floating black disc.", actor.room.occupants - [actor], [actor]
-            disc = @game.load_item( 1954, actor.inventory )
+            disc = Game.instance.load_item( 1954, actor.inventory )
             actor.wear( item: disc )
             return true
         else
@@ -379,9 +367,8 @@ end
 
 class SpellCreateFood < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "create food",
             keywords: ["create food"],
             lag: 0.25,
@@ -391,7 +378,7 @@ class SpellCreateFood < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        food = @game.load_item( 1951, actor.room.inventory )
+        food = Game.instance.load_item( 1951, actor.room.inventory )
         actor.broadcast "%s suddenly appears.", actor.room.occupants, [food]
     end
 
@@ -399,9 +386,8 @@ end
 
 class SpellCreateRose < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "create rose",
             keywords: ["create rose"],
             lag: 0.25,
@@ -413,16 +399,15 @@ class SpellCreateRose < Spell
     def attempt( actor, cmd, args, input, level )
         actor.output "You create a beautiful red rose."
         actor.broadcast "%s has created a beautiful red rose.", actor.room.occupants - [actor], [actor]
-        @game.load_item( 846, actor.room.inventory )
+        Game.instance.load_item( 846, actor.room.inventory )
     end
 
 end
 
 class SpellCreateSpring < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "create spring",
             keywords: ["create spring"],
             lag: 0.25,
@@ -432,7 +417,7 @@ class SpellCreateSpring < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        spring = @game.load_item( 1953, actor.room.inventory )
+        spring = Game.instance.load_item( 1953, actor.room.inventory )
         actor.broadcast "%s flows from the ground.", actor.room.occupants, [spring]
     end
 
@@ -440,9 +425,8 @@ end
 
 class SpellCureBlindness < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cure blindness",
             keywords: ["cure blindness"],
             lag: 0.25,
@@ -454,7 +438,7 @@ class SpellCureBlindness < Spell
 
     def attempt( actor, cmd, args, input, level )
         target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
-        if target 
+        if target
             if target.affected? "blind"
                 target.output "Your vision returns!"
                 target.remove_affect "blind"
@@ -469,9 +453,8 @@ end
 
 class SpellCureCritical < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cure critical",
             keywords: ["cure critical"],
             lag: 0.25,
@@ -497,9 +480,8 @@ end
 
 class SpellCureDisease < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cure disease",
             keywords: ["cure disease"],
             lag: 0.25,
@@ -511,7 +493,7 @@ class SpellCureDisease < Spell
 
     def attempt( actor, cmd, args, input, level )
         target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
-        if target 
+        if target
             if target.affected? "plague"
                 target.output "You feel better!"
                 target.remove_affect "plague"
@@ -526,9 +508,8 @@ end
 
 class SpellCureLight < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cure light",
             keywords: ["cure light"],
             lag: 0.25,
@@ -554,9 +535,8 @@ end
 
 class SpellCurePoison < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cure poison",
             keywords: ["cure poison"],
             lag: 0.25,
@@ -568,7 +548,7 @@ class SpellCurePoison < Spell
 
     def attempt( actor, cmd, args, input, level )
         target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
-        if target 
+        if target
             if target.affected? "poison"
                 target.output "You feel better!"
                 target.remove_affect "poison"
@@ -583,9 +563,8 @@ end
 
 class SpellCureSerious < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "cure serious",
             keywords: ["cure serious"],
             lag: 0.25,
@@ -611,9 +590,8 @@ end
 
 class SpellCurse < Spell
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "curse",
             keywords: ["curse"],
             lag: 0.25,
@@ -641,7 +619,7 @@ class SpellCurse < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectCurse.new( actor, target, actor.level, @game ) )
+        target.apply_affect( AffectCurse.new( actor, target, actor.level ) )
         target.start_combat( actor )
         return true
     end

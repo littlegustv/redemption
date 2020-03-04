@@ -4,9 +4,8 @@ require_relative 'affect.rb'
 
 class AffectDark < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -28,17 +27,17 @@ class AffectDark < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_try_can_see_room, self, :do_dark)
+        Game.instance.add_event_listener(@target, :event_try_can_see_room, self, :do_dark)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_try_can_see_room, self)
+        Game.instance.remove_event_listener(@target, :event_try_can_see_room, self)
     end
 
     def do_dark( data )
         if data[:observer].affected?("dark_vision")
             #nothing
-        elsif !@target.affected?("indoors") && @game.daytime?  # a dark room in daytime is lit by the sun (if it is outside)
+        elsif !@target.affected?("indoors") && Game.instance.daytime?  # a dark room in daytime is lit by the sun (if it is outside)
             # nothing
         elsif !data[:observer].equipped("light").empty?     # a dark room is lit by an equipped light
             # nothing
@@ -55,9 +54,8 @@ end
 
 class AffectDarkness < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -79,13 +77,13 @@ class AffectDarkness < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_try_can_see_room, self, :do_dark)
-        @game.add_event_listener(@target, :event_calculate_room_description, self, :darkness_description)
+        Game.instance.add_event_listener(@target, :event_try_can_see_room, self, :do_dark)
+        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :darkness_description)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_try_can_see_room, self)
-        @game.remove_event_listener(@target, :event_calculate_room_description, self)
+        Game.instance.remove_event_listener(@target, :event_try_can_see_room, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
     end
 
     def darkness_description(data)
@@ -94,11 +92,11 @@ class AffectDarkness < Affect
 
     def send_start_messages
         @source.output "You plunge the room into absolute darkness!"
-        @game.broadcast "%s plunges the room into total darkness!", @target.occupants - [@source], [@source]
+        Game.instance.broadcast "%s plunges the room into total darkness!", @target.occupants - [@source], [@source]
     end
 
     def send_complete_messages
-        @game.broadcast "The cloud of darkness is lifted from the room.", @target.occupants
+        Game.instance.broadcast "The cloud of darkness is lifted from the room.", @target.occupants
     end
 
     def do_dark( data )
@@ -113,9 +111,8 @@ end
 
 class AffectDarkVision < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -140,9 +137,8 @@ end
 
 class AffectDeathRune < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -164,11 +160,11 @@ class AffectDeathRune < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_on_die, self, :do_death_rune)
+        Game.instance.add_event_listener(@target, :event_on_die, self, :do_death_rune)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_on_die, self)
+        Game.instance.remove_event_listener(@target, :event_on_die, self)
     end
 
     def send_start_messages
@@ -198,9 +194,8 @@ end
 
 class AffectDetectInvisibility < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -230,11 +225,11 @@ class AffectDetectInvisibility < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_try_detect_invis, self, :do_detect_invis)
+        Game.instance.add_event_listener(@target, :event_try_detect_invis, self, :do_detect_invis)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_try_detect_invis, self)
+        Game.instance.remove_event_listener(@target, :event_try_detect_invis, self)
     end
 
     def do_detect_invis(data)

@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillKick < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "kick",
             keywords: ["kick"],
             lag: 1,

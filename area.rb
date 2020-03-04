@@ -11,8 +11,8 @@ class Area < GameObject
     attr_reader :rooms
     attr_reader :security
 
-	def initialize( data, game )
-        super(data[:name], data[:name].split(" "), game)
+	def initialize( data )
+        super(data[:name], data[:name].split(" "))
         @age = data[:age]
         @builders = data[:builders]
 		@continent = data[:continent]
@@ -41,9 +41,9 @@ class Area < GameObject
         return @rooms.map { |room| room.items }.flatten
     end
 
-    # alias for @game.destroy_area(self)
+    # alias for Game.instance.destroy_area(self)
     def destroy
-        @game.destroy_area(self)
+        Game.instance.destroy_area(self)
     end
 
     def db_source_type

@@ -2,9 +2,8 @@ require_relative 'skill.rb'
 
 class SkillDisarm < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "disarm",
             keywords: ["disarm"],
             lag: 2,
@@ -39,9 +38,8 @@ end
 
 class SkillDirtKick < Skill
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "dirt kick",
             keywords: ["dirt kick"],
             lag: 2,
@@ -73,7 +71,7 @@ class SkillDirtKick < Skill
         if not target.affected? "blind"
             target.output "You are blinded by the dirt in your eyes!"
             actor.broadcast "%s is blinded by the dirt in their eyes!", actor.room.occupants - [target], [target]
-            target.apply_affect(AffectBlind.new( actor, target, actor.level, @game ))
+            target.apply_affect(AffectBlind.new( actor, target, actor.level ))
             actor.deal_damage(target: target, damage: 5, noun:"bash", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: true)
         else
             target.output "They are already blind!"

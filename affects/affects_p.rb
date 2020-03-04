@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectPassDoor < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -38,9 +37,8 @@ end
 
 class AffectPlague < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -76,7 +74,7 @@ class AffectPlague < Affect
         @target.output "You writhe in agony from the plague."
         @target.receive_damage(source: nil, damage: 10, element: Constants::Element::DISEASE, type: Constants::Damage::MAGICAL, silent: true)
         (@target.room.occupants - [@target]).each do |occupant|
-            occupant.apply_affect( AffectPlague.new( nil, occupant, @level, @game ) ) if rand(1...100) < 50
+            occupant.apply_affect( AffectPlague.new( nil, occupant, @level ) ) if rand(1...100) < 50
         end
     end
 
@@ -91,9 +89,8 @@ end
 
 class AffectPoison < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -143,9 +140,8 @@ end
 
 class AffectPortal < Affect
 
-    def initialize( target, destination, game )
+    def initialize( target, destination )
         super(
-            game, # game
             nil, # source
             target, # target
             0, # level
@@ -168,27 +164,26 @@ class AffectPortal < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_try_enter, self, :do_portal)
+        Game.instance.add_event_listener(@target, :event_try_enter, self, :do_portal)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_try_enter, self)
+        Game.instance.remove_event_listener(@target, :event_try_enter, self)
     end
 
     def do_portal( data )
         data[:mobile].output "You enter %s.", [@target]
-        @game.broadcast "%s steps into %s.", @target.room.occupants - [data[:mobile]], [data[:mobile], @target]
+        Game.instance.broadcast "%s steps into %s.", @target.room.occupants - [data[:mobile]], [data[:mobile], @target]
         data[:mobile].move_to_room( @destination )
-        @game.broadcast "%s has arrived through %s.", @destination.occupants - [data[:mobile]], [data[:mobile], @target]
+        Game.instance.broadcast "%s has arrived through %s.", @destination.occupants - [data[:mobile]], [data[:mobile], @target]
     end
 
 end
 
 class AffectProtectionEvil < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -210,11 +205,11 @@ class AffectProtectionEvil < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_evil)
+        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_evil)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
     end
 
     def send_start_messages
@@ -237,9 +232,8 @@ end
 
 class AffectProtectionGood < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -261,11 +255,11 @@ class AffectProtectionGood < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_good)
+        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_good)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
     end
 
     def send_start_messages
@@ -288,9 +282,8 @@ end
 
 class AffectProtectionNeutral < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -312,11 +305,11 @@ class AffectProtectionNeutral < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_neutral)
+        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_neutral)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
     end
 
     def send_start_messages

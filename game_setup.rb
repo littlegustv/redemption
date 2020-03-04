@@ -113,7 +113,7 @@ module GameSetup
 
         loop do
             thread = Thread.start(@server.accept) do |client_connection|
-                client = Client.new(client_connection, thread, self)
+                client = Client.new(client_connection, thread)
                 client.input_loop
             end
         end
@@ -337,7 +337,7 @@ module GameSetup
     # Construct Continent objects
     protected def make_continents
         @continent_data.each do |id, row|
-            @continents[id] = Continent.new(row, self)
+            @continents[id] = Continent.new(row)
         end
         log("Continents constructed.")
     end
@@ -357,8 +357,7 @@ module GameSetup
                     gateable: row[:gateable],
                     security: row[:security],
                     control: row[:control]
-                },
-                self
+                }
             )
         end
         log("Areas constructed.")
@@ -376,8 +375,7 @@ module GameSetup
                 @areas[row[:area_id]],
                 row[:flags].split(" "),
                 row[:hp_regen].to_i,
-                row[:mana_regen].to_i,
-                self
+                row[:mana_regen].to_i
             )
             area = @areas[row[:area_id]]
             area.rooms << @rooms[row[:id]] if area
@@ -385,8 +383,7 @@ module GameSetup
         # assign each exit to its room in the hash (if the destination exists)
         @exit_data.each do |id, row|
             if @rooms[row[:room_id]] && @rooms[row[:to_room_id]]
-                exit = Exit.new(    self,
-                                    row[:direction],
+                exit = Exit.new(    row[:direction],
                                     @rooms[row[:room_id]],
                                     @rooms[row[:to_room_id]],
                                     row[:flags].split(" "),
@@ -414,7 +411,7 @@ module GameSetup
     # Construct Skill objects
     protected def make_skills
         Constants::SKILL_CLASSES.each do |skill_class|
-            skill = skill_class.new(self)
+            skill = skill_class.new
             row = @skill_data.values.select{ |row| row[:name] == skill.name }.first
             if row
                 skill.overwrite_attributes(row)
@@ -429,7 +426,7 @@ module GameSetup
     # Construct Spell objects
     protected def make_spells
         Constants::SPELL_CLASSES.each do |spell_class|
-            spell = spell_class.new(self)
+            spell = spell_class.new
             row = @spell_data.values.select{ |row| row[:name] == spell.name }.first
             if row
                 spell.overwrite_attributes(row)
@@ -444,7 +441,7 @@ module GameSetup
     # Construct Command objects
     protected def make_commands
         Constants::COMMAND_CLASSES. each do |command_class|
-            command = command_class.new(self)
+            command = command_class.new
             row = @command_data.values.select{ |row| row[:name] == command.name }.first
             if row
                 command.overwrite_attributes(row)

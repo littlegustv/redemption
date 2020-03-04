@@ -12,7 +12,6 @@ class Affect
     attr_reader :target
 
     def initialize(
-        game,
         source,
         target,
         level,
@@ -23,7 +22,6 @@ class Affect
         visibility,
         savable
     )
-        @game = game
         @source = source                        # GameObject that is the source of this affect - prefer nil when possible.
         @target = target                        # The GameObjects that this affect is attached to.
         @keywords = keywords
@@ -39,6 +37,7 @@ class Affect
         @visibility = visibility
         @savable = true
         @active = true
+        @info = nil
 
         @clock = 0
         @data = nil                            # Additional data. Only "primitives". Saved to the database.
@@ -102,7 +101,7 @@ class Affect
     def clear(silent: false)
         complete
         @target.affects.delete self
-        @game.remove_global_affect(self)
+        Game.instance.remove_global_affect(self)
         send_complete_messages if !silent
     end
 

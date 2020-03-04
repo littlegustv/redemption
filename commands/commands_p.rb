@@ -2,9 +2,8 @@ require_relative 'command.rb'
 
 class CommandPoison < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "poison",
             keywords: ["poison"],
             position: Constants::Position::STAND
@@ -13,7 +12,7 @@ class CommandPoison < Command
 
     def attempt( actor, cmd, args, input )
         if not actor.affected? "poison"
-            actor.apply_affect(AffectPoison.new( actor, actor, actor.level, @game ))
+            actor.apply_affect(AffectPoison.new( actor, actor, actor.level ))
             return true
         else
             actor.output "You are already poisoned."
@@ -25,9 +24,8 @@ end
 
 class CommandProfile < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "profile",
             keywords: ["profile"],
             position: Constants::Position::STAND
@@ -43,9 +41,8 @@ end
 
 class CommandPry < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "pry",
             keywords: ["pry"],
             position: Constants::Position::STAND
@@ -60,9 +57,8 @@ end
 
 class CommandPut < Command
 
-    def initialize(game)
+    def initialize
         super(
-            game: game,
             name: "put",
             keywords: ["put"],
             position: Constants::Position::REST

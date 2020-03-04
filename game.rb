@@ -1,5 +1,6 @@
 require_relative 'game_setup'
 require_relative 'game_save'
+require 'singleton'
 
 class Game
 
@@ -24,6 +25,7 @@ class Game
     attr_reader :rooms
     attr_reader :frame_count
 
+    include Singleton
     include GameSetup
     include GameSave
 
@@ -490,7 +492,7 @@ class Game
         if race_matches.any?
             race_id = race_matches.first[0]
         end
-        mob = Mobile.new( row, race_id, class_id, self, room )
+        mob = Mobile.new( row, race_id, class_id, room )
         # mob = Mobile.new( {
         #         id: id,
         #         keywords: row[:keywords].split(" "),
@@ -531,14 +533,13 @@ class Game
         #         material: row[:material],
         #         level: row[:level]
         #     },
-        #     self,
         #     room
         # )
         #
         # "Shopkeeper behavior" is handled as an affect, which is currently used only as a kind of 'flag' for the buy/sell commands
         #
         if not @shop_data[ id ].nil?
-            mob.apply_affect( AffectShopkeeper.new( mob, mob, 0, self ) )
+            mob.apply_affect( AffectShopkeeper.new( mob, mob, 0 ) )
         end
         return mob
     end
@@ -547,17 +548,17 @@ class Game
         item = nil
         if ( row = @item_data[ id ] )
             if row[:noun]
-                item = Weapon.new( row, self, inventory )
+                item = Weapon.new( row, inventory )
             elsif row[:type] == "container"
-                item = Container.new( row, self, inventory )
+                item = Container.new( row, inventory )
             else
-                item = Item.new( row, self, inventory )
+                item = Item.new( row, inventory )
             end
 
             if not @portal_data[ id ].nil?
                 # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
                 # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
-                item.apply_affect( AffectPortal.new( item, @rooms[ @portal_data[id][:to_room_id] ], self ) )
+                item.apply_affect( AffectPortal.new( item, @rooms[ @portal_data[id][:to_room_id] ] ) )
             end
 
             if item
@@ -727,7 +728,7 @@ class Game
             recall_room_id: 0,
             starting_room_id: 0
         }
-        return Continent.new(data, self)
+        return Continent.new(data)
     end
 
     # destroy an area object
@@ -754,7 +755,7 @@ class Game
             questable: 0,
             security: 0
         }
-        return Area.new(data, self)
+        return Area.new(data)
     end
 
     # destroy a room object
@@ -788,7 +789,7 @@ class Game
 
     def new_inactive_room
         return Room.new(0, "inactive room".freeze, "no description".freeze, "no sector".freeze,
-                self.new_inactive_area, "", 0, 0, self)
+                self.new_inactive_area, "", 0, 0)
     end
 
     # destroy a mobile object

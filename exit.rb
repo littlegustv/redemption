@@ -2,19 +2,19 @@ class Exit < GameObject
 
 	attr_reader :destination, :origin, :pair
 
-	def initialize( game, direction, origin, destination, flags, key_id, keywords, description = nil )
+	def initialize( direction, origin, destination, flags, key_id, keywords, description = nil )
 		@direction = direction
 		@origin = origin
 		@destination = destination
 		@flags = flags
 		@key_id = key_id == 0 ? nil : key_id
-		
+
 		@closed = @flags.include?("door")
 		@locked = @key_id != nil
 
 		@description = description.to_s
 		@pair = nil
-		super( direction, keywords, game )
+		super( direction, keywords )
 	end
 
 	def add_pair( exit )
@@ -49,7 +49,7 @@ class Exit < GameObject
 			actor.output "It is already locked." unless silent
 			return false
 		elsif actor.items.map(&:id).include?(@key_id)
-			
+
 			unless silent
 				actor.output "Click."
 				actor.broadcast "%s locks the #{short} to the #{@direction}.", actor.room.occupants - [actor], [actor]
@@ -69,7 +69,7 @@ class Exit < GameObject
 			actor.output "It isn't locked." unless silent
 			return false
 		elsif actor.items.map(&:id).include?(@key_id) || override
-			
+
 			unless silent
 				actor.output "Click."
 				actor.broadcast "%s unlocks the #{short} to the #{@direction}.", actor.room.occupants - [actor], [actor]

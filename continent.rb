@@ -5,17 +5,17 @@ class Continent < GameObject
     attr_reader :recall_room_id
     attr_reader :starting_room_id
 
-    def initialize( data, game )
-        super(data[:name], data[:name].split(" "), game)
+    def initialize( data )
+        super(data[:name], data[:name].split(" "))
         @id = data[:id]
         @preposition = data[:preposition]
         @recall_room_id = data[:recall_room_id]
         @starting_room_id = data[:starting_room_id]
     end
 
-    # alias for @game.destroy_continent(self)
+    # alias for Game.instance.destroy_continent(self)
     def destroy
-        @game.destroy_continent(self)
+        Game.instance.destroy_continent(self)
     end
 
     def db_source_type

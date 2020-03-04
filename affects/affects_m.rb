@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectMinimation < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -32,11 +31,11 @@ class AffectMinimation < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_show_condition, self, :do_condition)
+        Game.instance.add_event_listener(@target, :event_show_condition, self, :do_condition)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_show_condition, self)
+        Game.instance.remove_event_listener(@target, :event_show_condition, self)
     end
 
     def send_start_messages
@@ -56,9 +55,8 @@ end
 
 class AffectMirrorImage < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -81,11 +79,11 @@ class AffectMirrorImage < Affect
     end
 
     def start
-        @game.add_event_listener(@target, :event_override_receive_hit, self, :do_mirror_image)
+        Game.instance.add_event_listener(@target, :event_override_receive_hit, self, :do_mirror_image)
     end
 
     def complete
-        @game.remove_event_listener(@target, :event_override_receive_hit, self)
+        Game.instance.remove_event_listener(@target, :event_override_receive_hit, self)
     end
 
     def send_start_messages

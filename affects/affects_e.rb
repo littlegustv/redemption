@@ -2,9 +2,8 @@ require_relative 'affect.rb'
 
 class AffectEnchantArmor < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -29,9 +28,8 @@ end
 
 class AffectEnchantWeapon < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
@@ -56,9 +54,8 @@ end
 
 class AffectEssence < Affect
 
-    def initialize(source, target, level, game)
+    def initialize(source, target, level)
         super(
-            game, # game
             source, # source
             target, # target
             level, # level
