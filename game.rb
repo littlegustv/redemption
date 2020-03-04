@@ -24,6 +24,8 @@ class Game
     attr_reader :client_account_ids
     attr_reader :rooms
     attr_reader :frame_count
+    attr_reader :skills
+    attr_reader :abilities
 
     include Singleton
     include GameSetup
@@ -105,6 +107,8 @@ class Game
         @skills = []                        # Skill object array
         @spells = []                        # Spell object array
         @commands = []                      # Command object array
+
+        @abilities = Hash.new
 
         @responders = Hash.new                  # Event responders
 

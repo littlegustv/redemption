@@ -264,7 +264,8 @@ class Client
             name: name,
             race_id: race_id,
             class_id: class_id,
-            alignment: alignment
+            alignment: alignment,
+            creation_points: 5
         }
         send_output("Creating #{name}...")
         Game.instance.new_players.push(player_data)

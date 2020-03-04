@@ -32,6 +32,11 @@ class String
         [ self ]
     end
 
+    def to_columns( column_width, column_count )
+        # split by line
+        self.split("\n").each_slice( column_count ).map{ |row| row.map{ |col| col.to_s.rpad( column_width ) }.join(" ") }.join("\n")
+    end
+
     def fuzzy_match( arg )
         self.start_with? arg.to_s.downcase
             # arg = arg.to_s.downcase

@@ -1,5 +1,20 @@
 require_relative 'command.rb'
 
+class CommandLearn < Command
+    def initialize
+        super(
+            name: "learn",
+            keywords: ["learn"],
+            position: Constants::Position::SLEEP
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        actor.output "You attempt to learn."
+        actor.learn( args.join(" ") )
+    end
+end
+
 class CommandLeave < Command
     def initialize
         super(

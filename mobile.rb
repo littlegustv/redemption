@@ -24,6 +24,8 @@ class Mobile < GameObject
     attr_reader :hitpoints
     attr_reader :manapoints
     attr_reader :movepoints
+    attr_reader :creation_points
+    attr_reader :learned
 
     include MobileItem
 
@@ -37,10 +39,13 @@ class Mobile < GameObject
         @full_description = data[ :full_desc ]
         @race_equip_slots = []
         @class_equip_slots = []
+
         @skills = []
         @spells = [] + ["lightning bolt".freeze, "acid blast".freeze, "blast of rot".freeze, "pyrotechnics".freeze, "ice bolt".freeze]
-
+        @learned = []
         @experience = 0
+
+        @creation_points = 5
         @experience_to_level = 1000
         @quest_points = 0
         @quest_points_to_remort = 1000
@@ -121,8 +126,32 @@ class Mobile < GameObject
         Game.instance.destroy_mobile(self)
     end
 
+    def learn( skill_name )
+        unlearned = (spells + skills) - @learned
+        unlearned_skills = skills - @learned
+        unlearned_spells = spells - @learned
+        if skill_name.nil? || skill_name.to_s.length <= 0
+            output "\n" + ("{GCOST : SKILL{x\n" * 3).to_columns( 30, 3 )
+            output unlearned_skills.map{ |name| Game.instance.abilities[ name ] }.reject(&:nil?).map{ |skill| "#{ skill.creation_points.to_s.rpad(4) } : #{skill.name}" }.join("\n").to_columns( 30, 3 )
+            output "\n" + ("{CCOST : SPELL{x\n" * 3).to_columns( 30, 3 )
+            output unlearned_spells.map{ |name| Game.instance.abilities[ name ] }.reject(&:nil?).map{ |spell| "#{ spell.creation_points.to_s.rpad(4) } : #{spell.name}" }.join("\n").to_columns( 30, 3 )
+            output "\nYou have {Y#{ @creation_points } creation points{x available to spend."
+        elsif unlearned.include? skill_name
+            skill = Game.instance.abilities[ skill_name ]
+            if skill.creation_points <= @creation_points
+                @learned << skill.name
+                @creation_points -= skill.creation_points
+                output "You have learned #{ skill.name }!"
+            else
+                output "You don't have enough creation points to learn that skill.  You have #{ @creation_points } and need at least #{ skill.creation_points }."
+            end
+        else
+            output "You cannot learn that skill!"
+        end
+    end
+
     def knows( skill_name )
-        (skills + spells).include? skill_name
+        (@learned).include? skill_name
     end
 
     def proficient( weapon_type )
@@ -520,7 +549,9 @@ class Mobile < GameObject
         @basehitpoints += 20
         @basemanapoints += 10
         @basemovepoints += 10
+        @creation_points += 1
         output "You raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices."
+        output "You have gained 1 creation points.  Maybe you can get a new skill??"
         Game.instance.fire_event(self, :event_on_level_up, {level: @level})
     end
 

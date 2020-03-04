@@ -8,6 +8,8 @@ class Player < Mobile
         data[:short_desc] = data[:name]
         data[:long_desc] = "#{data[:name]} the Master Rune Maker is here."
         super(data, data[:race_id], data[:class_id], room)
+        @creation_points = data[:creation_points].to_i
+        @learned = data[:learned].to_s.split(",")
         @account_id = data[:account_id]
         @buffer = ""
         @delayed_buffer = ""
