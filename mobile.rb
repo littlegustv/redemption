@@ -265,7 +265,7 @@ class Mobile < GameObject
 
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
-            attacker.apply_affect( AffectKiller.new(slot.to_i, self) ) if attacker.is_player?
+            attacker.apply_affect( AffectKiller.new(attacker, self, 1) ) if attacker.is_player?
             do_command "yell Help I am being attacked by #{attacker}!"
         end
         old_position = @position
