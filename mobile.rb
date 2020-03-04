@@ -491,10 +491,10 @@ class Mobile < GameObject
                 if source && !anonymous
                     source.output("Your #{decorators[2]} #{noun} #{decorators[1]} #{(source==self) ? "yourself" : "%s"}#{decorators[3]} [#{damage}]", [self])
                     output("%s's #{decorators[2]} #{noun} #{decorators[1]} you#{decorators[3]}", [source]) if source != self
-                    broadcast("%s's #{decorators[2]} #{noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self, source ], list: (self.room.occupants | source.room.occupants) }), [source, self])
+                    broadcast("%s's #{decorators[2]} #{noun} #{decorators[1]} %s#{decorators[3]} ", (self.room.occupants | source.room.occupants) - [self, source], [source, self])
                 else # anonymous damage
                     output("#{noun} #{decorators[1]} you#{decorators[3]}", [self])
-                    broadcast("#{noun} #{decorators[1]} %s#{decorators[3]} ", target({ not: [ self ], list: self.room.occupants }), [self])
+                    broadcast("#{noun} #{decorators[1]} %s#{decorators[3]} ", self.room.occupants - [self], [self])
                 end
             end
         else # magic damage
@@ -503,10 +503,10 @@ class Mobile < GameObject
                 if source && !anonymous
                     source.output("Your #{noun} #{decorators[0]} #{(source==self) ? "yourself" : "%s"}#{decorators[1]}#{decorators[2]}", [self])
                     output("%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [source]) if source != self
-                    broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [self, source], list: (self.room.occupants | source.room.occupants) }), [source, self]
+                    broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", (self.room.occupants | source.room.occupants) - [self, source], [source, self]
                 else # anonymous damage
                     output("#{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self])
-                    broadcast "#{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", target({ not: [ self ], list: self.room.occupants }), [self]
+                    broadcast "#{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", self.room.occupants - [self], [self]
                 end
             end
         end
@@ -543,14 +543,14 @@ class Mobile < GameObject
         if !@active
             return
         end
-        broadcast "%s is DEAD!!", target({ not: self, list: @room.occupants }), [self]
+        broadcast "%s is DEAD!!", @room.occupants - [self], [self]
         Game.instance.fire_event( self, :event_on_die, {} )
 
         @affects.each do |affect|
             affect.clear(silent: true)
         end
         killer.xp( self ) if killer
-        broadcast "%s's head is shattered, and her brains splash all over you.", target({ not: self, list: @room.occupants }), [self]
+        broadcast "%s's head is shattered, and her brains splash all over you.", @room.occupants - [self], [self]
         if killer
             self.items.each do |item|
                 killer.get_item(item)
@@ -590,11 +590,11 @@ class Mobile < GameObject
         elsif not can_move? direction
             # nothing
         else
-            broadcast "%s leaves #{direction}.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
+            broadcast "%s leaves #{direction}.", @room.occupants - [self], [self] unless self.affected? "sneak"
             Game.instance.fire_event(self, :event_mobile_exit, { mobile: self, direction: direction })
             old_room = @room
             if @room.exits[direction.to_sym].move( self )
-                broadcast "%s has arrived.", target({ :not => self, :list => @room.occupants }), [self] unless self.affected? "sneak"
+                broadcast "%s has arrived.", @room.occupants - [self], [self] unless self.affected? "sneak"
                 (old_room.occupants - [self]).select { |t| t.position == Constants::Position::STAND }.each do |t|
                     Game.instance.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
                 end
@@ -639,15 +639,15 @@ class Mobile < GameObject
 
     def recall
         output "You pray for transportation!"
-        broadcast "%s prays for transportation!", target({ list: @room.occupants, not: self }), [self]
+        broadcast "%s prays for transportation!", @room.occupants - [self], [self]
         data = { mobile: self, success: true }
         Game.instance.fire_event(self, :event_try_recall, data)
 
         if data[:success]
-            broadcast "%s disappears!", target({ list: @room.occupants, not: self }), [self]
+            broadcast "%s disappears!", @room.occupants - [self], [self]
             room = Game.instance.recall_room( @room.continent )
             move_to_room( room )
-            broadcast "%s arrives in a puff of smoke!", target({ list: room.occupants, not: self }), [self]
+            broadcast "%s arrives in a puff of smoke!", @room.occupants - [self], [self]
             return true
         else
             output "#{@deity} has forsaken you."
