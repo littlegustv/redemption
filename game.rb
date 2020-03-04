@@ -430,7 +430,7 @@ class Game
                             if Container === item
                                 @container_reset_data.select{ |id, container_reset| container_reset[:parent_id] == item_reset_id }.each do |container_item_reset_id, container_item_reset|
                                     if @item_data[ container_item_reset[:item_id] ]
-                                        [1, container_item_reset[:quantity]].max.times do
+                                        [1, container_item_reset[:quantity].to_i ].max.times do
                                             container_item = load_item( container_item_reset[:item_id], item.inventory )
                                         end
                                     else
