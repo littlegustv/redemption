@@ -1,6 +1,6 @@
 class Command
 
-    attr_reader :priority, :name
+    attr_reader :priority, :name, :creation_points
 
     # Set what you need to here, but most of it is overwritten by values in the database,
     # if they can be found.
@@ -24,6 +24,7 @@ class Command
         @hp_cost = hp_cost
         @mana_cost = mana_cost
         @movement_cost = movement_cost
+        @creation_points = 0
         @data = {}
     end
 
@@ -69,6 +70,7 @@ class Command
         @lag = new_attr_hash[:lag].to_i
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = !(new_attr_hash[:usable_in_combat].to_i.zero?)
+        @creation_points = new_attr_hash[:creation_points]
         new_position = Constants::Position::STRINGS.select{ |k, v| v == new_attr_hash[:position].to_s }.first
         if new_position
             @position = new_position[0]

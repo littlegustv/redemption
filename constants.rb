@@ -307,6 +307,7 @@ module Constants
         CommandEnter,
         CommandPry,
         CommandProfile,
+        CommandLearn,
     ]
 
     SKILL_CLASSES = [

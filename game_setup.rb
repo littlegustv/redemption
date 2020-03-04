@@ -419,6 +419,7 @@ module GameSetup
                 log "{ySkill not found in database: \"#{skill.name}\" {x"
             end
             @skills.push skill
+            @abilities[ skill.name ] = skill
         end
         log("Skills constructed.")
     end
@@ -434,6 +435,7 @@ module GameSetup
                 log "{ySpell not found in database: \"#{spell.name}\"{x"
             end
             @spells.push spell
+            @abilities[ spell.name ] = spell
         end
         log("Spells constructed.")
     end
