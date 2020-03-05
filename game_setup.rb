@@ -63,6 +63,7 @@ module GameSetup
             load_spell_data
             load_command_data
             load_portal_data
+            load_social_data
 
             load_max_ids
 
@@ -269,6 +270,11 @@ module GameSetup
     protected def load_portal_data
         @portal_data = @db[:item_portal].to_hash(:item_id)
         log("Database load complete: Portal data")
+    end
+
+    protected def load_social_data
+        @social_data = @db[:social_base].to_hash(:id)
+        log("Database load complete: Social data")
     end
 
     # load reset tables from database

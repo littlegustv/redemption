@@ -6,7 +6,7 @@ class CommandTime < Command
         super(
             name: "time",
             keywords: ["time"],
-            priority: 99999
+            priority: 100
         )
     end
 

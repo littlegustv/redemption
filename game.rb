@@ -12,6 +12,7 @@ class Game
     attr_reader :equip_slot_data
     attr_reader :affects
     attr_reader :help_data
+    attr_reader :social_data
     attr_reader :spells
     attr_reader :continents
     attr_reader :game_settings
@@ -75,6 +76,7 @@ class Game
         @saved_player_item_id_max = 0           # max id in database table saved_player_item
         @saved_player_item_affect_id_max = 0    # max id in database table saved_player_item_affect
 
+        @social_data = Hash.new                 # Social table as hash (uses :id as key)
         @help_data = Hash.new                   # Help table as hash  (uses :id as key)
         @account_data = Hash.new                # Account table as hash (uses :id  as key)
         @saved_player_data = Hash.new           # Saved player table as hash    (uses :id as key)

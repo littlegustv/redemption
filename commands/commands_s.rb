@@ -140,6 +140,34 @@ class CommandSleep < Command
     end
 end
 
+class CommandSocial < Command
+
+    def initialize
+        super(
+            name: "social",
+            keywords: [],
+            priority: 0
+        )
+        @socials = Game.instance.social_data
+        @keywords = @socials.map { |id, row| row[:keyword] }
+    end
+
+    def attempt( actor, cmd, args, input )
+        social = @socials.select{ |id, social| social[:keyword].fuzzy_match( cmd ) }.first
+        if args.length <= 0
+            log social.to_s
+        end
+        log social[:keyword]
+    end
+
+    # override for overwrite_attributes in order to keep all social keywords from database
+    def overwrite_attributes(new_attr_hash)
+        new_attr_hash[:keywords] = @keywords.join(",")
+        super(new_attr_hash)
+    end
+
+end
+
 class CommandStand < Command
 
     def initialize
