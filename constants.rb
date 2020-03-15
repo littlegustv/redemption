@@ -1,5 +1,28 @@
 module Constants
 
+    module Quests
+        module Villain
+            FIRST = [
+                "One of this land's worst foes, %s, has escaped from the dungeon!",
+                "A villain by the name of %s has named itself an enemy of our town.",
+                "There has been an attempt on my life by %s!",
+                "The local people are being terrorized by %s.",
+            ]
+            SECOND = [
+                "Since then, %s has murdered %d people!",
+                "The local people are very scared of %s.",
+                "A young girl has recently gone missing, we fear the worst.",
+                "There is fear %s may try and start a rebellion.",
+            ]
+            THIRD = [
+                "The penalty for this crime is death, and I am sending you to deliver the sentence.",
+                "The town has chosen YOU to resolve this situation.",
+                "Only you are strong enough to end this threat!",
+                "I wish you the best of luck in slaying %s.",
+            ]
+        end
+    end
+
     module AffectVisibility
         NORMAL = 0
         PASSIVE = 1
@@ -308,6 +331,7 @@ module Constants
         CommandPry,
         CommandProfile,
         CommandLearn,
+        CommandQuest
     ]
 
     SKILL_CLASSES = [
@@ -511,6 +535,9 @@ module Constants
         "dark_vision" =>            AffectDarkVision,
         "regeneration" =>           AffectRegeneration,
         "portal" =>                 AffectPortal,
+        "quest" =>                  AffectQuest,
+        "questmaster" =>            AffectQuestMaster,
+        # "questvillain" =>           AffectQuestVillain,
     }
 
     module ClientState

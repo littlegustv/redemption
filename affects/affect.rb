@@ -127,7 +127,7 @@ class Affect
             if @permanent
                 return "Spell: #{@name}"
             else
-                return "Spell: #{@name.rpad(17)} : modifies none by 0 ${ duration_string }"
+                return "Spell: #{@name.rpad(17)} : modifies none by 0 #{ duration_string }"
             end
         end
     end

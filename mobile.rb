@@ -575,7 +575,7 @@ class Mobile < GameObject
             return
         end
         broadcast "%s is DEAD!!", @room.occupants - [self], [self]
-        Game.instance.fire_event( self, :event_on_die, {} )
+        Game.instance.fire_event( self, :event_on_die, { died: self, killer: killer } )
 
         @affects.each do |affect|
             affect.clear(silent: true)
@@ -747,7 +747,7 @@ class Mobile < GameObject
     end
 
     def show_long_description(observer:)
-        data = {description: ""}
+        data = { description: "", observer: observer }
         Game.instance.fire_event(self, :event_calculate_aura_description, data)
         if self.attacking
             if self.attacking == observer

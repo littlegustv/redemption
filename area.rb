@@ -10,6 +10,8 @@ class Area < GameObject
     attr_reader :questable
     attr_reader :rooms
     attr_reader :security
+    attr_reader :min
+    attr_reader :max
 
 	def initialize( data )
         super(data[:name], data[:name].split(" "))
@@ -18,6 +20,12 @@ class Area < GameObject
 		@continent = data[:continent]
         @control = data[:control]
         @credits = data[:credits]
+        range = @credits.match(/{\s?(\d+)\s+(\d+)}/)
+        if range
+            @min, @max = range[1..2].map(&:to_i)
+        else
+            @min, @max = [ 45, 51 ]
+        end
         @gateable = data[:gateable]
         @id = data[:id]
         @questable = data[:questable]

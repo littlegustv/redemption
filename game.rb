@@ -26,6 +26,7 @@ class Game
     attr_reader :frame_count
     attr_reader :skills
     attr_reader :abilities
+    attr_reader :areas
 
     include Singleton
     include GameSetup
