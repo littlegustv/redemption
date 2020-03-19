@@ -25,19 +25,19 @@ class AffectGlowing < Affect
     end
 
     def send_start_messages
-        Game.instance.broadcast "%s glows with a white light.", @target.room.occupants, [@target]
+        @target.room.occupants.each_output "0<N> glows with a white light.", [@target]
     end
 
     def send_complete_messages
-        Game.instance.broadcast "%s loses its glow.", @target.room.occupants, [@target]
+        @target.room.occupants.each_output "0<N> loses its glow.", [@target]
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_aura_description, self, :do_glowing_aura)
+        Game.instance.add_event_listener(@target, :event_calculate_long_auras, self, :do_glowing_aura)
     end
 
     def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_aura_description, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_long_auras, self)
     end
 
     def do_glowing_aura(data)
@@ -80,12 +80,12 @@ class AffectGrandeur < Affect
 
     def send_start_messages
         @target.output "You're not quite dead yet!"
-        @target.broadcast "%s suddenly looks almost dead.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "%N suddenly looks almost dead.", [@target]
     end
 
     def send_complete_messages
         @target.output "You do not look so tough anymore."
-        @target.broadcast "%s now appears alot stronger.", @target.room.occupants - [@target], [ @target ]
+        (@target.room.occupants - [@target]).each_output "%N now appears a lot stronger.", [ @target ]
     end
 
     def do_condition(data)

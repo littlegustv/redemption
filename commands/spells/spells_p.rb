@@ -175,8 +175,8 @@ class SpellPortal < Spell
             portal.apply_affect( AffectPortal.new( target: portal, game: Game.instance, destination: target.room ) )
             Game.instance.add_global_item( portal )
 
-            actor.output "%s rises up before you.", [portal]
-            Game.instance.broadcast "%s rised up from the ground.", actor.room.occupants - [actor], [portal]
+            actor.output "0<N> rises up before you.", [portal]
+            (actor.room.occupants - [actor]).each_output "%N rises up from the ground.", [portal]
         else
             actor.output "You can't find anyone with that name."
         end

@@ -34,7 +34,7 @@ class AffectAggressive < Affect
     #
     # def do_aggro(data)
     #     if @target.can_see?(data[:mobile]) && !data[:mobile].affected?("cloak of mind")
-    #         Game.instance.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
+    #         @target.room.occupants.each_output "0{N} 0{scream, screams} and 0{attack, attacks}!!", [@target]
     #         @target.start_combat data[:mobile]
     #         @target.do_round_of_attacks(target: data[:mobile])
     #     end
@@ -47,7 +47,7 @@ class AffectAggressive < Affect
         end
         player = players.select{ |t| @target.can_see?(t) }.shuffle!.first
         if player && !@target.attacking
-            Game.instance.broadcast "%s screams and attacks!!", @target.room.occupants - [@target], [@target]
+            @target.room.occupants.each_output "0<N> scream0<,s> and attack0<,s>!!", [@target]
             @target.start_combat player
             @target.do_round_of_attacks(target: player)
         end
@@ -93,14 +93,14 @@ class AffectAlarmRune < Affect
 
     def send_complete_messages
     	@source.output "Your connection with the alarm rune is broken."
-    	@source.broadcast "The rune of warding on this room vanishes.", @target.occupants
+    	@target.occupants.each_output "The rune of warding on this room vanishes."
     end
 
     def do_alarm_rune(data)
     	if data[:mobile] == @source
     		@source.output "You sense the power of the room's rune and avoid it!"
     	else
-    		@source.output "{R%s has triggered your alarm rune!{x", [data[:mobile]]
+    		@source.output "{R0<N> has triggered your alarm rune!{x", [data[:mobile]]
 	    end
     end
 
@@ -140,6 +140,7 @@ class AffectArmor < Affect
 
     def send_start_messages
         @target.output "You feel someone protecting you."
+    	(@target.room.occupants - [@target]).each_output "0<N> looks more protected.", [@target]
     end
 
     def send_complete_messages

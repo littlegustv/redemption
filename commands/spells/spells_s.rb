@@ -56,7 +56,7 @@ class SpellShackleRune < Spell
             return false
     	else
     		actor.output "You place a shackle on the ground preventing easy movement."
-    		actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
+            (actor.room.occupants - [actor]).each_output "0<N> places a strange rune on the ground.", [actor]
     		actor.room.apply_affect( AffectShackleRune.new( actor, actor.room, actor.level ) )
             return true
     	end
@@ -245,10 +245,10 @@ class SpellSummon < Spell
             target = actor.filter_visible_targets(Game.instance.target_global_mobiles(args.first.to_s.to_query).shuffle, 1).first
         end
         if target
-            Game.instance.broadcast "%s disappears suddenly.", target.room.occupants - [target], [target]
-            Game.instance.broadcast "%s arrives suddenly.", actor.room.occupants - [target], [target]
+            (target.room.occupants - [target]).each_output "0<N> disappears suddenly.", [target]
+            (target.room.occupants - [target]).each_output "0<N> arrives suddenly.", [target]
             target.move_to_room actor.room
-            target.output "%s has summoned you!", [actor]
+            target.output "%N has summoned you!", [actor]
         else
             actor.output "You can't find anyone with that name."
         end

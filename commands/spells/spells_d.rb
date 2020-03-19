@@ -76,10 +76,10 @@ class SpellDemonFire < Spell
             actor.output "The demons turn upon you!"
         else
             actor.output "You conjure forth the demons of hell!"
-            target.output "%s has assailed you with the demons of Hell!", [actor]
+            target.output "0<N> has assailed you with the demons of Hell!", [actor]
         end
 
-        actor.broadcast "%s calls forth the demons of Hell upon %s!", actor.room.occupants - [target, actor], [actor, target]
+        (actor.room.occupants - [target, actor]).each_output "0<N> calls forth the demons of Hell upon 1<n>!", [actor, target]
 
         actor.deal_damage(target: target, damage: 100, noun:"torments", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
         actor.alignment = [ actor.alignment - 50, -1000 ].max
@@ -105,8 +105,8 @@ class SpellDestroyRune < Spell
     def attempt( actor, cmd, args, input, level )
     	if args.first.nil?
     		if actor.room.affected? "rune"
+                actor.room.occupants.each_output "The runes present in this room begin fade."
                 actor.room.remove_affect( "rune" )
-                actor.broadcast "The runes present in this room begin fade.", actor.room.occupants
                 return true
             else
                 actor.output "There are no runes found."
@@ -114,11 +114,11 @@ class SpellDestroyRune < Spell
             end
     	elsif ( target = actor.target({ list: actor.equipment + actor.inventory, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
     		if target.affected?("rune")
-    			actor.output "The runes on %s slowly fade out of existence.", [target]
+    			actor.output "The runes on 0<n> slowly fade out of existence.", [target]
     			target.remove_affect( "rune" )
                 return true
             else
-                actor.output "%s is not runed.", [target]
+                actor.output "0<N> is not runed.", [target]
                 return false
     		end
     	end
@@ -147,7 +147,7 @@ class SpellDestroyTattoo < Spell
 
     def attempt( actor, cmd, args, input, level )
     	if ( target = actor.target({ list: actor.equipment, type: "tattoo" }.merge( args.first.to_s.to_query )).first )
-    		actor.output "You focus your will and #{target} explodes into flames!"
+    		actor.output "You focus your will and 0<n> explodes into flames!", [target]
     		target.destroy true
             return true
         else

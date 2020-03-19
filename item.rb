@@ -11,7 +11,7 @@ class Item < GameObject
     attr_reader :level
 
     def initialize( data, parent_inventory )
-        super(data[:short_desc], data[:keywords])
+        super(data[:name], data[:keywords])
         @id = data[:id]
         @short_description = data[:short_desc]
         @level = data[:level]
@@ -49,18 +49,6 @@ class Item < GameObject
         gold = ( @cost / 1000 ).floor
         silver = ( @cost - gold * 1000 )
         gold > 0 ? "#{ gold } gold and #{ silver } silver" : "#{ silver } silver"
-    end
-
-    def name
-        data = { description: @name }
-        Game.instance.fire_event( self, :event_calculate_aura_description, data )
-        return data[:description]
-    end
-
-    def long
-        data = { description: @long_description }
-        Game.instance.fire_event( self, :event_calculate_aura_description, data )
-        return data[:description]
     end
 
     def modifier( key )
@@ -212,7 +200,7 @@ class Tattoo < Item
             material: "tattoo",
             extraFlags: "noremove",
             ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
-        }.merge( paint ), runist.game, runist.inventory)
+        }.merge( paint ), runist.inventory)
         @runist = runist
         @duration = 600.0 * runist.level
         @slot = slot

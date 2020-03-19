@@ -40,12 +40,12 @@ class AffectMinimation < Affect
 
     def send_start_messages
         @target.output "You now appear invincible!"
-        @target.broadcast "%s suddenly looks alot tougher.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> suddenly looks alot tougher.", [@target]
     end
 
     def send_complete_messages
         @target.output "You appear pretty strong to others."
-        @target.broadcast "%s does not look so tough.", @target.room.occupants - [@target], [ @target ]
+        (@target.room.occupants - [@target]).each_output "0<N> does not look so tough.", [ @target ]
     end
 
     def do_condition(data)
@@ -87,13 +87,11 @@ class AffectMirrorImage < Affect
     end
 
     def send_start_messages
-    	@target.output "You create a mirror image of yourself."
-    	@target.broadcast "%s creates a mirror image.", @target.room.occupants - [@target], [@target]
+    	@target.room.occupants.each_output "0<N> create0<,s> a mirror image of 0<r>.", [@target, @target]
     end
 
     def send_complete_messages
-        @target.output "Your mirror image shatters to pieces!", [data[:source]]
-        @target.broadcast "%s's mirror image shatters to pieces!", @target.room.occupants - [@target], [ @target ]
+    	@target.room.occupants.each_output "0<N>'s mirror image shatters to pieces!", [@target, @target]
     end
 
     def do_mirror_image(data)
@@ -102,8 +100,7 @@ class AffectMirrorImage < Affect
 	        if @health <= 0
 	        	clear
 	        else
-	        	@target.output "Your mirror image takes %s's hit!", [data[:source]]
-	        	@target.broadcast "%s's mirror image absorbs the shock.", @target.room.occupants - [@target], [ @target ]
+	        	@target.room.occupants.each_output "0<N>'s mirror image takes 0<n>'s hit!", [@target, data[:source]]
 	        end
 	        data[:confirm] = true
 	    end

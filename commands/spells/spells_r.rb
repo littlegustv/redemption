@@ -95,7 +95,7 @@ class SpellRemoveCurse < Spell
                 target.remove_affect( "curse" )
                 return true
             else
-                actor.output "There doesn't seem to be a curse on #{target}."
+                actor.output "There doesn't seem to be a curse on 0<n>.", [target]
             end
         else
             actor.output "There is no one here with that name."

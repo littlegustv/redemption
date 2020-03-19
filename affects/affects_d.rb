@@ -91,12 +91,11 @@ class AffectDarkness < Affect
     end
 
     def send_start_messages
-        @source.output "You plunge the room into absolute darkness!"
-        Game.instance.broadcast "%s plunges the room into total darkness!", @target.occupants - [@source], [@source]
+        @target.occupants.each_output "0<N> plunge0<,s> the room into total darkness!", [@source]
     end
 
     def send_complete_messages
-        Game.instance.broadcast "The cloud of darkness is lifted from the room.", @target.occupants
+        @target.occupants.each_output "The cloud of darkness is lifted from the room."
     end
 
     def do_dark( data )
@@ -168,8 +167,7 @@ class AffectDeathRune < Affect
     end
 
     def send_start_messages
-        @target.output "You scribe a rune of death on your chest."
-        @target.broadcast "%s is marked by a rune of death.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> scribe0<,s> a rune of death on 0<p> chest.", [@target]
     end
 
     def send_refresh_messages
@@ -181,9 +179,9 @@ class AffectDeathRune < Affect
     end
 
     def do_death_rune( data )
-        @target.broadcast "A rune of death suddenly explodes!", @target.room.occupants
+        @target.room.occupants.each_output "A rune of death suddenly explodes!"
         ( @level * 3 ).times do
-            @target.broadcast "A flaming meteor crashes into the ground nearby and explodes!", @target.room.area.occupants - @target.room.occupants
+            (@target.room.area.occupants - @target.room.occupants).each_output "A flaming meteor crashes into the ground nearby and explodes!"
             ( @target.room.occupants - [@target] ).each do |victim|
                 @target.deal_damage(target: victim, damage: 100, noun:"meteor's impact", element: Constants::Element::ENERGY, type: Constants::Damage::MAGICAL)
             end

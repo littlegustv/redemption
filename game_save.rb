@@ -40,7 +40,7 @@ module GameSave
                 query = "INSERT INTO `saved_player_base` " +
                 "(`id`, `account_id`, `name`, `level`, `experience`, `room_id`, `race_id`, " +
                 "`class_id`, `str`, `dex`, `int`, `wis`, `con`, `hp`, `mana`, `current_hp`, " +
-                "`current_mana`, `wealth`, `quest_points`, `position`, `alignment`, `creation_points`, `learned`) " +
+                "`current_mana`, `wealth`, `quest_points`, `position`, `alignment`, `creation_points`, `learned`, `gender`) " +
                 "VALUES #{query_hash[:player_base].join(", ")};"
                 @db.run(query)
             end
@@ -162,7 +162,8 @@ module GameSave
             position: player.position,
             alignment: player.alignment,
             creation_points: player.creation_points,
-            learned: player.learned.join(",")
+            learned: player.learned.join(","),
+            gender: player.gender
         }
 
         # update player_base row for this player

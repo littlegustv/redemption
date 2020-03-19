@@ -21,8 +21,7 @@ class CommandSay < Command
             Game.instance.fire_event( actor, :event_communicate, data )
             message = data[:text]
 
-            actor.output "{yYou say '#{message}'{x"
-            actor.broadcast "{y%s says '#{message}'{x", actor.room.occupants - [actor], [actor]
+            actor.room.occupants.each_output "{y0<N> say0<,s> '#{message}'{x", [actor]
             return true
         end
     end
@@ -68,7 +67,7 @@ class CommandSell < Command
                     actor.earn( shopkeeper.buy_price( sale ) )
                     actor.output( "You sell #{sale} for #{ shopkeeper.buy_price( sale ) }." )
                 else
-                    shopkeeper.do_command "say I'm afraid I don't have enough wealth to buy #{ sale }"
+                    shopkeeper.do_command "say I'm afraid I don't have enough wealth to buy #{ sale }!"
                 end
             end
         else
@@ -130,7 +129,7 @@ class CommandSleep < Command
             return false
         when Constants::Position::REST, Constants::Position::STAND
             actor.output "You go to sleep."
-            actor.broadcast "%s lies down and goes to sleep.", actor.room.occupants - [actor], [actor]
+            (actor.room.occupants - [actor]).each_output "0<N> lies down and goes to sleep.", [actor]
         else
             actor.output "You can't quite get comfortable enough."
             return false
@@ -138,6 +137,63 @@ class CommandSleep < Command
         actor.position = Constants::Position::SLEEP
         return true
     end
+end
+
+class CommandSocial < Command
+
+    def initialize
+        super(
+            name: "social",
+            keywords: [],
+            priority: 0
+        )
+        @socials = Game.instance.social_data
+        @keywords = @socials.map { |id, row| row[:keyword] }.concat(["social"])
+    end
+
+    def attempt( actor, cmd, args, input )
+        # get the social row for the keyword used
+        social = @socials.values.select{ |social| social[:keyword].fuzzy_match( cmd ) }.first
+
+        if !social # no matching social - must have used "social" keyword. show social list!
+            actor.output("SOCIALS\n\n#{@socials.map { |id, row| row[:keyword].capitalize_first }.join("\n").to_columns(15, 5)}")
+            return
+        end
+
+        # default to no target values
+        p1 = social[:p1_no_arg]
+        p2 = nil
+        p3 = nil
+        p3 = social[:p3_no_arg] if social[:p3_no_arg].to_s.length > 0
+        target = nil
+
+        if args.length > 0 # trying to target something?
+            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            if target
+                if target == actor # target self
+                    p1 = social[:p1_target_self] if social[:p1_target_self].to_s.length > 0
+                    p3 = social[:p3_target_self] if social[:p3_target_self].to_s.length > 0
+                else # target found
+                    p1 = social[:p1_target_found] if social[:p1_target_found].to_s.length > 0
+                    p2 = social[:p2_target_found] if social[:p2_target_found].to_s.length > 0
+                    p3 = social[:p3_target_found] if social[:p3_target_found].to_s.length > 0
+                end
+            else # target not found
+                p1 = social[:p1_target_not_found] if social[:p1_target_not_found].to_s.length > 0
+            end
+        end
+
+        actor.output(p1.capitalize_first, [actor, target])
+        target.output(p2.capitalize_first, [actor, target]) if p2 && target
+        (actor.room.occupants - [actor, target]).each_output(p3.capitalize_first, [actor, target]) if p3
+    end
+
+    # override for overwrite_attributes in order to keep all social keywords from database
+    def overwrite_attributes(new_attr_hash)
+        new_attr_hash[:keywords] = @keywords.join(",")
+        super(new_attr_hash)
+    end
+
 end
 
 class CommandStand < Command
@@ -154,13 +210,13 @@ class CommandStand < Command
         case actor.position
         when Constants::Position::SLEEP
             actor.output "You wake and stand up."
-            actor.broadcast "%s wakes and stands up.", actor.room.occupants - [actor], [actor]
+            (actor.room.occupants - [actor]).each_output "0<N> wakes and stands up.", [actor]
             actor.position = Constants::Position::STAND
             actor.look_room
             return true
         when Constants::Position::REST
             actor.output "You stand up."
-            actor.broadcast "%s stands up.", actor.room.occupants - [actor], [actor]
+            (actor.room.occupants - [actor]).each_output "0<N> stands up.", [actor]
             actor.position = Constants::Position::STAND
             return true
         when Constants::Position::STAND

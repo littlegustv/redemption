@@ -24,8 +24,8 @@ class SpellNexus < Spell
             portal.apply_affect( AffectPortal.new( target: portal, game: Game.instance, destination: target.room ) )
             Game.instance.add_global_item( portal )
 
-            actor.output "%s rises up before you.", [portal]
-            Game.instance.broadcast "%s rised up from the ground.", actor.room.occupants - [actor], [portal]
+            actor.output "0<N> rises up before you.", [portal]
+            (actor.room.occupants - [actor]).each_output "0<N> rises up from the ground.", [portal]
 
             portal = Game.instance.load_item( 1956, target.room.inventory )
             # remove auto-added affect
@@ -33,7 +33,7 @@ class SpellNexus < Spell
             portal.apply_affect( AffectPortal.new( target: portal, game: Game.instance, destination: actor.room ) )
             Game.instance.add_global_item( portal )
 
-            Game.instance.broadcast "%s rised up from the ground.", target.room.occupants - [actor], [portal]
+            (target.room.occupants - [actor]).each_output "0<N> rises up from the ground.", [portal]
         else
             actor.output "You can't find anyone with that name."
         end

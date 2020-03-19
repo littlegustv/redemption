@@ -27,6 +27,19 @@ class Integer
 
 end
 
+class Array
+
+    def each_output( message, objects = [], send_to_sleeping: false )
+        targets = self.reject{ |t| t.respond_to?(:output) == false }
+        if !send_to_sleeping
+            targets.reject!{ |t| t.respond_to?(:position) && t.position == Constants::Position::SLEEP }
+        end
+        targets.each do | player |
+            player.output( message, objects.to_a )
+        end
+    end
+end
+
 class String
     def to_a
         [ self ]
@@ -44,12 +57,32 @@ class String
         # self.match(/#{arg}/i)
     end
 
+    ## Returns a copy of this string with the first character capitalized.
+    #  Knows to skip whitespace and color codes.
     def capitalize_first
-        slice(0, 1).to_s.capitalize + slice(1..-1).to_s
+        first = self[/\A(({[A-Za-z]|[^A-Za-z])*)([a-z])/, 3]
+        if first
+            return gsub(/\A(({[A-Za-z]|\s)*)([a-z])/, "#{$1}#{first.upcase}")
+        end
+        return self
+    end
+
+    ## Capitalize the first character of this string.
+    #  Knows to skip whitespace and color codes.
+    def capitalize_first!
+        first = self[/\A(({[A-Za-z]|[^A-Za-z])*)([a-z])/, 3]
+        if first
+            return gsub!(/\A(({[A-Za-z]|\s)*)([a-z])/, "#{$1}#{first.upcase}")
+        end
+        return nil
     end
 
     def sanitize
-        self.gsub(/[\%\[\]\^]/, "")
+        result = self.dup
+        result.gsub!(/</, "<<")
+        result.gsub!(/>/, ">>")
+        result.gsub!(/[\[\]\^]/, "")
+        return result
     end
 
     def to_query( default_quantity = "all" )
@@ -104,6 +137,6 @@ def dice( count, sides )
 end
 
 def log(s)
-    s = s.gsub(/\n/, "\n#{" " * 27} ")
+    s = s.to_s.gsub(/\n/, "\n#{" " * 27} ")
     puts "{d[#{Time.now}]\033{x #{s}".replace_color_codes
 end

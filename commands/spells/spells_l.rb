@@ -65,7 +65,7 @@ class SpellLocateObject < Spell
             actor.output "Nothing like that in heaven or earth."
             return false
         end
-        out = targets.map{ |t| "%s is #{t.carrier.carried_by_string} %s." }.join("\n")
+        out = targets.each_with_index.map{ |t, i| "#{i*2}<N> is #{t.carrier.carried_by_string} #{i*2+1}<n>." }.join("\n")
         out += "\n\nYour focus breaks before revealing all of the objects." if targets.length < total_found
         objects = targets.map{ |t| [t, t.carrier] }.flatten
         actor.output(out, objects)

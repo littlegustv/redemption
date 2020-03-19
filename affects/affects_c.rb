@@ -55,12 +55,12 @@ class AffectCharm < Affect
     end
 
     def send_start_messages
-        @target.output "Isn't %s just so nice?", [@source]
-        @source.output "%s looks at you with adoring eyes.", [@target]
+        @target.output "Isn't 0<n> just so nice?", [@source]
+        @source.output "0<N> looks at you with adoring eyes.", [@target]
     end
 
     def send_complete_messages
-        @source.output "%s stops looking up to you.", [@target]
+        @source.output "0<N> stops looking up to you.", [@target]
         @target.output "You feel more self-confident."
     end
 
@@ -123,13 +123,11 @@ class AffectCloakOfMind < Affect
     end
 
     def send_start_messages
-        @target.output "You cloak yourself from the wrath of mobiles."
-        @target.broadcast "%s cloaks themselves from the wrath of mobiles.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> cloak0<,s> 0<r> from the wrath of mobiles.", [@target]
     end
 
     def send_complete_messages
-        @target.output "You are no longer hidden from mobiles."
-        @target.broadcast "%s is no longer invisible to mobiles.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> 0<is, are> no longer invisible to mobiles.", [@target]
     end
 end
 
@@ -201,11 +199,11 @@ class AffectCloudkill < Affect
 
     def send_start_messages
         @source.output "You exhale a cloud of toxic gas to cover the room!"
-        @target.broadcast("%s emits a greenish cloud of poison gas!", @target.occupants - [@source], @source)
+        (@target.occupants - [@source]).each_output("0<N> emits a greenish cloud of poison gas!", @source)
     end
 
     def send_complete_messages
-        @target.broadcast "The cloud of poison gas slowly dissipates.", @target.occupants
+        @target.occupants.each_output "The cloud of poison gas slowly dissipates."
     end
 
 end
@@ -235,12 +233,12 @@ class AffectCorrosive < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{g%s flesh burns away, revealing vital areas!{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{g0<N>'s flesh burns away, revealing vital areas!{x", [@target]
         @target.output "{gChunks of your flesh melt away, exposing vital areas!{x"
     end
 
     def send_refresh_messages
-        @target.broadcast "{g%s flesh burns away, revealing vital areas!{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{g0<N>'s flesh burns away, revealing vital areas!{x", [@target]
         @target.output "{gChunks of your flesh melt away, exposing vital areas!{x"
     end
 
@@ -276,7 +274,7 @@ class AffectCurse < Affect
 
     def send_start_messages
         @target.output "You feel unclean."
-        @target.broadcast "%s looks very uncomfortable.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> looks very uncomfortable.", [@target]
     end
 
     def send_complete_messages

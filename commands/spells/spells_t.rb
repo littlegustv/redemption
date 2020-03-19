@@ -17,9 +17,9 @@ class SpellTeleport < Spell
         if target
 	        newroom = Game.instance.rooms.values.sample
 	        target.output "You have been teleported!" if target != actor
-	        Game.instance.broadcast "%s vanishes!", Game.instance.target({ list: target.room.occupants, not: target }), [target]
+	        (target.room.occupants - [target]).each_output "0<N> vanishes!", [target]
 	        target.move_to_room newroom
-	        Game.instance.broadcast "%s slowly fades into existence.", Game.instance.target({ list: newroom.occupants, not: target }), [target]
+	        (target.room.occupants - [target]).each_output "0<N> materializes suddenly.", [target]
 	    else
 	    	actor.output "Teleport who?"
         end

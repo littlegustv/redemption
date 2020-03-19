@@ -1,5 +1,28 @@
 require_relative 'command.rb'
 
+class CommandEmote < Command
+
+    def initialize
+        super(
+            name: "emote",
+            keywords: ["emote"],
+            position: Constants::Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if args.length <= 0
+            actor.output 'Emote what?'
+            return false
+        else
+            message = input[/#{cmd} (.*)/, 1]
+            actor.room.occupants.each_output "0<N> #{message}", [actor]
+            return true
+        end
+    end
+
+end
+
 class CommandEnter < Command
 
     def initialize

@@ -17,7 +17,7 @@ class SkillShadow < Command
         elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if actor.stat(:dex) >= target.stat(:int)
                 actor.apply_affect( AffectFollow.new( target, actor, 1 ), silent: true )
-                actor.output "You begin to secretly follow %s.", [target]
+                actor.output "You begin to secretly follow %n.", [target]
             else
                 actor.output "Your attempt is painfully obvious."
                 actor.apply_affect( AffectFollow.new( target, actor, 1 ) )
@@ -60,12 +60,12 @@ class SkillSteal < Skill
     def attempt( actor, cmd, args, input )
         if ( mobile_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args[1].to_s.to_query )).first )
             if ( item_target = actor.target({ list: mobile_target.inventory.items, visible_to: actor }.merge( args[0].to_s.to_query )).first )
-                actor.output "You pocket %s.", [ item_target ]
+                actor.output "You pocket 0<n>.", [ item_target ]
                 actor.output "Got it!"
                 item_target.move(actor.inventory)
                 return true
             else
-                actor.output "%s isn't carrying any '#{args[0]}'", [mobile_target]
+                actor.output "0<N> isn't carrying any '#{args[0]}'.", [mobile_target]
             end
         else
             actor.output "Steal from whom now?"

@@ -243,7 +243,7 @@ class Client
 
         alignment = nil
         while alignment.nil?
-            send_output("You may be good, neutral, of evil.\nWhat is your alignment?")
+            send_output("You may be good, neutral, or evil.\nWhat is your alignment?")
             align_input = get_input
             if align_input.downcase == "back"
                 return
@@ -259,13 +259,34 @@ class Client
             end
         end
 
+        gender = nil
+        genders = Game.instance.gender_data.values
+
+        if genders.length > 1
+            while gender.nil?
+                send_output("You may be #{genders[0..-2].map{|row| row[:name]}.join(", ")}#{genders.size > 2 ? "," : ""} or #{genders[-1][:name]}.\nWhat is your gender?")
+                gender_input = get_input
+                genders.each do |row|
+                    if row[:name].fuzzy_match(gender_input)
+                        gender = row[:id]
+                    end
+                end
+                if gender.nil?
+                    send_output("Please enter a valid gender.")
+                end
+            end
+        else
+            gender = genders[0][:id]
+        end
+
         player_data = {
             account_id: @account_id,
             name: name,
             race_id: race_id,
             class_id: class_id,
             alignment: alignment,
-            creation_points: 5
+            gender: gender,
+            creation_points: 5,
         }
         send_output("Creating #{name}...")
         Game.instance.new_players.push(player_data)

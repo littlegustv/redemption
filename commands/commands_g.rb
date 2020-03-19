@@ -70,7 +70,7 @@ class CommandGive < Command
             if person.can_see?(item)
                 actor.give_item(item, person)
             else
-                actor.output "They can't see %s.", item
+                actor.output "They can't see 0<n>.", [item]
             end
         end
         return true

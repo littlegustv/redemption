@@ -12,21 +12,20 @@ class Inventory
         @item_count = {}        # Item count hash (uses :id as key)
     end
 
-    def show(observer:, long: false)
+    def show(observer:, short_description: false)
+        names_shown = []
         ids_shown = []
         lines = []
         targets = Game.instance.target({ list: self.items, visible_to: observer, quantity: 'all' })
         targets.each do |item|
-            if ids_shown.include?(item.id)
+            name = (short_description) ? item.long_auras + item.short_description : item.long_auras + item.name
+            if names_shown.include?(name) && ids_shown.include?(item.id)
                 next
             end
-            quantity = targets.select{ |t| t.id == item.id }.length
+            quantity = targets.select{ |t| t.id == item.id && ((short_description) ? t.long_auras + t.short_description : t.long_auras + t.name) == name }.length
             quantity_string = quantity > 1 ? "(#{quantity.to_s.lpad(2)})" : "    "
-            if long
-                lines << "#{quantity_string} #{item.long}"
-            else
-                lines << "#{quantity_string} #{item.name}"
-            end
+            lines << "#{quantity_string} #{name}"
+            names_shown << name
             ids_shown << item.id
         end
         return lines.join("\n")
@@ -48,8 +47,8 @@ class Inventory
         @items.unshift(item)
     end
 
-    def show_with_categories(observer:, long: false)
-        Game.instance.target({ list: self.items, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "\n      #{t.long}" }.join
+    def show_with_categories(observer:, short_description: false)
+        Game.instance.target({ list: self.items, :not => looker, visible_to: looker, quantity: 'all' }).map{ |t| "\n      #{t.short_description}" }.join
     end
 
     # returns the number of items

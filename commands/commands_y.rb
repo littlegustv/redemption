@@ -21,8 +21,7 @@ class CommandYell < Command
             Game.instance.fire_event( actor, :event_communicate, data )
             message = data[:text]
 
-            actor.output "{RYou yell '#{message}'{x"
-            actor.broadcast "{R%s yells '#{message}'{x", actor.room.area.players - [actor], [actor]
+            actor.room.area.occupants.each_output "{R0<N> yell0<,s> '#{message}'{x", [actor]
             return true
         end
     end

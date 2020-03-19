@@ -26,12 +26,12 @@ class AffectHaste < Affect
 
     def send_start_messages
         @target.output "You feel yourself moving more quickly."
-        @target.broadcast("%s starts moving more quickly.", @target.room.occupants - [@target], @target)
+        (@target.room.occupants - [@target]).each_output "0<N> starts moving more quickly.", @target
     end
 
     def send_complete_messages
         @target.output "You feel yourself slow down."
-        @target.broadcast("%s slows down.", @target.room.occupants - [@target], @target)
+        (@target.room.occupants - [@target]).each_output "0<N> slows down.", @target
     end
 end
 
@@ -114,25 +114,25 @@ class AffectHide < Affect
         Game.instance.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
         Game.instance.add_event_listener(@target, :event_mobile_exit, self, :do_remove_affect)
         Game.instance.add_event_listener(@target, :event_try_can_be_seen, self, :do_hide)
-        Game.instance.add_event_listener(@target, :event_calculate_aura_description, self, :do_hide_aura)
+        Game.instance.add_event_listener(@target, :event_calculate_long_auras, self, :do_hide_aura)
     end
 
     def complete
         Game.instance.remove_event_listener(@target, :event_on_start_combat, self)
         Game.instance.remove_event_listener(@target, :event_mobile_exit, self)
         Game.instance.remove_event_listener(@target, :event_try_can_be_seen, self)
-        Game.instance.remove_event_listener(@target, :event_calculate_aura_description, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_long_auras, self)
     end
 
     def send_start_messages
         @target.output "You fade out of existence."
-        Game.instance.broadcast "%s fades from existence.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output  "0<N> fades from existence.", [@target]
     end
 
     def send_complete_messages
         @target.output "You fade into existence."
         room  = @target.room
-        Game.instance.broadcast "%s fades into existence.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output  "0<N> fades into existence.", [@target]
     end
 
     def do_remove_affect(data)

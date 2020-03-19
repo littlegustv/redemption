@@ -40,11 +40,11 @@ class AffectLair < Affect
 
     def send_start_messages
         @source.output "Welcome to your new lair!"
-        Game.instance.broadcast "%s has claimed this room as their lair.", @target.occupants - [@source], [@source]
+        (@target.occupants - [@source]).each_output "0<N> has claimed this room as their lair.", [@source]
     end
 
     def send_complete_messages
-        Game.instance.broadcast "The dragon's lair vanishes as the sands of time claim it once again.", @target.occupants
+        @target.occupants.each_output "The dragon's lair vanishes as the sands of time claim it once again."
     end
 
     def do_lair( data )
@@ -85,12 +85,12 @@ class AffectLivingStone < Affect
 
     def send_start_messages
         @target.output "You are now affected by stone form."
-        @target.broadcast("%s's flesh turns to stone.", @target.room.occupants - [@target], [@target] )
+        (@target.room.occupants - [@target]).each_output("0<N>'s flesh turns to stone.", [@target] )
     end
 
     def send_complete_messages
         @target.output "Your flesh feels more supple."
-        @target.broadcast("%s's flesh looks more supple.", @target.room.occupants - [@target], [@target] )
+        (@target.room.occupants - [@target]).each_output("0<N>'s flesh looks more supple.", [@target] )
     end
 
 end
