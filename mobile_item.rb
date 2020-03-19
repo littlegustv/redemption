@@ -29,8 +29,7 @@ module MobileItem
         equip_slots.each do |equip_slot|   # first try to find empty slots
             if item.wear_flags.include?(equip_slot.wear_flag) && !equip_slot.item
                 if !silent
-                    output(equip_slot.equip_message_self, [item])
-                    (@room.occupants - [self]).each_output(equip_slot.equip_message_others, [self, item, self])
+                    @room.occupants.each_output(equip_slot.equip_message, [self, item])
                     if equip_slot.wear_flag == "wield"
                         if proficient( item.genre )
                             output "0<N> feels like a part of you!", [item]
@@ -47,8 +46,7 @@ module MobileItem
             if item.wear_flags.include?(equip_slot.wear_flag) && equip_slot.item
                 if unwear(item: equip_slot.item, silent: silent)
                     if !silent
-                        output(equip_slot.equip_message_self, [item])
-                        (@room.occupants - [self]).each_output(equip_slot.equip_message_others, [self, item, self])
+                        @room.occupants.each_output(equip_slot.equip_message, [self, item])
                         if equip_slot.wear_flag == "wield"
                             if proficient( item.genre )
                                 output "0<N> feels like a part of you!", [item]

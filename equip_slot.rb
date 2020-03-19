@@ -3,29 +3,17 @@ require_relative 'inventory'
 # A slot for a single equipped item
 class EquipSlot
 
-    # attr_reader :equip_message_self
-    # attr_reader :equip_message_others
-    # attr_reader :list_prefix
-    # attr_reader :wear_flag
     attr_reader :item
     attr_reader :owner
 
     def initialize(slot, owner)
         @owner = owner          # the room/mobile/item that contains these items
         @slot = slot
-        # @equip_message_self = equip_message_self        # String format for mobile doing the equipping
-        # @equip_message_others = equip_message_others    # String format for others in the room
-        # @list_prefix = list_prefix                      # ex. worn about body, worn on feet, etc
-        # @wear_flag = wear_flag                          # wear_body, wear_wrist, etc
         @item = nil                                     # the item that is equipped in this slot (or nil)
     end
 
-    def equip_message_self
-        Game.instance.equip_slot_data.dig( @slot, :equip_message_self )
-    end
-
-    def equip_message_others
-        Game.instance.equip_slot_data.dig( @slot, :equip_message_others )
+    def equip_message
+        Game.instance.equip_slot_data.dig( @slot, :equip_message )
     end
 
     def list_prefix

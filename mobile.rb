@@ -924,11 +924,6 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
             row = Game.instance.equip_slot_data[slot.to_i]
             if row
                 @race_equip_slots << EquipSlot.new(slot.to_i, self)
-                    # equip_message_self: row[:equip_message_self],
-                    #                        equip_message_others: row[:equip_message_others],
-                    #                        list_prefix: row[:list_prefix],
-                    #                        wear_flag: row[:wear_flag],
-                    #                        owner: self)
             end
         end
         old_equipment.each do |item| # try to wear all items that were equipped before
@@ -956,11 +951,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         slots.each do |slot|
             row = Game.instance.equip_slot_data[slot.to_i]
             if row
-                @class_equip_slots << EquipSlot.new(equip_message_self: row[:equip_message_self],
-                                            equip_message_others: row[:equip_message_others],
-                                            list_prefix: row[:list_prefix],
-                                            wear_flag: row[:wear_flag],
-                                            owner: self)
+                @class_equip_slots << EquipSlot.new(slot.to_i, self)
             end
         end
         old_equipment.each do |item| # try to wear all items that were equipped before
