@@ -116,12 +116,12 @@ class AffectFlooding < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{b%s coughes and chokes on the water.{x", @target.room.occupants - [@target], [@target]
+        @target.broadcast "{b%s coughs and chokes on the water.{x", @target.room.occupants - [@target], [@target]
         @target.output "{bYou cough and choke on the water.{x"
     end
 
     def send_refresh_messages
-        @target.broadcast "{b%s coughes and chokes on the water.{x", @target.room.occupants - [@target], [@target]
+        @target.broadcast "{b%s coughs and chokes on the water.{x", @target.room.occupants - [@target], [@target]
         @target.output "{bYou cough and choke on the water.{x"
     end
 

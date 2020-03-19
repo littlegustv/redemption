@@ -21,6 +21,15 @@ module Constants
                 "I wish you the best of luck in slaying %s.",
             ]
         end
+
+        module Item
+            FIRST = [
+                "Vile thieves have stolen %s from the royal treasury!",
+                "A group of diplomats visited last week, and now %s is missing from the capital!",
+                "The local ruler's bumbling aid seems to have misplaced %s!",
+                "A travelling caravan was robbed of %s out in the wilds!"
+            ]
+        end
     end
 
     module AffectVisibility
@@ -535,9 +544,9 @@ module Constants
         "dark_vision" =>            AffectDarkVision,
         "regeneration" =>           AffectRegeneration,
         "portal" =>                 AffectPortal,
-        "quest" =>                  AffectQuest,
         "questmaster" =>            AffectQuestMaster,
-        # "questvillain" =>           AffectQuestVillain,
+        "quest" =>                  AffectQuestItem,
+        "questvillain" =>           AffectQuestVillain,
     }
 
     module ClientState

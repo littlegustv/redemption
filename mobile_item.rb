@@ -160,6 +160,9 @@ module MobileItem
             output("You get %s.", [item]) if !silent
             broadcast("%s gets %s.", target({ :not => self, :list => @room.occupants }), [self, item]) if !silent
         end
+
+        Game.instance.fire_event( self, :event_get_item, { actor: self, item: item } )
+
         # if !@inventory # no inventory, create one
         #     @inventory = Inventory.new(self)
         # end

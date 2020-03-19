@@ -570,6 +570,18 @@ class Mobile < GameObject
         end
     end
 
+    def qp( target )
+        if !@active
+            return
+        end
+        dlevel = [target.level - @level, -10].max
+        base_qp = dlevel <= 5 ? Constants::EXPERIENCE_SCALE[dlevel] : ( 180 + 12 * (dlevel - 5 ))
+        base_qp *= 10  / ( @level + 4 ) if @level < 6
+        base_qp = rand(base_qp..(5 * base_qp / 4))
+        @quest_points = @quest_points.to_i + base_qp.to_i
+        output "You receive #{base_qp} experience points."
+    end
+
     def die( killer )
         if !@active
             return

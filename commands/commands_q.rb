@@ -29,7 +29,13 @@ class CommandQuest < Command
                 actor.output "You are already on a quest!"
             else
                 if ( questmaster = actor.target( list: actor.room.mobiles, affect: "questmaster", visible_to: actor, not: actor ).first )
-                    actor.apply_affect( AffectQuest.new( actor, actor, actor.level ) )
+                    if args[1].to_s.fuzzy_match "VILLAIN"
+                        actor.apply_affect( AffectQuestVillain.new( actor, actor, actor.level ) )
+                    elsif args[1].to_s.fuzzy_match "ITEM"
+                        actor.apply_affect( AffectQuestItem.new( actor, actor, actor.level ) )
+                    else
+                        actor.output "What type of quest would you like to request? [ITEM] or [VILLAIN]"
+                    end
                 else
                     actor.output "You can't do that here."
                 end
@@ -37,7 +43,7 @@ class CommandQuest < Command
         elsif args.first.to_s.fuzzy_match "COMPLETE"
             if actor.affected? "quest"
                 if ( questmaster = actor.target( list: actor.room.mobiles, affect: "questmaster", visible_to: actor, not: actor ).first )
-                    actor.output "QUEST COMPLETE"
+                    Game.instance.fire_event(actor, :event_complete_quest, {} )
                 else
                     actor.output "You can't do that here."
                 end
