@@ -33,8 +33,8 @@ class CommandProfile < Command
     end
 
     def attempt( actor, cmd, args, input )
-        report = MemoryProfiler.stop
-        puts report.pretty_print
+        # report = MemoryProfiler.stop
+        # puts report.pretty_print
     end
 
 end
