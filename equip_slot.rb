@@ -9,7 +9,7 @@ class EquipSlot
     def initialize(slot, owner)
         @owner = owner          # the room/mobile/item that contains these items
         @slot = slot
-        @item = nil                                     # the item that is equipped in this slot (or nil)
+        @item = nil             # the item that is equipped in this slot (or nil)
     end
 
     def equip_message

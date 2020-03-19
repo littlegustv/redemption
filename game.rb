@@ -807,6 +807,7 @@ class Game
                 affect.active = false
             end
         end
+        remove_global_mobile(mobile)
         @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i - 1
         @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         @mobiles.delete(mobile)
@@ -836,6 +837,7 @@ class Game
         item.affects.each do |affect|
             affect.active = false
         end
+        remove_global_item(item)
     end
 
     def inspect
