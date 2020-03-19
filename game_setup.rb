@@ -64,6 +64,7 @@ module GameSetup
             load_command_data
             load_portal_data
             load_social_data
+            load_gender_data
 
             load_max_ids
 
@@ -275,6 +276,14 @@ module GameSetup
     protected def load_social_data
         @social_data = @db[:social_base].to_hash(:id)
         log("Database load complete: Social data")
+    end
+
+    protected def load_gender_data
+        @gender_data = @db[:gender_base].to_hash(:id)
+        if @gender_data.size == 0
+            @gender_data[Constants::Gender::DEFAULT[:id]] = Constants::Gender::DEFAULT
+        end
+        log("Database load complete: Gender data")
     end
 
     # load reset tables from database

@@ -1,7 +1,7 @@
 class GameObject
 
     attr_accessor :name, :keywords, :affects, :uuid, :active
-    attr_reader :listeners, :room
+    attr_reader :listeners, :room, :gender, :short_description, :long_description
 
     def initialize( name, keywords )
         @name = name
@@ -23,6 +23,7 @@ class GameObject
         @listeners = {}
         @uuid = Game.instance.new_uuid
         @active = true
+        @gender = 1
     end
 
     def update( elapsed )
@@ -30,10 +31,6 @@ class GameObject
     end
 
     def output( message, objects = [] )
-    end
-
-    def broadcast( message, targets, objects = [], send_to_sleeping: false)
-        Game.instance.broadcast(message, targets, objects.to_a, send_to_sleeping: send_to_sleeping)
     end
 
     def target( query )
@@ -54,11 +51,9 @@ class GameObject
 
     def show( looker )
         if looker.can_see? self
-            data = { description: self.to_s }
-            Game.instance.fire_event(self, :event_calculate_aura_description, data )
-            return data[:description]
+            return self.long_auras + @name.to_s
         else
-            to_someone
+            return to_someone
         end
     end
 
@@ -220,4 +215,150 @@ class GameObject
         return "in"
     end
 
+    # Pronouns
+
+    # %O -> personal_objective_pronoun (him, her, it)
+    def personal_objective_pronoun
+        return Game.instance.gender_data[@gender][:personal_objective]
+    end
+
+    # %U -> personal_subjective_pronoun (he, she, it)
+    def personal_subjective_pronoun
+        return Game.instance.gender_data[@gender][:personal_subjective]
+    end
+
+    # %P -> possessive_pronoun (his, her, its)
+    def possessive_pronoun
+        return Game.instance.gender_data[@gender][:possessive]
+    end
+
+    # %O -> reflexive_pronoun (himself, herself, itself)
+    def reflexive_pronoun
+        return Game.instance.gender_data[@gender][:reflexive]
+    end
+
+    # Indefinite name/description/pronouns
+    # these are to be used if the gameobject cannot be seen - override in subclasses
+
+    def indefinite_name
+        return "something"
+    end
+
+    def indefinite_short_description
+        return "something"
+    end
+
+    def indefinite_long_description
+        return "something"
+    end
+
+    # %O -> personal_objective_pronoun (him, her, it)
+    def indefinite_personal_objective_pronoun
+        return "it"
+    end
+
+    # %U -> personal_subjective_pronoun (he, she, it)
+    def indefinite_personal_subjective_pronoun
+        return "it"
+    end
+
+    # %P -> possessive_pronoun (his, her, its)
+    def indefinite_possessive_pronoun
+        return "its"
+    end
+
+    # %R -> reflexive_pronoun (himself, herself, itself)
+    def indefinite_reflexive_pronoun
+        return "itself"
+    end
+
+    # Resolving of name/descriptions/pronouns of another object
+
+    def resolve_name(target)
+        if target == self
+            return "you".freeze
+        end
+        if can_see?(target)
+            return target.name
+        else
+            return target.indefinite_name
+        end
+    end
+
+    def resolve_short_description(target)
+        if can_see?(target)
+            return target.short_description
+        else
+            return target.indefinite_short_description
+        end
+    end
+
+    def resolve_long_description(target)
+        if can_see?(target)
+            return target.long_description
+        else
+            return target.indefinite_long_description
+        end
+    end
+
+    # personal_objective_pronoun (him, her, it, you)
+    def resolve_personal_objective_pronoun(target)
+        if target == self
+            return "you".freeze
+        end
+        if can_see?(target)
+            return target.personal_objective_pronoun
+        else
+            return target.indefinite_personal_objective_pronoun
+        end
+    end
+
+    # personal_subjective_pronoun (he, she, it, you)
+    def resolve_personal_subjective_pronoun(target)
+        if target == self
+            return "you".freeze
+        end
+        if can_see?(target)
+            return target.personal_subjective_pronoun
+        else
+            return target.indefinite_personal_subjective_pronoun
+        end
+    end
+
+    # possessive_pronoun (his, her, its, your)
+    def resolve_possessive_pronoun(target)
+        if target == self
+            return "your".freeze
+        end
+        if can_see?(target)
+            return target.possessive_pronoun
+        else
+            return target.indefinite_possessive_pronoun
+        end
+    end
+
+    # reflexive_pronoun (himself, herself, itself, yourself)
+    def resolve_reflexive_pronoun(target)
+        if target == self
+            return "yourself".freeze
+        end
+        if can_see?(target)
+            return target.reflexive_pronoun
+        else
+            return target.indefinite_reflexive_pronoun
+        end
+    end
+
+    # aura string generation
+    def short_auras
+        data = { description: "" }
+        Game.instance.fire_event( self, :event_calculate_short_auras, data )
+        return data[:description]
+    end
+
+    def long_auras
+        data = { description: "" }
+        Game.instance.fire_event( self, :event_calculate_long_auras, data )
+        return data[:description]
+    end
 end

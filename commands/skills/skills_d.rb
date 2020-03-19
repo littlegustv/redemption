@@ -26,9 +26,9 @@ class SkillDisarm < Skill
                 return false
             end
             # stat check here?
-        	actor.output "You disarm %s!", [actor.attacking]
+        	actor.output "You disarm 0<n>!", [actor.attacking]
         	actor.attacking.output "You have been disarmed!"
-        	actor.broadcast "%s disarms %s", actor.room.occupants - [ actor, actor.attacking ], [actor, actor.attacking]
+        	(actor.room.occupants - [ actor, actor.attacking ]).each_output "0<N> disarms 1<n>!" [actor, actor.attacking]
             weapon.move(actor.attacking.inventory)
             actor.attacking.drop_item(weapon)
             return true
@@ -69,8 +69,7 @@ class SkillDirtKick < Skill
 
     def do_dirtkick( actor, target )
         if not target.affected? "blind"
-            target.output "You are blinded by the dirt in your eyes!"
-            actor.broadcast "%s is blinded by the dirt in their eyes!", actor.room.occupants - [target], [target]
+            actor.room.occupants.each_output "0<N> is blinded by the dirt in 0<p> eyes!", [target]
             target.apply_affect(AffectBlind.new( actor, target, actor.level ))
             actor.deal_damage(target: target, damage: 5, noun:"bash", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: true)
         else

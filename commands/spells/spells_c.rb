@@ -15,7 +15,7 @@ class SpellCalm < Spell
     def attempt( actor, cmd, args, input, level )
         actor.room.occupants.each do | entity |
             entity.output "A wave of calm washes over you."
-            Game.instance.broadcast "%s calms down and loses the will to fight.", entity.room.occupants - [entity], [entity]
+            (entity.room.occupants - [entity]).each_output "0<N> calms down and loses the will to fight.", [entity]
             entity.remove_affect "berserk"
             entity.remove_affect "frenzy"
             entity.remove_affect "taunt"
@@ -183,27 +183,24 @@ class SpellChainLightning < Spell
             actor.output "They aren't here."
             return false
         end
-        Game.instance.broadcast "A lightning bolt leaps from %s's hand and arcs to %s.", actor.room.occupants - [actor, target], [actor, target]
-        actor.output "A lightning bolt leaps from your hand and arcs to %s.", [target]
-        target.output "A lightning bolt leaps from %s's hand and strikes you!", [actor]
+        actor.room.occupants.each_output "A lightning bolt leaps from 0<n>'s hand and arcs to 1<n>1<!,.>", [actor, target]
 
         damage = 100
         actor.deal_damage(target: target, damage: damage, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
         while (damage -= 10) >= 0
-            target = actor.room.occupants.sample
+            target = actor.room.occupants.sample # TODO: target only combatable mobs?
 
             if target == actor
-                Game.instance.broadcast "The bolt arcs to %s...whoops!", actor.room.occupants - [target], [actor, target]
-                target.output "You are struck by your own lightning!"
+                (actor.room.occupants - [actor]).each_output "The bolt arcs to 0<n>... whoops!", [actor]
+                actor.output "You are struck by your own lightning!"
             else
-                Game.instance.broadcast "The bolt arcs to %s!", actor.room.occupants - [target], [target]
-                target.output "The bolt arcs to you!"
+                actor.room.occupants.each_output "The bolt arcs to 0<n>!", [target]
             end
 
             actor.deal_damage(target: target, damage: damage, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
         end
 
-        Game.instance.broadcast "The bolt seems to have fizzled out.", actor.room.occupants - [target]
+        (actor.room.occupants - [target]).each_output "The bolt seems to have fizzled out."
         target.output "The bolt grounds out through your body."
 
         return true
@@ -225,8 +222,8 @@ class SpellCharmPerson < Spell
     def attempt( actor, cmd, args, input, level )
         if ( target = Game.instance.target( { list: actor.room.occupants - [actor], visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
             if rand(1..10) <= 5
-                actor.output "%s looks at you with adoring eyes.", [target]
-                target.output "Isn't %s just so nice??", [actor]
+                actor.output "0<N> looks at you with adoring eyes.", [target]
+                target.output "Isn't 0<n> just so nice??", [actor]
                 target.apply_affect( AffectFollow.new( actor, target, 1 ) )
                 target.apply_affect( AffectCharm.new( actor, target, actor.level ) )
             else
@@ -328,8 +325,7 @@ class SpellContinualLight < Spell
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
             item = Game.instance.load_item( 1952, actor.inventory )
-            actor.broadcast "%s twiddles their thumbs and %s appears.", actor.room.occupants - [actor], [actor, item]
-            actor.output "You twiddle your thumbs and %s appears.", [item]
+            actor.room.occupants.each_output "0<N> twiddles 0<p> thumbs and 1<n> appears.", [actor, item]
         elsif ( target = Game.instance.target( { list: actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
             target.apply_affect( AffectGlowing.new( nil, target, actor.level ))
         else
@@ -353,7 +349,7 @@ class SpellFloatingDisc < Spell
     def attempt( actor, cmd, args, input, level )
         if actor.free?("wear_float")
             actor.output "You create a floating disc."
-            actor.broadcast "%s has created a floating black disc.", actor.room.occupants - [actor], [actor]
+            (actor.room.occupants - [actor]).each_output "0<N> has created a floating black disc.", [actor]
             disc = Game.instance.load_item( 1954, actor.inventory )
             actor.wear( item: disc )
             return true
@@ -379,7 +375,7 @@ class SpellCreateFood < Spell
 
     def attempt( actor, cmd, args, input, level )
         food = Game.instance.load_item( 1951, actor.room.inventory )
-        actor.broadcast "%s suddenly appears.", actor.room.occupants, [food]
+        actor.room.occupants.each_output "0<N> suddenly appears.", [food]
     end
 
 end
@@ -397,9 +393,9 @@ class SpellCreateRose < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.output "You create a beautiful red rose."
-        actor.broadcast "%s has created a beautiful red rose.", actor.room.occupants - [actor], [actor]
-        Game.instance.load_item( 846, actor.room.inventory )
+        rose = Game.instance.load_item( 846, actor.room.inventory )
+        actor.output "You create 0<n>.", [rose]
+        (actor.room.occupants - [actor]).each_output "0<N> has conjured 1<n>.", [actor, rose]
     end
 
 end
@@ -418,7 +414,7 @@ class SpellCreateSpring < Spell
 
     def attempt( actor, cmd, args, input, level )
         spring = Game.instance.load_item( 1953, actor.room.inventory )
-        actor.broadcast "%s flows from the ground.", actor.room.occupants, [spring]
+        actor.room.occupants.each_output "0<N> flows from the ground.", [spring]
     end
 
 end

@@ -14,7 +14,7 @@ class SkillTrip < Skill
     def attempt( actor, cmd, args, input )
         target = nil
         if args.length <= 0 and actor.attacking.nil?
-            actor.output "Who did you want to bash?"
+            actor.output "Who did you want to trip?"
             return false
         end
         if actor.position < Constants::Position::STAND
@@ -33,9 +33,8 @@ class SkillTrip < Skill
     end
 
     def do_trip( actor, target )
-        actor.output "You trip %s and %s goes down!", [target, target]
-        target.output "%s trips you and you go down!", [actor]
-        actor.broadcast "%s trips %s, sending them to the ground.", actor.room.occupants - [ actor, target ], [actor, target]
+        [actor, target].each_output "0<N> trip0<,s> 1<n> and 1<u> go0<es,> down!", [actor, target]
+        (actor.room.occupants - [actor, target]).each_output "0<N> trips 1<n>, sending 1<o> to the ground.", [actor, target]
         actor.deal_damage(target: target, damage: 5, noun:"trip", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
         target.apply_affect(Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }))
     end

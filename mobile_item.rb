@@ -6,8 +6,8 @@ module MobileItem
         if item.level <= self.level
             return true
         else
-            output "You must be level #{ item.level } to use #{ item.to_s }."
-            broadcast "%s tries to use %s but is too inexperienced.", @room.occupants - [ self ], [ self, item ]
+            output "You must be level #{ item.level } to use 0<n>.", [item]
+            (@room.occupants - [ self ]).each_output "0<N> tries to use 1<n> but is too inexperienced.", [ self, item ]
             return false
         end
     end
@@ -30,12 +30,12 @@ module MobileItem
             if item.wear_flags.include?(equip_slot.wear_flag) && !equip_slot.item
                 if !silent
                     output(equip_slot.equip_message_self, [item])
-                    broadcast(equip_slot.equip_message_others, @room.occupants - [self], [self, item])
+                    (@room.occupants - [self]).each_output(equip_slot.equip_message_others, [self, item, self])
                     if equip_slot.wear_flag == "wield"
                         if proficient( item.genre )
-                            output "%s feels like a part of you!", [item]
+                            output "0<N> feels like a part of you!", [item]
                         else
-                            output "You don't even know which end is up on %s.", [item]
+                            output "You don't even know which end is up on 0<n>.", [item]
                         end
                     end
                 end
@@ -48,12 +48,12 @@ module MobileItem
                 if unwear(item: equip_slot.item, silent: silent)
                     if !silent
                         output(equip_slot.equip_message_self, [item])
-                        broadcast(equip_slot.equip_message_others, target({ :not => self, :list => @room.occupants }), [self, item])
+                        (@room.occupants - [self]).each_output(equip_slot.equip_message_others, [self, item, self])
                         if equip_slot.wear_flag == "wield"
                             if proficient( item.genre )
-                                output "%s feels like a part of you!", [item]
+                                output "0<N> feels like a part of you!", [item]
                             else
-                                output "You don't even know which end is up on %s.", [item]
+                                output "You don't even know which end is up on 0<n>.", [item]
                             end
                         end
                     end
@@ -86,8 +86,7 @@ module MobileItem
             return false
         end
         if !silent
-            output("You stop using %s.", [item])
-            broadcast("%s stops using %s.", target({ :not => self, :list => @room.occupants }), [self, item])
+            self.room.occupants.each_output "0<N> stop0<,s> using 1<n>.", [self, item]
         end
         get_item(item, silent: true)
         return true
@@ -97,14 +96,16 @@ module MobileItem
     def show_equipment(observer)
         objects = []
         lines = []
+        count = 0
         self.equip_slots.each do |equip_slot|
             line = "<#{equip_slot.list_prefix}>".rpad(22)
             if equip_slot.item
-                line << "%s"
+                line << "#{count}<AN>"
                 objects << equip_slot.item
+                count = count + 1
             else
                 if observer == self
-                    line << "<Nothing>"
+                    line << "<<Nothing>>"
                 else
                     next
                 end
@@ -139,8 +140,8 @@ module MobileItem
             output "That would be a bad idea."
             return
         end
-        output "You puts %s in %s.", [item, container] if !silent
-        broadcast "%s puts %s in %s.", @room.occupants - [self], [self, item, container] if !silent
+        output "You puts 0<n> in 1<n>.", [item, container] if !silent
+        @room.occupants.each_output("0<N> put0<,s> 1<n> in 2<n>.", [self, item, container]) if !silent
         container.get_item(item)
         # if @inventory && @inventory.items.size == 0
         #     @inventory = nil
@@ -150,15 +151,13 @@ module MobileItem
     # Gets an item, regardless of where it is.
     def get_item(item, silent: false)
         if !item.wear_flags.include? "take"
-            output "You can't take #{ item }."
+            output "You can't take 0<n>.", [item]
             return
         end
         if item.parent_inventory && Item === (container = item.parent_inventory.owner)
-            output("You get %s from %s.", [item, container]) if !silent
-            broadcast("%s gets %s from %s.", target({ :not => self, :list => @room.occupants }), [self, item, container]) if !silent
+            @room.occupants.each_output("0<N> get0<,s> 1<n> from 2<n>.", [self, item, container]) if !silent
         else
-            output("You get %s.", [item]) if !silent
-            broadcast("%s gets %s.", target({ :not => self, :list => @room.occupants }), [self, item]) if !silent
+            @room.occupants.each_output("0<N> get0<,s> 1<n>.", [self, item]) if !silent
         end
         # if !@inventory # no inventory, create one
         #     @inventory = Inventory.new(self)
@@ -167,9 +166,7 @@ module MobileItem
     end
 
     def give_item(item, mobile, silent: false)
-        output("You give %s to %s.", [item, mobile]) if !silent
-        mobile.output("%s gives you %s.", [self, item]) if !silent
-        broadcast("%s gives %s to %s.", target({ :not => [self, mobile], :list => @room.occupants }), [self, item, mobile]) if !silent
+        @room.occupants.each_output("0<N> give0<,s> 1<n> to 2<n>.", [self, item, mobile]) if !silent
         mobile.get_item(item, silent: true)
         # if @inventory && @inventory.items.size == 0
         #     @inventory = nil
@@ -177,8 +174,7 @@ module MobileItem
     end
 
     def drop_item(item, silent: false)
-        output("You drop %s.", [item]) if !silent
-        broadcast("%s drops %s.", target({ :not => self, :list => @room.occupants }), [self, item]) if !silent
+        @room.occupants.each_output("0<N> drop0<,s> 1<n>.", [self, item]) if !silent
         @room.get_item(item)
         # if @inventory && @inventory.items.size == 0
         #     @inventory = nil

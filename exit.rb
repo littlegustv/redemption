@@ -37,7 +37,7 @@ class Exit < GameObject
 		@closed ? "{c(#{@direction}){x" : "#{@direction}"
 	end
 
-	def short
+	def short_description
 		(@keywords.first || "door")
 	end
 
@@ -52,7 +52,7 @@ class Exit < GameObject
 
 			unless silent
 				actor.output "Click."
-				actor.broadcast "%s locks the #{short} to the #{@direction}.", actor.room.occupants - [actor], [actor]
+				(actor.room.occupants - [actor]).each_output "0<N> locks the #{short_description} to the #{@direction}.", [actor]
 			end
 
 			@locked = true
@@ -72,7 +72,7 @@ class Exit < GameObject
 
 			unless silent
 				actor.output "Click."
-				actor.broadcast "%s unlocks the #{short} to the #{@direction}.", actor.room.occupants - [actor], [actor]
+				(actor.room.occupants - [actor]).each_output "0<N> unlocks the #{short_description} to the #{@direction}.", [actor]
 			end
 
 			@locked = false
@@ -91,8 +91,8 @@ class Exit < GameObject
 		elsif @closed
 
 			unless silent
-				actor.output "You open #{short}"
-				actor.broadcast "%s opens #{short}", actor.room.occupants - [actor], [actor]
+				actor.output "You open #{short_description}."
+				(actor.room.occupants - [actor]).each_output "0<N> opens #{short_description}", [actor]
 			end
 
 			@closed = false
@@ -110,8 +110,8 @@ class Exit < GameObject
 			@pair.close( actor, silent: true ) if @pair
 
 			unless silent
-				actor.output "You close #{short}"
-				actor.broadcast "%s closes #{short}", actor.room.occupants - [actor], [actor]
+				actor.output "You close #{short_description}."
+				(actor.room.occupants - [actor]).each_output "0<N> closes #{short_description}", [actor]
 			end
 
 			return true
@@ -126,7 +126,7 @@ class Exit < GameObject
 
 	def move( mobile )
 		if @closed && !mobile.affected?("pass door")
-			mobile.output "The %s is closed.", [ short ]
+			mobile.output "The #{short_description} is closed.", [ self ]
 			return false
 		else
             mobile.move_to_room( @destination )

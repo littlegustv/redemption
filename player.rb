@@ -72,19 +72,73 @@ class Player < Mobile
     def login
         output "Welcome, #{@name}."
         move_to_room(@room)
-        broadcast("%s has entered the game.", target({not: [self], list: @room.occupants}), [self])
+        (@room.occupants - [self]).each_output("0<N> has entered the game.", [self])
     end
 
+    # send output to player. this is where
     def output( message, objects = [] )
         if !@active
             return
         end
-        objects = objects.to_a
-        if objects.count > 0
-            @buffer += "#{ message % objects.map{ |obj| (obj.respond_to?(:show)) ? obj.show( self ) : obj.to_s } }\n".capitalize_first
-        else
-            @buffer += "#{ message }\n".capitalize_first
+        message = message.dup
+        # verb conjugation replacement
+        #
+        # [0] => entire match                   "0{drop, drops}"
+        # [1] => object index                   "0"
+        # [2] => first person result            "drop"
+        # [3] => third person result            "drops"
+        message.scan(/((\d+)<\s*([^<>]*)\s*,\s*([^<>]*)\s*>)/i).each do |match_group|
+            index = match_group[1].to_i
+            to_replace = match_group[0]
+            replacement = match_group[3] # default to second option
+            if index < objects.length && index >= 0
+                obj = objects[index]
+                if obj == self # replace with first string if object in question is self
+                    replacement = match_group[2]
+                end
+            end
+            message.sub!(to_replace, replacement)
         end
+
+        # noun/pronoun replacement
+        #
+        # [0] => entire match                   "0{An}'s'"
+        # [1] => object index                   "0"
+        # [2] => aura option                    "A"
+        # [3] => replacement option             "n"
+        # [4] => possessive                     "'s"
+        message.scan(/((\d+)<([Aa]?)([#{Constants::OutputFormat::REPLACE_HASH.keys.join}])>('s)?)/i).each do |match_group|
+            index = match_group[1].to_i
+            to_replace = match_group[0]
+            replacement = "~" # default replacement - SHOULD get swapped with something!
+            if index < objects.length && index >= 0
+                obj = objects[index]
+                replacement = ""
+                case match_group[2]
+                when "a"
+                    replacement.concat(obj.short_auras)
+                when "A"
+                    replacement.concat(obj.long_auras)
+                end
+                noun = self.send(Constants::OutputFormat::REPLACE_HASH[match_group[3].downcase], obj).dup
+                if match_group[3] == match_group[3].upcase
+                    noun.capitalize_first!
+                end
+                replacement.concat(noun)
+                possessive = match_group[4] # match on possessive! ("'s")
+                if obj == self && match_group[3].downcase == "n" && possessive == "'s"
+                    possessive = "r"
+                end
+                if possessive
+                    replacement.concat(possessive)
+                end
+            end
+            message.sub!(to_replace, replacement)
+        end
+
+        message.gsub!(/>>/, ">")
+        message.gsub!(/<</, "<")
+        @buffer += message.capitalize_first + "\n"
     end
 
     def delayed_output
@@ -118,7 +172,7 @@ class Player < Mobile
 
     def die( killer )
         output "You have been KILLED!"
-        broadcast "%s has been KILLED.", target({ not: [ self ] }), [self]
+        (@room.occupants - [self]).each_output "0<N> has been KILLED.", [self]
         Game.instance.fire_event(self, :event_on_die, {} )
         stop_combat
         @affects.each do |affect|
@@ -134,7 +188,7 @@ class Player < Mobile
         Game.instance.save
         stop_combat
         if !silent
-            broadcast "%s has left the game.", @room.occupants - [self], self
+            (@room.occupants - [self]).each_output "0<N> has left the game.", self
         end
         @buffer = ""
         if @client

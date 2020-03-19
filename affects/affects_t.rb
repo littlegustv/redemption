@@ -25,7 +25,7 @@ class AffectTaunt < Affect
     end
 
     def send_start_messages
-        @target.broadcast("%s is taunted by the demons!", @target.room.occupants - [@target], @target)
+        (@target.room.occupants - [@target]).each_output("0<N> is taunted by the demons!", @target)
         @target.output "You radiate from being taunted by the demons!"
     end
 

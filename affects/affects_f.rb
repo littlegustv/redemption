@@ -25,7 +25,7 @@ class AffectFireBlind < AffectBlind
     end
 
     def send_start_messages
-        @target.broadcast "{r%s is blinded by smoke!{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{r0<N> is blinded by smoke!{x", [@target]
         @target.output "{rYour eyes tear up from smoke...you can't see a thing!{x"
     end
 
@@ -70,7 +70,7 @@ class AffectFireRune < Affect
     end
 
     def send_complete_messages
-        @source.broadcast "The rune of flames on this room vanishes.", @target.occupants
+        @target.occupants.each_output "The rune of flames on this room vanishes."
     end
 
     def do_fire_rune(data)
@@ -78,7 +78,7 @@ class AffectFireRune < Affect
     		@source.output "You sense the power of the room's rune and avoid it!"
     	elsif rand(0..100) < 50
     		data[:mobile].output "You are engulfed in flames as you enter the room!"
-    		data[:mobile].broadcast "%s has been engulfed in flames!", @target.room.occupants - [data[:mobile]], [data[:mobile]]
+    		(@target.room.occupants - [data[:mobile]]).each_output "%N has been engulfed in flames!", [data[:mobile]]
             @source.deal_damage(target: data[:mobile], damage: 100, noun:"fireball", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
 	    else
 	    	data[:mobile].output "You sense the power of the room's rune and avoid it!"
@@ -116,17 +116,15 @@ class AffectFlooding < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{b%s coughes and chokes on the water.{x", @target.room.occupants - [@target], [@target]
-        @target.output "{bYou cough and choke on the water.{x"
+        @target.room.occupants.each_output "{b0<N> cough0<,s> and choke0<,s> on the water.{x", [@target]
     end
 
     def send_refresh_messages
-        @target.broadcast "{b%s coughes and chokes on the water.{x", @target.room.occupants - [@target], [@target]
-        @target.output "{bYou cough and choke on the water.{x"
+        @target.room.occupants.each_output "{b0<N> cough0<,s> and choke0<,s> on the water.{x", [@target]
     end
 
     def send_complete_messages
-        @target.output "Your flesh begins to heal."
+        @target.output "The water clinging to you evaporates."
     end
 
 end
@@ -156,8 +154,7 @@ class AffectFly < Affect
     end
 
     def send_start_messages
-        @target.broadcast "%s's feet rise off the ground.", @target.room.occupants - [@target], [@target]
-        @target.output "Your feet rise off the ground."
+        @target.room.occupants.each_output "0<N>'s feet rise off the ground.", [@target]
     end
 
     def send_complete_messages
@@ -191,13 +188,13 @@ class AffectFollow < Affect
     end
 
     def send_start_messages
-        @target.output "You now follow %s", [@source]
-        @source.output "%s now follows you", [@target]
+        @target.output "You now follow 0<n>.", [@source]
+        @source.output "0<N> now follows you.", [@target]
     end
 
     def send_complete_messages
-        @target.output "You stop following %s", [@source]
-        @source.output "%s stops following you", [@target]
+        @target.output "You stop following 0<n>.", [@source]
+        @source.output "0<N> stops following you.", [@target]
     end
 
     def start
@@ -226,11 +223,11 @@ class AffectFrenzy < Affect
             level, # level
             90 + level * 10, # duration
             {
-                damroll: (level / 10).to_i,
-                hitroll: (level / 10).to_i,
-                ac_pierce: level * 20,
-                ac_bash: level * 20,
-                ac_slash: level * 20
+                damroll: (level / 6).to_i,
+                hitroll: (level / 6).to_i,
+                ac_pierce: level + 9,
+                ac_bash: level + 9,
+                ac_slash: level + 9
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
@@ -248,7 +245,7 @@ class AffectFrenzy < Affect
     end
 
     def send_start_messages
-        @target.broadcast("%s gets a wild look in their eyes!", @target.room.occupants - [@target], @target)
+        (@target.room.occupants - [@target]).each_output("0<N> gets a wild look in their eyes!", @target)
         @target.output "You are filled with holy wrath!"
     end
 
@@ -282,12 +279,12 @@ class AffectFrost < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{C%s turns blue and shivers.{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{C0<N> turns blue and shivers.{x", [@target]
         @target.output "{CA chill sinks deep into your bones.{x"
     end
 
     def send_refresh_messages
-        @target.broadcast "{C%s turns blue and shivers.{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{C0<N> turns blue and shivers.{x", [@target]
         @target.output "{CA chill sinks deep into your bones.{x"
     end
 

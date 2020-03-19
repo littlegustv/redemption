@@ -34,12 +34,12 @@ class AffectScramble < Affect
 
     def send_start_messages
         @target.output "Your mother tongue now eludes you."
-        @target.broadcast "%s can no longer understand anything.", @target.room.occupants - [@target], [ @target ]
+        (@target.room.occupants - [@target]).each_output "0<N> can no longer understand anything.", [ @target ]
     end
 
     def send_complete_messages
         @target.output "Your linguistic skills return to you."
-        @target.broadcast "%s remembers how to speak.", @target.room.occupants - [@target], [ @target ]
+        (@target.room.occupants - [@target]).each_output "0<N> remembers how to speak.", [ @target ]
     end
 
     def do_scramble(data)
@@ -89,7 +89,7 @@ class AffectShackle < Affect
 
     def send_start_messages
         @target.output "You are bound and restricted by runic shackles!"
-        @target.broadcast "%s has been bound by runic shackles!", @target.room.occupants - [@target], [ @target ]
+        (@target.room.occupants - [@target]).each_output "0<N> has been bound by runic shackles!", [ @target ]
     end
 
     def send_complete_messages
@@ -97,7 +97,7 @@ class AffectShackle < Affect
     end
 
     def do_shackles(data)
-        @target.broadcast "%s tries to move while magically shackled.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> tries to move while magically shackled.", [@target]
         @target.output "You struggle against the shackles!"
         @target.lag += 1
     end
@@ -140,7 +140,7 @@ class AffectShackleRune < Affect
 
     def send_complete_mesages
         @source.output "You feel that movement is not being restricted by runes as much as it used to."
-        @source.broadcast "The rune of warding on this room vanishes.", @target.occupants
+        @target.occupants.each_output "The rune of warding on this room vanishes."
     end
 
     def do_shackle_rune(data)
@@ -182,8 +182,7 @@ class AffectShield < Affect
     end
 
     def send_start_messages
-        @target.output "You are surrounded by a force shield."
-        @target.broadcast "%s is surrounded by a force shield.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> 0<are,is> surrounded by a force shield.", [@target]
     end
 
     def send_complete_messages
@@ -243,12 +242,12 @@ class AffectShocking < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{y%s jerks and twitches from the shock!{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{y0<N> jerks and twitches from the shock!{x", [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
 
     def send_refresh_messages
-        @target.broadcast "{y%s jerks and twitches from the shock!{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{y0<N> jerks and twitches from the shock!{x", [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
 end
@@ -357,6 +356,7 @@ class AffectSlow < Affect
 
     def send_start_messages
         @target.output "You find yourself moving more slowly."
+        (@target.room.occupants - [@target]).each_output "{y0<N> slows down.{x", [@target]
     end
 
     def send_complete_messages
@@ -389,8 +389,7 @@ class AffectStoneSkin < Affect
     end
 
     def send_start_messages
-        @target.output "Your skin turns to stone."
-        @target.broadcast "%s's skin turns to stone.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N>'s skin turns to stone.", [@target]
     end
 
     def send_complete_messages
@@ -425,6 +424,6 @@ class AffectStun < Affect
 
     def send_start_messages
         @target.output "Bands of force crush you, leaving you stunned momentarily."
-        @target.broadcast "Bands of force stun %s momentarily.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "Bands of force stun 0<n> momentarily.", [@target]
     end
 end

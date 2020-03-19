@@ -7,13 +7,13 @@ class Formula
     end
 
     def formula_for_player(player)
-        player_formula = @definition;
-        player_formula.gsub!("level", actor.level.to_s)
+        player_formula = @definition
+        player_formula.gsub!("level", player.level.to_s)
         return player_formula
     end
 
     def evaluate(player)
-        return calculate(player, formula_for_player(player)).to_i
+        return calculate(formula_for_player(player)).to_i
     end
 
     def calculate(substr)
@@ -22,7 +22,7 @@ class Formula
         loop do
             last_substr = substr
             substr.scan(/(\(([^()]*)\))/).each do |bracket, content|
-                substr.sub!(bracket, calculate(actor, content))
+                substr.sub!(bracket, calculate(content))
             end
             substr.scan(/((-?\d+)d(-?\d+))/).each do |dice_str, count, sides|
                 substr.sub!(dice_str, dice(count.to_i, sides.to_i).to_s)
@@ -108,7 +108,7 @@ class SpellAlarmRune < Spell
             return false
         else
             actor.output "You place an alarm rune on the ground, increasing your senses."
-            actor.broadcast "%s places a strange rune on the ground.", actor.room.occupants - [actor], [actor]
+            (actor.room.occupants - [actor]).each_output "0<N> places a strange rune on the ground.", [actor]
             actor.room.apply_affect( AffectAlarmRune.new( actor, actor.room, actor.level ) )
             return true
         end

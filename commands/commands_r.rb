@@ -56,7 +56,7 @@ class CommandRest < Command
             Game.instance.fire_event( actor, :event_try_wake, data )
             if data[:success]
                 actor.output "You wake up and rest."
-                actor.broadcast "%s wakes up and begins to rest.", actor.room.occupants - [actor], [actor]
+                (actor.room.occupants - [actor]).each_output "0<N> wakes up and begins to rest.", [actor]
                 actor.position = Constants::Position::REST
                 actor.look_room
                 return true
@@ -69,7 +69,7 @@ class CommandRest < Command
             return false
         when Constants::Position::STAND
             actor.output "You sit down and rest."
-            actor.broadcast "%s sits down and rests.", actor.room.occupants - [actor], [actor]
+            (actor.room.occupants - [actor]).each_output "0<N> sits down and rests.", [actor]
             actor.position = Constants::Position::REST
             return true
         else

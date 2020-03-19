@@ -22,7 +22,7 @@ class CommandWake < Command
                 Game.instance.fire_event( actor, :event_try_wake, data )
                 if data[:success]
                     actor.output "You wake and stand up."
-                    actor.broadcast "%s wakes and stands up.", actor.room.occupants - [actor], [actor]
+                    (actor.room.occupants - [actor]).each_output "0<N> wakes and stands up.", [actor]
                     actor.position = Constants::Position::STAND
                     actor.look_room
                     return true
@@ -44,14 +44,12 @@ class CommandWake < Command
                     data = { success: true }
                     Game.instance.fire_event( actor, :event_try_wake, data )
                     if data[:success]
-                        actor.output "You wake %s up.", target
-                        target.output "%s wakes you up.", actor
-                        target.broadcast "%s wakes %s up.", actor.room.occupants - [actor], [actor, target]
+                        actor.room.occupants.each_ouptut "0<N> wake0<,s> 1<n> up.", [actor, target]
                         target.position = Constants::Position::STAND
                         target.look_room
                         return true
                     else
-                        actor.output "You can't wake %s!", [target]
+                        actor.output "You can't wake 0<n>!", [target]
                         return false
                     end
                 when Constants::Position::REST, Constants::Position::STAND

@@ -16,7 +16,7 @@ class CommandEmote < Command
             return false
         else
             message = input[/#{cmd} (.*)/, 1]
-            actor.broadcast "%s #{message}", actor.room.occupants, [actor]
+            actor.room.occupants.each_output "0<N> #{message}", [actor]
             return true
         end
     end

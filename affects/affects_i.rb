@@ -33,8 +33,7 @@ class AffectIgnoreWounds < Affect
     end
 
     def send_start_messages
-        @target.output "You close your eyes and forget about the pain."
-        @target.broadcast "%s closes %x eyes and forgets about the pain.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> close0<,s> 0<p> eyes and forget0<,s> about the pain.", [@target]
     end
 
     def end_complete_messages
@@ -44,9 +43,9 @@ class AffectIgnoreWounds < Affect
     def do_ignore_wounds(data)
         source = data[:source]
         if source && data[:confirm] == false && @target.attacking != source && rand(1..100) <= 50
-            @target.output "You ignore the wounds inflicted by %s.", source
-            source.output "Your wounds don't seem to affect %s!", @target
-            @target.broadcast("%s ignores the wounds inflicted by %s.", @target.room.occupants - [@target, source], [@target, source] )
+            @target.output "You ignore the wounds inflicted by 0<n>.", source
+            source.output "Your wounds don't seem to affect 0<n>!", @target
+            (@target.room.occupants - [@target, source]).each_output("0<N> ignores the wounds inflicted by 1<n>.", [@target, source] )
             data[:confirm] = true
         end
     end
@@ -152,8 +151,7 @@ class AffectInfravision < Affect
     end
 
     def send_start_messages
-        @target.output "Your eyes glow red."
-        Game.instance.broadcast "%s's eyes glow red.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N>'s eyes glow red.", [@target]
     end
 
     def send_complete_messages
@@ -188,24 +186,21 @@ class AffectInvisibility < Affect
     def start
         Game.instance.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
         Game.instance.add_event_listener(@target, :event_try_can_be_seen, self, :do_invisibility)
-        Game.instance.add_event_listener(@target, :event_calculate_aura_description, self, :do_invisibility_aura)
+        Game.instance.add_event_listener(@target, :event_calculate_long_auras, self, :do_invisibility_aura)
     end
 
     def complete
         Game.instance.remove_event_listener(@target, :event_on_start_combat, self)
         Game.instance.remove_event_listener(@target, :event_try_can_be_seen, self)
-        Game.instance.remove_event_listener(@target, :event_calculate_aura_description, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_long_auras, self)
     end
 
     def send_start_messages
-        @target.output "You fade out of existence."
-    	Game.instance.broadcast "%s fades from existence.", @target.room.occupants - [@target], [@target]
+    	@target.room.occupants.each_output "0<N> fade0<,s> from existence.", [@target]
     end
 
     def send_complete_messages
-        @target.output "You fade into existence."
-        room  = @target.room
-        Game.instance.broadcast "%s fades into existence.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> fade0<,s> into existence.", [@target]
     end
 
     def do_remove_affect(data)

@@ -66,8 +66,7 @@ class Spell < Command
             actor.output "You can't concentrate enough."
             return false
 		else
-			actor.output "You utter the words '#{translate( @name )}'"
-			actor.broadcast "%s utters the words '#{translate( @name )}'", actor.room.occupants - [actor], [actor]
+			actor.room.occupants.each_output "0<N> utter0<,s> the words '#{translate( @name )}'.", [actor]
 
 			actor.cast( self, args, input )
             actor.lag += @lag

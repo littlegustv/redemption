@@ -30,13 +30,12 @@ class Mobile < GameObject
     include MobileItem
 
     def initialize( data, race_id, class_id, room )
-        super(data[ :short_desc ], data[:keywords])
+        super(data[ :name ], data[:keywords])
         @attacking = nil
         @lag = 0
         @id = data[ :id ]
         @short_description = data[ :short_desc ]
         @long_description = data[ :long_desc ]
-        @full_description = data[ :full_desc ]
         @race_equip_slots = []
         @class_equip_slots = []
 
@@ -56,8 +55,8 @@ class Mobile < GameObject
         @group = []
         @in_group = nil
         @deity = "Gabriel".freeze
-        @race_id = nil;
-        @class_id = nil;
+        @race_id = nil
+        @class_id = nil
 
         @casting = nil
         @casting_args = nil
@@ -327,7 +326,7 @@ class Mobile < GameObject
         ( flags = ( weapon ? weapon.flags : [] ) ).each do |flag|
             if ( texts = Constants::ELEMENTAL_EFFECTS[ flag ] )
                 @attacking.output texts[0], [self]
-                @attacking.broadcast texts[1], target({ not: @attacking, list: @room.occupants }), [ @attacking, weapon ]
+                (@room.occupants - [@attacking]).each_output texts[1], [ @attacking, self, weapon ]
             end
             elemental_effect( @attacking, flag )
             # @attacking.damage( 10, self )
@@ -351,8 +350,8 @@ class Mobile < GameObject
             when "frost"
                 target.apply_affect( AffectFrost.new(self, target, self.level))
             when "demonic"
-                target.output "%s has assailed you with the demons of Hell!", self
-                broadcast "%s calls forth the demons of Hell upon %s!", @room.occupants - [self, target], [self, target]
+                target.output "0<N> has assailed you with the demons of Hell!", self
+                (@room.occupants - [self, target]).each_output "0<N> calls forth the demons of Hell upon 1<n>!", [self, target]
                 output "You conjure forth the demons of hell!"
                 target.apply_affect( AffectCurse.new(self, target, self.level))
             end
@@ -379,6 +378,7 @@ class Mobile < GameObject
     # generate hand to hand weapon.
     def hand_to_hand_weapon
         weapon_data = {
+            name: "hand to hand",
             short_description: "Hand to hand",
             id: 0,
             keywords: "",
@@ -518,24 +518,18 @@ class Mobile < GameObject
             if !silent
                 decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
                 if source && !anonymous
-                    source.output("Your #{decorators[2]} #{noun} #{decorators[1]} #{(source==self) ? "yourself" : "%s"}#{decorators[3]} [#{damage}]", [self])
-                    output("%s's #{decorators[2]} #{noun} #{decorators[1]} you#{decorators[3]}", [source]) if source != self
-                    broadcast("%s's #{decorators[2]} #{noun} #{decorators[1]} %s#{decorators[3]} ", (self.room.occupants | source.room.occupants) - [self, source], [source, self])
+                    (self.room.occupants | source.room.occupants).each_output "0<N>'s #{decorators[2]} #{noun} #{decorators[1]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[3]} ", [source, self]
                 else # anonymous damage
-                    output("#{noun} #{decorators[1]} you#{decorators[3]}", [self])
-                    broadcast("#{noun} #{decorators[1]} %s#{decorators[3]} ", self.room.occupants - [self], [self])
+                    self.room.occupants.each_output("#{noun} #{decorators[1]} 0<n>#{decorators[3]} ", [self])
                 end
             end
         else # magic damage
             if !silent
                 decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
                 if source && !anonymous
-                    source.output("Your #{noun} #{decorators[0]} #{(source==self) ? "yourself" : "%s"}#{decorators[1]}#{decorators[2]}", [self])
-                    output("%s's #{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [source]) if source != self
-                    broadcast "%s's #{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", (self.room.occupants | source.room.occupants) - [self, source], [source, self]
+                    (self.room.occupants | source.room.occupants).each_output "0<N>'s #{noun} #{decorators[0]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[1]}#{decorators[2]}", [source, self]
                 else # anonymous damage
-                    output("#{noun} #{decorators[0]} you#{decorators[1]}#{decorators[2]}", [self])
-                    broadcast "#{noun} #{decorators[0]} %s#{decorators[1]}#{decorators[2]}", self.room.occupants - [self], [self]
+                    self.room.occupants.each_output "#{noun} #{decorators[0]} 0<n>#{decorators[1]}#{decorators[2]}", [self]
                 end
             end
         end
@@ -574,19 +568,19 @@ class Mobile < GameObject
         if !@active
             return
         end
-        broadcast "%s is DEAD!!", @room.occupants - [self], [self]
+        (@room.occupants - [self]).each_output "0<N> is DEAD!!", [self]
         Game.instance.fire_event( self, :event_on_die, {} )
 
         @affects.each do |affect|
             affect.clear(silent: true)
         end
         killer.xp( self ) if killer
-        broadcast "%s's head is shattered, and her brains splash all over you.", @room.occupants - [self], [self]
+        (@room.occupants - [self]).each_output "0<N>'s head is shattered, and 0<p> brains splash all over you.", [self]
         if killer
             self.items.each do |item|
                 killer.get_item(item)
             end
-            killer.output("You get #{ self.to_worth } from the corpse of %s", [self])
+            killer.output("You get #{ self.to_worth } from the corpse of 0<n>.", [self])
             killer.output("You offer your victory to #{@deity} who rewards you with 1 deity points.")
             killer.earn( @wealth )
         end
@@ -621,11 +615,11 @@ class Mobile < GameObject
         elsif not can_move? direction
             # nothing
         else
-            broadcast "%s leaves #{direction}.", @room.occupants - [self], [self] unless self.affected? "sneak"
+            (@room.occupants - [self]).each_output "0<N> leaves #{direction}.", [self] unless self.affected? "sneak"
             Game.instance.fire_event(self, :event_mobile_exit, { mobile: self, direction: direction })
             old_room = @room
             if @room.exits[direction.to_sym].move( self )
-                broadcast "%s has arrived.", @room.occupants - [self], [self] unless self.affected? "sneak"
+                (@room.occupants - [self]).each_output "0<N> has arrived.", [self] unless self.affected? "sneak"
                 (old_room.occupants - [self]).select { |t| t.position == Constants::Position::STAND }.each do |t|
                     Game.instance.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
                 end
@@ -645,7 +639,9 @@ class Mobile < GameObject
     end
 
     def who
-        "[#{@level.to_s.lpad(2)} #{Game.instance.race_data.dig(@race_id, :display_name).rpad(8)} #{Game.instance.class_data.dig(@class_id, :name).capitalize.lpad(8)}] #{@short_description}"
+        data = { description: "" }
+        Game.instance.fire_event( self, :event_calculate_short_aura_description, data )
+        "[#{@level.to_s.lpad(2)} #{Game.instance.race_data.dig(@race_id, :display_name).rpad(8)} #{Game.instance.class_data.dig(@class_id, :name).capitalize.lpad(8)}] #{data[:description]}#{@name}"
     end
 
     def weapons
@@ -669,16 +665,15 @@ class Mobile < GameObject
     end
 
     def recall
-        output "You pray for transportation!"
-        broadcast "%s prays for transportation!", @room.occupants - [self], [self]
+        @room.occupants.each_output "0<N> pray0<,s> for transportation!", [self]
         data = { mobile: self, success: true }
         Game.instance.fire_event(self, :event_try_recall, data)
 
         if data[:success]
-            broadcast "%s disappears!", @room.occupants - [self], [self]
+            (@room.occupants - [self]).each_output "0<N> disappears!", [self]
             room = Game.instance.recall_room( @room.continent )
             move_to_room( room )
-            broadcast "%s arrives in a puff of smoke!", @room.occupants - [self], [self]
+            (@room.occupants - [self]).each_output "0<N> arrives in a puff of smoke!", [self]
             return true
         else
             output "#{@deity} has forsaken you."
@@ -698,21 +693,21 @@ class Mobile < GameObject
         percent = data[:percent]
 
         if (percent >= 100)
-            return "#{self} is in excellent condition.\n"
+            return "#{@name.capitalize_first} is in excellent condition.\n"
         elsif (percent >= 90)
-            return "#{self} has a few scratches.\n"
+            return "#{@name.capitalize_first} has a few scratches.\n"
         elsif (percent >= 75)
-            return "#{self} has some small wounds and bruises.\n"
+            return "#{@name.capitalize_first} has some small wounds and bruises.\n"
         elsif (percent >= 50)
-            return "#{self} has quite a few wounds.\n"
+            return "#{@name.capitalize_first} has quite a few wounds.\n"
         elsif (percent >= 30)
-            return "#{self} has some big nasty wounds and scratches.\n"
+            return "#{@name.capitalize_first} has some big nasty wounds and scratches.\n"
         elsif (percent >= 15)
-            return "#{self} looks pretty hurt.\n"
+            return "#{@name.capitalize_first} looks pretty hurt.\n"
         elsif (percent >= 0)
-            return "#{self} is in awful condition.\n"
+            return "#{@name.capitalize_first} is in awful condition.\n"
         else
-            return "#{self} is bleeding to death.\n"
+            return "#{@name.capitalize_first} is bleeding to death.\n"
         end
     end
 
@@ -737,38 +732,38 @@ class Mobile < GameObject
     end
 
     def to_s
-        @short_description.to_s
+        @name.to_s
     end
 
-    def long
-        data = { description: @long_description }
+    def short_description
+        data = { description: @short_description }
         Game.instance.fire_event(self, :event_calculate_description, data )
         return data[:description]
     end
 
-    def show_long_description(observer:)
+    def show_short_description(observer:)
         data = {description: ""}
-        Game.instance.fire_event(self, :event_calculate_aura_description, data)
+        Game.instance.fire_event(self, :event_calculate_long_aura_description, data)
         if self.attacking
             if self.attacking == observer
-                return data[:description] + @short_description + " is here, fighting YOU!"
+                return data[:description] + @name + " is here, fighting YOU!"
             else
-                return data[:description] + @short_description + " is here, fighting #{observer.can_see?(self.attacking) ? self.attacking.name : "someone"}."
+                return data[:description] + @name + " is here, fighting #{observer.can_see?(self.attacking) ? self.attacking.name : "someone"}."
             end
         else
             case @position
             when Constants::Position::SLEEP
-                return data[:description] + @short_description + " is sleeping here."
+                return data[:description] + @name + " is sleeping here."
             when Constants::Position::REST
-                return data[:description] + @short_description + " is resting here."
+                return data[:description] + @name + " is resting here."
             else
-                return data[:description] + @long_description
+                return data[:description] + @short_description
             end
         end
     end
 
-    def full
-        @full_description
+    def long_description
+        @long_description
     end
 
     # returns true if self can see target
@@ -866,11 +861,11 @@ class Mobile < GameObject
         if element_data[:string] == ""
             element_data[:string] = "\nNone."
         end
-%Q(#{@short_description}
+%Q(#{@name}
 Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
 {cLevel:{x     #{@level.to_s.rpad(26)} {cAge:{x       17 - 0(0) hours
-{cRace:{x      #{Game.instance.race_data.dig(@race_id, :name).to_s.rpad(26)} {cSex:{x       male
+{cRace:{x      #{Game.instance.race_data.dig(@race_id, :name).to_s.rpad(26)} {cGender:{x    #{Game.instance.gender_data[@gender][:name]}
 {cClass:{x     #{Game.instance.class_data.dig(@class_id, :name).to_s.rpad(26)} {cDeity:{x     #{@deity}
 {cAlignment:{x #{@alignment.to_s.rpad(26)} {cDeity Points:{x 0
 {cPracs:{x     N/A                        {cTrains:{x    N/A
@@ -1016,6 +1011,38 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
 
     def carried_by_string
         return "carried by"
+    end
+
+    def indefinite_name
+        return "someone"
+    end
+
+    def indefinite_short_description
+        return "someone"
+    end
+
+    def indefinite_long_description
+        return "someone"
+    end
+
+    # %O -> personal_objective_pronoun (him, her, it)
+    def indefinite_personal_objective_pronoun
+        return "them"
+    end
+
+    # %U -> personal_subjective_pronoun (he, she, it)
+    def indefinite_personal_subjective_pronoun
+        return "they"
+    end
+
+    # %P -> possessive_pronoun (his, her, its)
+    def indefinite_possessive_pronoun
+        return "their"
+    end
+
+    # %R -> reflexive_pronoun (himself, herself, itself)
+    def indefinite_reflexive_pronoun
+        return "themself"
     end
 
 end

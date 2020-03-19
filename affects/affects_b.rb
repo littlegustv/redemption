@@ -26,12 +26,12 @@ class AffectBarkSkin < Affect
 
     def send_start_messages
         @target.output "You are as mighty as an oak."
-        @target.broadcast "%s looks as mighty as an oak", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> looks as mighty as an oak", [@target]
     end
 
     def send_complete_messages
         @target.output "The bark on your skin flakes off."
-        @target.broadcast "The bark on %s's skin flakes off.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "The bark on 0<n>'s skin flakes off.", [@target]
     end
 
 end
@@ -61,8 +61,8 @@ class AffectBerserk < Affect
     end
 
     def send_start_messages
-        @target.broadcast("%s gets a wild look in %x eyes!", @target.room.occupants - [@target], @target)
         @target.output "Your pulse races as you are consumed by rage!"
+        (@target.room.occupants - [@target]).each_output("0<N> gets a wild look in 0<p> eyes!", @target)
     end
 
     def periodic
@@ -113,13 +113,12 @@ class AffectBladeRune < Affect
     end
 
     def send_start_messages
-        @source.broadcast("%s empowers %s with a blade rune.", @target.room.occupants - [@source], [@source, @target])
-        @source.output "You empower the %s with a blade rune!", @target
+        @source.room.occupants.each_output("0<N> empower0<,s> 1<n> with a blade rune0<!,.>", [@source, @target])
         @source.output @message
     end
 
     def send_complete_messages
-        @source.output "The blade rune on %s fades away.", [@target]
+        @source.output "The blade rune on %n fades away.", [@target]
     end
 end
 
@@ -149,12 +148,12 @@ class AffectBless < Affect
 
     def send_start_messages
         @target.output "You feel righteous."
-        @target.broadcast "%s glows with a holy aura.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> glows with a holy aura.", [@target]
     end
 
     def send_complete_messages
         @target.output "You feel less righteous."
-        @target.broadcast "%s's holy aura fades.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N>'s holy aura fades.", [@target]
     end
 
 end
@@ -192,7 +191,7 @@ class AffectBlind < Affect
     end
 
     def send_start_messages
-        @target.broadcast "%s is blinded!", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> is blinded!", [@target]
         @target.output "You can't see a thing!"
     end
 
@@ -231,13 +230,11 @@ class AffectBlur < Affect
     end
 
     def send_start_messages
-        @target.output "You become blurry."
-        @target.broadcast "%s's outline turns blurry.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N>'s outline turns blurry.", [@target]
     end
 
     def send_complete_messages
-        @target.output "You come into focus."
-        @target.broadcast "%s comes into focus.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> comes into focus.", [@target]
     end
 
 end
@@ -317,13 +314,12 @@ class AffectBurstRune < Affect
     end
 
     def send_start_messages
-        @source.broadcast("%s empowers %s with a burst rune.", @target.room.occupants - [@source], [@source, @target])
-        @source.output "You empower the weapon with an elemental burst rune!"
+        @source.room.occupants.each_output("0<N> empower0<,s> 1<n> with a burst rune0<!,.>", [@source, @target])
         @source.output @apply_message
     end
 
     def send_complete_messages
-        @source.output "The burst rune on %s fades away.", [@target]
+        @source.output "The burst rune on 0<n> fades away.", [@target]
     end
 
     def summary

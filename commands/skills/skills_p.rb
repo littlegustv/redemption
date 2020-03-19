@@ -17,8 +17,7 @@ class SkillPaintPower < Skill
     def attempt( actor, cmd, args, input )
     	if ( slot = @@slots.select{ |s| s.fuzzy_match( args.first.to_s ) && actor.equipment[ s.to_sym ].nil? }.first )
     		tattoo = Tattoo.new( actor, slot )
-    		actor.output "You carefully paint a magical tattoo on your #{ slot.gsub(/\_\d/, "") }."
-    		actor.broadcast "%s carefully paints a magical tattoo on their #{ slot.gsub(/\_\d/, "") }.", actor.room.occupants - [actor], [actor]
+    		actor.room.occupants.each_output "0<N> carefully paint0<,s> a magical tattoo on 0<p> #{ slot.gsub(/\_\d/, "") }.", [actor]
     		actor.output "{YThe tattoo sparkles brilliantly!{x" if tattoo.brilliant
     		actor.output "You have painted the following tattoo: #{tattoo.lore}"
     		actor.equipment[ slot.to_sym ] = tattoo
@@ -45,10 +44,10 @@ class SkillPeek < Skill
     def attempt( actor, cmd, args, input )
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if target.inventory.count > 0
-                actor.output "#{target} is carrying:\n#{target.inventory.items.map(&:to_s).join("\n")}"
+                actor.output "0<N> is carrying:\n#{target.inventory.items.map(&:to_s).join("\n")}", [target]
                 return true
             else
-                actor.output "#{target} is carrying:\nNothing."
+                actor.output "0<N> is carrying:\nNothing.", [target]
                 return true
             end
         else

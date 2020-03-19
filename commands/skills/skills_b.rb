@@ -35,7 +35,7 @@ class SkillBackstab < Command
         if target.condition_percent >= 50
             actor.deal_damage(target: target, damage: 150, noun:"backstab", element: Constants::Element::PIERCE, type: Constants::Damage::PHYSICAL)
         else
-            actor.output "%s is hurt and suspicious ... you can't sneak up.", [target]
+            actor.output "0<N> is hurt and suspicious... you can't sneak up.", [target]
         end
     end
 end
@@ -82,17 +82,16 @@ class SkillBash < Skill
             # check both opened and unlocked seperately, since you might be bashing a closed, unlocked door
             if opened || unlocked
                 actor.output "Bang!* You bash the door in."
-                Game.instance.broadcast "%s bashes in the #{ target.short }.", actor.room.occupants - [actor], [actor]
+                (actor.room.occupants - [actor]).each_output "0<N> bashes in the #{ target.short }.", actor.room.occupants - [actor], [actor]
                 if target.pair
-                    Game.instance.broadcast "The #{ target.short } is suddenly thrown backwards!", target.pair.origin.occupants - [actor]
+                    (target.pair.origin.occupants - [actor]).each_output "The #{ target.short } is suddenly thrown backwards!"
                 end
             else
                 #
             end
         else
-            actor.output "You slam into %s, and send him flying!", [target]
-            target.output "%s sends you flying with a powerful bash!", [actor]
-            actor.broadcast "%s sends %s flying with a powerful bash!", actor.room.occupants - [ actor, target ], [actor, target]
+            actor.output "You slam into 0<n>, and send 0<o> flying!", [target]
+            (actor.room.occupants - [actor]).each_output "0<N> sends 1<n> flying with a powerful bash!", [actor, target]
             actor.deal_damage(target: target, damage: 100, noun:"bash", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
             target.lag += @data[:target_lag]
         end

@@ -71,19 +71,19 @@ class CommandConsider < Command
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             case  target.level - actor.level
             when -51..-10
-                actor.output "You can kill #{target} naked and weaponless."
+                actor.output "You can kill 0<n> naked and weaponless.", [target]
             when -9..-5
-                actor.output "#{target} is no match for you."
+                actor.output "0<N> is no match for you.", [target]
             when -6..-2
-                actor.output "#{target} looks like an easy kill."
+                actor.output "0<N> looks like an easy kill.", [target]
             when -1..1
-                actor.output "The perfect match!"
+                actor.output "The perfect match!", [target]
             when 2..4
-                actor.output "#{target} says 'Do you feel lucky, punk?'."
+                actor.output "0<N> says 'Do you feel lucky, punk?'.", [target]
             when 5..9
-                actor.output "#{target} laughs at you mercilessly."
+                actor.output "0<N> laughs at you mercilessly.", [target]
             else
-                actor.output "Death will thank you for your gift.";
+                actor.output "Death will thank you for your gift.", [target]
             end
             return true
         else

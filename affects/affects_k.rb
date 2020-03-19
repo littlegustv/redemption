@@ -3,14 +3,14 @@ require_relative 'affect.rb'
 class AffectKarma < Affect
 
     @@TEXTS = {
-        str: "%s karma grows stronger!",
-        dex: "%s karma moves faster!",
-        con: "%s karma gets tougher!",
-        int: "%s karma looks smarter!",
-        wis: "%s karma grows more enlightened!",
-        saves: "%s karma is now protected!",
-        hitroll: "%s karma is more accurate!",
-        damroll: "%s karma is more deadly!"
+        str: "karma grows stronger!",
+        dex: "karma moves faster!",
+        con: "karma gets tougher!",
+        int: "karma looks smarter!",
+        wis: "karma grows more enlightened!",
+        saves: "karma is now protected!",
+        hitroll: "karma is more accurate!",
+        damroll: "karma is more deadly!"
     }
 
     def initialize(source, target, level)
@@ -38,8 +38,7 @@ class AffectKarma < Affect
     end
 
     def send_start_messages
-        @target.output @texts[ @mod ], ["Your"]
-        @target.broadcast @texts[ @mod ], @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N>'s #{@@TEXTS[ @mod ]}", [@target]
     end
 
     def send_complete_messages
@@ -74,15 +73,21 @@ class AffectKiller < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_aura_description, self, :do_killer_flag)
+        Game.instance.add_event_listener(@target, :event_calculate_long_auras, self, :do_long_killer_flag)
+        Game.instance.add_event_listener(@target, :event_calculate_short_auras, self, :do_short_killer_flag)
     end
 
     def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_aura_description, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_long_auras, self)
+        Game.instance.remove_event_listener(@target, :event_calculate_short_auras, self)
     end
 
-    def do_killer_flag(data)
+    def do_long_killer_flag(data)
         data[:description] = "{R(KILLER){x " + data[:description]
+    end
+
+    def do_short_killer_flag(data)
+        data[:description] = "{R(K){x " + data[:description]
     end
 
     def send_start_messages

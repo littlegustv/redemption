@@ -13,6 +13,7 @@ class Game
     attr_reader :affects
     attr_reader :help_data
     attr_reader :social_data
+    attr_reader :gender_data
     attr_reader :spells
     attr_reader :continents
     attr_reader :game_settings
@@ -76,8 +77,9 @@ class Game
         @saved_player_item_id_max = 0           # max id in database table saved_player_item
         @saved_player_item_affect_id_max = 0    # max id in database table saved_player_item_affect
 
-        @social_data = Hash.new                 # Social table as hash (uses :id as key)
         @help_data = Hash.new                   # Help table as hash  (uses :id as key)
+        @social_data = Hash.new                 # Social table as hash (uses :id as key)
+        @gender_data = Hash.new                 # Gender table as hash (uses :id as key)
         @account_data = Hash.new                # Account table as hash (uses :id  as key)
         @saved_player_data = Hash.new           # Saved player table as hash    (uses :id as key)
 
@@ -322,15 +324,6 @@ class Game
         end
     end
 
-    def broadcast( message, targets, objects = [], send_to_sleeping: false )
-        if !send_to_sleeping
-            targets.reject!{ |t| t.respond_to?(:position) && t.position == Constants::Position::SLEEP }
-        end
-        targets.each do | player |
-            player.output( message, objects.to_a )
-        end
-    end
-
     def target( query = {} )
         targets = []
         if query[:list]
@@ -405,7 +398,7 @@ class Game
     end
 
     def tick
-        broadcast("{MMud newbies 'Hi everyone! It's a tick!!'{x", @players, send_to_sleeping: true)
+        @players.each_output("{MMud newbies 'Hi everyone! It's a tick!!'{x", send_to_sleeping: true)
 
         # player tick is called, just to allow for some regen!!
         ( @players ).each do | entity |
@@ -626,11 +619,14 @@ class Game
     end
 
     def remove_event_listener(object, event, callback_object)
+        if !object
+            log ("Trying to remove event for nil object. #{event} #{callback_object.name}")
+        end
         key = object.uuid
         if @responders.dig(key, event)
             @responders[key][event].reject!{ |t| t[0] == callback_object }
         else
-            log ("Trying to remove event not registered in Game.")
+            log ("Trying to remove event not registered in Game. #{object.name}, #{event}, #{callback_object.name}")
         end
         if @responders.dig(key, event) && @responders.dig(key, event).empty?
             @responders[key].delete(event)
@@ -860,13 +856,13 @@ class Game
     def weather
         # just day/night messages at the moment
         if time.first == Constants::Time::SUNRISE
-            broadcast "The sun rises in the east.", @players
+            @players.each_output "The sun rises in the east."
         elsif time.first == Constants::Time::SUNRISE + 1
-            broadcast "The day has begun.", @players
+            @players.each_output "The day has begun."
         elsif time.first == Constants::Time::SUNSET
-            broadcast "The sun slowly disappears in the west.", @players
+            @players.each_output "The sun slowly disappears in the west."
         elsif time.first == Constants::Time::SUNSET + 1
-            broadcast "The night has begun.", @players
+            @players.each_output "The night has begun."
         end
     end
 

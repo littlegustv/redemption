@@ -165,8 +165,7 @@ class SpellBlink < Spell
 
     def attempt( actor, cmd, args, input, level )
         newroom = actor.room.area.rooms.sample
-        Game.instance.broadcast "%s blinks out of sight!", Game.instance.target({ room: actor.room, not: actor }), [actor]
-        actor.output "You blink out of sight!"
+        actor.room.occupants.each_output "0<N> blink0<,s> out of sight!", [actor]
         actor.move_to_room newroom
     end
 

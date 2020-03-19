@@ -117,6 +117,33 @@ module Constants
         PROTECTION_MULTIPLIER = 0.75
     end
 
+    module Gender
+
+        DEFAULT = {
+            :id => 1,
+            :name => "neutral",
+            :personal_objective => "it",
+            :personal_subjective => "it",
+            :possessive => "its",
+            :reflexive => "itself",
+        }
+
+    end
+
+    module OutputFormat
+
+        REPLACE_HASH = {
+            "n" => :resolve_name,
+            "s" => :resolve_short_description,
+            "l" => :resolve_long_description,
+            "o" => :resolve_personal_objective_pronoun,
+            "u" => :resolve_personal_subjective_pronoun,
+            "p" => :resolve_possessive_pronoun,
+            "r" => :resolve_reflexive_pronoun,
+        }
+
+    end
+
     # full stock for shopkeepers
     SHOP_FULL_STOCK = 5
     # % markup on buy/sell transactions
@@ -191,21 +218,21 @@ module Constants
     }
 
     ELEMENTAL_EFFECTS = {
-        "shocking" => [ "You are shocked by %s.", "%s is struck by lightning from %s." ],
-        "flooding" => [ "You are smothered in water from %s.", "%s is smothered in water from %s." ],
-        "flaming" => [ "%s sears your flesh.", "%s is burned by %s." ],
-        "frost" => [ "The cold touch of %s surrounds you with ice.", "%s is frozen by %s." ],
-        "corrosive" => [ "Your flesh is dissolved by %s.", "%s's flesh is dissolved by %s." ],
+        "shocking" => [ "You are shocked by 0<n>.", "0<N> is struck by lightning from 0<n>." ],
+        "flooding" => [ "You are smothered in water from 0<n>.", "0<N> is smothered in water from 0<n>." ],
+        "flaming" => [ "0<N> sears your flesh.", "0<N> is burned by 0<n>." ],
+        "frost" => [ "The cold touch of 0<n> surrounds you with ice.", "0<N> is frozen by 0<n>." ],
+        "corrosive" => [ "Your flesh is dissolved by 0<n>.", "0<N>'s flesh is dissolved by 0<n>." ],
     }
 
     ALIGNMENT_DESCRIPTIONS = {
-        700 => "%s has a pure and good aura.",
-        350 => "%s is of excellent moral character.",
-        100 => "%s is often kind and thoughtful.",
-        -100 => "%s doesn't have a firm moral commitment.",
-        -350 => "%s lies to their friends.",
-        -700 => "%s is a black-hearted murderer.",
-        -1000 => "%s is the embodiment of pure evil.",
+        700 => "0<N> has a pure and good aura.",
+        350 => "0<N> is of excellent moral character.",
+        100 => "0<N> is often kind and thoughtful.",
+        -100 => "0<N> doesn't have a firm moral commitment.",
+        -350 => "0<N> lies to their friends.",
+        -700 => "0<N> is a black-hearted murderer.",
+        -1000 => "0<N> is the embodiment of pure evil.",
     }
 
     PARTS = [

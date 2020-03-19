@@ -25,8 +25,7 @@ class AffectPassDoor < Affect
     end
 
     def send_start_messages
-        @target.output "You turn translucent."
-        @target.broadcast "%s turns translucent.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> turn0<,s> translucent.", [@target]
     end
 
     def send_complete_messages
@@ -60,17 +59,15 @@ class AffectPlague < Affect
     end
 
     def send_start_messages
-        @target.output "You scream in agony as plague sores erupt from your skin."
-        @target.broadcast "%s screams in agony as plague sores erupt from their skin.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> scream0<,s> in agony as plague sores erupt from 0<p> skin.", [@target]
     end
 
     def send_refresh_messages
-        @target.output "You scream in agony as plague sores erupt from your skin."
-        @target.broadcast "%s screams in agony as plague sores erupt from their skin.", @target.room.occupants - [@target], [@target]
+        @target.room.occupants.each_output "0<N> scream0<,s> in agony as plague sores erupt from 0<p> skin.", [@target]
     end
 
     def periodic
-        @target.broadcast "%s writhes in agony as plague sores erupt from their skin.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> writhes in agony as plague sores erupt from their skin.", [@target]
         @target.output "You writhe in agony from the plague."
         @target.receive_damage(source: nil, damage: 10, element: Constants::Element::DISEASE, type: Constants::Damage::MAGICAL, silent: true)
         (@target.room.occupants - [@target]).each do |occupant|
@@ -83,7 +80,7 @@ class AffectPlague < Affect
     end
 
     def summary
-        super + "\n" + (" " * 24) + " : damage over time for #{ duration.to_i } seconds"
+        super + "\n#{" " * 24} : damage over time for #{ duration.to_i } seconds"
     end
 end
 
@@ -112,20 +109,19 @@ class AffectPoison < Affect
     end
 
     def send_start_messages
-        @target.broadcast "{m%s looks very ill.{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{m0<N> looks very ill.{x", [@target]
         # @target.output "{mYou feel poison coursing through your veins.{x"
         @target.output "You feel very sick."
     end
 
     def send_refresh_messages
-        @target.broadcast "{m%s looks very ill.{x", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "{m0<N> looks very ill.{x", [@target]
         # @target.output "{mYou feel poison coursing through your veins.{x"
         @target.output "You feel very sick."
     end
 
     def periodic
-        @target.output "You shiver and suffer."
-        @target.broadcast("%s shivers and suffers.", @target.room.occupants - [@target], @target)
+        @target.room.occupants.each_output("0<N> shiver0<,s> and suffer0<,s>.", @target)
         @target.receive_damage(source: nil, damage: 10, element: Constants::Element::POISON, type: Constants::Damage::MAGICAL, silent: true)
     end
 
@@ -172,10 +168,10 @@ class AffectPortal < Affect
     end
 
     def do_portal( data )
-        data[:mobile].output "You enter %s.", [@target]
-        Game.instance.broadcast "%s steps into %s.", @target.room.occupants - [data[:mobile]], [data[:mobile], @target]
+        data[:mobile].output "You enter 0<n>.", [@target]
+        (@target.room.occupants - [@target]).each_output"0<N> steps into 1<n>.", [data[:mobile], @target]
         data[:mobile].move_to_room( @destination )
-        Game.instance.broadcast "%s has arrived through %s.", @destination.occupants - [data[:mobile]], [data[:mobile], @target]
+        (@target.room.occupants - [@target]).each_output "0<N> has arrived through 1<n>.", [data[:mobile], @target]
     end
 
 end
@@ -214,7 +210,7 @@ class AffectProtectionEvil < Affect
 
     def send_start_messages
         @target.output "You feel holy and pure."
-        @target.broadcast "%s is protected from evil.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> is protected from evil.", [@target]
     end
 
     def send_complete_messages
@@ -264,7 +260,7 @@ class AffectProtectionGood < Affect
 
     def send_start_messages
         @target.output "You feel aligned with darkness."
-        @target.broadcast "%s is protected from good.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> is protected from good.", [@target]
     end
 
     def send_complete_messages
@@ -314,7 +310,7 @@ class AffectProtectionNeutral < Affect
 
     def send_start_messages
         @target.output "You feel aligned with twilight."
-        @target.broadcast "%s is protected from neutral.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> is protected from neutral.", [@target]
     end
 
     def send_complete_messages

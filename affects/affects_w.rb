@@ -25,12 +25,12 @@ class AffectWeaken < Affect
     end
 
     def send_start_messages
-        @target.broadcast "%s looks tired and weak.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> looks tired and weak.", [@target]
         @target.output "You feel your strength slip away."
     end
 
     def send_refresh_messages
-        @target.broadcast "%s looks tired and weak.", @target.room.occupants - [@target], [@target]
+        (@target.room.occupants - [@target]).each_output "0<N> looks tired and weak.", [@target]
         @target.output "You feel your strength slip away."
     end
 

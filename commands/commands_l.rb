@@ -92,12 +92,12 @@ class CommandLoadItem < Command
             actor.output "Syntax: loaditem <id>"
             return false
         else
-            item = actor.game.load_item( args.first.to_i, actor.inventory )
+            item = Game.instance.load_item( args.first.to_i, actor.inventory )
             if !item
                 actor.output "No such item."
                 return false
             end
-            actor.broadcast "Loaded item: #{item}", actor.room.occupants
+            actor.room.occupants.each_output "0<N> 0<have,has> loaded item: 1<n>.", [actor]
             return true
         end
     end
@@ -152,13 +152,13 @@ class CommandLook < Command
                 actor.output "That's not a container."
                 return false
             else
-                actor.output( target.show(actor) + " holds:")
+                actor.output "0<N> holds:", [target]
                 item_count = actor.target({list: target.inventory.items, visible_to: actor}).length
                 actor.output(item_count > 0 ? target.inventory.show(observer: actor) : "Nothing.")
                 return true
             end
         elsif ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            actor.output %Q(#{target.full}
+            actor.output %Q(#{target.long_description}
 #{target.condition}
 
 #{target} is using:)
