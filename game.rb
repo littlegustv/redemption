@@ -550,6 +550,8 @@ class Game
                 item = Weapon.new( row, inventory )
             elsif row[:type] == "container"
                 item = Container.new( row, inventory )
+            elsif row[:type] == "pill" or row[:type] == "potion"
+                item = Consumable.new( row, inventory, @item_spells[ id ] )
             else
                 item = Item.new( row, inventory )
             end

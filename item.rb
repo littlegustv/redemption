@@ -157,6 +157,26 @@ class Container < Item
 
 end
 
+class Consumable < Item
+
+    def initialize( data, parent_inventory, spells )
+        super( data, parent_inventory )
+        @spells = spells
+    end
+
+    def consume( actor )
+        @spells.each do |spell|
+            if ( casting = Game.instance.spells.select{ |skill| skill.check( spell[:spell] ) }.sort_by(&:priority).last )
+                casting.attempt( actor, spell[:spell], [], "", spell[:level] )
+                # log( "FOUND #{casting} #{spell}" )
+            else
+                log( "CONSUMABLE ITEM SPELL NOT FOUND #{@name} #{spell}")
+            end
+        end
+    end
+
+end
+
 class Tattoo < Item
 
     attr_reader :brilliant

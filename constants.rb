@@ -343,6 +343,8 @@ module Constants
         CommandQuest,
         CommandEmote,
         CommandSocial,
+        CommandEat,
+        CommandQuaff,
     ]
 
     SKILL_CLASSES = [

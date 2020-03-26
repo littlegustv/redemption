@@ -1,5 +1,26 @@
 require_relative 'command.rb'
 
+class CommandEat < Command
+
+    def initialize
+        super(
+            name: "eat",
+            keywords: ["eat"],
+            position: Constants::Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if ( target = actor.target({ list: actor.items, item_type: "pill", visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            actor.room.occupants.each_output "0<N> 0<eat,eats> 1<n>", [actor, target]
+            target.consume( actor )
+        else
+            actor.output("You don't see that here.")
+        end
+    end
+
+end
+
 class CommandEmote < Command
 
     def initialize

@@ -242,6 +242,8 @@ module GameSetup
         @item_modifiers = @db[:item_modifier].to_hash_groups(:item_id)
         @ac_data = @db[:item_armor].to_hash(:item_id)
         @weapon_data = @db[:item_weapon].to_hash(:item_id)
+        @item_spells = @db[:item_spell].to_hash_groups(:item_id)
+
         @weapon_data.each do |id, row|
             row[:flags] = row[:flags].to_s.split(",")
         end
