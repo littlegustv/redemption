@@ -141,7 +141,7 @@ class Mobile < GameObject
         # try to learn
         to_learn = unlearned.find { |skill| skill.fuzzy_match(skill_name) }
         if to_learn
-            skill = Game.instance.abilities[skill_name]
+            skill = Game.instance.abilities[to_learn]
             if skill.creation_points <= @creation_points
                 @learned << skill.name
                 @creation_points -= skill.creation_points

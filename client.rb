@@ -145,7 +145,7 @@ class Client
                 send_output("Who did you want to play?")
                 return
             end
-            c_row = Game.instance.saved_player_data.values.select{ |row| row[:name].downcase == word2.downcase }.first
+            c_row = Game.instance.saved_player_data.values.select{ |row| row[:account_id] == @account_id.to_i && row[:name].downcase == word2.downcase }.first
             if !c_row
                 send_output("You don't have a character with that name.")
                 return

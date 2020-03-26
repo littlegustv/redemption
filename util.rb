@@ -38,6 +38,7 @@ class Array
             player.output( message, objects.to_a )
         end
     end
+    
 end
 
 class String
