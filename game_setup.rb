@@ -163,6 +163,7 @@ module GameSetup
         @race_data.each do |key, value|
             value[:skills] = value[:skills].split(",")
             value[:spells] = value[:spells].split(",")
+            value[:weapons] = value[:weapons].to_s.split(",")
             value[:affect_flags] = value[:affect_flags].split(",")
             value[:immune_flags] = value[:immune_flags].split(",")
             value[:resist_flags] = value[:resist_flags].split(",")
@@ -181,6 +182,7 @@ module GameSetup
         @class_data.each do |key, value|
             value[:skills] = value[:skills].to_s.split(",")
             value[:spells] = value[:spells].to_s.split(",")
+            value[:weapons] = value[:weapons].to_s.split(",")
             value[:affect_flags] = value[:affect_flags].to_s.split(",")
             value[:immune_flags] = value[:immune_flags].to_s.split(",")
             value[:resist_flags] = value[:resist_flags].to_s.split(",")

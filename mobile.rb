@@ -126,17 +126,22 @@ class Mobile < GameObject
     end
 
     def learn( skill_name )
+        skill_name = skill_name.to_s
         unlearned = (spells + skills) - @learned
         unlearned_skills = skills - @learned
         unlearned_spells = spells - @learned
-        if skill_name.nil? || skill_name.to_s.length <= 0
+        if skill_name.nil? || skill_name.to_s.length <= 0 # no argument - list learnable skills
             output "\n" + ("{GCOST : SKILL{x\n" * 3).to_columns( 30, 3 )
             output unlearned_skills.map{ |name| Game.instance.abilities[ name ] }.reject(&:nil?).map{ |skill| "#{ skill.creation_points.to_s.rpad(4) } : #{skill.name}" }.join("\n").to_columns( 30, 3 )
             output "\n" + ("{CCOST : SPELL{x\n" * 3).to_columns( 30, 3 )
             output unlearned_spells.map{ |name| Game.instance.abilities[ name ] }.reject(&:nil?).map{ |spell| "#{ spell.creation_points.to_s.rpad(4) } : #{spell.name}" }.join("\n").to_columns( 30, 3 )
-            output "\nYou have {Y#{ @creation_points } creation points{x available to spend."
-        elsif unlearned.include? skill_name
-            skill = Game.instance.abilities[ skill_name ]
+            output "\nYou have #{ (@creation_points > 0) ? "{g" : "{D" }#{ @creation_points }{x creation points available to spend."
+            return
+        end
+        # try to learn
+        to_learn = unlearned.find { |skill| skill.fuzzy_match(skill_name) }
+        if to_learn
+            skill = Game.instance.abilities[skill_name]
             if skill.creation_points <= @creation_points
                 @learned << skill.name
                 @creation_points -= skill.creation_points
