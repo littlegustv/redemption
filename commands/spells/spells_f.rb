@@ -171,9 +171,9 @@ class SpellFrenzy < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
-            actor.apply_affect( AffectFrenzy.new( nil, actor, actor.level ) )
+            actor.apply_affect( AffectFrenzy.new( nil, actor, level || actor.level ) )
         elsif ( target = Game.instance.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectFrenzy.new( nil, target, actor.level ) )
+            target.apply_affect( AffectFrenzy.new( nil, target, level || actor.level ) )
         else
             actor.output "There is no one here with that name."
         end

@@ -69,6 +69,25 @@ class SpellAlarmRune < Spell
     end
 end
 
+class SpellAnimalGrowth < Spell
+
+
+    def initialize
+        super(
+            name: "animal growth",
+            keywords: ["animal growth"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.apply_affect( AffectAnimalGrowth.new( nil, actor, level || actor.level ) )
+    end
+
+end
+
 class SpellArmor < Spell
 
 

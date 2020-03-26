@@ -183,7 +183,7 @@ class SpellStoneSkin < Spell
 
     def initialize
         super(
-            name: "stoneskin",
+            name: "stone skin",
             keywords: ["stone skin", "stoneskin"],
             lag: 0.25,
             position: Constants::Position::STAND,

@@ -382,8 +382,8 @@ class AffectStoneSkin < Affect
 
     def self.affect_info
         return @info || @info = {
-            name: "stoneskin",
-            keywords: ["stoneskin", "armor"],
+            name: "stone skin",
+            keywords: ["stone skin", "stoneskin", "armor"],
             application_type: :global_overwrite,
         }
     end

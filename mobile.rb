@@ -194,12 +194,11 @@ class Mobile < GameObject
         super elapsed
         
         # wander
-        if rand(1..1200) == 1 && @wander_range > 0
+        if attacking.nil? && @position >= Constants::Position::STAND && rand(1..1200) == 1 && @wander_range > 0
             if ( direction = @room.exits.reject{ |k, v| v.nil? }.keys.sample )
                 if ( destination = @room.exits[direction].destination ) && destination.area == @room.area 
                     move( direction )
                 end
-                # log("wandering!")
             end
         end
     end
@@ -746,10 +745,14 @@ class Mobile < GameObject
 
     def damage_rating(weapon:)
         if proficient( weapon.genre )
-            return weapon.damage + stat(:damroll)
+            return weapon.damage + stat(:damroll) + strength_to_damage
         else
-            return ( weapon.damage + stat(:damroll) ) / 2
+            return ( weapon.damage + stat(:damroll) + strength_to_damage ) / 2
         end
+    end
+
+    def strength_to_damage
+        ( 0.5 * stat(:str) - 6 ).to_i
     end
 
     def to_s
