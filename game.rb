@@ -284,9 +284,9 @@ class Game
             # player.update(elapsed)
             player.process_commands(elapsed)
         end
-        # @mobiles.each do | mobile |
-        #     mobile.update(elapsed)
-        # end
+        @mobiles.each do | mobile |
+            mobile.update(elapsed)
+        end
         # @items.each do | item |
         #     item.update(elapsed)
         # end

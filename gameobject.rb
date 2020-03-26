@@ -27,7 +27,7 @@ class GameObject
     end
 
     def update( elapsed )
-        @affects.each { |aff| aff.update( elapsed ) }
+        # @affects.each { |aff| aff.update( elapsed ) }
     end
 
     def output( message, objects = [] )

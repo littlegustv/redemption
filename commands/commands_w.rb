@@ -190,7 +190,7 @@ class CommandWorth < Command
     end
 
     def attempt( actor, cmd, args, input )
-        actor.output "You have #{actor.to_worth}"
+        actor.output "You have #{actor.wealth.to_worth}"
         return true
     end
 

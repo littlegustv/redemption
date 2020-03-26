@@ -345,6 +345,7 @@ module Constants
         CommandSocial,
         CommandEat,
         CommandQuaff,
+        CommandPeer,
     ]
 
     SKILL_CLASSES = [
