@@ -29,5 +29,6 @@ require_relative 'commands/skills/skills'
 require_relative 'continent'
 require_relative 'constants'
 require_relative 'client'
+require_relative 'formula'
 
 Game.instance.start(ARGV[0], ARGV[1] || 4000, ARGV[2] || "all")

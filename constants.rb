@@ -3,31 +3,31 @@ module Constants
     module Quests
         module Villain
             FIRST = [
-                "One of this land's worst foes, %s, has escaped from the dungeon!",
-                "A villain by the name of %s has named itself an enemy of our town.",
-                "There has been an attempt on my life by %s!",
-                "The local people are being terrorized by %s.",
+                "One of this land's worst foes, 0<n>, has escaped from the dungeon!",
+                "A villain by the name of 0<n> has named itself an enemy of our town.",
+                "There has been an attempt on my life by 0<n>!",
+                "The local people are being terrorized by 0<n>.",
             ]
             SECOND = [
-                "Since then, %s has murdered %d people!",
-                "The local people are very scared of %s.",
+                "Since then, 0<n> has murdered %d people!",
+                "The local people are very scared of 0<n>.",
                 "A young girl has recently gone missing, we fear the worst.",
-                "There is fear %s may try and start a rebellion.",
+                "There is fear 0<n> may try and start a rebellion.",
             ]
             THIRD = [
                 "The penalty for this crime is death, and I am sending you to deliver the sentence.",
                 "The town has chosen YOU to resolve this situation.",
                 "Only you are strong enough to end this threat!",
-                "I wish you the best of luck in slaying %s.",
+                "I wish you the best of luck in slaying 0<n>.",
             ]
         end
 
         module Item
             FIRST = [
-                "Vile thieves have stolen %s from the royal treasury!",
-                "A group of diplomats visited last week, and now %s is missing from the capital!",
-                "The local ruler's bumbling aid seems to have misplaced %s!",
-                "A travelling caravan was robbed of %s out in the wilds!"
+                "Vile thieves have stolen 0<n> from the royal treasury!",
+                "A group of diplomats visited last week, and now 0<n> is missing from the capital!",
+                "The local ruler's bumbling aid seems to have misplaced 0<n>!",
+                "A travelling caravan was robbed of 0<n> out in the wilds!"
             ]
         end
     end
@@ -223,21 +223,21 @@ module Constants
     }
 
     ELEMENTAL_EFFECTS = {
-        "shocking" => [ "You are shocked by %s.", "%s is struck by lightning from %s." ],
-        "flooding" => [ "You are smothered in water from %s.", "%s is smothered in water from %s." ],
-        "flaming" => [ "%s sears your flesh.", "%s is burned by %s." ],
-        "frost" => [ "The cold touch of %s surrounds you with ice.", "%s is frozen by %s." ],
-        "corrosive" => [ "Your flesh is dissolved by %s.", "%s's flesh is dissolved by %s." ],
+        "shocking" => [ "You are shocked by 0<n>.", "0<N> is struck by lightning from 1<n>'s 2<n>'." ],
+        "flooding" => [ "You are smothered in water from 0<n>.", "0<N> is smothered in water from 1<n>'s 2<n>." ],
+        "flaming" => [ "0<n> sears your flesh.", "0<N> is burned by 1<n>'s 2<n>." ],
+        "frost" => [ "The cold touch of 0<n> surrounds you with ice.", "0<N> is frozen by 1<n>'s 2<n>." ],
+        "corrosive" => [ "Your flesh is dissolved by 0<n>.", "0<N>'s flesh is dissolved by 1<n>'s 2<n>." ],
     }
 
     ALIGNMENT_DESCRIPTIONS = {
-        700 => "%s has a pure and good aura.",
-        350 => "%s is of excellent moral character.",
-        100 => "%s is often kind and thoughtful.",
-        -100 => "%s doesn't have a firm moral commitment.",
-        -350 => "%s lies to their friends.",
-        -700 => "%s is a black-hearted murderer.",
-        -1000 => "%s is the embodiment of pure evil.",
+        700 => "0<n> has a pure and good aura.",
+        350 => "0<n> is of excellent moral character.",
+        100 => "0<n> is often kind and thoughtful.",
+        -100 => "0<n> doesn't have a firm moral commitment.",
+        -350 => "0<n> lies to their friends.",
+        -700 => "0<n> is a black-hearted murderer.",
+        -1000 => "0<n> is the embodiment of pure evil.",
     }
 
     PARTS = [
