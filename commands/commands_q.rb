@@ -1,5 +1,26 @@
 require_relative 'command.rb'
 
+class CommandQuaff < Command
+
+    def initialize
+        super(
+            name: "quaff",
+            keywords: ["quaff"],
+            position: Constants::Position::REST
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if ( target = actor.target({ list: actor.items, item_type: "potion", visible_to: actor }.merge( args.first.to_s.to_query )).first )
+            actor.room.occupants.each_output "0<N> 0<quaff,quaffs> 1<n>", [actor, target]
+            target.consume( actor )
+        else
+            actor.output("You don't see that here.")
+        end
+    end
+
+end
+
 class CommandQuest < Command
 
     def initialize
