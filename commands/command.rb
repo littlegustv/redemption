@@ -71,7 +71,7 @@ class Command
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = !(new_attr_hash[:usable_in_combat].to_i.zero?)
         @creation_points = new_attr_hash[:creation_points]
-        new_position = Constants::Position::STRINGS.select{ |k, v| v == new_attr_hash[:position].to_s }.first
+        new_position = Constants::Position::STRINGS.find{ |k, v| v == new_attr_hash[:position].to_s }
         if new_position
             @position = new_position[0]
         end

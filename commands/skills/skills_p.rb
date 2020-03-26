@@ -15,7 +15,7 @@ class SkillPaintPower < Skill
     end
 
     def attempt( actor, cmd, args, input )
-    	if ( slot = @@slots.select{ |s| s.fuzzy_match( args.first.to_s ) && actor.equipment[ s.to_sym ].nil? }.first )
+    	if ( slot = @@slots.find{ |s| s.fuzzy_match( args.first.to_s ) && actor.equipment[ s.to_sym ].nil? } )
     		tattoo = Tattoo.new( actor, slot )
     		actor.room.occupants.each_output "0<N> carefully paint0<,s> a magical tattoo on 0<p> #{ slot.gsub(/\_\d/, "") }.", [actor]
     		actor.output "{YThe tattoo sparkles brilliantly!{x" if tattoo.brilliant

@@ -66,7 +66,7 @@ class Client
                 elsif name != name.gsub(/[^0-9A-Za-z]/, '')
                     send_output("Illegal account name. Alphanumeric characters only, please.")
                     name = nil
-                elsif Game.instance.account_data.select{ |id, row| row[:name] == name }.first
+                elsif Game.instance.account_data.find{ |id, row| row[:name] == name }
                     send_output("That account name is already taken.")
                     name = nil
                 end
@@ -97,14 +97,14 @@ class Client
             # name and md5 for a new account have now been input
             account_data = {name: name, md5: md5}
             Game.instance.new_accounts.push(account_data) # add this account data to the list of accounts to be created
-            while (account_row = Game.instance.account_data.values.select{ |row| row[:name] == name }.first).nil?
+            while (account_row = Game.instance.account_data.values.find{ |row| row[:name] == name }).nil?
                 sleep(@@sleep_time) # wait until the account exists in the database and has been loaded
             end
         else # try existing account
             send_output("Password:")
             password = get_input
             md5 = Digest::MD5.hexdigest(password)
-            if (account_row = Game.instance.account_data.values.select{ |row| row[:name].downcase == name.downcase && row[:md5] == md5}.first).nil?
+            if (account_row = Game.instance.account_data.values.find{ |row| row[:name].downcase == name.downcase && row[:md5] == md5}).nil?
                 send_output("Login credentials incorrect.")
                 @tries += 1
                 return
@@ -145,14 +145,14 @@ class Client
                 send_output("Who did you want to play?")
                 return
             end
-            c_row = Game.instance.saved_player_data.values.select{ |row| row[:account_id] == @account_id.to_i && row[:name].downcase == word2.downcase }.first
+            c_row = Game.instance.saved_player_data.values.find{ |row| row[:account_id] == @account_id.to_i && row[:name].downcase == word2.downcase }
             if !c_row
                 send_output("You don't have a character with that name.")
                 return
             end
             send_output("Logging in as #{c_row[:name]}.")
             Game.instance.logging_players.push([c_row[:id], self])
-            while (@player = Game.instance.players.select{ |p| p.id == c_row[:id] }.first).nil?
+            while (@player = Game.instance.players.find{ |p| p.id == c_row[:id] }).nil?
                 sleep(@@sleep_time) # wait until the player has been loaded by the game thread
             end
             @player.login
@@ -193,7 +193,7 @@ class Client
             elsif name != name.gsub(/[^A-Za-z]/, '')
                 send_output("Illegal character name. No spaces, only letters.")
                 name = nil
-            elsif Game.instance.saved_player_data.values.select{ |row| row[:name] == name }.first
+            elsif Game.instance.saved_player_data.values.find{ |row| row[:name] == name }
                 send_output("That name is already taken.")
                 name = nil
             end
@@ -210,7 +210,7 @@ class Client
             if race_input.downcase == "back"
                 return
             end
-            race_row = race_rows.select{ |row| row[:name].fuzzy_match(race_input) }.first
+            race_row = race_rows.find{ |row| row[:name].fuzzy_match(race_input) }
             if race_row
                 race_id = race_row[:id]
             elsif race_input.fuzzy_match("help")
@@ -231,7 +231,7 @@ class Client
             if class_input.downcase == "back"
                 return
             end
-            class_row = class_rows.select{ |row| row[:name].fuzzy_match(class_input) }.first
+            class_row = class_rows.find{ |row| row[:name].fuzzy_match(class_input) }
             if class_row
                 class_id = class_row[:id]
             elsif class_input.fuzzy_match("help")
@@ -290,7 +290,7 @@ class Client
         }
         send_output("Creating #{name}...")
         Game.instance.new_players.push(player_data)
-        while (Game.instance.saved_player_data.values.select{ |row| row[:name] == name }.first).nil?
+        while (Game.instance.saved_player_data.values.find{ |row| row[:name] == name }).nil?
             sleep(@@sleep_time)
         end
         list_characters

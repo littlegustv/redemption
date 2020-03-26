@@ -429,7 +429,7 @@ module GameSetup
     protected def make_skills
         Constants::SKILL_CLASSES.each do |skill_class|
             skill = skill_class.new
-            row = @skill_data.values.select{ |row| row[:name] == skill.name }.first
+            row = @skill_data.values.find{ |row| row[:name] == skill.name }
             if row
                 skill.overwrite_attributes(row)
             else
@@ -445,7 +445,7 @@ module GameSetup
     protected def make_spells
         Constants::SPELL_CLASSES.each do |spell_class|
             spell = spell_class.new
-            row = @spell_data.values.select{ |row| row[:name] == spell.name }.first
+            row = @spell_data.values.find{ |row| row[:name] == spell.name }
             if row
                 spell.overwrite_attributes(row)
             else
@@ -461,7 +461,7 @@ module GameSetup
     protected def make_commands
         Constants::COMMAND_CLASSES. each do |command_class|
             command = command_class.new
-            row = @command_data.values.select{ |row| row[:name] == command.name }.first
+            row = @command_data.values.find{ |row| row[:name] == command.name }
             if row
                 command.overwrite_attributes(row)
             else

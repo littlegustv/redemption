@@ -374,7 +374,7 @@ module GameSave
         if data[:source_type] == "Player"
             source = player if player.id == data[:source_id]
         else
-            source = items.select{ |i| i.uuid == data[:source_uuid] }.first
+            source = items.find{ |i| i.uuid == data[:source_uuid] }
         end
         if source
             return source   # source was an item on the player or the player itself? - return it!
@@ -390,12 +390,12 @@ module GameSave
             source = @rooms[data[:source_id]]
         when "Player"
             # check active players
-            source = @players.select { |p| p.id == data[:source_id] }.first
+            source = @players.find { |p| p.id == data[:source_id] }
             if source # online player has been found
                 return source
             end
             # check inactive players
-            source = @inactive_players.values.select { |p| p.weakref_alive? && p.id == data[:source_id] }.first
+            source = @inactive_players.values.find { |p| p.weakref_alive? && p.id == data[:source_id] }
             if source # inactive player found as source
                 return source.__getobj__ # get actual reference from the WeakRef
             end
@@ -406,7 +406,7 @@ module GameSave
                 source.quit(silent: true) # removes affects from master lists, puts into inactive players
             end
         when "Mobile"
-            source = @mobiles.select{ |m| m.uuid == data[:source_uuid] }.first
+            source = @mobiles.find{ |m| m.uuid == data[:source_uuid] }
             if source               # found the mobile with that uuid - great!
                 return source
             end
@@ -415,7 +415,7 @@ module GameSave
                 source.destroy # mark as inactive, remove affects, etc
             end
         when "Item"
-            source = @items.select{ |i| i.uuid = data[:source_uuid] }.first
+            source = @items.find{ |i| i.uuid = data[:source_uuid] }
             if source               # found the item with that uuid - :)
                 return source
             end

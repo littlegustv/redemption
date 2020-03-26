@@ -153,7 +153,7 @@ class CommandSocial < Command
 
     def attempt( actor, cmd, args, input )
         # get the social row for the keyword used
-        social = @socials.values.select{ |social| social[:keyword].fuzzy_match( cmd ) }.first
+        social = @socials.values.find{ |social| social[:keyword].fuzzy_match( cmd ) }
 
         if !social # no matching social - must have used "social" keyword. show social list!
             actor.output("SOCIALS\n\n#{@socials.map { |id, row| row[:keyword].capitalize_first }.join("\n").to_columns(15, 5)}")

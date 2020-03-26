@@ -68,7 +68,7 @@ module MobileItem
 
     def wear_all
         self.equip_slots.select(&:empty?).each do |equip_slot|
-            item = self.inventory.items.select{ |i| i.wear_flags.include?(equip_slot.wear_flag) }.first
+            item = self.inventory.items.find{ |i| i.wear_flags.include?(equip_slot.wear_flag) }
             wear(item: item) if item
         end
     end

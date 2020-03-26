@@ -151,9 +151,9 @@ class Game
             @logging_players.each do |player_id, client|
                 @logging_players.delete([player_id, client])
                 player = nil
-                if (player = @players.select{ |p| p.id == player_id }.first) # found in online player
+                if (player = @players.find{ |p| p.id == player_id }) # found in online player
                     player.reconnect(client)
-                elsif (player = @inactive_players.values.select { |p| p.weakref_alive? && p.id == player_id }.first)
+                elsif (player = @inactive_players.values.find { |p| p.weakref_alive? && p.id == player_id })
                     player = player.__getobj__             # found in inactive player
                     @inactive_players.delete(player.name)
                     player.reconnect(client)

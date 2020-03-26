@@ -987,7 +987,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
 
     def apply_element_flags(element_flags, affect_class, array)
         element_flags.to_a.each do |flag|
-            element = Constants::Element::STRINGS.select { |k, v| v == flag }.first
+            element = Constants::Element::STRINGS.find { |k, v| v == flag }
             next if !element
             affect = affect_class.new(nil, self, 0)
             affect.savable = false
