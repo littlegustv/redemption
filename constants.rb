@@ -1,5 +1,69 @@
 module Constants
 
+    module Tips
+        TOPTIPS = [
+		"Strength determines how much weight you can carry, increases your chance of hitting slightly, and gives a large boost to your damage.",
+		"Dexterity determines how many items you can carry, increases your armor class, and the success of many combat skills.",
+		"Constitution determines how many hit points you get when you level up, and reduces the damage you take from magic.",
+		"Intelligence determines how fast your skills improve, and the success of many spells.",
+		"Wisdom determines how many practices you get when you level up, and the damage of many spells.",
+		"Armor class shields you from physical attacks by causing them to miss.",
+		"Raising your hit roll is one way to increase your chance of hitting. Bless, enchantments and items raise it.",
+		"Damage roll increases the damage you do with your physical attacks, but not on a one to one ratio.",
+		"Saving throws lower the success of enemy magic. The lower your saving throws, the better.",
+		"You can store excess money on a bank note. The bank is located on wary way in the north part of midgaard. Another is in Southern Shandalar. Be careful, other players can use the bank note if they get it.",
+		"You can type help <topic> to get information about all game commands and many other topics.",
+		"You must use the single quotes (') to enclose a multi-word string that is to be taken as a single parameter. For example, the names of multi-word spells (cast 'acid blast' lion)",
+		"Additional character information becomes available as you level up to level 25.",
+		"You can wear a second floating object starting at level 25, as an orbital.",
+		"The healer located north of recall will help you by curing negative status spells or your wounds if you wait long enough and are of low enough level.",
+		"After level 5, you must use the Temple of Concentration in Midgaard, or Selinas Coven in Shandalar in order to practice and train.",
+		"The consider command can show you how tough a mob is relative to yourself. Use it to avoid battles you can't win.",
+		"Type areas to see a list of all areas available and what areas are suitable for your level.",
+		"You are safe from other players for 3 minutes after you die, but mobs can still attack you.",
+		"Keep an extra set of leveling equipment which boosts your constitution, intelligence and wisdom and wear it just before you gain a level up to maximize your character's potential.",
+		"The animal growth spell is a great easy way to boost your constitution before you level.",
+		"Hatchlings will grow into one of the five dragon colors when they reach level 10. The color of dragon you reach is RANDOM and only determined as you reach level 10. Each color of dragon has its own special skill.",
+		"All characters should probably have the dodge, parry and shield block skills to survive combat. You should also add the maximum number of attacks you can according to your class.",
+		"Bash and trip accomplish similar things, however each is useful against different targets so it may be useful to have both skills.",
+		"Thieves may use backstab repeatedly until their victim's are sufficiently injured. When hasted, a thief deals two backstabs instead of one.",
+		"A mob under the control of a player character is called a charmie by convention, since charmies were originally obtained through the use of the charm person spell.",
+		"Buy a pet in town as soon as you can, they add some firepower and can also be ordered to perform almost any action including skills they may know, or attacking for you. (help order)",
+		"The bakery is the best place to buy food. You can also eat monster parts if you're desperate, but most of them are poisonous.",
+		"You can find maps for most of the areas of the game on various websites. Start by looking at www.redemptionmud.com and check the links.",
+		"Type a channel's name with no message to turn it on or off, including this channel.",
+		"Once you reach mid or high level, you should always have sanctuary on to maximize your chances of survival.",
+		"Type auto to see a list of toggles. Some of them can mean life or death, such as being immune to summon and cancellation except when needed.",
+		"You can abbreviate most commands to one or two letters for convenience. Be careful to use several letters when specifying targets so you dont hit the wrong victim, such as a player.",
+		"Dont spend trains on your stats such as strength; there are many items that can easily raise them to your racial maximums without using trains. Save trains for other things such as hp.",
+		"Players who chose to be in the pkill system can join a clan at level 10. Contact a leader or recruiter for the clan you want to join. (help clans)",
+		"Clan members have a clan hall where they get shops, a room to heal in quickly, a healer and portals to many areas. Clan halls can be invaded by enemy clans by killing the goons!",
+		"Non-clanners can choose to join guilds at any time. These are similar to clans but with less options for their guild halls. (help nonclanner guild) ",
+		"Make sure you know the rules and follow them. Severe penalties including deletion may result from repeated rules breaking. (help rules)",
+		"Immortals sometimes run trivia contests or tournaments where there is no penalty for death. Feel free to join in when these activities occur!",
+		"Once you reach level 51, you can start over at level 1 by remorting to special race or reclassing to a special class. You can do each one once for a total of 153 levels.",
+		"The questmaster offers gold at lower levels, but at level 51 he also awards quest points which are used to remort/reclass or buy powerful quest equipment.",
+		"Crafted items are equipment that are made by combining other items together and knowing the proper keywords. The recipes are well hidden. Many crafted items are very useful and can do things normal items cannot.",
+		"You will attack automatically in combat to the best of your ability. In between combat rounds you may choose extra actions such as casting spells, or using skills like bash on your foe, or trying to flee.",
+		"Wimpy is a feature that will make you try to flee automatically when your hit points go below a certain amount. Use this to prevent you from accidentally dying!",
+		"Some mobs are aggressive and will attack you on sight. Be careful as it is easy to die to aggressive mobs especially if they appear in a group.",
+		"You can safely level in mud school up to level 5 before exploring further. Ask other players for directions, the low level areas are usually close to town.",
+		"If any immortals are on when you gain a level, they will usually give you a gift. Most gifts are pills that when eaten will power you up for a short while. Use them wisely!",
+		"Humans, Elves, Marids, Dwarves, Giants and Hatchlings start on Terra. Trolls, Slivers, Gargoyles, Kirre start on Dominia.",
+        "There are three ways to change continents. Pay the warp ability south and west of recall, take the land bridge, or use the portal/nexus spells.",
+        "By worshipping a deity, you can collect deity points and use them for additional bonus spells. Both deity spells and clan spells use these deity points instead of mana. (help worship)",
+		"Most players and some mobs have weaknesses to certain elements or weapons, be sure to take advantage of this in combat!",
+		"Practice sessions are more effective when your intelligence is high, so get items (such as the painting of the warlock) that boost your intelligence when you use your practice sessions!",
+		"Not all races take as long to level up. Humans are by far the quickest, while a dragon can take quite a while to level up.",
+		"Some stats, such as saves and armor class, are better as negatives than positives: -10 saves is better than -5 saves.",
+		"Being aggressive towards other players, if you're in the pkill system, can get you a {RKiller{M or a {YThief{M flag. These means that high level players and certain mobs will attack you.",
+		"{RKiller{M and {YThief{M flags can be obtained by attacking people, stealing from people, or even sometimes just casting an area attack spell in the same room. Use care!",
+		"After attacking a player or being attacked, you won't be able to quit for 3 ticks. This also occurs if you try and steal from someone, even if you're unsuccessful!",
+		"Typing 'color' will turn on (or off) coloured messages. It's very helpful for differentiating between channels and such.",
+        "Entering the exclamation mark, !, as a command on a new line will repeat the command. This is useful when you want to enter the same command repeatedly and quickly (such as flee).",
+        ]
+    end
+
     module Quests
         module Villain
             FIRST = [
@@ -345,6 +409,7 @@ module Constants
         CommandSocial,
         CommandEat,
         CommandQuaff,
+        CommandPeer,
     ]
 
     SKILL_CLASSES = [
@@ -393,6 +458,9 @@ module Constants
         SpellFireRune,
         SpellGate,
         SpellHurricane,
+        SpellHaste,
+        SpellGiantStrength,
+        SpellAnimalGrowth,
         SpellIceBolt,
         SpellIgnoreWounds,
         SpellInvisibility,
@@ -520,7 +588,7 @@ module Constants
         "shopkeeper" =>             AffectShopkeeper,
         "slow" =>                   AffectSlow,
         "sneak" =>                  AffectSneak,
-        "stoneskin" =>              AffectStoneSkin,
+        "stone skin" =>              AffectStoneSkin,
         "stun" =>                   AffectStun,
         "vuln" =>                   AffectVuln,
         "weaken" =>                 AffectWeaken,
@@ -549,8 +617,10 @@ module Constants
         "regeneration" =>           AffectRegeneration,
         "portal" =>                 AffectPortal,
         "questmaster" =>            AffectQuestMaster,
-        "quest" =>                  AffectQuestItem,
+        "questitem" =>              AffectQuestItem,
         "questvillain" =>           AffectQuestVillain,
+        "giant strength" =>         AffectGiantStrength,
+        "animal growth" =>          AffectAnimalGrowth,
     }
 
     module ClientState

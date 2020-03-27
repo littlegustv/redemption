@@ -29,6 +29,24 @@ class SpellGate < Spell
 
 end
 
+class SpellGiantStrength < Spell
+
+    def initialize
+        super(
+            name: "giant strength",
+            keywords: ["giant strength"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.apply_affect( AffectGiantStrength.new( nil, actor, level || actor.level ) )
+    end
+
+end
+
 class SpellGrandeur < Spell
     def initialize
         super(

@@ -1,5 +1,28 @@
 require_relative 'command.rb'
 
+class CommandPeer < Command
+
+    def initialize
+        super(
+            name: "peer",
+            keywords: ["peer"],
+            position: Constants::Position::STAND
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        if args.first.to_s == ""
+            actor.output "Peer in which direction?"
+        elsif ( direction = actor.room.exits.select{ |k, v| k.to_s.fuzzy_match( args.first.to_s ) && !v.nil? }.keys.first )
+            actor.output "You peer #{direction}."
+            actor.output actor.room.exits[ direction ].destination.show( actor )
+        else
+            actor.output "There is no room in that direction."
+        end
+    end
+
+end
+
 class CommandPoison < Command
 
     def initialize

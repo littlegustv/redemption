@@ -65,7 +65,7 @@ class CommandSell < Command
                 if shopkeeper.spend( shopkeeper.buy_price( sale ) )
                     sale.move(shopkeeper.inventory)
                     actor.earn( shopkeeper.buy_price( sale ) )
-                    actor.output( "You sell #{sale} for #{ shopkeeper.buy_price( sale ) }." )
+                    actor.output( "You sell #{sale} for #{ shopkeeper.buy_price( sale ).to_worth }." )
                 else
                     shopkeeper.do_command "say I'm afraid I don't have enough wealth to buy #{ sale }!"
                 end

@@ -34,7 +34,7 @@ class Item < GameObject
     end
 
     def to_s
-        return @short_description
+        return @name
     end
 
     def to_someone
@@ -42,13 +42,7 @@ class Item < GameObject
     end
 
     def to_store_listing( quantity )
-        "[#{@level.to_s.lpad(2)} #{carrier.sell_price( self ).to_s.lpad(5)} #{ [quantity, 99].min.to_s.lpad(2) } ] #{@short_description}"
-    end
-
-    def to_price
-        gold = ( @cost / 1000 ).floor
-        silver = ( @cost - gold * 1000 )
-        gold > 0 ? "#{ gold } gold and #{ silver } silver" : "#{ silver } silver"
+        "[#{@level.to_s.lpad(2)} #{carrier.sell_price( self ).to_s.lpad(7)} #{ [quantity, 99].min.to_s.lpad(2) } ] #{@name}"
     end
 
     def modifier( key )

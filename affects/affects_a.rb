@@ -114,6 +114,39 @@ class AffectAlarmRune < Affect
 
 end
 
+class AffectAnimalGrowth < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            120, # duration
+            {con: 3, str: 3}, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
+        )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "animal growth",
+            keywords: ["animal growth"],
+            application_type: :global_overwrite,
+        }
+    end
+
+    def send_start_messages
+        @target.room.occupants.each_output "0<N> 0<look,looks> like an animal.", @target
+    end
+
+    def send_complete_messages
+        @target.room.occupants.each_output "0<N> no longer 0<look,looks> like an animal.", @target
+    end
+end
+
 class AffectArmor < Affect
 
     def initialize(source, target, level)

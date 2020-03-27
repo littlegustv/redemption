@@ -277,9 +277,9 @@ class Game
             # player.update(elapsed)
             player.process_commands(elapsed)
         end
-        # @mobiles.each do | mobile |
-        #     mobile.update(elapsed)
-        # end
+        @mobiles.each do | mobile |
+            mobile.update(elapsed)
+        end
         # @items.each do | item |
         #     item.update(elapsed)
         # end
@@ -391,7 +391,9 @@ class Game
     end
 
     def tick
-        @players.each_output("{MMud newbies 'Hi everyone! It's a tick!!'{x", send_to_sleeping: true)
+        if rand(0..100) < 75
+            @players.each_output("{MMud newbies '#{ Constants::Tips::TOPTIPS.sample }'{x", send_to_sleeping: true)
+        end
 
         # player tick is called, just to allow for some regen!!
         ( @players ).each do | entity |

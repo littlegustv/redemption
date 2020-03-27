@@ -25,6 +25,18 @@ class Integer
       end
     end
 
+    def gold
+        ( self / 1000 ).floor
+    end
+
+    def silver
+        ( self - gold * 1000 )
+    end
+
+    def to_worth
+        self.gold > 0 ? "#{ self.gold } gold and #{ self.silver } silver" : "#{ self.silver } silver"
+    end
+
 end
 
 class Array

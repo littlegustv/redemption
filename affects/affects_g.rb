@@ -1,5 +1,38 @@
 require_relative 'affect.rb'
 
+class AffectGiantStrength < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            120, # duration
+            { str: 1 + (level / 12).floor.to_i }, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
+        )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "giant strength",
+            keywords: ["giant strength"],
+            application_type: :global_overwrite,
+        }
+    end
+
+    def send_start_messages
+        @target.room.occupants.each_output "0<N>'s muscles surge with heightened power!", @target
+    end
+
+    def send_complete_messages
+        @target.output "You feel weaker."
+    end
+end
+
 class AffectGlowing < Affect
 
     def initialize(source, target, level)

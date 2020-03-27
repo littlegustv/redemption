@@ -40,7 +40,7 @@ class CommandBuy < Command
         ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper", visible_to: actor, not: actor ) ).each do |shopkeeper|
             ( actor.target({ list: shopkeeper.inventory.items, visible_to: actor }.merge( args.first.to_s.to_query( 1 ) )) ).each do |purchase|
                 if actor.spend( shopkeeper.sell_price( purchase ) )
-                    actor.output( "You buy #{purchase} for #{ shopkeeper.sell_price( purchase ) }." )
+                    actor.output( "You buy 0<n> for #{ shopkeeper.sell_price( purchase ).to_worth }.", [purchase] )
                     shopkeeper.earn( shopkeeper.sell_price( purchase ) )
                     purchase.move( actor.inventory )
                 end

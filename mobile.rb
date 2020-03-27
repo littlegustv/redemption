@@ -115,6 +115,8 @@ class Mobile < GameObject
         set_race_id(race_id)
         set_class_id(class_id)
 
+        @wander_range = data[:act_flags].to_a.include?("sentinel") ? 0 : 1
+
         apply_affect_flags(data[:affect_flags].to_a)
         apply_affect_flags(data[:act_flags].to_a)
         apply_affect_flags(data[:specials].to_a)
@@ -162,18 +164,6 @@ class Mobile < GameObject
         weapons.include? weapon_type
     end
 
-    def gold
-        ( @wealth / 1000 ).floor
-    end
-
-    def silver
-        ( @wealth - gold * 1000 )
-    end
-
-    def to_worth
-        gold > 0 ? "#{ gold } gold and #{ silver } silver" : "#{ silver } silver"
-    end
-
     def earn( n )
         @wealth += n
     end
@@ -197,6 +187,19 @@ class Mobile < GameObject
         else
             @wealth = net
             return true
+        end
+    end
+
+    def update( elapsed )
+        super elapsed
+        
+        # wander
+        if attacking.nil? && @position >= Constants::Position::STAND && rand(1..1200) == 1 && @wander_range > 0
+            if ( direction = @room.exits.reject{ |k, v| v.nil? }.keys.sample )
+                if ( destination = @room.exits[direction].destination ) && destination.area == @room.area 
+                    move( direction )
+                end
+            end
         end
     end
 
@@ -597,7 +600,7 @@ class Mobile < GameObject
             self.items.each do |item|
                 killer.get_item(item)
             end
-            killer.output("You get #{ self.to_worth } from the corpse of 0<n>.", [self])
+            killer.output("You get #{ self.wealth.to_worth } from the corpse of 0<n>.", [self])
             killer.output("You offer your victory to #{@deity} who rewards you with 1 deity points.")
             killer.earn( @wealth )
         end
@@ -742,10 +745,14 @@ class Mobile < GameObject
 
     def damage_rating(weapon:)
         if proficient( weapon.genre )
-            return weapon.damage + stat(:damroll)
+            return weapon.damage + stat(:damroll) + strength_to_damage
         else
-            return ( weapon.damage + stat(:damroll) ) / 2
+            return ( weapon.damage + stat(:damroll) + strength_to_damage ) / 2
         end
+    end
+
+    def strength_to_damage
+        ( 0.5 * stat(:str) - 6 ).to_i
     end
 
     def to_s
@@ -889,7 +896,7 @@ Member of clan Kenshi
 {cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".rpad(26)} {cNext Level:{x #{@experience_to_level - @experience}
 {cQuest Points:{x #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
 {cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".rpad(26) } {cWeight:{x    #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
-{cGold:{x      #{ gold.to_s.rpad(26) } {cSilver:{x    #{ silver.to_s }
+{cGold:{x      #{ @wealth.gold.to_s.rpad(26) } {cSilver:{x    #{ @wealth.silver.to_s }
 ---------------------------------- Stats --------------------------------
 {cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".rpad(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
 {cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".rpad(26)} {cWimpy:{x     #{@wimpy}

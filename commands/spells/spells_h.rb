@@ -36,6 +36,24 @@ class SpellHarm < Spell
     end
 end
 
+class SpellHaste < Spell
+
+    def initialize
+        super(
+            name: "haste",
+            keywords: ["haste"],
+            lag: 0.25,
+            position: Constants::Position::STAND,
+            mana_cost: 10
+        )
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        actor.apply_affect( AffectHaste.new( nil, actor, level || actor.level ) )
+    end
+
+end
+
 class SpellHeal < Spell
 
     def initialize
