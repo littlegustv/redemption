@@ -63,14 +63,9 @@ class Game
         @spell_data = Hash.new              # Spell table as hash      (uses :id as key)
         @command_data = Hash.new            # Command table as hash    (uses :id as key)
 
-        @base_reset_data = Hash.new             # Reset table as hash           (uses :id as key)
-        @mob_reset_data = Hash.new              # Mob reset table as hash       (uses :reset_id as key)
-        @inventory_reset_data = Hash.new        # Inventory reset table as hash (uses :reset_id as key)
-        @equipment_reset_data = Hash.new        # Equipment reset table as hash (uses :reset_id as key)
-        @container_reset_data = Hash.new        # Container reset table as hash (uses :reset_id as key)
-        @room_item_reset_data = Hash.new        # Room item reset table as hash (uses :reset_id as key)
-        @base_mob_reset_data = Hash.new         # Subset of @base_reset_data where :type is "mobile"
-        @base_room_item_reset_data = Hash.new   # Subset of @base_reset_data where :type is "room_item"
+                                                # Reset tables are cleared after reset objects are generated.
+        @reset_mobile_data = Hash.new           # Mobile reset table as hash (uses :id as key)
+        # @new_reset_
 
         @saved_player_id_max = 0                # max id in database table saved_player_base
         @saved_player_affect_id_max = 0         # max id in database table saved_player_affect
@@ -83,6 +78,11 @@ class Game
         @account_data = Hash.new                # Account table as hash (uses :id  as key)
         @saved_player_data = Hash.new           # Saved player table as hash    (uses :id as key)
 
+
+        # Resets
+        @mobile_resets = []                 # Mobile resets
+
+        @active_resets = []                 # Array of Resets waiting to pop - sorted by reset.pop_time (ascending)
 
         # GameObjects
         @continents = Hash.new              # Continent objects as hash   (uses :id as key)
@@ -186,11 +186,7 @@ class Game
             end
             tick_time = Time.now - before
 
-            before = Time.now
-            if @frame_count % Constants::Interval::REPOP == 0
-                repop
-            end
-            repop_time = Time.now - before
+            handle_resets
 
             before = Time.now
             elapsed = Time.now - last_frame_time
@@ -241,9 +237,6 @@ class Game
                 end
                 if @frame_count % Constants::Interval::TICK == 0
                     causes << "  Tick     {c%0.4f{x" % [tick_time]
-                end
-                if @frame_count % Constants::Interval::REPOP == 0
-                    causes << "  Repop    {c%0.4f{x" % [repop_time]
                 end
                 causes << "  Update   {c%0.4f{x" % [update_time]
                 percent_overage = (loop_computation_time * 100 / (1.0 / Constants::Interval::FPS) - 100).floor
@@ -408,82 +401,31 @@ class Game
         weather
     end
 
-    def repop
-        @base_mob_reset_data.each do |reset_id, reset_data|
-            reset = @mob_reset_data[reset_id]
-            if !reset
-              log "[Reset not found] RESET ID: #{reset_id}"
-            elsif @mob_data[ reset[:mobile_id] ]
-                if @mobile_count[ reset[:mobile_id] ].to_i < reset[:world_max] && @rooms[reset[:room_id]].mobile_count[reset[:mobile_id]].to_i < reset[:room_max]
-                    mob = load_mob( reset[:mobile_id], @rooms[ reset[:room_id] ] )
-
-                    # @mobiles.add(mob)
-                    add_global_mobile(mob)
-
-                    @mobile_count[ reset[:mobile_id] ] = @mobile_count[ reset[:mobile_id] ].to_i + 1
-
-                    # inventory
-                    @inventory_reset_data.select{ |id, inventory_reset| inventory_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
-                        if @item_data[ item_reset[:item_id] ]
-
-                            item = load_item( item_reset[:item_id], mob.inventory )
-                            #containers
-                            if Container === item
-                                @container_reset_data.select{ |id, container_reset| container_reset[:parent_id] == item_reset_id }.each do |container_item_reset_id, container_item_reset|
-                                    if @item_data[ container_item_reset[:item_id] ]
-                                        [1, container_item_reset[:quantity].to_i ].max.times do
-                                            container_item = load_item( container_item_reset[:item_id], item.inventory )
-                                        end
-                                    else
-                                        log "[Container item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
-                                    end
-                                end
-                            end
-                        else
-                            log "[Inventory item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@areas[@base_reset_data[item_reset_id][:area_id]]}"
-                        end
-                    end
-
-                    #equipment
-                    @equipment_reset_data.select{ |id, equipment_reset| equipment_reset[:parent_id] == reset_id }.each do | item_reset_id, item_reset |
-                        if @item_data[ item_reset[:item_id] ]
-                            item = load_item( item_reset[:item_id], mob.inventory )
-                            mob.wear(item: item, silent: true)
-                            #containers
-                            if Container === item
-                                @container_reset_data.select{ |id, container_reset| container_reset[:parent_id] == item_reset_id }.each do |container_item_reset_id, container_item_reset|
-                                    if @item_data[ container_item_reset[:item_id] ]
-                                        [1, container_item_reset[:quantity]].max.times do
-                                            container_item = load_item( container_item_reset[:item_id], item.inventory )
-                                        end
-                                    else
-                                        log "[Container item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
-                                    end
-                                end
-                            end
-                        else
-                            log "[Equipped item not found] RESET ID: #{item_reset_id}, ITEM ID: #{item_reset[:item_id]}, AREA: #{@base_reset_data[item_reset_id][:area_id]}"
-                        end
-                    end
-
-                end
-            else
-                log "[Mob not found] RESET ID: #{reset[:id]}, MOB ID: #{reset[:mobile_id]}"
-            end
-        end
-
-        @base_room_item_reset_data.each do |reset_id, reset_data|
-            if ( reset = @room_item_reset_data[reset_id] )
-                if @rooms[reset[:room_id]].inventory.item_count[reset[:item_id]].to_i < 1
-                    load_item( reset[:item_id], @rooms[ reset[:room_id] ].inventory )
-                end
-            else
-                log ["Room item reset not found] RESET ID: #{reset_id}"]
-            end
-        end
+    ## Activate a reset.
+    # _Called only by the reset itself_
+    def activate_reset(reset)
+        puts @active_resets.size
+        @active_resets << reset             # add to the list of active resets!
     end
 
-    def load_mob( id, room )
+    ## Handle resets.
+    # Iterate through resets, popping each until resets not ready to pop are found.
+    def handle_resets
+        @active_resets.sort_by(&:pop_time)
+        current_time = Time.now
+        @active_resets.each do |reset|
+            if current_time >= reset.pop_time # time to reset
+                reset.pop
+            else
+                # stop trying to reset, all resets in loop after here are in the future!
+                break
+            end
+        end
+        # clear resets that have been marked inactive
+        @active_resets.reject! { |reset| !reset.active }
+    end
+
+    def load_mob( id, room, reset = nil )
         row = @mob_data[ id ]
         race_matches = @race_data.select{ |k, v| v[:name] == row[:race] }
         race_id = 0
@@ -491,52 +433,8 @@ class Game
         if race_matches.any?
             race_id = race_matches.first[0]
         end
-        mob = Mobile.new( row, race_id, class_id, room )
-        # mob = Mobile.new( {
-        #         id: id,
-        #         keywords: row[:keywords].split(" "),
-        #         short_description: row[:short_desc],
-        #         long_description: row[:long_desc],
-        #         full_description: row[:full_desc],
-        #         race_id: race_id,
-        #         action_flags: row[:act_flags],
-        #         affect_flags: row[:affect_flags],
-        #         alignment: row[:align].to_i,
-        #         # mobgroup??
-        #         hitroll: row[:hitroll].to_i,
-        #         hitpoints: dice( row[:hp_dice_count].to_i, row[:hp_dice_sides].to_i ) + row[:hp_dice_bonus].to_i,
-        #         #hp_range: row[:hpRange].split("-").map(&:to_i), # take lower end of range, maybe randomize later?
-        #         hp_range: [500, 1000],
-        #         # mana: row[:manaRange].split("-").map(&:to_i).first,
-        #         manapoints: dice( row[:mana_dice_count].to_i, row[:mana_dice_sides].to_i ) + row[:mana_dice_bonus].to_i,
-        #         movepoints: 100,
-        #         #damage_range: row[:damageRange].split("-").map(&:to_i),
-        #         # damage_range: [10, 20],
-        #         damage_dice_sides: row[:damage_dice_sides].to_i,
-        #         damage_dice_count: row[:damage_dice_count].to_i,
-        #         damage_dice_bonus: row[:damage_dice_bonus].to_i,
-        #         hand_to_hand_noun: row[:hand_to_hand_noun], # pierce, slash, none, etc.
-        #         ac: [row[:ac_pierce], row[:ac_bash], row[:ac_slash], row[:ac_magic]],
-        #         offensive_flags: row[:off_flags],
-        #         immune_flags: row[:immune_flags],
-        #         resist_flags: row[:resist_flags],
-        #         vulnerable_flags: row[:vuln_flags],
-        #         starting_position: row[:start_position],
-        #         default_position: row[:default_position],
-        #         sex: row[:sex],
-        #         wealth: row[:wealth].to_i,
-        #         form_flags: row[:form_flags],
-        #         specials: row[:specials],
-        #         parts: row[:part_flags],
-        #         size: row[:size],
-        #         material: row[:material],
-        #         level: row[:level]
-        #     },
-        #     room
-        # )
-        #
-        # "Shopkeeper behavior" is handled as an affect, which is currently used only as a kind of 'flag' for the buy/sell commands
-        #
+        mob = Mobile.new( row, race_id, class_id, room, reset )
+        add_global_mobile(mob)
         if not @shop_data[ id ].nil?
             mob.apply_affect( AffectShopkeeper.new( mob, mob, 0 ) )
         end

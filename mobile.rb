@@ -29,7 +29,7 @@ class Mobile < GameObject
 
     include MobileItem
 
-    def initialize( data, race_id, class_id, room )
+    def initialize( data, race_id, class_id, room, reset_owner = nil )
         super(data[ :name ], data[:keywords])
         @attacking = nil
         @lag = 0

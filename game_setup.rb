@@ -84,6 +84,12 @@ module GameSetup
 
         end
 
+        profile "{M", "MAKE RESETS" do
+
+            make_resets
+
+        end
+
         profile "{M", "MAKE SKILLS, SPELLS, COMMANDS" do
             make_skills
             make_spells
@@ -92,12 +98,10 @@ module GameSetup
 
         clear_tables
 
-        profile "{G", "REPOP", true do
+        profile "{G", "HANDLE RESETS", true do
 
-            # perform a repop to populate the world with items and mobiles
-            10.times do
-                repop
-            end
+            # perform resets to populate the world with items and mobiles
+            handle_resets
 
         end
 
@@ -292,18 +296,9 @@ module GameSetup
 
     # load reset tables from database
     protected def load_reset_data( areas )
-        if areas == "lite"
-            @base_reset_data = @db[:reset_base].where( area_id: [17, 23] ).to_hash(:id)
-        else
-            @base_reset_data = @db[:reset_base].to_hash(:id)
-        end
-        @mob_reset_data = @db[:reset_mobile].to_hash(:reset_id)
-        @inventory_reset_data = @db[:reset_inventory_item].to_hash(:reset_id)
-        @equipment_reset_data = @db[:reset_equipped_item].to_hash(:reset_id)
-        @container_reset_data = @db[:reset_container_item].to_hash(:reset_id)
-        @room_item_reset_data = @db[:reset_room_item].to_hash(:reset_id)
-        @base_mob_reset_data = @base_reset_data.select{ |key, value| value[:type] == "mobile" }
-        @base_room_item_reset_data = @base_reset_data.select{ |key, value| value[:type] == "room_item" }
+
+        @reset_mobile_data = @db[:new_reset_mobile].to_hash(:id)
+
         log("Database load complete: Resets")
     end
 
@@ -427,6 +422,18 @@ module GameSetup
         log("Rooms constructed.")
     end
 
+    # Construct Reset objects
+    protected def make_resets
+        @reset_mobile_data.values.each do |row|
+            row[:quantity].times do
+                reset = ResetMobile.new( row[:room_id], row[:mobile_id], row[:timer], row[:chance])
+                @mobile_resets << reset
+                reset.activate
+            end
+        end
+        log ("Resets constructed.")
+    end
+
     # Construct Skill objects
     protected def make_skills
         Constants::SKILL_CLASSES.each do |skill_class|
@@ -476,6 +483,7 @@ module GameSetup
 
     # release unnecessary tables (already been populated, etc)
     protected def clear_tables
+        @new_reset_mobile_data = nil
         @continent_data = nil
         @area_data = nil
         @room_data = nil

@@ -1,6 +1,6 @@
 class GameObject
 
-    attr_accessor :name, :keywords, :affects, :uuid, :active
+    attr_accessor :name, :keywords, :affects, :uuid, :active, :disturbed
     attr_reader :listeners, :room, :gender, :short_description, :long_description
 
     def initialize( name, keywords )
