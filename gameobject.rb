@@ -1,9 +1,9 @@
 class GameObject
 
-    attr_accessor :name, :keywords, :affects, :uuid, :active, :disturbed
+    attr_accessor :name, :keywords, :affects, :uuid, :active
     attr_reader :listeners, :room, :gender, :short_description, :long_description
 
-    def initialize( name, keywords )
+    def initialize( name, keywords, reset = nil )
         @name = name
         if keywords
             @keyword_string = keywords.to_a.join(" ".freeze).downcase
@@ -19,6 +19,7 @@ class GameObject
             @keyword_string = "".freeze
             @keywords = nil
         end
+        @reset = reset
         @affects = []
         @listeners = {}
         @uuid = Game.instance.new_uuid
@@ -151,7 +152,7 @@ class GameObject
     # +array+:: array to add affects onto
     #  some_mobile.apply_affect_flags(["infravision", "hatchling", "flying"])
     #
-    def apply_affect_flags(flags, silent: false, array: nil)
+    def apply_affect_flags(flags, silent = false, array = nil)
         flags.each do |flag|
             affect_class = Constants::AFFECT_CLASS_HASH[flag]
             if affect_class

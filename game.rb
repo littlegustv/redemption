@@ -25,6 +25,7 @@ class Game
     attr_reader :logging_players
     attr_reader :client_account_ids
     attr_reader :rooms
+    attr_reader :areas
     attr_reader :frame_count
     attr_reader :skills
     attr_reader :abilities
@@ -83,6 +84,7 @@ class Game
         @mobile_resets = []                 # Mobile resets
 
         @active_resets = []                 # Array of Resets waiting to pop - sorted by reset.pop_time (ascending)
+        @initial_reset = true
 
         # GameObjects
         @continents = Hash.new              # Continent objects as hash   (uses :id as key)
@@ -202,7 +204,7 @@ class Game
             total_time += loop_computation_time
 
             # Sleep until the next frame, if there's time left over
-            if sleep_time < 0 # try to figure out why there isn't!
+            if sleep_time < 0 && !@initial_reset # try to figure out why there isn't (initial reset frames don't really count :) )!
                 gc_stat = GC.stat
                 if $VERBOSE
                     lines = []
@@ -225,8 +227,8 @@ class Game
                     gc_stat[:heap_allocated_pages] != last_gc_stat[:heap_allocated_pages] )
                     causes << "  Heap Allocation"
                 end
-                last_heap_free = last_gc_stat[:heap_free_slots] == 0 ? 1 : last_gc_stat[:heap_free_slots]
-                if gc_stat[:heap_free_slots] / last_heap_free > 3 # drastic increase in open heap slots
+                last_heap_free = last_gc_stat[:heap_free_slots].to_i == 0 ? 1 : last_gc_stat[:heap_free_slots]
+                if (gc_stat[:heap_free_slots] || 1) / last_heap_free > 3 # drastic increase in open heap slots
                     causes << "  Freeing Heap Slots"
                 end
                 if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0
@@ -243,7 +245,7 @@ class Game
                 log ("Frame {m#{frame_count}{x took {c#{percent_overage}\%{x too long - possible causes:\n#{causes.join("\n")}")
 
             else
-                sleep(sleep_time) #
+                sleep([sleep_time, 0].max) #
             end
             last_gc_stat = GC.stat
         end
@@ -277,6 +279,8 @@ class Game
             # player.update(elapsed)
             player.process_commands(elapsed)
         end
+        # @wander_mobiles = @mobiles.dup
+        # @wander_mobiles.shuffle.
         @mobiles.each do | mobile |
             mobile.update(elapsed)
         end
@@ -406,25 +410,34 @@ class Game
     ## Activate a reset.
     # _Called only by the reset itself_
     def activate_reset(reset)
-        puts @active_resets.size
         @active_resets << reset             # add to the list of active resets!
     end
 
     ## Handle resets.
     # Iterate through resets, popping each until resets not ready to pop are found.
-    def handle_resets
-        @active_resets.sort_by(&:pop_time)
-        current_time = Time.now
+    def handle_resets(limit = Constants::Interval::RESETS_PER_FRAME)
+        if @active_resets.size == 0
+            return
+        end
+        @active_resets.sort_by!(&:pop_time)
+        current_time = Time.now.to_i
+        count = 0
         @active_resets.each do |reset|
-            if current_time >= reset.pop_time # time to reset
+            if current_time >= reset.pop_time && reset.success? && count < limit
                 reset.pop
+                count += 1
             else
                 # stop trying to reset, all resets in loop after here are in the future!
                 break
             end
         end
         # clear resets that have been marked inactive
-        @active_resets.reject! { |reset| !reset.active }
+        # @active_resets.delete_if { |reset| !reset.active }
+        @active_resets.slice!(0, count)
+        if @initial_reset && @active_resets.select { |r| r.pop_time == 0 }.size == 0
+            log "Initial resets complete."
+            @initial_reset = false
+        end
     end
 
     def load_mob( id, room, reset = nil )
@@ -438,7 +451,7 @@ class Game
         mob = Mobile.new( row, race_id, class_id, room, reset )
         add_global_mobile(mob)
         if not @shop_data[ id ].nil?
-            mob.apply_affect( AffectShopkeeper.new( mob, mob, 0 ) )
+            mob.apply_affect( AffectShopkeeper.new( mob, mob, 0 ), true )
         end
         return mob
     end

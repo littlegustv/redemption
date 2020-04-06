@@ -67,31 +67,31 @@ module Constants
     module Quests
         module Villain
             FIRST = [
-                "One of this land's worst foes, 0<n>, has escaped from the dungeon!",
-                "A villain by the name of 0<n> has named itself an enemy of our town.",
-                "There has been an attempt on my life by 0<n>!",
-                "The local people are being terrorized by 0<n>.",
+                "One of this land's worst foes, %s, has escaped from the dungeon!",
+                "A villain by the name of %s has named itself an enemy of our town.",
+                "There has been an attempt on my life by %s!",
+                "The local people are being terrorized by %s.",
             ]
             SECOND = [
-                "Since then, 0<n> has murdered %d people!",
-                "The local people are very scared of 0<n>.",
+                "Since then, %s has murdered %d people!",
+                "The local people are very scared of %s.",
                 "A young girl has recently gone missing, we fear the worst.",
-                "There is fear 0<n> may try and start a rebellion.",
+                "There is fear %s may try and start a rebellion.",
             ]
             THIRD = [
                 "The penalty for this crime is death, and I am sending you to deliver the sentence.",
                 "The town has chosen YOU to resolve this situation.",
                 "Only you are strong enough to end this threat!",
-                "I wish you the best of luck in slaying 0<n>.",
+                "I wish you the best of luck in slaying %s.",
             ]
         end
 
         module Item
             FIRST = [
-                "Vile thieves have stolen 0<n> from the royal treasury!",
-                "A group of diplomats visited last week, and now 0<n> is missing from the capital!",
-                "The local ruler's bumbling aid seems to have misplaced 0<n>!",
-                "A travelling caravan was robbed of 0<n> out in the wilds!"
+                "Vile thieves have stolen %s from the royal treasury!",
+                "A group of diplomats visited last week, and now %s is missing from the capital!",
+                "The local ruler's bumbling aid seems to have misplaced %s!",
+                "A travelling caravan was robbed of %s out in the wilds!"
             ]
         end
     end
@@ -228,6 +228,7 @@ module Constants
         REPOP = FPS * 3 * 60    # 3 minutes
         # REPOP = FPS * 4         # fast resets for testing
         AUTOSAVE = FPS * 60     # 1 minute
+        RESETS_PER_FRAME = 200
     end
 
     DAMAGE_DECORATORS = {

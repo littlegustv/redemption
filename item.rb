@@ -28,7 +28,7 @@ class Item < GameObject
         @level = data[:level] || 0
         # @ac = data[:ac] || [0,0,0,0]
 
-        apply_affect_flags( @extra_flags, silent: true )
+        apply_affect_flags( @extra_flags, true )
 
         move(parent_inventory)
     end

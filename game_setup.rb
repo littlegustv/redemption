@@ -101,12 +101,13 @@ module GameSetup
         profile "{G", "HANDLE RESETS", true do
 
             # perform resets to populate the world with items and mobiles
-            handle_resets
+            handle_resets(100000)
 
         end
 
         @start_time = Time.now
         log( "Redemption is ready to rock on port #{port}!" )
+        log( "Starting initial resets..." )
 
         # binding.pry
 
@@ -428,7 +429,7 @@ module GameSetup
             row[:quantity].times do
                 reset = ResetMobile.new( row[:room_id], row[:mobile_id], row[:timer], row[:chance])
                 @mobile_resets << reset
-                reset.activate
+                reset.activate(true)
             end
         end
         log ("Resets constructed.")

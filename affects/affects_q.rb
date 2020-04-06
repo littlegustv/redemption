@@ -50,7 +50,7 @@ class AffectQuestItem < Affect
         if data[:actor] == @target && data[:item] == @item
             @completed = true
         else
-            @target.output "Something is wrong... has someone else completed your quest?"            
+            @target.output "Something is wrong... has someone else completed your quest?"
         end
     end
 

@@ -29,8 +29,8 @@ class Mobile < GameObject
 
     include MobileItem
 
-    def initialize( data, race_id, class_id, room, reset_owner = nil )
-        super(data[ :name ], data[:keywords])
+    def initialize( data, race_id, class_id, room, reset = nil )
+        super(data[ :name ], data[:keywords], reset)
         @attacking = nil
         @lag = 0
         @id = data[ :id ]
@@ -117,9 +117,9 @@ class Mobile < GameObject
 
         @wander_range = data[:act_flags].to_a.include?("sentinel") ? 0 : 1
 
-        apply_affect_flags(data[:affect_flags].to_a)
-        apply_affect_flags(data[:act_flags].to_a)
-        apply_affect_flags(data[:specials].to_a)
+        apply_affect_flags(data[:affect_flags].to_a, true)
+        apply_affect_flags(data[:act_flags].to_a, true)
+        apply_affect_flags(data[:specials].to_a, true)
     end
 
     # alias for Game.instance.destroy_mobile(self)
@@ -191,12 +191,12 @@ class Mobile < GameObject
     end
 
     def update( elapsed )
-        super elapsed
-        
+        # super elapsed
+
         # wander
         if attacking.nil? && @position >= Constants::Position::STAND && rand(1..1200) == 1 && @wander_range > 0
             if ( direction = @room.exits.reject{ |k, v| v.nil? }.keys.sample )
-                if ( destination = @room.exits[direction].destination ) && destination.area == @room.area 
+                if ( destination = @room.exits[direction].destination ) && destination.area == @room.area
                     move( direction )
                 end
             end
@@ -605,6 +605,10 @@ class Mobile < GameObject
             killer.earn( @wealth )
         end
         stop_combat
+        if @reset
+            @reset.activate
+            @reset = nil
+        end
         destroy
     end
 
@@ -958,7 +962,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         end
         @race_affects = []
         affect_flags = Game.instance.race_data.dig(@race_id, :affect_flags)
-        apply_affect_flags(affect_flags, silent: true, array: @race_affects) if affect_flags
+        apply_affect_flags(affect_flags, true, @race_affects) if affect_flags
         apply_element_flags(Game.instance.race_data.dig(@race_id, :vuln_flags), AffectVuln, @race_affects)
         apply_element_flags(Game.instance.race_data.dig(@race_id, :resist_flags), AffectResist, @race_affects)
         apply_element_flags(Game.instance.race_data.dig(@race_id, :immune_flags), AffectImmune, @race_affects)
@@ -986,7 +990,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
         end
         @class_affects = []
         affect_flags = Game.instance.class_data.dig(@class_id, :affect_flags)
-        apply_affect_flags(affect_flags, silent: true, array: @race_affects) if affect_flags
+        apply_affect_flags(affect_flags, true, @race_affects) if affect_flags
         apply_element_flags(Game.instance.class_data.dig(@class_id, :vuln_flags), AffectVuln, @class_affects)
         apply_element_flags(Game.instance.class_data.dig(@class_id, :resist_flags), AffectResist, @class_affects)
         apply_element_flags(Game.instance.class_data.dig(@class_id, :immune_flags), AffectImmune, @class_affects)
@@ -999,7 +1003,7 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
             affect = affect_class.new(nil, self, 0)
             affect.savable = false
             affect.overwrite_data({element: element[0]})
-            apply_affect(affect, silent: true)
+            apply_affect(affect, true)
             array << affect
         end
     end

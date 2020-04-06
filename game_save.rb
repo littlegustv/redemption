@@ -322,7 +322,7 @@ module GameSave
                     end
                     affect.overwrite_modifiers(modifiers)
                     affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
-                    player.apply_affect(affect, silent: true)
+                    player.apply_affect(affect, true)
                 end
             end
         end
@@ -345,7 +345,7 @@ module GameSave
                         end
                         affect.overwrite_modifiers(modifiers)
                         affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
-                        item.apply_affect(affect, silent: true)
+                        item.apply_affect(affect, true)
                     end
                 end
             end
