@@ -522,23 +522,16 @@ class Mobile < GameObject
         if immune
             damage = 0
         end
-        if type == Constants::Damage::PHYSICAL # physical damage
-            if !silent
-                decorators = Constants::DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-                if source && !anonymous
-                    (self.room.occupants | source.room.occupants).each_output "0<N>'s #{decorators[2]} #{noun} #{decorators[1]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[3]} ", [source, self]
-                else # anonymous damage
-                    self.room.occupants.each_output("#{noun} #{decorators[1]} 0<n>#{decorators[3]} ", [self])
-                end
+        if !silent
+            decorators = Constants::DAMAGE_DECORATORS
+            if type == Constants::Damage::MAGICAL
+                decorators = Constants::MAGIC_DAMAGE_DECORATORS
             end
-        else # magic damage
-            if !silent
-                decorators = Constants::MAGIC_DAMAGE_DECORATORS.select{ |key, value| damage >= key }.values.last
-                if source && !anonymous
-                    (self.room.occupants | source.room.occupants).each_output "0<N>'s #{noun} #{decorators[0]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[1]}#{decorators[2]}", [source, self]
-                else # anonymous damage
-                    self.room.occupants.each_output "#{noun} #{decorators[0]} 0<n>#{decorators[1]}#{decorators[2]}", [self]
-                end
+            decorators = decorators.select{ |key, value| damage >= key}.values.last
+            if source && !anonymous
+                (self.room.occupants | source.room.occupants).each_output "0<N>'s#{decorators[2]} #{noun} #{decorators[1]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[3]} ", [source, self]
+            else # anonymous damage
+                self.room.occupants.each_output("#{noun} #{decorators[1]} 0<n>#{decorators[3]} ", [self])
             end
         end
         @hitpoints -= damage
