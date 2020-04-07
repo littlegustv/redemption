@@ -11,7 +11,7 @@ class AffectEnchantArmor < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -37,7 +37,7 @@ class AffectEnchantWeapon < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -63,7 +63,7 @@ class AffectEssence < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::PASSIVE, # visibility
+            Visibility::PASSIVE, # visibility
             true # savable
         )
     end

@@ -11,7 +11,7 @@ class AffectFireBlind < AffectBlind
             # nil, # modifiers: nil
             # nil, # period: nil
             # false, # permanent: false
-            # Constants::AffectVisibility::NORMAL, # visibility
+            # Visibility::NORMAL, # visibility
             # true # savable
         )
     end
@@ -46,7 +46,7 @@ class AffectFireRune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -102,7 +102,7 @@ class AffectFlamingWeapon < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
         @data = {
@@ -165,7 +165,7 @@ class AffectFloodingWeapon < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
         @data = {
@@ -228,7 +228,7 @@ class AffectFlooded < Affect
             { attack_speed: -1, dex: -1 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -266,7 +266,7 @@ class AffectFly < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -300,7 +300,7 @@ class AffectFollow < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::HIDDEN, # visibility
+            Visibility::HIDDEN, # visibility
             true # savable
         )
     end
@@ -357,7 +357,7 @@ class AffectFrenzy < Affect
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -392,7 +392,7 @@ class AffectFrostWeapon < Affect
                 nil, # modifiers: nil
                 nil, # period: nil
                 false, # permanent: false
-                Constants::AffectVisibility::NORMAL, # visibility
+                Visibility::NORMAL, # visibility
                 true # savable
             )
             @data = {

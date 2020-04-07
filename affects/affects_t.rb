@@ -11,7 +11,7 @@ class AffectTaunt < Affect
             {damroll: 7, hitroll: 7 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end

@@ -107,7 +107,7 @@ module GameSetup
 
         @start_time = Time.now
         log( "Redemption is ready to rock on port #{port}!" )
-        log( "Starting initial resets..." )
+        log( "Starting initial resets." )
 
         # binding.pry
 
@@ -138,6 +138,7 @@ module GameSetup
 
     # Open up the connection to the database.
     protected def connect_database
+        log( "Connecting to database... ", false)
         sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
         @db = Sequel.mysql2( :host => sql_host,
                              :port => sql_port,
@@ -146,24 +147,27 @@ module GameSetup
                              :database => "redemption" )
 
         # @db.loggers << Logger.new($stdout)
-        log( "Database connection established." )
+        log( "complete." )
     end
 
     # clear some rows that were valid on the last time the game was running but are now errant data
     protected def clean_database
+        log( "Cleaning database... ", false)
         @db[:saved_player_affect].update(source_uuid: 0)
         @db[:saved_player_item_affect].update(source_uuid: 0)
-        log ( "Database cleaned." )
+        log( "complete." )
     end
 
     # Load the game_settings table from the database and apply its values where necessary.
     protected def load_game_settings
+        log("Database load: Game settings... ", false)
         @game_settings = @db[:game_settings].all.first
-        log ( "Database load complete: Game settings" )
+        log( "complete." )
     end
 
     # Load the race_base table
     protected def load_race_data
+        log("Database load: Race data... ", false)
         @race_data = @db[:race_base].to_hash(:id)
         @race_data.each do |key, value|
             value[:skills] = value[:skills].split(",")
@@ -178,11 +182,12 @@ module GameSetup
             value[:equip_slots] = value[:equip_slots].split(",")
             value[:h2h_flags] = value[:h2h_flags].split(",")
         end
-        log ( "Database load complete: Race data" )
+        log( "complete." )
     end
 
     # Load the class_base table
     protected def load_class_data
+        log("Database load: Class data... ", false)
         @class_data = @db[:class_base].to_hash(:id)
         @class_data.each do |key, value|
             value[:skills] = value[:skills].to_s.split(",")
@@ -194,37 +199,42 @@ module GameSetup
             value[:vuln_flags] = value[:vuln_flags].to_s.split(",")
             value[:equip_slots] = value[:equip_slots].to_s.split(",")
         end
-        log ( "Database load complete: Class data" )
+        log( "complete." )
     end
 
     # Load the equip_slot_base table
     protected def load_equip_slot_data
+        log("Database load: Equip slot data... ", false)
         @equip_slot_data = @db[:equip_slot_base].to_hash(:id)
-        log ("Database load complete: Equip slot data")
+        log( "complete." )
     end
 
     # Load the continent_base table
     protected def load_continent_data
+        log("Database load: Continent data... ", false)
         @continent_data = @db[:continent_base].to_hash(:id)
-        log ( "Database load complete: Continents" )
+        log( "complete." )
     end
 
     # Load the area_base table
     protected def load_area_data
+        log("Database load: Area data... ", false)
         @area_data = @db[:area_base].to_hash(:id)
-        log ( "Database load complete: Areas" )
+        log( "complete." )
     end
 
     # Load the room_base table
     protected def load_room_data
+        log("Database load: Room data... ", false)
         @room_data = @db[:room_base].to_hash(:id)
         @exit_data = @db[:room_exit].to_hash(:id)
         @room_description_data = @db[:room_description].to_hash(:id)
-        log ( "Database load complete: Rooms" )
+        log( "complete." )
     end
 
     # Load the mobile_base table
     protected def load_mobile_data
+        log("Database load: Mobile data... ", false)
         @mob_data = @db[:mobile_base].to_hash(:id)
         @mob_data.each do |id, row|
             row[:keywords] = row[:keywords].split(" ")
@@ -238,11 +248,12 @@ module GameSetup
             row[:form_flags] = row[:form_flags].split(",")
             row[:hand_to_hand_noun] = "pound" if row[:hand_to_hand_noun] == "none"
         end
-        log("Database load complete: Mobile data")
+        log( "complete." )
     end
 
     # Load the item tables from database and merge them together
     protected def load_item_data
+        log("Database load: Item data... ", false)
         @item_data = @db[:item_base].to_hash(:id)
         @item_modifiers = @db[:item_modifier].to_hash_groups(:item_id)
         @ac_data = @db[:item_armor].to_hash(:item_id)
@@ -268,97 +279,109 @@ module GameSetup
                 row.merge!(@container_data[ id ])
             end
         end
-        log("Database load complete: Item data")
+        log( "complete." )
     end
 
     # Load shop table from database
     protected def load_shop_data
+        log("Database load: Shop data... ", false)
         @shop_data = @db[:shop_base].to_hash(:mobile_id)
-        log("Database load complete: Shop data")
+        log( "complete." )
     end
 
     protected def load_portal_data
+        log("Database load: Portal data... ", false)
         @portal_data = @db[:item_portal].to_hash(:item_id)
-        log("Database load complete: Portal data")
+        log( "complete." )
     end
 
     protected def load_social_data
+        log("Database load: Social data... ", false)
         @social_data = @db[:social_base].to_hash(:id)
-        log("Database load complete: Social data")
+        log( "complete." )
     end
 
     protected def load_gender_data
+        log("Database load: Gender data... ", false)
         @gender_data = @db[:gender_base].to_hash(:id)
         if @gender_data.size == 0
             @gender_data[Constants::Gender::DEFAULT[:id]] = Constants::Gender::DEFAULT
         end
-        log("Database load complete: Gender data")
+        log( "complete." )
     end
 
     # load reset tables from database
     protected def load_reset_data( areas )
-
+        log("Database load: Reset data... ", false)
         @reset_mobile_data = @db[:new_reset_mobile].to_hash(:id)
-
-        log("Database load complete: Resets")
+        log( "complete." )
     end
 
     # load helpfiles
     protected def load_help_data
+        log("Database load: Helpfile data... ", false)
         @help_data = @db[:help_base].to_hash(:id)
         @help_data.each { |id, help| help[:keywords] = help[:keywords].split(" ") }
-        log ( "Database load complete: Helpfiles" )
+        log( "complete." )
     end
 
     # load account data = this will be continually updated
     protected def load_account_data
+        log("Database load: Account data... ", false)
         @account_data = @db[:account_base].to_hash(:id)
-        log ( "Database load complete: Account data" )
+        log( "complete." )
     end
 
     # load player data - this will be continually updated in the main thread
     protected def load_saved_player_data
+        log("Database load: Player data... ", false)
         @saved_player_data = @db[:saved_player_base].to_hash(:id)
-        log ( "Database load complete: Saved player data" )
+        log( "complete." )
     end
 
     # load skill data from database
     protected def load_skill_data
+        log("Database load: Skill data... ", false)
         @skill_data = @db[:skill_base].to_hash(:id)
-        log ( "Database load complete: Skill data" )
+        log( "complete." )
     end
 
     # load spell data from database
     protected def load_spell_data
+        log("Database load: Spell data... ", false)
         @spell_data = @db[:spell_base].to_hash(:id)
-        log ( "Database load complete: Spell data" )
+        log( "complete." )
     end
 
     # load command data from database
     protected def load_command_data
+        log("Database load: Command data... ", false)
         @command_data = @db[:command_base].to_hash(:id)
-        log ( "Database load complete: Command data" )
+        log( "complete." )
     end
 
     # load max ids for saved_player tables
     protected def load_max_ids
+        log("Database load: Player id max values... ", false)
         @saved_player_id_max = @db[:saved_player_base].max(:id).to_i
         @saved_player_affect_id_max = @db[:saved_player_affect].max(:id).to_i
         @saved_player_item_id_max = @db[:saved_player_item].max(:id).to_i
         @saved_player_item_affect_id_max = @db[:saved_player_item_affect].max(:id).to_i
-        log ( "Database load complete: Saved player id max values" )
+        log( "complete." )
     end
 
     # Construct Continent objects
     protected def make_continents
+        log("Building continents... ", false)
         @continent_data.each do |id, row|
             @continents[id] = Continent.new(row)
         end
-        log("Continents constructed.")
+        log( "complete." )
     end
 
     # Construct Continent objects
     protected def make_areas
+        log("Building areas... ", false)
         @area_data.each do |id, row|
             @areas[id] = Area.new(
                 {
@@ -375,11 +398,12 @@ module GameSetup
                 }
             )
         end
-        log("Areas constructed.")
+        log( "complete." )
     end
 
     # Construct room objects
     protected def make_rooms
+        log("Building rooms... ", false)
         exit_inverse_list = {}
         @room_data.each do |id, row|
             @rooms[id] = Room.new(
@@ -420,11 +444,12 @@ module GameSetup
             end
         end
         @starting_room = @rooms[@db[:continent_base].to_hash(:id)[2][:starting_room_id]]
-        log("Rooms constructed.")
+        log( "complete." )
     end
 
     # Construct Reset objects
     protected def make_resets
+        log("Building resets... ", false)
         @reset_mobile_data.values.each do |row|
             row[:quantity].times do
                 reset = ResetMobile.new( row[:room_id], row[:mobile_id], row[:timer], row[:chance])
@@ -432,54 +457,69 @@ module GameSetup
                 reset.activate(true)
             end
         end
-        log ("Resets constructed.")
+        log( "complete." )
     end
 
     # Construct Skill objects
     protected def make_skills
+        log("Building skills... ", false)
+        missing = []
         Constants::SKILL_CLASSES.each do |skill_class|
             skill = skill_class.new
             row = @skill_data.values.find{ |row| row[:name] == skill.name }
             if row
                 skill.overwrite_attributes(row)
             else
-                log "{ySkill not found in database: \"#{skill.name}\" {x"
+                missing << skill.name
             end
             @skills.push skill
             @abilities[ skill.name ] = skill
         end
-        log("Skills constructed.")
+        log( "complete." )
+        if missing.size > 0
+            log "Skills not found in database: {y\"#{missing.join("\n\r#{" " * 51}")}\" {x"
+        end
     end
 
     # Construct Spell objects
     protected def make_spells
+        log("Building spells... ", false)
+        missing = []
         Constants::SPELL_CLASSES.each do |spell_class|
             spell = spell_class.new
             row = @spell_data.values.find{ |row| row[:name] == spell.name }
             if row
                 spell.overwrite_attributes(row)
             else
-                log "{ySpell not found in database: \"#{spell.name}\"{x"
+                missing << spell.name
             end
             @spells.push spell
             @abilities[ spell.name ] = spell
         end
-        log("Spells constructed.")
+        log( "complete." )
+        if missing.size > 0
+            log "Spells not found in database: {y#{missing.join("\n\r#{" " * 51}")}{x"
+        end
     end
 
     # Construct Command objects
     protected def make_commands
+        log("Building commands... ", false)
+        missing = []
         Constants::COMMAND_CLASSES. each do |command_class|
             command = command_class.new
             row = @command_data.values.find{ |row| row[:name] == command.name }
             if row
                 command.overwrite_attributes(row)
             else
-                log "{yCommand not found in database: \"#{command.name}\"{x"
+                missing << command.name
             end
             @commands.push command
         end
-        log("Commands constructed.")
+        log( "complete." )
+        if missing.size > 0
+            log "Commands not found in database: {y#{missing.join("\n\r#{" " * 53}")}{x"
+        end
     end
 
     # release unnecessary tables (already been populated, etc)

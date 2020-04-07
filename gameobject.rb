@@ -200,7 +200,7 @@ class GameObject
         end
         affs_to_show = self.affects
         if !show_hidden
-            affs_to_show = affs_to_show.reject(&:hidden)
+            affs_to_show = affs_to_show.reject(&:hidden?)
         end
         text = ( full ? "#{prefix} affected by the following spells:\n" : "" )
         if affs_to_show.empty?

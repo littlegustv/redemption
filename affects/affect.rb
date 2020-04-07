@@ -11,6 +11,18 @@ class Affect
     attr_reader :period
     attr_reader :target
 
+    module Visibility
+        NORMAL = 0
+        PASSIVE = 1
+        HIDDEN = 2
+
+        STRINGS = {
+            NORMAL => "normal",
+            PASSIVE => "passive",
+            HIDDEN => "hidden",
+        }
+    end
+
     def initialize(
         source,
         target,
@@ -59,8 +71,8 @@ class Affect
     def send_complete_messages
     end
 
-    def hidden
-        @visibility == Constants::AffectVisibility::HIDDEN
+    def hidden?
+        @visibility == Visibility::HIDDEN
     end
 
     # Override this method to perform actions and logic.

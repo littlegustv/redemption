@@ -11,7 +11,7 @@ class AffectZeal < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end

@@ -17,7 +17,7 @@ class AffectMinimation < Affect
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -64,7 +64,7 @@ class AffectMirrorImage < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
         @health = 5

@@ -11,7 +11,7 @@ class AffectRegeneration < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::PASSIVE, # visibility
+            Visibility::PASSIVE, # visibility
             true # savable
         )
     end
@@ -58,7 +58,7 @@ class AffectResist < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::HIDDEN, # visibility
+            Visibility::HIDDEN, # visibility
             true # savable
         )
         @data = { element: -1 } # this gets set from outside of this class

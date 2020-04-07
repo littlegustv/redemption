@@ -11,7 +11,7 @@ class AffectIgnoreWounds < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -63,7 +63,7 @@ class AffectImmune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::HIDDEN, # visibility
+            Visibility::HIDDEN, # visibility
             true # savable
         )
         @data = { element: -1 } # this gets set from outside of this class
@@ -111,7 +111,7 @@ class AffectIndoors < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::HIDDEN, # visibility
+            Visibility::HIDDEN, # visibility
             true # savable
         )
     end
@@ -137,7 +137,7 @@ class AffectInfravision < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -170,7 +170,7 @@ class AffectInvisibility < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end

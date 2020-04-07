@@ -12,9 +12,10 @@ class Reset
     end
 
     # called when the time for reset has come to determine if the reset was successful.
+    # if it wasn't, it reactivates itself!
     def success?
         if @chance != 100 && dice(1, 100) > @chance
-            @pop_time = Time.now.to_i + @timer
+            self.activate
             return false
         end
         return true

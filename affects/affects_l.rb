@@ -11,7 +11,7 @@ class AffectLair < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -70,7 +70,7 @@ class AffectLivingStone < Affect
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end

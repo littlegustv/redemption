@@ -11,7 +11,7 @@ class AffectAggressive < Affect
             nil, # modifiers
             2, # period
             true, # permanent
-            Constants::AffectVisibility::HIDDEN, # visibility
+            Visibility::HIDDEN, # visibility
             true # savable
         )
     end
@@ -66,7 +66,7 @@ class AffectAlarmRune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -125,7 +125,7 @@ class AffectAnimalGrowth < Affect
             {con: 3, str: 3}, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -158,7 +158,7 @@ class AffectArmor < Affect
             { ac_pierce: 10, ac_slash: 10, ac_bash: 10, ac_magic: 10 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end

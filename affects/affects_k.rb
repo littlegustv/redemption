@@ -22,7 +22,7 @@ class AffectKarma < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
         @mod = @@TEXTS.keys.sample
@@ -59,7 +59,7 @@ class AffectKiller < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::HIDDEN, # visibility
+            Visibility::HIDDEN, # visibility
             true # savable
         )
     end

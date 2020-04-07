@@ -11,7 +11,7 @@ class AffectWeaken < Affect
             { str: -10 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end

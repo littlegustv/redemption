@@ -11,7 +11,7 @@ class AffectBarkSkin < Affect
             { ac_bash: 40 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -47,7 +47,7 @@ class AffectBerserk < Affect
             {damroll: (level / 10).to_i, hitroll: (level / 10).to_i}, # modifiers: nil
             1, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -98,7 +98,7 @@ class AffectBladeRune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
         @message, @modifiers = @@TYPES.sample
@@ -133,7 +133,7 @@ class AffectBless < Affect
             { hitroll: 5, saves: -5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -169,7 +169,7 @@ class AffectBlind < Affect
             { hitroll: -5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -216,7 +216,7 @@ class AffectBlur < Affect
             { ac_slash: 40 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -253,7 +253,7 @@ class AffectBurstRune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
         @ELEMENTS = [

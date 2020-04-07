@@ -96,18 +96,6 @@ module Constants
         end
     end
 
-    module AffectVisibility
-        NORMAL = 0
-        PASSIVE = 1
-        HIDDEN = 2
-
-        STRINGS = {
-            NORMAL => "normal",
-            PASSIVE => "passive",
-            HIDDEN => "hidden",
-        }
-    end
-
     module Time
         DAYS = [ "the Moon", "the Bull", "Deception", "Thunder", "Freedom","the Great Gods", "the Sun" ]
         MONTHS = [

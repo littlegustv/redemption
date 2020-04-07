@@ -50,7 +50,7 @@ class Array
             player.output( message, objects.to_a )
         end
     end
-    
+
 end
 
 class String
@@ -149,7 +149,49 @@ def dice( count, sides )
     # count.times.collect{ rand(1..sides) }.sum
 end
 
-def log(s)
-    s = s.to_s.gsub(/\n/, "\n#{" " * 27} ")
-    puts "{d[#{Time.now}]\033{x #{s}".replace_color_codes
+# small class just to handle logging with the option to skip line breaks
+class Logger
+    include Singleton
+
+    @@time_diffs = {
+        0.000 => "{D",
+        0.020 => "{c",
+        0.040 => "{g",
+        0.060 => "{y",
+        0.080 => "{r"
+    }
+
+    def initialize
+        $stdout.sync = true
+        @last_newline = true
+        @timestamp = nil
+        @line = ""
+    end
+
+    def log(s, newline)
+        s = s.to_s.gsub(/\n/, "\n#{" " * 20} ")
+        if @last_newline
+            @timestamp = Time.now
+            s = "{d[#{@timestamp.strftime("%M-%d %T.%L")}]\033{x #{s}"
+        end
+        @line << s
+        if !@last_newline && newline
+            diff = Time.now - @timestamp
+            col = @@time_diffs.select { |k, v| k <= diff }.values.last
+            s = "#{s}#{" " * [75 - @line.length, 0].max}#{col}#{diff.to_s[0..4]}{x\n\r"
+        elsif newline
+            s += "\n\r"
+        end
+        print s.replace_color_codes
+        if newline
+            @line = ""
+        end
+        @last_newline = newline
+    end
+
+end
+
+# pass-through for the logger
+def log(s, newline = true)
+    Logger.instance.log(s, newline)
 end

@@ -1,6 +1,5 @@
 require_relative 'game_setup'
 require_relative 'game_save'
-require 'singleton'
 
 class Game
 
@@ -84,6 +83,7 @@ class Game
         @mobile_resets = []                 # Mobile resets
 
         @active_resets = []                 # Array of Resets waiting to pop - sorted by reset.pop_time (ascending)
+        @active_resets_sorted = false       # set to false when a new reset is activated. resets will be sorted on next handle_resets
         @initial_reset = true
 
         # GameObjects
@@ -411,6 +411,7 @@ class Game
     # _Called only by the reset itself_
     def activate_reset(reset)
         @active_resets << reset             # add to the list of active resets!
+        @active_resets_sorted = false
     end
 
     ## Handle resets.
@@ -419,21 +420,21 @@ class Game
         if @active_resets.size == 0
             return
         end
-        @active_resets.sort_by!(&:pop_time)
+        if !@active_resets_sorted
+            @active_resets.sort_by!(&:pop_time)
+            @active_resets_sorted = true
+        end
         current_time = Time.now.to_i
-        count = 0
-        @active_resets.each do |reset|
-            if current_time >= reset.pop_time && reset.success? && count < limit
+        [@active_resets.size, limit].min.times do
+            reset = @active_resets.first
+            if current_time >= reset.pop_time && reset.success?
+                @active_resets.shift
                 reset.pop
-                count += 1
             else
                 # stop trying to reset, all resets in loop after here are in the future!
                 break
             end
         end
-        # clear resets that have been marked inactive
-        # @active_resets.delete_if { |reset| !reset.active }
-        @active_resets.slice!(0, count)
         if @initial_reset && @active_resets.select { |r| r.pop_time == 0 }.size == 0
             log "Initial resets complete."
             @initial_reset = false

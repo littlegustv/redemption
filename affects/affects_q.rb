@@ -10,7 +10,7 @@ class AffectQuestItem < Affect
                 nil, # modifiers: nil
                 nil, # period: nil
                 false, # permanent: false
-                Constants::AffectVisibility::PASSIVE, # visibility
+                Visibility::PASSIVE, # visibility
                 false # savable
             )
         areas = Game.instance.areas.values.select{ |area| area.questable == 1 && area.min < @target.level && area.max > @target.level }
@@ -85,7 +85,7 @@ class AffectQuestVillain < Affect
 	            nil, # modifiers: nil
 	            nil, # period: nil
 	            false, # permanent: false
-	            Constants::AffectVisibility::PASSIVE, # visibility
+	            Visibility::PASSIVE, # visibility
 	            false # savable
 	        )
 	    areas = Game.instance.areas.values.select{ |area| area.questable == 1 && area.min < @target.level && area.max > @target.level }
@@ -164,10 +164,9 @@ class AffectQuestMaster < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::PASSIVE, # visibility
+            Visibility::PASSIVE, # visibility
             true # savable
         )
-        log("Applying questmaster #{source} #{source.room}")
     end
 
     def self.affect_info

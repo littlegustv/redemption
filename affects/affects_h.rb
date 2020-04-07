@@ -11,7 +11,7 @@ class AffectHaste < Affect
             {dex: 1 + (level / 12).floor.to_i, attack_speed: 1}, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
@@ -55,7 +55,7 @@ class AffectHatchling < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::HIDDEN, # visibility
+            Visibility::HIDDEN, # visibility
             true # savable
         )
     end
@@ -97,7 +97,7 @@ class AffectHide < Affect
             { none: 0 }, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
+            Visibility::NORMAL, # visibility
             true # savable
         )
     end
