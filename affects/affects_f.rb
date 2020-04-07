@@ -91,7 +91,133 @@ class AffectFireRune < Affect
 
 end
 
-class AffectFlooding < Affect
+class AffectFlamingWeapon < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
+        )
+        @data = {
+            chance: 5
+        }
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "flaming",
+            keywords: ["flaming"],
+            application_type: :global_single,
+        }
+    end
+
+    def start
+        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
+        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
+        if @target.equipped?
+            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
+        end
+    end
+
+    def complete
+        Game.instance.remove_event_listener(@target, :event_item_wear, self)
+        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
+        if @target.equipped?
+            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        end
+    end
+
+    def add_flag(data)
+        Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_flag)
+    end
+
+    def remove_flag(data)
+        Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
+    end
+
+    def do_flag(data)
+        if data[:weapon] == @target && data[:target].active
+            data[:target].output "0<N> burns your flesh!", [@target]
+            (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is burned by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
+            if dice(1, 100) <= @data[:chance]
+                data[:target].apply_affect(AffectFireBlind.new(data[:source], data[:target], @target.level))
+            end
+        end
+    end
+
+end
+
+class AffectFloodingWeapon < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
+        )
+        @data = {
+            chance: 5
+        }
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "flooding",
+            keywords: ["flooding"],
+            application_type: :global_single,
+        }
+    end
+
+    def start
+        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
+        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
+        if @target.equipped?
+            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
+        end
+    end
+
+    def complete
+        Game.instance.remove_event_listener(@target, :event_item_wear, self)
+        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
+        if @target.equipped?
+            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        end
+    end
+
+    def add_flag(data)
+        Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_flag)
+    end
+
+    def remove_flag(data)
+        Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
+    end
+
+    def do_flag(data)
+        if data[:weapon] == @target && data[:target].active
+            data[:target].output "You are smothered in water from 0<n>.", [@target]
+            (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is smothered in water from 1<n>'s 2<n>.", [data[:target], data[:source], @target]
+            if dice(1, 100) <= @data[:chance]
+                data[:target].apply_affect(AffectFlooded.new(data[:source], data[:target], @target.level))
+            end
+        end
+    end
+
+end
+
+class AffectFlooded < Affect
 
     def initialize(source, target, level)
         super(
@@ -254,42 +380,66 @@ class AffectFrenzy < Affect
     end
 end
 
-class AffectFrost < Affect
+class AffectFrostWeapon < Affect
 
-    def initialize(source, target, level)
-        super(
-            source, # source
-            target, # target
-            level, # level
-            30, # duration
-            { str: -2 }, # modifiers: nil
-            nil, # period: nil
-            false, # permanent: false
-            Constants::AffectVisibility::NORMAL, # visibility
-            true # savable
-        )
-    end
 
-    def self.affect_info
-        return @info || @info = {
-            name: "frost",
-            keywords: ["frost"],
-            application_type: :global_stack,
-        }
-    end
+        def initialize(source, target, level)
+            super(
+                source, # source
+                target, # target
+                level, # level
+                60, # duration
+                nil, # modifiers: nil
+                nil, # period: nil
+                false, # permanent: false
+                Constants::AffectVisibility::NORMAL, # visibility
+                true # savable
+            )
+            @data = {
+                chance: 5
+            }
+        end
 
-    def send_start_messages
-        (@target.room.occupants - [@target]).each_output "{C0<N> turns blue and shivers.{x", [@target]
-        @target.output "{CA chill sinks deep into your bones.{x"
-    end
+        def self.affect_info
+            return @info || @info = {
+                name: "frost",
+                keywords: ["frost"],
+                application_type: :global_single,
+            }
+        end
 
-    def send_refresh_messages
-        (@target.room.occupants - [@target]).each_output "{C0<N> turns blue and shivers.{x", [@target]
-        @target.output "{CA chill sinks deep into your bones.{x"
-    end
+        def start
+            Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
+            Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
+            if @target.equipped?
+                Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
+            end
+        end
 
-    def send_complete_messages
-        @target.output "You start to warm up."
-    end
+        def complete
+            Game.instance.remove_event_listener(@target, :event_item_wear, self)
+            Game.instance.remove_event_listener(@target, :event_item_unwear, self)
+            if @target.equipped?
+                Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+            end
+        end
+
+        def add_flag(data)
+            Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_flag)
+        end
+
+        def remove_flag(data)
+            Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
+        end
+
+        def do_flag(data)
+            if data[:weapon] == @target && data[:target].active
+                data[:target].output "The cold touch of 0<n> surrounds you with ice.", [@target]
+                (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is frozen by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
+                if dice(1, 100) <= @data[:chance]
+                    data[:target].apply_affect(AffectChilled.new(data[:source], data[:target], @target.level))
+                end
+            end
+        end
 
 end

@@ -191,33 +191,7 @@ class AffectShield < Affect
 
 end
 
-class AffectShopkeeper < Affect
-
-    def initialize(source, target, level)
-        super(
-            source, # source
-            target, # target
-            level, # level
-            60, # duration
-            nil, # modifiers: nil
-            nil, # period: nil
-            true, # permanent: false
-            Constants::AffectVisibility::PASSIVE, # visibility
-            true # savable
-        )
-    end
-
-    def self.affect_info
-        return @info || @info = {
-            name: "shopkeeper",
-            keywords: ["shopkeeper"],
-            application_type: :global_overwrite,
-        }
-    end
-
-end
-
-class AffectShocking < Affect
+class AffectShocked < Affect
 
     def initialize(source, target, level)
         super(
@@ -250,6 +224,95 @@ class AffectShocking < Affect
         (@target.room.occupants - [@target]).each_output "{y0<N> jerks and twitches from the shock!{x", [@target]
         @target.output "{yYour muscles stop responding.{x"
     end
+end
+
+class AffectShockingWeapon < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Constants::AffectVisibility::NORMAL, # visibility
+            true # savable
+        )
+        @data = {
+            chance: 5
+        }
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "shocking",
+            keywords: ["shocking"],
+            application_type: :global_single,
+        }
+    end
+
+    def start
+        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
+        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
+        if @target.equipped?
+            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
+        end
+    end
+
+    def complete
+        Game.instance.remove_event_listener(@target, :event_item_wear, self)
+        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
+        if @target.equipped?
+            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        end
+    end
+
+    def add_flag(data)
+        Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_flag)
+    end
+
+    def remove_flag(data)
+        Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
+    end
+
+    def do_flag(data)
+        if data[:weapon] == @target && data[:target].active
+            data[:target].output "You are shocked by 0<n>.", [@target]
+            (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is struck by lightning from 1<n>'s 2<n>'.", [data[:target], data[:source], @target]
+            if dice(1, 100) <= @data[:chance]
+                data[:target].apply_affect(AffectCorroded.new(data[:source], data[:target], @target.level))
+            end
+        end
+    end
+
+end
+
+class AffectShopkeeper < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            true, # permanent: false
+            Constants::AffectVisibility::PASSIVE, # visibility
+            true # savable
+        )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "shopkeeper",
+            keywords: ["shopkeeper"],
+            application_type: :global_overwrite,
+        }
+    end
+
 end
 
 class AffectSneak < Affect

@@ -722,6 +722,9 @@ class Game
                 affect.active = false
             end
         end
+        if mobile.hand_to_hand_weapon
+             remove_global_item(mobile.hand_to_hand_weapon)
+        end
         remove_global_mobile(mobile)
         @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i - 1
         @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
@@ -740,6 +743,9 @@ class Game
             item.affects.each do |affect|
                 affect.active = false
             end
+        end
+        if player.hand_to_hand_weapon
+             remove_global_item(player.hand_to_hand_weapon)
         end
         player.deactivate
         @players.delete(player)

@@ -105,7 +105,7 @@ class GameObject
     ##
     # Apply a new affect according to its application type
     # +new_affect+:: The new affect to be applied
-    #
+    # +silent+:: Whether or not the affect should send its application messages. Defaults to false. (boolean)
     def apply_affect(new_affect, silent = false)
         # existing_affects = @affects.select { |a| a.shares_ancestors_with?(new_affect) }
         existing_affects = @affects.select { |a| a.shares_keywords_with?(new_affect) }

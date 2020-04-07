@@ -123,6 +123,8 @@ class Weapon < Item
 		@dice_count = data[:dice_count] || 2
 		@dice_sides = data[:dice_sides] || 6
         @dice_bonus = data[:dice_bonus] || 0
+
+        apply_affect_flags(data[:flags], true)
 	end
 
 	def damage

@@ -38,6 +38,7 @@ class Mobile < GameObject
         @long_description = data[ :long_desc ]
         @race_equip_slots = []
         @class_equip_slots = []
+        @h2h_equip_slot = EquipSlot.new(-1, self)
 
         @skills = []
         @spells = [] + ["lightning bolt".freeze, "acid blast".freeze, "blast of rot".freeze, "pyrotechnics".freeze, "ice bolt".freeze]
@@ -330,48 +331,15 @@ class Mobile < GameObject
         end
     end
 
-    def weapon_flags(weapon)
-        ( flags = ( weapon ? weapon.flags : [] ) ).each do |flag|
-            if ( texts = Constants::ELEMENTAL_EFFECTS[ flag ] )
-                @attacking.output texts[0], [self]
-                (@room.occupants - [@attacking]).each_output texts[1], [ @attacking, self, weapon ]
-            end
-            elemental_effect( @attacking, flag )
-            # @attacking.damage( 10, self )
-            return if @attacking.nil?
-        end
-    end
-
-    def elemental_effect( target, element )
-        if rand(1..10) <= Constants::ELEMENTAL_CHANCE
-            case element
-            when "flooding"
-                target.apply_affect(AffectFlooding.new(self, target, self.level))
-            when "shocking"
-                target.apply_affect(AffectShocking.new(self, target, self.level))
-            when "corrosive"
-                target.apply_affect(AffectCorrosive.new(self, target, self.level))
-            when "poison"
-                target.apply_affect( AffectPoison.new(self, target, self.level) )
-            when "flaming"
-                target.apply_affect(AffectFireBlind.new(self, target, self.level))
-            when "frost"
-                target.apply_affect( AffectFrost.new(self, target, self.level))
-            when "demonic"
-                target.output "0<N> has assailed you with the demons of Hell!", self
-                (@room.occupants - [self, target]).each_output "0<N> calls forth the demons of Hell upon 1<n>!", [self, target]
-                output "You conjure forth the demons of hell!"
-                target.apply_affect( AffectCurse.new(self, target, self.level))
-            end
-        end
-    end
-
     # Gets a single weapon in wielded slot, cycling on each hit, or hand to hand
     def weapon_for_next_hit
         weapons = wielded
         case weapons.length
         when 0 # hand to hand
-            return hand_to_hand_weapon
+            if !self.hand_to_hand_weapon
+                self.generate_hand_to_hand_weapon
+            end
+            return self.hand_to_hand_weapon
         when 1 # single weapon
             return weapons.first
         else # multi-wield
@@ -383,8 +351,11 @@ class Mobile < GameObject
         return nil
     end
 
-    # generate hand to hand weapon.
-    def hand_to_hand_weapon
+    # Generate hand to hand weapon.
+    def generate_hand_to_hand_weapon
+        if @h2h_equip_slot.item
+            @h2h_equip_slot.item.destroy
+        end
         weapon_data = {
             name: "hand to hand",
             short_description: "Hand to hand",
@@ -408,8 +379,13 @@ class Mobile < GameObject
             dice_sides: @damage_dice_sides || 7,
             dice_bonus: @damage_dice_bonus || 0
         }
-        weapon = Weapon.new(weapon_data, nil)
+        weapon = Weapon.new(weapon_data, @h2h_equip_slot)
         return weapon
+    end
+
+    #
+    def hand_to_hand_weapon
+        return @h2h_equip_slot.item
     end
 
     # do a round of attacks against a target
@@ -465,13 +441,10 @@ class Mobile < GameObject
             if override[:confirm]
                 return
             end
-            data = { damage: damage, source: self, target: attacking }
+            data = { damage: damage, source: self, target: target, weapon: weapon }
             Game.instance.fire_event(self, :event_on_hit, data)
         end
 
-        if @attacking
-            weapon_flags(weapon) if data[:damage] > 0
-        end
     end
 
     # Deal some damage to a mobile.
@@ -539,6 +512,7 @@ class Mobile < GameObject
     end
 
     def level_up
+        self.generate_hand_to_hand_weapon
         @experience = (@experience - @experience_to_level)
         @level += 1
         @basehitpoints += 20
