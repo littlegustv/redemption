@@ -7,7 +7,6 @@ class SpellAcidBlast < Spell
             name: "acid blast",
             keywords: ["acid", "blast", "acid blast"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
         @damage_formula = Formula.new("(1+level/8)d(10+level/25)+15")
@@ -34,7 +33,7 @@ class SpellAcidBlast < Spell
             return false
         end
         damage = @damage_formula.evaluate(actor)
-        actor.deal_damage(target: target, damage: damage, noun:"acid blast", element: Constants::Element::ACID, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, damage, "acid blast")
         return true
     end
 end
@@ -46,7 +45,6 @@ class SpellAlarmRune < Spell
             name: "alarm rune",
             keywords: ["alarm rune"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -77,7 +75,6 @@ class SpellAnimalGrowth < Spell
             name: "animal growth",
             keywords: ["animal growth"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -96,7 +93,6 @@ class SpellArmor < Spell
             name: "armor",
             keywords: ["armor"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

@@ -242,7 +242,7 @@ end
 class AffectBurstRune < Affect
 
 
-    @@NOUN = "elemental charged strike"
+    @@NOUN_NAME = "elemental charged strike"
 
     def initialize(source, target, level)
         super(
@@ -257,12 +257,12 @@ class AffectBurstRune < Affect
             true # savable
         )
         @ELEMENTS = [
-            ["flooding", "Your weapon carries the {Dstrength{x of the {Btides!{x", "A {Dblack{x and {Bblue{x rune appears.", Constants::Element::DROWNING],
-            ["corrosive", "Your attack explodes into {Gcorrosive {Bacid{x!", "A {Ggreen{x and {Bblue{x rune appears.", Constants::Element::ACID],
-            ["frost", "The air is {Wtinged{x with {Bfrost{x as you strike!", "A {Bblue{x and {Wwhite{x rune appears.", Constants::Element::COLD],
-            ["poison", "Your weapon discharges a {Gvirulent {Dspray!{x", "A {Ggreen{x and {Dblack{x rune appears.", Constants::Element::POISON],
-            ["shocking", "You strike with the force of a {Ythunder {Bbolt!{x", "A {Ygold{x and {Bblue{x rune appears.", Constants::Element::LIGHTNING],
-            ["flaming", "A {Wblast{x of {Rflames{x explodes from your weapon!", "A {Rred{x and {Wwhite{x rune appears.", Constants::Element::FIRE]
+            ["flooding", "Your weapon carries the {Dstrength{x of the {Btides!{x", "A {Dblack{x and {Bblue{x rune appears.","hurricane"],
+            ["corrosive", "Your attack explodes into {Gcorrosive {Bacid{x!", "A {Ggreen{x and {Bblue{x rune appears.", "acid blast"],
+            ["frost", "The air is {Wtinged{x with {Bfrost{x as you strike!", "A {Bblue{x and {Wwhite{x rune appears.", "ice bolt"],
+            ["poison", "Your weapon discharges a {Gvirulent {Dspray!{x", "A {Ggreen{x and {Dblack{x rune appears.", "blast of rot"],
+            ["shocking", "You strike with the force of a {Ythunder {Bbolt!{x", "A {Ygold{x and {Bblue{x rune appears.", "lightning bolt"],
+            ["flaming", "A {Wblast{x of {Rflames{x explodes from your weapon!", "A {Rred{x and {Wwhite{x rune appears.", "fireball"]
         ]
         overwrite_data(Hash.new)
     end
@@ -276,9 +276,9 @@ class AffectBurstRune < Affect
     end
 
     def overwrite_data(data)
-        @data = data
+        super(data)
         @data[:index] = rand(@ELEMENTS.length) if !@data[:index]
-        @element_string, @hit_message, @apply_message, @element = @ELEMENTS[@data[:index]]
+        @element_string, @hit_message, @apply_message, @noun = @ELEMENTS[@data[:index]]
     end
 
     def start
@@ -308,7 +308,7 @@ class AffectBurstRune < Affect
     def do_burst_rune(data)
         if data[:confirm] == false && data[:weapon] == @target && data[:target] && rand(1..100) <= 125
             data[:source].output @hit_message
-            data[:source].deal_damage(target: data[:target], damage: 100, noun: @@NOUN, element: @element, type: Constants::Damage::MAGICAL)
+            data[:source].deal_damage(data[:target], 100, @noun, false, false, @@NOUN_NAME)
             data[:confirm] = true
         end
     end

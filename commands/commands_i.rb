@@ -6,7 +6,7 @@ class CommandInspect < Command
         super(
             name: "inspect",
             keywords: ["inspect"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

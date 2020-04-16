@@ -7,7 +7,6 @@ class SpellCalm < Spell
             name: "calm",
             keywords: ["calm"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -33,7 +32,6 @@ class SpellCancellation < Spell
             name: "cancellation",
             keywords: ["cancellation"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -51,7 +49,6 @@ class SpellCauseLight < Spell
             name: "cause light",
             keywords: ["cause light"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -75,7 +72,7 @@ class SpellCauseLight < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 25, noun:"cause light wounds", element: Constants::Element::HOLY, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 25, "cause light wounds")
         return true
     end
 end
@@ -87,7 +84,6 @@ class SpellCauseSerious < Spell
             name: "cause serious",
             keywords: ["cause serious"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -111,7 +107,7 @@ class SpellCauseSerious < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 50, noun:"cause serious wounds", element: Constants::Element::HOLY, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 50, "cause serious wounds")
         return true
     end
 end
@@ -123,7 +119,6 @@ class SpellCauseCritical < Spell
             name: "cause critical",
             keywords: ["cause critical"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 25
         )
     end
@@ -147,7 +142,7 @@ class SpellCauseCritical < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 75, noun:"cause critical wounds", element: Constants::Element::HOLY, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 75, "cause critical wounds")
         return true
     end
 end
@@ -159,7 +154,6 @@ class SpellChainLightning < Spell
             name: "chain lightning",
             keywords: ["chain lightning"],
             lag: 0.5,
-            position: Constants::Position::STAND,
             mana_cost: 50
         )
     end
@@ -186,7 +180,7 @@ class SpellChainLightning < Spell
         actor.room.occupants.each_output "A lightning bolt leaps from 0<n>'s hand and arcs to 1<n>1<!,.>", [actor, target]
 
         damage = 100
-        actor.deal_damage(target: target, damage: damage, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, damage, "lightning bolt")
         while (damage -= 10) >= 0
             target = actor.room.occupants.sample # TODO: target only combatable mobs?
 
@@ -197,7 +191,7 @@ class SpellChainLightning < Spell
                 actor.room.occupants.each_output "The bolt arcs to 0<n>!", [target]
             end
 
-            actor.deal_damage(target: target, damage: damage, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
+            actor.deal_damage(target, damage, "lightning bolt")
         end
 
         (actor.room.occupants - [target]).each_output "The bolt seems to have fizzled out."
@@ -214,7 +208,6 @@ class SpellCharmPerson < Spell
             name: "charm person",
             keywords: ["charm person"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -244,7 +237,6 @@ class SpellCloakOfMind < Spell
             name: "cloak of mind",
             keywords: ["cloak of mind"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -262,7 +254,6 @@ class SpellCloudkill < Spell
             name: "cloudkill",
             keywords: ["cloudkill"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -280,7 +271,6 @@ class SpellColorSpray < Spell
             name: "colour spray",
             keywords: ["color spray", "colour spray"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -305,7 +295,7 @@ class SpellColorSpray < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 50, noun:"color spray", element: Constants::Element::LIGHT, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 50, "color spray")
         return true
     end
 end
@@ -317,7 +307,6 @@ class SpellContinualLight < Spell
             name: "continual light",
             keywords: ["continual light"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -341,7 +330,6 @@ class SpellFloatingDisc < Spell
             name: "floating disc",
             keywords: ["floating disc"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -368,7 +356,6 @@ class SpellCreateFood < Spell
             name: "create food",
             keywords: ["create food"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -387,7 +374,6 @@ class SpellCreateRose < Spell
             name: "create rose",
             keywords: ["create rose"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -407,7 +393,6 @@ class SpellCreateSpring < Spell
             name: "create spring",
             keywords: ["create spring"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -426,7 +411,6 @@ class SpellCureBlindness < Spell
             name: "cure blindness",
             keywords: ["cure blindness"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 14
         )
@@ -454,7 +438,6 @@ class SpellCureCritical < Spell
             name: "cure critical",
             keywords: ["cure critical"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 12
         )
@@ -481,7 +464,6 @@ class SpellCureDisease < Spell
             name: "cure disease",
             keywords: ["cure disease"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 15
         )
@@ -509,7 +491,6 @@ class SpellCureLight < Spell
             name: "cure light",
             keywords: ["cure light"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 10
         )
@@ -536,7 +517,6 @@ class SpellCurePoison < Spell
             name: "cure poison",
             keywords: ["cure poison"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 14
         )
@@ -564,7 +544,6 @@ class SpellCureSerious < Spell
             name: "cure serious",
             keywords: ["cure serious"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 11
         )
@@ -591,7 +570,6 @@ class SpellCurse < Spell
             name: "curse",
             keywords: ["curse"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

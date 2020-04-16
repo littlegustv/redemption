@@ -7,7 +7,6 @@ class SpellIceBolt < Spell
             name: "ice bolt",
             keywords: ["ice bolt"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -31,7 +30,7 @@ class SpellIceBolt < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"ice blast", element: Constants::Element::COLD, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "ice blast")
         return true
     end
 end
@@ -42,7 +41,6 @@ class SpellIgnoreWounds < Spell
             name: "ignore wounds",
             keywords: ["ignore wounds"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -58,7 +56,6 @@ class SpellInfravision < Spell
             name: "infravision",
             keywords: ["infravision"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -82,7 +79,6 @@ class SpellInvisibility < Spell
             name: "invisibility",
             keywords: ["invisibility"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end

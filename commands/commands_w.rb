@@ -16,21 +16,20 @@ class CommandWake < Command
             target = actor.target({ visible_to: actor, list: actor.room.occupants - [actor] }.merge( args.first.to_s.to_query(1) )).first
         end
         if target == actor
-            case actor.position
-            when Constants::Position::SLEEP
+            if actor.position == :sleeping
                 data = { success: true }
                 Game.instance.fire_event( actor, :event_try_wake, data )
                 if data[:success]
                     actor.output "You wake and stand up."
                     (actor.room.occupants - [actor]).each_output "0<N> wakes and stands up.", [actor]
-                    actor.position = Constants::Position::STAND
+                    actor.position = :standing.to_position
                     actor.look_room
                     return true
                 else
                     actor.output "You can't wake up!"
                     return false
                 end
-            when Constants::Position::REST, Constants::Position::STAND
+            elsif actor.position == :resting || actor.position == :standing
                 actor.output "You are already awake."
                 return false
             else
@@ -39,20 +38,19 @@ class CommandWake < Command
             end
         elsif target
             if target
-                case target.position
-                when Constants::Position::SLEEP
+                if target.position == :sleeping
                     data = { success: true }
                     Game.instance.fire_event( actor, :event_try_wake, data )
                     if data[:success]
                         actor.room.occupants.each_ouptut "0<N> wake0<,s> 1<n> up.", [actor, target]
-                        target.position = Constants::Position::STAND
+                        target.position = :standing.to_position
                         target.look_room
                         return true
                     else
                         actor.output "You can't wake 0<n>!", [target]
                         return false
                     end
-                when Constants::Position::REST, Constants::Position::STAND
+                elsif target.position == :resting || target.position == :standing
                     actor.output "They aren't asleep."
                     return false
                 else
@@ -73,7 +71,7 @@ class CommandWear < Command
         super(
             name: "wear",
             keywords: ["wear", "hold", "wield"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -101,7 +99,7 @@ class CommandWeather < Command
         super(
             name: "weather",
             keywords: ["weather"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -122,7 +120,7 @@ class CommandWhere < Command
         super(
             name: "where",
             keywords: ["where"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

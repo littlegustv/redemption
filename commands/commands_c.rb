@@ -6,7 +6,7 @@ class CommandCast < Command
         super(
             name: "cast",
             keywords: ["cast"],
-            position: Constants::Position::STAND,
+            position: :standing,
             priority: 9999
         )
         @spells = Game.instance.spells
@@ -19,7 +19,7 @@ class CommandCast < Command
             return false
         end
         matches = @spells.select{ |spell|
-            spell.check( spell_name ) && actor.knows( spell.to_s )
+            spell.check( spell_name ) && actor.knows( spell )
         }.sort_by(&:priority)
 
         if matches.any?
@@ -39,7 +39,7 @@ class CommandClose < Command
             name: "close",
             keywords: ["close"],
             lag: 0.25,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -59,7 +59,7 @@ class CommandConsider < Command
         super(
             name: "consider",
             keywords: ["consider"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

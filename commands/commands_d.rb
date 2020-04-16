@@ -6,7 +6,7 @@ class CommandDrop < Command
         super(
             name: "drop",
             keywords: ["drop"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

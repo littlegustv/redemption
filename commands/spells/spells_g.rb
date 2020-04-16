@@ -7,7 +7,6 @@ class SpellGate < Spell
             name: "gate",
             keywords: ["gate"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 25
         )
     end
@@ -36,7 +35,6 @@ class SpellGiantStrength < Spell
             name: "giant strength",
             keywords: ["giant strength"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -53,7 +51,6 @@ class SpellGrandeur < Spell
             name: "grandeur",
             keywords: ["grandeur"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

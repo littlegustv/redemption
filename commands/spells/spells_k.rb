@@ -7,7 +7,6 @@ class SpellKarma < Spell
             name: "karma",
             keywords: ["karma"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -25,7 +24,6 @@ class SpellKnowAlignment < Spell
             name: "know alignment",
             keywords: ["know alignment"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

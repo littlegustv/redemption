@@ -69,7 +69,7 @@ class AffectPlague < Affect
     def periodic
         (@target.room.occupants - [@target]).each_output "0<N> writhes in agony as plague sores erupt from their skin.", [@target]
         @target.output "You writhe in agony from the plague."
-        @target.receive_damage(source: nil, damage: 10, element: Constants::Element::DISEASE, type: Constants::Damage::MAGICAL, silent: true)
+        @target.receive_damage(nil, 10, "plague", true, true)
         (@target.room.occupants - [@target]).each do |occupant|
             occupant.apply_affect( AffectPlague.new( nil, occupant, @level ) ) if rand(1...100) < 50
         end
@@ -122,7 +122,7 @@ class AffectPoison < Affect
 
     def periodic
         @target.room.occupants.each_output("0<N> shiver0<,s> and suffer0<,s>.", @target)
-        @target.receive_damage(source: nil, damage: 10, element: Constants::Element::POISON, type: Constants::Damage::MAGICAL, silent: true)
+        @source.deal_damage(@target, 10, "poison", true)
     end
 
     def send_complete_messages
@@ -195,7 +195,7 @@ class AffectProtectionEvil < Affect
     def self.affect_info
         return @info || @info = {
             name: "protection evil",
-            keywords: ["protect_evil", "protection evil", "protect"],
+            keywords: ["protection evil", "protect"],
             application_type: :global_single,
         }
     end
@@ -220,7 +220,7 @@ class AffectProtectionEvil < Affect
     def do_protection_evil( data )
         return if !data[:source]
         if data[:source].alignment > 333
-            data[:damage] = ( data[:damage] * Constants::Damage::PROTECTION_MULTIPLIER ).to_i
+            data[:damage] = ( data[:damage] * 0.9 ).to_i
         end
     end
 
@@ -245,7 +245,7 @@ class AffectProtectionGood < Affect
     def self.affect_info
         return @info || @info = {
             name: "protection good",
-            keywords: ["protect_good", "protection good", "protect"],
+            keywords: ["protection good", "protect"],
             application_type: :global_single,
         }
     end
@@ -270,7 +270,7 @@ class AffectProtectionGood < Affect
     def do_protection_good( data )
         return if !data[:source]
         if data[:source].alignment < -333
-            data[:damage] = ( data[:damage] * Constants::Damage::PROTECTION_MULTIPLIER ).to_i
+            data[:damage] = ( data[:damage] * 0.9 ).to_i
         end
     end
 
@@ -295,7 +295,7 @@ class AffectProtectionNeutral < Affect
     def self.affect_info
         return @info || @info = {
             name: "protection neutral",
-            keywords: ["protect_neutral", "protection neutral", "protect"],
+            keywords: ["protection neutral", "protect"],
             application_type: :global_single,
         }
     end
@@ -320,7 +320,7 @@ class AffectProtectionNeutral < Affect
     def do_protection_neutral( data )
         return if !data[:source]
         if data[:source].alignment <= 333 && data[:source].alignment >= -333
-            data[:damage] = ( data[:damage] * Constants::Damage::PROTECTION_MULTIPLIER ).to_i
+            data[:damage] = ( data[:damage] * 0.9 ).to_i
         end
     end
 

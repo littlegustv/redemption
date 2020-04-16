@@ -7,7 +7,7 @@ class CommandOpen < Command
             name: "open",
             keywords: ["open"],
             lag: 0.25,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -28,7 +28,7 @@ class CommandOrder < Command
             name: "order",
             keywords: ["order"],
             lag: 0.25,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 

@@ -7,7 +7,6 @@ class SpellHarm < Spell
             name: "harm",
             keywords: ["harm"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 50
         )
     end
@@ -31,7 +30,7 @@ class SpellHarm < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"harm", element: Constants::Element::HOLY, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "harm")
         return true
     end
 end
@@ -43,7 +42,6 @@ class SpellHaste < Spell
             name: "haste",
             keywords: ["haste"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -61,7 +59,6 @@ class SpellHeal < Spell
             name: "heal",
             keywords: ["heal"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 13
         )
@@ -90,7 +87,6 @@ class SpellHeatMetal < Spell
             name: "heat metal",
             keywords: ["heat metal"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -116,8 +112,8 @@ class SpellHeatMetal < Spell
             return false
         end
 
-        target.equipment.select{ |item| Constants::Materials::METAL.include? item.material }.each do | item |
-            actor.deal_damage(target: target, damage: 10, noun: "scalding #{item.material}", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
+        target.equipment.select{ |item| item.material.metallic }.each do | item |
+            actor.deal_damage(target, 10, "scalding #{item.material}")
         end
         return true
     end
@@ -130,7 +126,6 @@ class SpellHolyWord < Spell
             name: "holy word",
             keywords: ["holy word"],
             lag: 0.5,
-            position: Constants::Position::STAND,
             mana_cost: 25
         )
     end
@@ -159,7 +154,6 @@ class SpellHurricane < Spell
             name: "hurricane",
             keywords: ["hurricane"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -168,7 +162,7 @@ class SpellHurricane < Spell
         (actor.room.occupants - [actor]).each_output "0<N> summons the power of a hurricane!", [actor]
         actor.output "You summon a hurricane!"
     	( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
-    		actor.deal_damage(target: target, damage: 100, noun:"hurricane", element: Constants::Element::DROWNING, type: Constants::Damage::MAGICAL)
+    		actor.deal_damage(target, 100, "hurricane")
     	end
         return true
     end
@@ -181,7 +175,6 @@ class SpellHypnosis < Spell
             name: "hypnosis",
             keywords: ["hypnosis"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

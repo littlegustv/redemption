@@ -108,7 +108,7 @@ class AffectDarkness < Affect
 
 end
 
-class AffectDarkVision < Affect
+class AffectDarkvision < Affect
 
     def initialize(source, target, level)
         super(
@@ -183,7 +183,7 @@ class AffectDeathRune < Affect
         ( @level * 3 ).times do
             (@target.room.area.occupants - @target.room.occupants).each_output "A flaming meteor crashes into the ground nearby and explodes!"
             ( @target.room.occupants - [@target] ).each do |victim|
-                @target.deal_damage(target: victim, damage: 100, noun:"meteor's impact", element: Constants::Element::ENERGY, type: Constants::Damage::MAGICAL)
+                @target.deal_damage(victim, 100, "meteor's impact")
             end
         end
     end

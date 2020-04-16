@@ -10,15 +10,19 @@ class ResetMobile < Reset
     end
 
     ## Try to reset.
-    # Returns true (@chance)% of the time.
-    # Marks as inactive is successful.
     def pop
         room = Game.instance.rooms.dig(@room_id)
+        mobile_model = Game.instance.mobile_models.dig(@mobile_id)
         if !room # invalid room
             log "Invalid room id in reset: room_id:#{@room_id}, mobile_id:#{@mobile_id}"
             return false
         end
-        Game.instance.load_mob(@mobile_id, room, self)
+        if !mobile_model
+            log "Invalid mobile id in reset: room_id:#{@room_id}, mobile_id:#{@mobile_id}"
+            return false
+        end
+
+        Game.instance.load_mob(mobile_model, room, self)
         return true
     end
 

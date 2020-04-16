@@ -7,7 +7,6 @@ class SpellVentriloquate < Spell
             name: "ventriloquate",
             keywords: ["ventriloquate"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

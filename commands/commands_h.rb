@@ -7,7 +7,6 @@ class CommandHelp < Command
             name: "help",
             keywords: ["help"],
         )
-        @helps = Game.instance.help_data
     end
 
     def attempt( actor, cmd, args, input )
@@ -15,7 +14,7 @@ class CommandHelp < Command
             args.push("summary")
         end
         matches = []
-        @helps.each do |id, help|
+        Game.instance.help_data.each do |id, help|
             valid_help = true
             args.each do |arg|
                 if !help[:keywords].any? { |keyword| keyword.fuzzy_match( arg ) }

@@ -6,7 +6,7 @@ class CommandVisible < Command
         super(
             name: "visible",
             keywords: ["visible"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

@@ -9,7 +9,7 @@ class CommandMove < Command
             priority: 1000,
             lag: 0.25,
             usable_in_combat: false,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 

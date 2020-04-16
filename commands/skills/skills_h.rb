@@ -6,7 +6,7 @@ class SkillHide < Skill
             name: "hide",
             keywords: ["hide"],
             lag: 0.25,
-            position: Constants::Position::STAND,
+            position: :standing
         )
     end
 

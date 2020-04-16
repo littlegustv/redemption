@@ -7,7 +7,7 @@ class SkillTrip < Skill
             name: "trip",
             keywords: ["trip"],
             lag: 2,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -17,10 +17,7 @@ class SkillTrip < Skill
             actor.output "Who did you want to trip?"
             return false
         end
-        if actor.position < Constants::Position::STAND
-            actor.output "You have to stand up first."
-            return false
-        elsif actor.attacking and args.length <= 0
+        if actor.attacking and args.length <= 0
             target = actor.attacking
         elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             target = kill_target
@@ -35,7 +32,7 @@ class SkillTrip < Skill
     def do_trip( actor, target )
         [actor, target].each_output "0<N> trip0<,s> 1<n> and 1<u> go0<es,> down!", [actor, target]
         (actor.room.occupants - [actor, target]).each_output "0<N> trips 1<n>, sending 1<o> to the ground.", [actor, target]
-        actor.deal_damage(target: target, damage: 5, noun:"trip", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
+        actor.deal_damage(target, 5, "trip")
         target.apply_affect(Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }))
     end
 

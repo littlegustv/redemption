@@ -7,7 +7,6 @@ class SpellEarthquake < Spell
             name: "earthquake",
             keywords: ["earthquake"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -16,7 +15,7 @@ class SpellEarthquake < Spell
         (actor.room.area.occupants - [actor]).each_output "The earth trembles and shivers."
         actor.output "The earth trembles beneath your feet!"
         ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
-            actor.deal_damage(target: target, damage: 100, noun:"earthquake", element: Constants::Element::GEOLOGY, type: Constants::Damage::MAGICAL)
+            actor.deal_damage(target, 100, "earthquake")
         end
         return true
     end
@@ -29,7 +28,6 @@ class SpellEnchantArmor < Spell
             name: "enchant armor",
             keywords: ["enchant armor", "enchant armour"],
             lag: 2,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -64,7 +62,6 @@ class SpellEnchantWeapon < Spell
             name: "enchant weapon",
             keywords: ["enchant weapon"],
             lag: 2,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -99,7 +96,6 @@ class SpellEnergyDrain < Spell
             name: "energy drain",
             keywords: ["energy drain"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -124,7 +120,7 @@ class SpellEnergyDrain < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"life drain", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "life drain")
         target.use_movement( 10 )
         actor.regen( 0, 0, 10 )
         target.output "You feel your energy slipping away!"

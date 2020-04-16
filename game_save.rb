@@ -9,7 +9,7 @@ module GameSave
 
     # save an account info to the database, then update account table
     def save_new_player(player_data)
-        player_data[:position] = Constants::Position::STAND
+        player_data[:position_id] = :standing.to_position.id
         player_data[:room_id] = @starting_room.id
         player_data[:level] = 1
         player_id = @db[:saved_player_base].insert(player_data)
@@ -27,6 +27,8 @@ module GameSave
             delete_old_player_data
             query_hash = {
                 player_base: [],
+                player_learned_skill: [],
+                player_learned_spell: [],
                 player_affect: [],
                 player_affect_modifier: [],
                 player_item: [],
@@ -39,14 +41,22 @@ module GameSave
             if query_hash[:player_base].length > 0 # player table
                 query = "INSERT INTO `saved_player_base` " +
                 "(`id`, `account_id`, `name`, `level`, `experience`, `room_id`, `race_id`, " +
-                "`class_id`, `str`, `dex`, `int`, `wis`, `con`, `hp`, `mana`, `current_hp`, " +
-                "`current_mana`, `wealth`, `quest_points`, `position`, `alignment`, `creation_points`, `learned`, `gender`) " +
+                "`mobile_class_id`, `str`, `dex`, `int`, `wis`, `con`, `hp`, `mana`, `current_hp`, " +
+                "`current_mana`, `wealth`, `quest_points`, `position_id`, `alignment`, `creation_points`, `gender_id`) " +
                 "VALUES #{query_hash[:player_base].join(", ")};"
                 @db.run(query)
             end
+            if query_hash[:player_learned_skill].length > 0 # player skills
+                query = "INSERT INTO `saved_player_skill` " +
+                "(`saved_player_id`, `skill_id`) VALUES #{query_hash[:player_learned_skill].join(", ")}"
+            end
+            if query_hash[:player_learned_spell].length > 0 # player spells
+                query = "INSERT INTO `saved_player_spell` " +
+                "(`saved_player_id`, `spell_id`) VALUES #{query_hash[:player_learned_spell].join(", ")}"
+            end
             if query_hash[:player_affect].length > 0 # player affects
                 query = "INSERT INTO `saved_player_affect` " +
-                "(`id`, `saved_player_id`, `name`, `level`, `duration`, `source_uuid`, " +
+                "(`id`, `saved_player_id`, `affect_id`, `level`, `duration`, `source_uuid`, " +
                 "`source_id`, `source_type`, `data`) " +
                 "VALUES #{query_hash[:player_affect].join(", ")};"
                 @db.run(query)
@@ -65,7 +75,7 @@ module GameSave
             end
             if query_hash[:player_item_affect].length > 0 # player item affects
                 query = "INSERT INTO `saved_player_item_affect` " +
-                "(`id`, `saved_player_item_id`, `name`, `level`, `duration`, `source_uuid`, " +
+                "(`id`, `saved_player_item_id`, `affect_id`, `level`, `duration`, `source_uuid`, " +
                 "`source_id`, `source_type`, `data`) " +
                 "VALUES #{query_hash[:player_item_affect].join(", ")};"
                 @db.run(query)
@@ -103,6 +113,10 @@ module GameSave
         @db[:saved_player_item_affect].where(saved_player_item_id: old_item_dataset.map(:id)).delete
         # delete items
         @db[:saved_player_item].where(saved_player_id: player_ids).delete
+        # delete skills
+        @db[:saved_player_skill].where(saved_player_id: player_ids).delete
+        # delete spells
+        @db[:saved_player_spell].where(saved_player_id: player_ids).delete
     end
 
     # delete saved_player_affect row and relevant rows in subtables for a player with a given name
@@ -146,24 +160,23 @@ module GameSave
             level: player.level,
             experience: player.experience,
             room_id: player.room.id,
-            race_id: player.race_id,
-            class_id: player.class_id,
+            race_id: player.race.id,
+            mobile_class_id: player.mobile_class.id,
             str: player.stats[:str],
-            int: player.stats[:int],
             dex: player.stats[:dex],
-            con: player.stats[:con],
+            int: player.stats[:int],
             wis: player.stats[:wis],
-            hp: player.maxhitpoints,
-            mana: player.maxmanapoints,
+            con: player.stats[:con],
+            hp: player.basehitpoints,
+            mana: player.basemanapoints,
             current_hp: player.hitpoints,
             current_mana: player.manapoints,
             wealth: player.wealth,
             quest_points: player.quest_points,
-            position: player.position,
+            position_id: player.position.id,
             alignment: player.alignment,
             creation_points: player.creation_points,
-            learned: player.learned.join(","),
-            gender: player.gender
+            gender_id: player.gender.id
         }
 
         # update player_base row for this player
@@ -187,7 +200,7 @@ module GameSave
         affect_data = { # The order of this is important!
             id: @saved_player_affect_id_max,
             saved_player_id: saved_player_id,
-            name: affect.name,
+            affect_id: affect.id,
             level: affect.level,
             duration: affect.duration,
             source_uuid: 0,
@@ -238,7 +251,7 @@ module GameSave
         affect_data = { # The order of this is important!
             id: @saved_player_item_affect_id_max,
             saved_player_item_id: saved_player_item_id,
-            name: affect.name,
+            affect_id: affect.id,
             level: affect.level,
             duration: affect.duration,
             source_uuid: 0,
@@ -271,24 +284,25 @@ module GameSave
         all_item_modifier_rows = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: all_item_affect_rows.map{ |row| row[:id]}).all.reverse
         affect_rows = @db[:saved_player_affect].where(saved_player_id: player_data[:id]).all.reverse
         all_modifier_rows = @db[:saved_player_affect_modifier].where(saved_player_affect_id: affect_rows.map{ |row| row[:id] }).all.reverse
+        skill_rows = @db[:saved_player_skill].where(saved_player_id: player_data[:id]).all
+        spell_rows = @db[:saved_player_spell].where(saved_player_id: player_data[:id]).all
 
         if !player_data
             log "Trying to load invalid player: \"#{id}\""
             return
         end
-        player = Player.new( { id: player_data[:id],
-                               account_id: player_data[:account_id],
-                               name: player_data[:name],
-                               level: player_data[:level],
-                               alignment: player_data[:alignment],
-                               race_id: player_data[:race_id],
-                               class_id: player_data[:class_id],
-                               wealth: player_data[:wealth],
-                               creation_points: player_data[:creation_points],
-                               learned: player_data[:learned],
-                             },
-                             @rooms[player_data[:room_id]] || @starting_room,
-                             client)
+        player_row = {
+            learned_skill_ids: skill_rows.map(&:skill_id),
+            learned_spell_ids: spell_rows.map(&:spell_id),
+        }
+        player_row.merge!(player_data)
+
+        player_model = PlayerModel.new(player_data[:id], player_row)
+        player = Player.new(
+            player_model,
+            @rooms[player_data[:room_id]] || @starting_room,
+            client
+        )
         player.experience = player_data[:experience]
 
         player.stats[:str] = player_data[:str]
@@ -298,7 +312,6 @@ module GameSave
         player.stats[:wis] = player_data[:wis]
 
         player.quest_points = player_data[:quest_points]
-        player.position = player_data[:position]
 
         item_saved_id_hash = Hash.new
         # load items
@@ -309,7 +322,7 @@ module GameSave
         end
         # load player affects
         affect_rows.each do |affect_row|
-            affect_class = Constants::AFFECT_CLASS_HASH[affect_row[:name]]
+            affect_class = Game.instance.affect_class_with_id(affect_row[:affect_id])
             if affect_class
                 source = find_affect_source(affect_row, player, player.items)
                 if source != false # source can be nil, just not false - see find_affect_source
@@ -330,7 +343,7 @@ module GameSave
         item_saved_id_hash.each do |saved_player_item_id, item|
             item_affect_rows = all_item_affect_rows.select{ |row| row[:saved_player_item_id] == saved_player_item_id }
             item_affect_rows.each do |affect_row|
-                affect_class = Constants::AFFECT_CLASS_HASH[affect_row[:name]]
+                affect_class = Game.instance.affect_class_with_id(affect_row[:affect_id])
                 if affect_class
                     source = find_affect_source(affect_row, player, player.items)
                     if affect_row[:name] == "portal"
@@ -425,7 +438,7 @@ module GameSave
             end
         else
             log "Unknown source_type in find_affect_source"
-            log "data"
+            log data
             return false
         end
         if source

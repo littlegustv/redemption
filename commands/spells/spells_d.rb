@@ -7,7 +7,6 @@ class SpellDarkness < Spell
             name: "darkness",
             keywords: ["darkness"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -25,7 +24,6 @@ class SpellDeathRune < Spell
             name: "death rune",
             keywords: ["death rune"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -43,7 +41,6 @@ class SpellDemonFire < Spell
             name: "demonfire",
             keywords: ["demonfire"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -81,7 +78,7 @@ class SpellDemonFire < Spell
 
         (actor.room.occupants - [target, actor]).each_output "0<N> calls forth the demons of Hell upon 1<n>!", [actor, target]
 
-        actor.deal_damage(target: target, damage: 100, noun:"torments", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "torments")
         actor.alignment = [ actor.alignment - 50, -1000 ].max
 
         target.apply_affect( AffectCurse.new( nil, target, actor.level ))
@@ -97,7 +94,6 @@ class SpellDestroyRune < Spell
             name: "destroy rune",
             keywords: ["destroy rune"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -132,7 +128,6 @@ class SpellDestroyTattoo < Spell
             name: "destroy tattoo",
             keywords: ["destroy tattoo"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -164,7 +159,6 @@ class SpellDetectInvisibility < Spell
             name: "detect invisibility",
             keywords: ["detect invisibility"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -182,7 +176,6 @@ class SpellDetectMagic < Spell
             name: "detect magic",
             keywords: ["detect magic"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -205,7 +198,6 @@ class SpellDispelMagic < Spell
             name: "dispel magic",
             keywords: ["dispel magic"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

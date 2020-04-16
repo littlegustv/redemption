@@ -6,7 +6,7 @@ class CommandGet < Command
         super(
             name: "get",
             keywords: ["get", "take"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -43,7 +43,7 @@ class CommandGive < Command
         super(
             name: "give",
             keywords: ["give"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -102,7 +102,7 @@ class CommandGroup < Command
         super(
             name: "group",
             keywords: ["group"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

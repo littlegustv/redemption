@@ -7,7 +7,7 @@ class SkillEnvenom < Skill
             name: "envenom",
             keywords: ["envenom"],
             lag: 0.25,
-            position: Constants::Position::STAND,
+            position: :standing
         )
     end
 

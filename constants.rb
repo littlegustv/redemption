@@ -108,18 +108,6 @@ module Constants
         SUNSET = 18
     end
 
-    module Position
-        SLEEP = 0
-        REST = 1
-        STAND = 2
-
-        STRINGS = {
-            SLEEP => "sleeping",
-            REST => "resting",
-            STAND => "standing"
-        }
-    end
-
     module Directions
         INVERSE = {
             north: :south,
@@ -131,74 +119,8 @@ module Constants
         }
     end
 
-    module Materials
-        METAL = ["steel", "silver", "iron", "mithril", "brass", "adamantite", "bronze", "gold", "metal", "lead", "copper", "pewter", "rust"]
-    end
-
-    module Element
-        NONE = 0
-        BASH = 1
-        PIERCE = 2
-        SLASH = 3
-        FIRE = 4
-        COLD = 5
-        LIGHTNING = 6
-        ACID = 7
-        POISON = 8
-        NEGATIVE = 9
-        HOLY = 10
-        ENERGY = 11
-        MENTAL = 12
-        DISEASE = 13
-        DROWNING = 14
-        LIGHT = 15
-        OTHER = 16
-        HARM = 17
-        CHARM = 18
-        SOUND = 19
-        RAIN = 20
-        VORPAL = 21
-        GEOLOGY = 22
-
-        STRINGS = {
-            NONE => "none",
-            BASH => "bash",
-            PIERCE => "pierce",
-            SLASH => "slash",
-            FIRE => "fire",
-            COLD => "cold",
-            LIGHTNING => "lightning",
-            ACID => "acid",
-            POISON => "poison",
-            NEGATIVE => "negative",
-            HOLY => "holy",
-            ENERGY => "energy",
-            MENTAL => "mental",
-            DISEASE => "disease",
-            DROWNING => "drowning",
-            LIGHT => "light",
-            OTHER => "other",
-            HARM => "harm",
-            CHARM => "charm",
-            SOUND => "sound",
-            RAIN => "rain",
-            VORPAL => "vorpal"
-        }
-    end
-
     module Damage
-        PHYSICAL = 0
-        MAGICAL = 1
-        MODIFIER = 0.6
-
-        STRINGS = {
-            PHYSICAL => "physical",
-            MAGICAL => "magic"
-        }
-
-        RESIST_MULTIPLIER = 0.7
-        VULN_MULTIPLIER = 1.3
-        PROTECTION_MULTIPLIER = 0.75
+        DAMROLL_MODIFIER = 0.6
     end
 
     # full stock for shopkeepers
@@ -210,8 +132,6 @@ module Constants
         FPS = 30
         ROUND = FPS * 1	    	# 1 second
         TICK = FPS * 60			# 1 minute
-        REPOP = FPS * 3 * 60    # 3 minutes
-        # REPOP = FPS * 4         # fast resets for testing
         AUTOSAVE = FPS * 60     # 1 minute
         RESETS_PER_FRAME = 200
     end
@@ -519,99 +439,93 @@ module Constants
         SpellNexus,
     ]
 
-    AFFECT_CLASS_HASH = {
-        "aggressive" =>             AffectAggressive,
-        "alarm rune" =>             AffectAlarmRune,
-        "animal growth" =>          AffectAnimalGrowth,
-        "armor" =>                  AffectArmor,
-        "barkskin" =>               AffectBarkSkin,
-        "berserk" =>                AffectBerserk,
-        "blade rune" =>             AffectBladeRune,
-        "bless" =>                  AffectBless,
-        "blind" =>                  AffectBlind,
-        "blur" =>                   AffectBlur,
-        "burst rune" =>             AffectBurstRune,
-        "calm" =>                   AffectCalm,
-        "charm" =>                  AffectCharm,
-        "chilled" =>                AffectChilled,
-        "cloak of mind" =>          AffectCloakOfMind,
-        "cloudkill" =>              AffectCloudkill,
-        "corroded" =>               AffectCorroded,
-        "corrosive" =>              AffectCorrosiveWeapon,
-        "curse" =>                  AffectCurse,
-        "dark" =>                   AffectDark,
-        "darkness" =>               AffectDarkness,
-        "dark_vision" =>            AffectDarkVision,
-        "death rune" =>             AffectDeathRune,
-        "detect invisibility" =>    AffectDetectInvisibility,
-        "detect invisible" =>       AffectDetectInvisibility,
-        "detect_invis" =>           AffectDetectInvisibility,
-        "enchant weapon" =>         AffectEnchantWeapon,
-        "enchant armor" =>          AffectEnchantWeapon,
-        "fireblind" =>              AffectFireBlind,
-        "flaming" =>                AffectFlamingWeapon,
-        "flooding" =>               AffectFloodingWeapon,
-        "flooded" =>                AffectFlooded,
-        "flying" =>                 AffectFly,
-        "follow" =>                 AffectFollow,
-        "frenzy" =>                 AffectFrenzy,
-        "frost" =>                  AffectFrostWeapon,
-        "giant strength" =>         AffectGiantStrength,
-        "glowing" =>                AffectGlowing,
-        "grandeur" =>               AffectGrandeur,
-        "guard" =>                  AffectGuard,
-        "spec_guard" =>             AffectGuard,
-        "haste" =>                  AffectHaste,
-        "hatchling" =>              AffectHatchling,
-        "hide" =>                   AffectHide,
-        "ignore wounds" =>          AffectIgnoreWounds,
-        "indoors" =>                AffectIndoors,
-        "infravision" =>            AffectInfravision,
-        "infrared" =>               AffectInfravision,
-        "invisibility" =>           AffectInvisibility,
-        "invisible" =>              AffectInvisibility,
-        "invis" =>                  AffectInvisibility,
-        "karma" =>                  AffectKarma,
-        "killer" =>                 AffectKiller,
-        "lair" =>                   AffectLair,
-        "living stone" =>           AffectLivingStone,
-        "minimation" =>             AffectMinimation,
-        "mirror image" =>           AffectMirrorImage,
-        "pass door" =>              AffectPassDoor,
-        "plague" =>                 AffectPlague,
-        "poison" =>                 AffectPoison,
-        "portal" =>                 AffectPortal,
-        "protect_evil" =>           AffectProtectionEvil,
-        "protect_good" =>           AffectProtectionGood,
-        "protect_neutral" =>        AffectProtectionNeutral,
-        "questitem" =>              AffectQuestItem,
-        "questmaster" =>            AffectQuestMaster,
-        "questvillain" =>           AffectQuestVillain,
-        "regeneration" =>           AffectRegeneration,
-        "scramble" =>               AffectScramble,
-        "shackle" =>                AffectShackle,
-        "shackle rune" =>           AffectShackleRune,
-        "shield" =>                 AffectShield,
-        "shocked" =>                AffectShocked,
-        "shocking" =>               AffectShockingWeapon,
-        "shopkeeper" =>             AffectShopkeeper,
-        "sleep" =>                  AffectSleep,
-        "slow" =>                   AffectSlow,
-        "sneak" =>                  AffectSneak,
-        "stone skin" =>             AffectStoneSkin,
-        "stun" =>                   AffectStun,
-        "taunt" =>                  AffectTaunt,
-        "vuln" =>                   AffectVuln,
-        "weaken" =>                 AffectWeaken,
-        "zeal" =>                   AffectZeal,
-    }
+    AFFECT_CLASSES = [
+        AffectAggressive,
+        AffectAlarmRune,
+        AffectAnimalGrowth,
+        AffectArmor,
+        AffectBarkSkin,
+        AffectBerserk,
+        AffectBladeRune,
+        AffectBless,
+        AffectBlind,
+        AffectBlur,
+        AffectBurstRune,
+        AffectCalm,
+        AffectCharm,
+        AffectChilled,
+        AffectCloakOfMind,
+        AffectCloudkill,
+        AffectCorroded,
+        AffectCorrosiveWeapon,
+        AffectCurse,
+        AffectDark,
+        AffectDarkness,
+        AffectDarkvision,
+        AffectDeathRune,
+        AffectDetectInvisibility,
+        AffectEnchantWeapon,
+        AffectEnchantArmor,
+        AffectFireBlind,
+        AffectFlamingWeapon,
+        AffectFloodingWeapon,
+        AffectFlooded,
+        AffectFly,
+        AffectFollow,
+        AffectFrenzy,
+        AffectFrostWeapon,
+        AffectGiantStrength,
+        AffectGlowing,
+        AffectGrandeur,
+        AffectGuard,
+        AffectHaste,
+        AffectHatchling,
+        AffectHide,
+        AffectIgnoreWounds,
+        AffectImmunity,
+        AffectIndoors,
+        AffectInfravision,
+        AffectInvisibility,
+        AffectKarma,
+        AffectKiller,
+        AffectLair,
+        AffectLivingStone,
+        AffectMinimation,
+        AffectMirrorImage,
+        AffectPassDoor,
+        AffectPlague,
+        AffectPoison,
+        AffectPortal,
+        AffectProtectionEvil,
+        AffectProtectionGood,
+        AffectProtectionNeutral,
+        AffectQuestItem,
+        AffectQuestMaster,
+        AffectQuestVillain,
+        AffectRegeneration,
+        AffectResistance,
+        AffectScramble,
+        AffectShackle,
+        AffectShackleRune,
+        AffectShield,
+        AffectShocked,
+        AffectShockingWeapon,
+        AffectShopkeeper,
+        AffectSleep,
+        AffectSlow,
+        AffectSneak,
+        AffectStoneSkin,
+        AffectStun,
+        AffectTaunt,
+        AffectVulnerable,
+        AffectWeaken,
+        AffectZeal,
+    ]
 
-    module ClientState
-        LOGIN = 0
-        ACCOUNT = 1
-        CREATION = 2
-        PLAYER = 3
-    end
+    ITEM_MODEL_CLASSES = [
+        ItemModel,
+        WeaponModel,
+    ]
 
     module Gender
 

@@ -4,8 +4,7 @@ class CommandLearn < Command
     def initialize
         super(
             name: "learn",
-            keywords: ["learn"],
-            position: Constants::Position::SLEEP
+            keywords: ["learn"]
         )
     end
 
@@ -20,7 +19,7 @@ class CommandLeave < Command
         super(
             name: "leave",
             keywords: ["leave"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -45,7 +44,7 @@ class CommandList < Command
             name: "list",
             keywords: ["list"],
             lag: 0,
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -83,7 +82,7 @@ class CommandLoadItem < Command
             name: "loaditem",
             keywords: ["loaditem"],
             priority: 1,
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -110,7 +109,7 @@ class CommandLock < Command
             name: "lock",
             keywords: ["lock"],
             lag: 0.25,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -131,7 +130,7 @@ class CommandLook < Command
             name: "look",
             keywords: ["look"],
             priority: 200,
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -177,7 +176,7 @@ class CommandLore < Command
         super(
             name: "lore",
             keywords: ["lore"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

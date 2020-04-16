@@ -7,7 +7,7 @@ class SkillZeal < Skill
             name: "zeal",
             keywords: ["zeal"],
             lag: 0.1,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 

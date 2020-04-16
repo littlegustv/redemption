@@ -79,7 +79,7 @@ class AffectFireRune < Affect
     	elsif rand(0..100) < 50
     		data[:mobile].output "You are engulfed in flames as you enter the room!"
     		(@target.room.occupants - [data[:mobile]]).each_output "%N has been engulfed in flames!", [data[:mobile]]
-            @source.deal_damage(target: data[:mobile], damage: 100, noun:"fireball", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
+            @source.deal_damage(data[:mobile], 100, "fireball")
 	    else
 	    	data[:mobile].output "You sense the power of the room's rune and avoid it!"
 	    end

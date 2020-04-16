@@ -226,14 +226,14 @@ class AffectCloudkill < Affect
     end
 
     def cloudkill_poison_damage_calc(data)
-        if data[:element] == Constants::Element::POISON && data[:type] == Constants::Damage::MAGICAL
+        if data[:noun].element.name == "poison" && data[:noun].magic == 1
             data[:damage] *= 2
         end
     end
 
     def periodic
         @target.occupants.each do |t|
-            t.receive_damage(source: @source, damage: dice(2, 6), noun: "The caustic gas", element: Constants::Element::POISON, type: Constants::Damage::MAGICAL, anonymous: true)
+            @source.deal_damage(t, dice(2, 6), "the caustic gas", false, true)
         end
     end
 

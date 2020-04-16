@@ -13,24 +13,25 @@ class Area < GameObject
     attr_reader :min
     attr_reader :max
 
-	def initialize( data )
-        super(data[:name], data[:name].split(" "))
-        @age = data[:age]
-        @builders = data[:builders]
-		@continent = data[:continent]
-        @control = data[:control]
-        @credits = data[:credits]
+	def initialize( row )
+        super(row[:name], row[:name].split(" "))
+        @age = row[:age]
+        @builders = row[:builders]
+		@continent = Game.instance.continents[row[:continent_id]]
+        @control = row[:control]
+        @credits = row[:credits]
         range = @credits.match(/{\s?(\d+)\s+(\d+)}/)
         if range
             @min, @max = range[1..2].map(&:to_i)
         else
             @min, @max = [ 45, 51 ]
         end
-        @gateable = data[:gateable]
-        @id = data[:id]
-        @questable = data[:questable]
+        @gateable = row[:gateable]
+        @id = row[:id]
+        @questable = row[:questable]
+        @security = row[:security]
         @rooms = []
-        @security = data[:security]
+
 	end
 
     def occupants

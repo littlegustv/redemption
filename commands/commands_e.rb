@@ -6,7 +6,7 @@ class CommandEat < Command
         super(
             name: "eat",
             keywords: ["eat"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -27,7 +27,7 @@ class CommandEmote < Command
         super(
             name: "emote",
             keywords: ["emote"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -50,7 +50,7 @@ class CommandEnter < Command
         super(
             name: "enter",
             keywords: ["enter"],
-            position: Constants::Position::REST
+            position: :standing
         )
     end
 
@@ -75,7 +75,7 @@ class CommandEquipment < Command
         super(
             name: "equipment",
             keywords: ["equipment"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

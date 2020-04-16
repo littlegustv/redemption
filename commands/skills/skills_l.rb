@@ -7,7 +7,7 @@ class SkillLair < Skill
             name: "lair",
             keywords: ["lair"],
             lag: 0.25,
-            position: Constants::Position::STAND,
+            position: :standing
         )
     end
 
@@ -24,7 +24,7 @@ class SkillLivingStone < Command
             name: "living stone",
             keywords: ["living stone", "stone", "living"],
             lag: 1,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 

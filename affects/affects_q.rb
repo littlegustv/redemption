@@ -55,7 +55,7 @@ class AffectQuestItem < Affect
     end
 
     def do_quest_complete(data)
-        log("QUEST COMPLETED!")
+        # log("QUEST COMPLETED!")
         if @completed
             @target.output "You have completed your quest! Yay!"
             @target.xp( @target )
@@ -68,8 +68,8 @@ class AffectQuestItem < Affect
 
     def self.affect_info
         return @info || @info = {
-            name: "item quest",
-            keywords: ["quest", "item quest"],
+            name: "quest item",
+            keywords: ["quest", "quest item"],
             application_type: :global_overwrite,
         }
     end
@@ -146,8 +146,8 @@ class AffectQuestVillain < Affect
 
     def self.affect_info
         return @info || @info = {
-            name: "villain quest",
-            keywords: ["quest", "villain quest"],
+            name: "quest villain",
+            keywords: ["quest", "quest villain"],
             application_type: :global_overwrite,
         }
     end

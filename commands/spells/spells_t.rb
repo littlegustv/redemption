@@ -7,7 +7,6 @@ class SpellTeleport < Spell
             name: "teleport",
             keywords: ["teleport"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -34,7 +33,6 @@ class SpellTaunt < Spell
             name: "taunt",
             keywords: ["taunt"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

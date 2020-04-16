@@ -1,7 +1,7 @@
 class GameObject
 
-    attr_accessor :name, :keywords, :affects, :uuid, :active
-    attr_reader :listeners, :room, :gender, :short_description, :long_description
+    attr_accessor :name, :keywords, :affects, :uuid, :active, :short_description, :long_description
+    attr_reader :listeners, :room, :gender
 
     def initialize( name, keywords, reset = nil )
         @name = name
@@ -24,7 +24,7 @@ class GameObject
         @listeners = {}
         @uuid = Game.instance.new_uuid
         @active = true
-        @gender = 1
+        @gender = Game.instance.genders.values.first
     end
 
     def update( elapsed )
@@ -43,7 +43,7 @@ class GameObject
     end
 
     def to_s
-        @name.to_s
+        self.name.to_s
     end
 
     def to_someone
@@ -52,7 +52,7 @@ class GameObject
 
     def show( looker )
         if looker.can_see? self
-            return self.long_auras + @name.to_s
+            return self.long_auras + self.name.to_s
         else
             return to_someone
         end
@@ -145,23 +145,36 @@ class GameObject
         return true
     end
 
-    # Applies an group of affects from an array of strings, matching the strings as keys for
-    # AFFECT_CLASS_HASH in constants.rb
-    # +flags+:: array of flag strings. +["infravision", "hatchling", "flying"]+
+    # Applies an affect using a matching id.
+    # +id+:: id of an affect.
     # +silent+:: true if the affects should not output messages
     # +array+:: array to add affects onto
-    #  some_mobile.apply_affect_flags(["infravision", "hatchling", "flying"])
+    #  some_mobile.apply_affect_with_id(AffectBlind.id)
     #
-    def apply_affect_flags(flags, silent = false, array = nil)
-        flags.each do |flag|
-            affect_class = Constants::AFFECT_CLASS_HASH[flag]
-            if affect_class
-                affect = affect_class.new(self, self, 0)
-                affect.savable = false
-                affect.permanent = true
-                apply_affect(affect, silent)
-                array << affect if array
+    def apply_affect_with_id(id, silent = false, array = nil, data = nil)
+        affect_class = Game.instance.affect_class_with_id(id)
+        if affect_class
+            affect = affect_class.new(self, self, 0)
+            affect.savable = false
+            affect.permanent = true
+            if data
+                affect.overwrite_data(data)
             end
+            apply_affect(affect, silent)
+            array << affect if array
+        end
+    end
+
+    def apply_affect_model(affect_model, silent = true, array = nil)
+        if affect_model.affect_class
+            affect = affect_model.affect_class.new(self, self, 0)
+            affect.savable = false
+            affect.permanent = true
+            if affect_model.data
+                affect.overwrite_data(affect_model.data)
+            end
+            apply_affect(affect, silent)
+            array << affect if array
         end
     end
 
@@ -220,22 +233,22 @@ class GameObject
 
     # %O -> personal_objective_pronoun (him, her, it)
     def personal_objective_pronoun
-        return Game.instance.gender_data[@gender][:personal_objective]
+        return @gender.personal_objective
     end
 
     # %U -> personal_subjective_pronoun (he, she, it)
     def personal_subjective_pronoun
-        return Game.instance.gender_data[@gender][:personal_subjective]
+        return @gender.personal_subjective
     end
 
     # %P -> possessive_pronoun (his, her, its)
     def possessive_pronoun
-        return Game.instance.gender_data[@gender][:possessive]
+        return @gender.possessive
     end
 
     # %O -> reflexive_pronoun (himself, herself, itself)
     def reflexive_pronoun
-        return Game.instance.gender_data[@gender][:reflexive]
+        return @gender.reflexive
     end
 
     # Indefinite name/description/pronouns

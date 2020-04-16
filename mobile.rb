@@ -18,46 +18,49 @@ class Mobile < GameObject
 
     attr_reader :game
     attr_reader :room
-    attr_reader :race_id
-    attr_reader :class_id
+    attr_reader :race
+    attr_reader :size
+    attr_reader :mobile_class
     attr_reader :stats
     attr_reader :hitpoints
     attr_reader :manapoints
     attr_reader :movepoints
+    attr_reader :basehitpoints
+    attr_reader :basemanapoints
+    attr_reader :basemovepoints
     attr_reader :creation_points
-    attr_reader :learned
+    attr_reader :learned_skills
+    attr_reader :learned_spells
 
     include MobileItem
 
-    def initialize( data, race_id, class_id, room, reset = nil )
-        super(data[ :name ], data[:keywords], reset)
+    def initialize( model, room, reset = nil )
+        @model = model
+        super(nil, @model.keywords, reset)
+        @short_description = nil
+        @long_description = nil
         @attacking = nil
         @lag = 0
-        @id = data[ :id ]
-        @short_description = data[ :short_desc ]
-        @long_description = data[ :long_desc ]
-        @race_equip_slots = []
-        @class_equip_slots = []
+        @id = model.id
         @h2h_equip_slot = EquipSlot.new(-1, self)
 
-        @skills = []
-        @spells = [] + ["lightning bolt".freeze, "acid blast".freeze, "blast of rot".freeze, "pyrotechnics".freeze, "ice bolt".freeze]
-        @learned = []
+        @learned_skills = []
+        @learned_spells = []
         @experience = 0
 
         @creation_points = 5
         @experience_to_level = 1000
         @quest_points = 0
         @quest_points_to_remort = 1000
-        @alignment = data[ :align ].to_i
-        @wealth = data[:wealth].to_i
+        @alignment = model.alignment
+        @wealth = model.wealth
         @wimpy = 0
         @active = true
         @group = []
         @in_group = nil
-        @deity = "Gabriel".freeze
-        @race_id = nil
-        @class_id = nil
+        @deity = "Gabriel".freeze # deity table?
+
+        @gender = model.genders.sample || "neutral".to_gender
 
         @casting = nil
         @casting_args = nil
@@ -65,62 +68,64 @@ class Mobile < GameObject
 
         @stats = {
             success: 100,
-            str: data[:str] || 0,
-            con: data[:con] || 0,
-            int: data[:int] || 0,
-            wis: data[:wis] || 0,
-            dex: data[:dex] || 0,
-            max_str: data[:max_str] || 0,
-            max_con: data[:max_con] || 0,
-            max_int: data[:max_int] || 0,
-            max_wis: data[:max_wis] || 0,
-            max_dex: data[:max_dex] || 0,
-            hitroll: data[:hitroll] || rand(5...7),
-            damroll: data[:damage] || 0,
+            str: model.stats.dig(:str) || 0,
+            con: model.stats.dig(:con) || 0,
+            int: model.stats.dig(:int) || 0,
+            wis: model.stats.dig(:wis) || 0,
+            dex: model.stats.dig(:dex) || 0,
+            max_str: model.stats.dig(:max_str) || 0,
+            max_con: model.stats.dig(:max_con) || 0,
+            max_int: model.stats.dig(:max_int) || 0,
+            max_wis: model.stats.dig(:max_wis) || 0,
+            max_dex: model.stats.dig(:max_dex) || 0,
+            hitroll: model.stats.dig(:hitroll) || 6,
+            damroll: model.stats.dig(:damroll) || 0,
             attack_speed: 1,
-            ac_pierce: data[:ac_pierce].to_i,
-            ac_bash: data[:ac_bash].to_i,
-            ac_slash: data[:ac_slash].to_i,
-            ac_magic: data[:ac_magic].to_i,
+            ac_pierce: model.ac_pierce,
+            ac_bash: model.ac_bash,
+            ac_slash: model.ac_slash,
+            ac_magic: model.ac_magic,
         }
 
-        @level = data[:level] || 1
-        @basehitpoints = data[:hp_dice_count].nil? ? 10 : ( dice( data[:hp_dice_count].to_i, data[:hp_dice_sides].to_i ) + data[:hp_dice_bonus].to_i )
-        @hitpoints = maxhitpoints
-
-        @basemanapoints = data[:mana_dice_count].nil? ? 100 : ( dice( data[:mana_dice_count].to_i, data[:mana_dice_sides].to_i ) + data[:mana_dice_bonus].to_i )
-        @manapoints = maxmanapoints
-
-        @basemovepoints = data[:movepoints] || 100
-        @movepoints = maxmovepoints
+        @level = model.level
+        @basehitpoints = model.hp
+        @basemanapoints = model.mana
+        @basemovepoints = model.movement
 
         # @damage_range = data[:damage_range] || nil
         # @noun = data[:attack] || nil
-        @damage_dice_sides = data[:damage_dice_sides]
-        @damage_dice_count = data[:damage_dice_count]
-        @damage_dice_bonus = data[:damage_dice_bonus]
-        @hand_to_hand_noun = data[:hand_to_hand_noun]
         @swing_counter = 0
-        @hand_to_hand = nil
 
-        @parts = data[:part_flags] || Constants::PARTS
+        @position = model.position
 
-        @position = Constants::Position::STAND
         @inventory = Inventory.new(self)
 
         @room = room
         @room.mobile_enter(self) if @room
+        @race = nil
+        @race_equip_slots = []
         @race_affects = []                  # list of affects applied by race
-        @class_affects = []                  # list of affects applied by race
+        @mobile_class = nil
+        @mobile_class_equip_slots = []
+        @mobile_class_affects = []                  # list of affects applied by race
 
-        set_race_id(race_id)
-        set_class_id(class_id)
+        set_race(model.race)
+        set_mobile_class(model.mobile_class)
+        @model.affect_models.each do |affect_model|
+            apply_affect_model(affect_model, true)
+        end
 
-        @wander_range = data[:act_flags].to_a.include?("sentinel") ? 0 : 1
+        # wander "temporarily" disabled :)
+        @wander_range = 0 # data[:act_flags].to_a.include?("sentinel") ? 0 : 1
 
-        apply_affect_flags(data[:affect_flags].to_a, true)
-        apply_affect_flags(data[:act_flags].to_a, true)
-        apply_affect_flags(data[:specials].to_a, true)
+        @hitpoints = model.current_hp || maxhitpoints
+        @manapoints = model.current_mana || maxmanapoints
+        @movepoints = model.current_movement || maxmovepoints
+
+        if model.size
+            @size = model.size
+        end
+
     end
 
     # alias for Game.instance.destroy_mobile(self)
@@ -130,39 +135,42 @@ class Mobile < GameObject
 
     def learn( skill_name )
         skill_name = skill_name.to_s
-        unlearned = (spells + skills) - @learned
-        unlearned_skills = skills - @learned
-        unlearned_spells = spells - @learned
+        unlearned = (spells + skills) - (@learned_skills + @learned_spells)
+        unlearned_skills = self.skills - @learned_skills
+        unlearned_spells = self.spells - @learned_spells
         if skill_name.nil? || skill_name.to_s.length <= 0 # no argument - list learnable skills
             output "\n" + ("{GCOST : SKILL{x\n" * 3).to_columns( 30, 3 )
-            output unlearned_skills.map{ |name| Game.instance.abilities[ name ] }.reject(&:nil?).map{ |skill| "#{ skill.creation_points.to_s.rpad(4) } : #{skill.name}" }.join("\n").to_columns( 30, 3 )
+            output unlearned_skills.map{ |skill| "#{ skill.creation_points.to_s.rpad(4) } : #{skill.name}" }.join("\n").to_columns( 30, 3 )
             output "\n" + ("{CCOST : SPELL{x\n" * 3).to_columns( 30, 3 )
-            output unlearned_spells.map{ |name| Game.instance.abilities[ name ] }.reject(&:nil?).map{ |spell| "#{ spell.creation_points.to_s.rpad(4) } : #{spell.name}" }.join("\n").to_columns( 30, 3 )
+            output unlearned_spells.map{ |spell| "#{ spell.creation_points.to_s.rpad(4) } : #{spell.name}" }.join("\n").to_columns( 30, 3 )
             output "\nYou have #{ (@creation_points > 0) ? "{g" : "{D" }#{ @creation_points }{x creation points available to spend."
             return
         end
         # try to learn
-        to_learn = unlearned.find { |skill| skill.fuzzy_match(skill_name) }
+        to_learn = unlearned.find { |skill| skill.name.fuzzy_match(skill_name) }
         if to_learn
-            skill = Game.instance.abilities[to_learn]
-            if skill.creation_points <= @creation_points
-                @learned << skill.name
-                @creation_points -= skill.creation_points
-                output "You have learned #{ skill.name }!"
+            if to_learn.creation_points <= @creation_points
+                if to_learn.is_a? Skill
+                    @learned_skills << to_learn
+                else
+                    @learned_spells << to_learn
+                end
+                @creation_points -= to_learn.creation_points
+                output "You have learned #{ to_learn.name }!"
             else
-                output "You don't have enough creation points to learn that skill.  You have #{ @creation_points } and need at least #{ skill.creation_points }."
+                output "You don't have enough creation points to learn that skill.  You have #{ @creation_points } and need at least #{ to_learn.creation_points }."
             end
         else
             output "You cannot learn that skill!"
         end
     end
 
-    def knows( skill_name )
-        (@learned).include? skill_name
+    def knows( ability )
+        (@learned_skills | @learned_spells).include? ability
     end
 
-    def proficient( weapon_type )
-        weapons.include? weapon_type
+    def proficient( genre )
+        genres.include? genre
     end
 
     def earn( n )
@@ -195,7 +203,7 @@ class Mobile < GameObject
         # super elapsed
 
         # wander
-        if attacking.nil? && @position >= Constants::Position::STAND && rand(1..1200) == 1 && @wander_range > 0
+        if attacking.nil? && @position == :standing && rand(1..1200) == 1 && @wander_range > 0
             if ( direction = @room.exits.reject{ |k, v| v.nil? }.keys.sample )
                 if ( destination = @room.exits[direction].destination ) && destination.area == @room.area
                     move( direction )
@@ -277,8 +285,8 @@ class Mobile < GameObject
             do_command "yell Help I am being attacked by #{attacker}!"
         end
         old_position = @position
-        @position = Constants::Position::STAND
-        if old_position == Constants::Position::SLEEP
+        @position = :standing.to_position
+        if old_position == :sleeping
             look_room
         end
         if @attacking.nil?
@@ -336,9 +344,6 @@ class Mobile < GameObject
         weapons = wielded
         case weapons.length
         when 0 # hand to hand
-            if !self.hand_to_hand_weapon
-                self.generate_hand_to_hand_weapon
-            end
             return self.hand_to_hand_weapon
         when 1 # single weapon
             return weapons.first
@@ -356,35 +361,36 @@ class Mobile < GameObject
         if @h2h_equip_slot.item
             @h2h_equip_slot.item.destroy
         end
-        weapon_data = {
-            name: "hand to hand",
-            short_description: "Hand to hand",
+        weapon_row = {
             id: 0,
+            name: "hand to hand",
+            short_description: "hand to hand",
             keywords: "",
             level: @level,
             weight: 0,
             cost: 0,
-            long_description: "",
-            type: "weapon",
-            genre: "hand to hand",
             material: "flesh",
-            extra_flags: [],
-            wear_flags: [],
-            modifiers: {},
-            ac: {},
-            noun: @hand_to_hand_noun || Game.instance.race_data.dig(@race_id, :h2h_noun),
-            flags: Game.instance.race_data.dig(@race_id, :h2h_flags),
-            element: Game.instance.race_data.dig(@race_id, :h2h_element),
-            dice_count: @damage_dice_count || 6,
-            dice_sides: @damage_dice_sides || 7,
-            dice_bonus: @damage_dice_bonus || 0
+            fixed: 0,
+
+            noun: @race.hand_to_hand_noun,
+            genre: "hand to hand".to_genre,
+            dice_count: @model.hand_to_hand_dice_count || 6,
+            dice_sides: @model.hand_to_hand_dice_sides || 7
         }
-        weapon = Weapon.new(weapon_data, @h2h_equip_slot)
+        h2h_model = WeaponModel.new(0, weapon_row)
+        @race.hand_to_hand_affect_models.each do |affect_model|
+            h2h_model.affect_models << affect_model
+        end
+
+        weapon = Weapon.new(h2h_model, @h2h_equip_slot)
         return weapon
     end
 
     #
     def hand_to_hand_weapon
+        if !@h2h_equip_slot.item
+            self.generate_hand_to_hand_weapon
+        end
         return @h2h_equip_slot.item
     end
 
@@ -394,17 +400,18 @@ class Mobile < GameObject
             target = @attacking
         end
         stat( :attack_speed ).times do |attack|
-            weapon_hit(target: target) if target.attacking
+            weapon_hit(target) if target.attacking
         end
     end
 
     # Hit a target using weapon for damage
-    def weapon_hit(target:, damage_bonus: 0, hit_bonus: 0, custom_noun: nil, weapon: nil)
+    def weapon_hit(target, damage_bonus = 0, hit_bonus = 0, custom_noun = nil, weapon = nil, noun_name_override = nil)
 
         # get data from weapon item or hand-to-hand
 
         weapon = weapon || weapon_for_next_hit
         noun = custom_noun || weapon.noun
+        noun = noun.to_noun
         hit = false
 
         # check for override event - i.e. burst rune
@@ -414,28 +421,23 @@ class Mobile < GameObject
         if override[:confirm]
             return
         end
-
         # calculate hit chance ... I guess burst rune auto-hits?
-
-        hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon ? weapon.element : "bash" ) ).clamp( 5, 95 )
+        hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon.noun.element ) ).clamp( 5, 95 )
         if rand(0...100) < hit_chance
-            damage = damage_rating(weapon: weapon) + damage_bonus
+            damage = damage_rating(weapon: weapon) + damage_bonus + (self.stat(:damroll) * Constants::Damage::DAMROLL_MODIFIER).to_i
             hit = true
         else
             damage = 0
         end
 
         # modify hit damage
-
         data = { damage: damage, source: self, target: target, weapon: weapon }
         Game.instance.fire_event( self, :event_calculate_weapon_hit_damage, data )
+        damage = data[:damage].to_i
 
-        deal_damage(target: target, damage: ( Constants::Damage::MODIFIER * data[:damage] ).to_i, noun: noun, element: weapon.element, type: Constants::Damage::PHYSICAL)
+        deal_damage(target, damage, noun, false, false, noun_name_override)
 
         if hit
-
-            # maybe THIS is burst rune?
-
             override = { confirm: false, source: self, target: target, weapon: weapon }
             Game.instance.fire_event( target, :event_override_receive_hit, override )
             if override[:confirm]
@@ -450,61 +452,69 @@ class Mobile < GameObject
     # Deal some damage to a mobile.
     # +target+:: the mobile who will be receiving the damage
     # +damage+:: the amount of damage being dealt
-    # +element+:: the element of the damage (fire, cold, etc)
-    # +type+:: the type of the damage: physical of magical
+    # +noun+:: the noun of the damage (flamestirke, fire, magic)
     # +silent+:: true if damage decorators should not be broadcast
     # +anonymous+:: true if output messages should omit the +source+
-    #  mob1.deal_damage(target: mob2, noun: "stab", element: Constants::Element::PIERCE, type: Constants::Damage::PHYSICAL)
-    #  mob1.deal_damage(target: mob2, noun: "ice bolt", element: Constants::Element::COLD, type: Constants::Damage::MAGICAL)
-    def deal_damage(target:, damage:, noun: "damage", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: false, anonymous: false)
+    # +noun_name_override+ override the given noun's name with this string, "backstab" for example
+    #  mob1.deal_damage(mob2, 60, "stab")
+    #  mob1.deal_damage(mob2, 10, "bleeding", true, true)
+    def deal_damage(target, damage, noun = "hit", silent = false, anonymous = false, noun_name_override = nil)
         if !target || !target.active # if this is inactive, it can still deal damage
             return
         end
-        # if !is_player?
-        #     damage = (damage * 0.1).to_i
-        # end
-        calculation_data = { damage: damage, source: self, target: target, element: element, type: type }
+        noun = noun.to_noun
+        calculation_data = { source: self, target: target, damage: damage, noun: noun }
         Game.instance.fire_event(self, :event_calculate_damage, calculation_data)
         damage = calculation_data[:damage]
-        target.receive_damage(source: self, damage: damage, noun: noun, element: element, type: type, silent: silent, anonymous: anonymous)
+        target.receive_damage(self, damage, noun, silent, anonymous, noun_name_override)
     end
 
     # Receive some damage!
     # +source+:: the mobile dealing the damage (can be nil)
     # +damage+:: the amount of damage being dealt
-    # +element+:: the element of the damage (fire, cold, etc)
-    # +type+:: the type of the damage: physical of magical
+    # +noun+:: the element of the damage (flamestirke, fire, magic)
     # +silent+:: true if damage decorators should not be broadcast
     # +anonymous+:: true if output messages should omit the +source+
-    def receive_damage(source:, damage:, noun: "damage", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: false, anonymous: false)
+    # +noun_name_override+ override the given noun's name with this string, "backstab" for example
+    def receive_damage(source, damage, noun = "hit", silent = false, anonymous = false, noun_name_override = nil)
         if !@active # inactive mobiles can't take damage.
             return
         end
+        noun = noun.to_noun
         if source && source != self
             self.start_combat( source )
         end
-        override = { confirm: false, source: source, target: self, damage: damage, noun: noun, element: element, type: type }
+        override = { confirm: false, source: source, target: self, damage: damage, noun: noun }
         Game.instance.fire_event(self, :event_override_receive_damage, override)
         if override[:confirm]
             return
         end
-        calculation_data = { damage: damage, source: source, target: self, element: element, type: type }
+        calculation_data = { source: source, target: self, damage: damage, noun: noun }
         Game.instance.fire_event(self, :event_calculate_receive_damage, calculation_data)
         damage = calculation_data[:damage]
-        immune = calculation_data[:immune]
-        if immune
-            damage = 0
+        resistance = self.resistances[noun.element]
+        noun_name = noun_name_override || noun.name
+        if resistance >= 1.0 # immune!
+            if !silent
+                if source && !anonymous
+                    (self.room.occupants | [source]).each_output "0<N>'s #{noun_name} doesn't even bruise #{(source==self) ?"1<r>":"1<n>"}!", [source, self]
+                else # anonymous damage
+                    self.room.occupants.each_output("#{noun_name} doesn't even bruise 0<n>!", [self])
+                end
+            end
+            return # immunity means we stop here!
         end
+        damage = (damage * (1.0 - resistance)).to_i
         if !silent
             decorators = Constants::DAMAGE_DECORATORS
-            if type == Constants::Damage::MAGICAL
+            if noun.magic
                 decorators = Constants::MAGIC_DAMAGE_DECORATORS
             end
-            decorators = decorators.select{ |key, value| damage >= key}.values.last
+            decorators = decorators.select{ |key, value| damage <= key}.values.first
             if source && !anonymous
-                (self.room.occupants | source.room.occupants).each_output "0<N>'s#{decorators[2]} #{noun} #{decorators[1]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[3]} ", [source, self]
+                (self.room.occupants | [source]).each_output "0<N>'s#{decorators[2]} #{noun_name} #{decorators[1]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[3]}", [source, self]
             else # anonymous damage
-                self.room.occupants.each_output("#{noun} #{decorators[1]} 0<n>#{decorators[3]} ", [self])
+                self.room.occupants.each_output("#{noun_name} #{decorators[1]} 0<n>#{decorators[3]} ", [self])
             end
         end
         @hitpoints -= damage
@@ -611,7 +621,7 @@ class Mobile < GameObject
             old_room = @room
             if @room.exits[direction.to_sym].move( self )
                 (@room.occupants - [self]).each_output "0<N> has arrived.", [self] unless self.affected? "sneak"
-                (old_room.occupants - [self]).select { |t| t.position == Constants::Position::STAND }.each do |t|
+                (old_room.occupants - [self]).select { |t| t.position == :sleeping }.each do |t|
                     Game.instance.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
                 end
                 Game.instance.fire_event( self, :event_mobile_enter, { mobile: self } )
@@ -630,13 +640,12 @@ class Mobile < GameObject
     end
 
     def who
-        data = { description: "" }
-        Game.instance.fire_event( self, :event_calculate_short_aura_description, data )
-        "[#{@level.to_s.lpad(2)} #{Game.instance.race_data.dig(@race_id, :display_name).rpad(8)} #{Game.instance.class_data.dig(@class_id, :name).capitalize.lpad(8)}] #{data[:description]}#{@name}"
+        auras = self.short_auras
+        "[#{@level.to_s.lpad(2)} #{@race.display_name.rpad(8)} #{@mobile_class.name.capitalize.lpad(8)}] #{auras}#{self.name}"
     end
 
-    def weapons
-        Game.instance.class_data.dig(@class_id, :weapons).to_s + Game.instance.race_data.dig(@race_id, :weapons).to_s
+    def genres
+        @mobile_class.genres | @race.genres
     end
 
     def move_to_room( room )
@@ -647,7 +656,7 @@ class Mobile < GameObject
         @room = room
         if @room
             @room.mobile_enter(self)
-            if @position == Constants::Position::SLEEP
+            if @position == :sleeping
                 output "Your dreams grow restless."
             else
                 Game.instance.do_command self, "look"
@@ -662,7 +671,7 @@ class Mobile < GameObject
 
         if data[:success]
             (@room.occupants - [self]).each_output "0<N> disappears!", [self]
-            room = Game.instance.recall_room( @room.continent )
+            room = Game.instance.rooms[@room.continent.recall_room_id]
             move_to_room( room )
             (@room.occupants - [self]).each_output "0<N> arrives in a puff of smoke!", [self]
             return true
@@ -684,21 +693,21 @@ class Mobile < GameObject
         percent = data[:percent]
 
         if (percent >= 100)
-            return "#{@name.capitalize_first} is in excellent condition.\n"
+            return "#{self.name.capitalize_first} is in excellent condition.\n"
         elsif (percent >= 90)
-            return "#{@name.capitalize_first} has a few scratches.\n"
+            return "#{self.name.capitalize_first} has a few scratches.\n"
         elsif (percent >= 75)
-            return "#{@name.capitalize_first} has some small wounds and bruises.\n"
+            return "#{self.name.capitalize_first} has some small wounds and bruises.\n"
         elsif (percent >= 50)
-            return "#{@name.capitalize_first} has quite a few wounds.\n"
+            return "#{self.name.capitalize_first} has quite a few wounds.\n"
         elsif (percent >= 30)
-            return "#{@name.capitalize_first} has some big nasty wounds and scratches.\n"
+            return "#{self.name.capitalize_first} has some big nasty wounds and scratches.\n"
         elsif (percent >= 15)
-            return "#{@name.capitalize_first} looks pretty hurt.\n"
+            return "#{self.name.capitalize_first} looks pretty hurt.\n"
         elsif (percent >= 0)
-            return "#{@name.capitalize_first} is in awful condition.\n"
+            return "#{self.name.capitalize_first} is in awful condition.\n"
         else
-            return "#{@name.capitalize_first} is bleeding to death.\n"
+            return "#{self.name.capitalize_first} is bleeding to death.\n"
         end
     end
 
@@ -727,38 +736,46 @@ class Mobile < GameObject
     end
 
     def to_s
-        @name.to_s
+        self.name.to_s
     end
 
     def short_description
-        data = { description: @short_description }
+        data = { description: self.short_description }
         Game.instance.fire_event(self, :event_calculate_description, data )
         return data[:description]
     end
 
     def show_short_description(observer:)
         data = {description: ""}
-        Game.instance.fire_event(self, :event_calculate_long_aura_description, data)
+        auras = self.long_auras
         if self.attacking
             if self.attacking == observer
-                return data[:description] + @name + " is here, fighting YOU!"
+                return auras + self.name + " is here, fighting YOU!"
             else
-                return data[:description] + @name + " is here, fighting #{observer.can_see?(self.attacking) ? self.attacking.name : "someone"}."
+                return auras + self.name + " is here, fighting #{observer.can_see?(self.attacking) ? self.attacking.name : "someone"}."
             end
         else
-            case @position
-            when Constants::Position::SLEEP
-                return data[:description] + @name + " is sleeping here."
-            when Constants::Position::REST
-                return data[:description] + @name + " is resting here."
+            case @position.name
+            when :sleeping
+                return auras + self.name + " is sleeping here."
+            when :resting
+                return auras + self.name + " is resting here."
             else
-                return data[:description] + @short_description
+                return auras + self.short_description
             end
         end
     end
 
+    def name
+        (@name || @model.name)
+    end
+
+    def short_description
+        (@short_description || @model.short_description)
+    end
+
     def long_description
-        @long_description
+        (@long_description || @model.long_description)
     end
 
     # returns true if self can see target
@@ -819,12 +836,12 @@ class Mobile < GameObject
     #  some_mobile.stat(:max_wis)
     #  some_mobile.stat(:damroll)
     def stat(key)
-        stat = (Game.instance.race_data.dig( @race_id, key ) || 0) + @stats[key].to_i
-        class_main_stat = Game.instance.class_data.dig(@class_id, :main_stat).to_s
-        if key.to_s == class_main_stat # class main stat bonus
+        stat = @race.stats.dig(key).to_i + @stats[key].to_i
+
+        if key == @mobile_class.main_stat # class main stat bonus
             stat += 3
         end
-        if key.to_s == "max_#{class_main_stat}" # class max main stat bonus
+        if key.to_s == "max_#{@mobile_class.main_stat}" # class max main stat bonus
             stat += 2
         end
         if [:max_str, :max_int, :max_dex, :max_con, :max_wis].include?(key) # limit max stats to 25
@@ -849,19 +866,29 @@ class Mobile < GameObject
     end
 
     def score
-        element_data = {string: ""}
-        Game.instance.fire_event( self, :event_display_vulns, element_data)
-        Game.instance.fire_event( self, :event_display_resists, element_data)
-        Game.instance.fire_event( self, :event_display_immunes, element_data)
-        if element_data[:string] == ""
-            element_data[:string] = "\nNone."
+        resist_string = "None."
+        resist_strings = []
+        resists = self.resistances.select { |element, value| value != 0 }.sort_by{ |element, value| value }
+        resists.each do |element, value|
+            case
+            when value == 1
+                resist_strings << "You are immune to #{element.name} damage."
+            when value > 0
+                resist_strings << "You are resistant to #{element.name} damage."
+            when value < 0
+                resist_strings << "You are vulnerable to #{element.name} damage."
+            end
         end
-%Q(#{@name}
+        if resist_strings.size > 0
+            resist_string = resist_strings.join("\n")
+        end
+
+%Q(#{self.name}
 Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
 {cLevel:{x     #{@level.to_s.rpad(26)} {cAge:{x       17 - 0(0) hours
-{cRace:{x      #{Game.instance.race_data.dig(@race_id, :name).to_s.rpad(26)} {cGender:{x    #{Game.instance.gender_data[@gender][:name]}
-{cClass:{x     #{Game.instance.class_data.dig(@class_id, :name).to_s.rpad(26)} {cDeity:{x     #{@deity}
+{cRace:{x      #{@race.name.to_s.rpad(26)} {cGender:{x    #{@gender.name}
+{cClass:{x     #{@mobile_class.name.to_s.rpad(26)} {cDeity:{x     #{@deity}
 {cAlignment:{x #{@alignment.to_s.rpad(26)} {cDeity Points:{x 0
 {cPracs:{x     N/A                        {cTrains:{x    N/A
 {cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".rpad(26)} {cNext Level:{x #{@experience_to_level - @experience}
@@ -877,49 +904,54 @@ Member of clan Kenshi
 {cHitRoll:{x   #{ stat(:hitroll).to_s.rpad(26)} {cDamRoll:{x   #{ stat(:damroll) }
 {cDamResist:{x #{ stat(:damresist).to_s.rpad(26) } {cMagicDam:{x  #{ stat(:magicdam) }
 {cAttackSpd:{x #{ stat(:attack_speed) }
--------------------------------- Elements -------------------------------#{element_data[:string]}
+-------------------------------- Elements -------------------------------
+#{resist_string}
 --------------------------------- Armour --------------------------------
 {cPierce:{x    #{ (-1 * stat(:ac_pierce)).to_s.rpad(26) } {cBash:{x      #{ -1 * stat(:ac_bash) }
 {cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.rpad(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
-You are #{Constants::Position::STRINGS[ @position ]}.)
+You are #{@position.name}.)
     end
 
     # Take a stat name as a string and convert it into a score-formatted output string.
     #
     #  score_stat("str")     # => Str:       14(14) of 23
-    def score_stat(stat_name)
-        stat = stat_name.to_sym
-        max_stat = "max_#{stat_name}".to_sym
-        base = @stats[stat]+Game.instance.race_data.dig(@race_id, stat).to_i
-        base += 3 if Game.instance.class_data.dig(@class_id, :main_stat) == stat_name
-        modified = stat(stat)
-        max = stat(max_stat)
-        return "{c#{stat_name.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".rpad(27)}"
+    def score_stat(stat_sym)
+        stat_sym = stat_sym.to_sym
+        max_stat = "max_#{stat_sym}".to_sym
+        base = @stats[stat_sym] + @race.stats[stat_sym].to_i
+        base += 3 if @mobile_class.main_stat == stat_sym
+        modified = stat(stat_sym)
+        max = stat(stat_sym)
+        return "{c#{stat_sym.to_s.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".rpad(27)}"
     end
 
     def skills
-        return @skills | Game.instance.race_data.dig(@race_id, :skills).to_a | Game.instance.class_data.dig(@class_id, :skills).to_a
+        return (@race.skills | @mobile_class.skills)
     end
 
     def spells
-        return @spells | Game.instance.race_data.dig(@race_id, :spells).to_a | Game.instance.class_data.dig(@class_id, :spells).to_a
+        return (@race.spells | @mobile_class.spells)
     end
 
-    def set_race_id(new_race_id)
-        @race_id = new_race_id
+    def resistances
+        element_data = Game.instance.elements.values.map { |e| [e, 0] }.to_h
+        Game.instance.fire_event(self, :event_get_resists, element_data)
+        return element_data
+    end
+
+    def set_race(race)
+        @race = race
+        @size = race.size
         old_equipment = self.equipment
         old_equipment.each do |item| # move all equipped items to inventory
             get_item(item, silent: true)
         end
         @race_equip_slots = []  # Clear old equip_slots
-        slots = Game.instance.race_data.dig(@race_id, :equip_slots).to_a
-        slots.each do |slot|
-            row = Game.instance.equip_slot_data[slot.to_i]
-            if row
-                @race_equip_slots << EquipSlot.new(slot.to_i, self)
-            end
+
+        @race.equip_slot_infos.each do |slot|
+            @race_equip_slots << EquipSlot.new(self, slot)
         end
         old_equipment.each do |item| # try to wear all items that were equipped before
             wear(item: item, silent: true)
@@ -928,50 +960,30 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
             affect.clear(silent: true)
         end
         @race_affects = []
-        affect_flags = Game.instance.race_data.dig(@race_id, :affect_flags)
-        apply_affect_flags(affect_flags, true, @race_affects) if affect_flags
-        apply_element_flags(Game.instance.race_data.dig(@race_id, :vuln_flags), AffectVuln, @race_affects)
-        apply_element_flags(Game.instance.race_data.dig(@race_id, :resist_flags), AffectResist, @race_affects)
-        apply_element_flags(Game.instance.race_data.dig(@race_id, :immune_flags), AffectImmune, @race_affects)
+        @race.affect_models.each do |affect_model|
+            apply_affect_model(affect_model, true, @race_affects)
+        end
     end
 
-    def set_class_id(new_class_id)
-        @class_id = new_class_id
+    def set_mobile_class(mobile_class)
+        @mobile_class = mobile_class
         old_equipment = self.equipment
         old_equipment.each do |item| # move all equipped items to inventory
             get_item(item, silent: true)
         end
-        @class_equip_slots = []  # Clear old equip_slots
-        slots = Game.instance.class_data.dig(@class_id, :equip_slots).to_a
-        slots.each do |slot|
-            row = Game.instance.equip_slot_data[slot.to_i]
-            if row
-                @class_equip_slots << EquipSlot.new(slot.to_i, self)
-            end
+        @mobile_class_equip_slots = []  # Clear old equip_slots
+        @mobile_class.equip_slot_infos.each do |slot|
+            @race_equip_slots << EquipSlot.new(self, slot)
         end
         old_equipment.each do |item| # try to wear all items that were equipped before
             wear(item: item, silent: true)
         end
-        @class_affects.each do |affect|
+        @mobile_class_affects.each do |affect|
             affect.clear(silent: true)
         end
-        @class_affects = []
-        affect_flags = Game.instance.class_data.dig(@class_id, :affect_flags)
-        apply_affect_flags(affect_flags, true, @race_affects) if affect_flags
-        apply_element_flags(Game.instance.class_data.dig(@class_id, :vuln_flags), AffectVuln, @class_affects)
-        apply_element_flags(Game.instance.class_data.dig(@class_id, :resist_flags), AffectResist, @class_affects)
-        apply_element_flags(Game.instance.class_data.dig(@class_id, :immune_flags), AffectImmune, @class_affects)
-    end
-
-    def apply_element_flags(element_flags, affect_class, array)
-        element_flags.to_a.each do |flag|
-            element = Constants::Element::STRINGS.find { |k, v| v == flag }
-            next if !element
-            affect = affect_class.new(nil, self, 0)
-            affect.savable = false
-            affect.overwrite_data({element: element[0]})
-            apply_affect(affect, true)
-            array << affect
+        @mobile_class_affects = []
+        @mobile_class.affect_models.each do |affect_model|
+            apply_affect_model(affect_model, true, @mobile_class_affects)
         end
     end
 
@@ -980,9 +992,9 @@ You are #{Constants::Position::STRINGS[ @position ]}.)
     end
 
     def casting_level
-        class_multiplier = Game.instance.class_data.dig(@race_id, :casting_multiplier)
+        class_multiplier = @mobile_class.casting_multiplier
         casting = @level
-        casting *= (class_multiplier.to_i / 100) if class_multiplier
+        casting = (casting * class_multiplier).to_i if class_multiplier
         return [1, casting.to_i].max
     end
 

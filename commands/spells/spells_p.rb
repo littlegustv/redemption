@@ -7,7 +7,6 @@ class SpellPassDoor < Spell
             name: "pass door",
             keywords: ["pass door"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -25,7 +24,6 @@ class SpellPhantasmMonster < Spell
             name: "phantasm monster",
             keywords: ["phantasm monster"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -33,7 +31,6 @@ class SpellPhantasmMonster < Spell
     def attempt( actor, cmd, args, input, level )
         actor.output "You call forth phantasmic forces!"
         mob = Game.instance.load_mob( 1844, actor.room )
-        Game.instance.mobiles.add mob
         mob.apply_affect( AffectFollow.new( actor, mob, 1 ) )
         mob.apply_affect( AffectCharm.new( actor, mob, actor.level ) )
     end
@@ -47,7 +44,6 @@ class SpellPhantomForce < Spell
             name: "phantom force",
             keywords: ["phantom force"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -71,7 +67,7 @@ class SpellPhantomForce < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"ghoulish grasp", element: Constants::Element::COLD, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "ghoulish grasp")
         return true
     end
 end
@@ -83,7 +79,6 @@ class SpellPlague < Spell
             name: "plague",
             keywords: ["plague"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -121,7 +116,6 @@ class SpellPoison < Spell
             name: "poison",
             keywords: ["poison"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -158,7 +152,6 @@ class SpellPortal < Spell
             name: "portal",
             keywords: ["portal"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 25
         )
     end
@@ -173,7 +166,6 @@ class SpellPortal < Spell
             # remove auto-added affect
             portal.remove_affect("portal")
             portal.apply_affect( AffectPortal.new( target: portal, game: Game.instance, destination: target.room ) )
-            Game.instance.add_global_item( portal )
 
             actor.output "0<N> rises up before you.", [portal]
             (actor.room.occupants - [actor]).each_output "%N rises up from the ground.", [portal]
@@ -191,7 +183,6 @@ class SpellProtection < Spell
             name: "protection",
             keywords: ["protection"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -215,7 +206,6 @@ class SpellPyrotechnics < Spell
             name: "pyrotechnics",
             keywords: ["pyrotechnics"],
             lag: 0.25,
-            position: Constants::Position::STAND
         )
     end
 
@@ -238,7 +228,7 @@ class SpellPyrotechnics < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"pyrotechnics", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "pyrotechnics")
         return true
     end
 end

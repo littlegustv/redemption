@@ -137,7 +137,6 @@ module MobileItem
             output "That would be a bad idea."
             return
         end
-        output "You puts 0<n> in 1<n>.", [item, container] if !silent
         @room.occupants.each_output("0<N> put0<,s> 1<n> in 2<n>.", [self, item, container]) if !silent
         container.get_item(item)
         # if @inventory && @inventory.items.size == 0
@@ -182,9 +181,9 @@ module MobileItem
     end
 
     def equip_slots
-        # data = {equip_slots: (@race_equip_slots + @class_equip_slots)}
+        # data = {equip_slots: (@race_equip_slots + @mobile_class_equip_slots)}
         # Game.instance.fire_event(self, :event_get_equip_slots, data )
-        return @race_equip_slots + @class_equip_slots
+        return @race_equip_slots + @mobile_class_equip_slots
     end
 
     def items

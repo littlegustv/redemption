@@ -7,7 +7,6 @@ class SpellRayOfTruth < Spell
             name: "ray of truth",
             keywords: ["ray of truth"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -37,7 +36,7 @@ class SpellRayOfTruth < Spell
         end
 
         actor.alignment = [ actor.alignment + 50, 1000 ].min
-        actor.deal_damage(target: target, damage: 50, noun: "divine power", element: Constants::Element::HOLY, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 50, "ray of truth")
         return true
     end
 end
@@ -49,7 +48,6 @@ class SpellRefresh < Spell
             name: "refresh",
             keywords: ["refresh"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 10
         )
@@ -84,7 +82,6 @@ class SpellRemoveCurse < Spell
             name: "remove curse",
             keywords: ["remove curse"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -112,7 +109,6 @@ class SpellRukusMagna < Spell
             name: "rukus magna",
             keywords: ["rukus magna"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -137,7 +133,7 @@ class SpellRukusMagna < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"rukus magna", element: Constants::Element::SOUND, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "rukus magna")
         return true
     end
 end

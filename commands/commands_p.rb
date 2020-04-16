@@ -6,7 +6,7 @@ class CommandPeer < Command
         super(
             name: "peer",
             keywords: ["peer"],
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -29,7 +29,7 @@ class CommandPoison < Command
         super(
             name: "poison",
             keywords: ["poison"],
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -51,7 +51,7 @@ class CommandProfile < Command
         super(
             name: "profile",
             keywords: ["profile"],
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -68,7 +68,7 @@ class CommandPry < Command
         super(
             name: "pry",
             keywords: ["pry"],
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -84,7 +84,7 @@ class CommandPut < Command
         super(
             name: "put",
             keywords: ["put"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

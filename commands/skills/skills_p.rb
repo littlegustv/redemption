@@ -9,7 +9,7 @@ class SkillPaintPower < Skill
             name: "paint power",
             keywords: ["paint"],
             lag: 0.25,
-            position: Constants::Position::STAND,
+            position: :standing,
             usable_in_combat: false
         )
     end
@@ -36,7 +36,7 @@ class SkillPeek < Skill
             name: "peek",
             keywords: ["peek"],
             lag: 0.1,
-            position: Constants::Position::REST,
+            position: :resting,
             usable_in_combat: false
         )
     end
@@ -65,7 +65,7 @@ class SkillPickLock < Skill
             name: "pick lock",
             keywords: ["pick lock"],
             lag: 0.25,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 

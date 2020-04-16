@@ -6,7 +6,7 @@ class CommandRecall < Command
         super(
             name: "recall",
             keywords: ["recall", "/"],
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -21,7 +21,7 @@ class CommandRemove < Command
         super(
             name: "remove",
             keywords: ["remove"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -44,33 +44,32 @@ class CommandRest < Command
         super(
             name: "rest",
             keywords: ["sit", "rest"],
-            position: Constants::Position::SLEEP,
+            position: :sleeping,
             usable_in_combat: false
         )
     end
 
     def attempt( actor, cmd, args, input )
-        case actor.position
-        when Constants::Position::SLEEP
+        if actor.position == :sleeping
             data = { success: true }
             Game.instance.fire_event( actor, :event_try_wake, data )
             if data[:success]
                 actor.output "You wake up and rest."
                 (actor.room.occupants - [actor]).each_output "0<N> wakes up and begins to rest.", [actor]
-                actor.position = Constants::Position::REST
+                actor.position = :resting.to_position
                 actor.look_room
                 return true
             else
                 actor.output "You can't wake up!"
                 return false
             end
-        when Constants::Position::REST
+        elsif actor.position == :resting
             actor.output "You are already resting."
             return false
-        when Constants::Position::STAND
+        elsif actor.position == :standing
             actor.output "You sit down and rest."
             (actor.room.occupants - [actor]).each_output "0<N> sits down and rests.", [actor]
-            actor.position = Constants::Position::REST
+            actor.position = :resting.to_position
             return true
         else
             actor.output "You can't quite get comfortable enough."

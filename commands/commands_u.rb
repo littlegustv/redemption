@@ -7,7 +7,7 @@ class CommandUnlock < Command
             name: "unlock",
             keywords: ["unlock"],
             lag: 0.25,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 

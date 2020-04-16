@@ -7,7 +7,7 @@ class SkillShadow < Command
             name: "shadow",
             keywords: ["shadow"],
             lag: 0.25,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -35,7 +35,7 @@ class SkillSneak < Skill
             name: "sneak",
             keywords: ["sneak"],
             lag: 0,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -52,7 +52,7 @@ class SkillSteal < Skill
             name: "steal",
             keywords: ["steal"],
             lag: 0.25,
-            position: Constants::Position::STAND,
+            position: :standing,
             usable_in_combat: false
         )
     end

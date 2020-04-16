@@ -7,7 +7,7 @@ class CommandKill < Command
             name: "kill",
             keywords: ["kill", "hit"],
             lag: 0.5,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -17,10 +17,7 @@ class CommandKill < Command
             actor.output "Who did you want to #{keyword_used}?"
             return false
         end
-        if actor.position < Constants::Position::STAND
-            actor.output "You have to stand up first."
-            return false
-        elsif actor.attacking
+        if actor.attacking
             actor.output "You are already fighting!"
             return false
         elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )

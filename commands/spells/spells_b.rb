@@ -7,7 +7,6 @@ class SpellBarkskin < Spell
             name: "barkskin",
             keywords: ["barkskin", "bark skin"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -25,7 +24,6 @@ class SpellBlastOfRot < Spell
             name: "blast of rot",
             keywords: ["blast", "rot", "blast of rot"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -49,7 +47,7 @@ class SpellBlastOfRot < Spell
     		actor.output "They aren't here."
             return false
     	end
-        actor.deal_damage(target: target, damage: 100, noun:"blast of rot", element: Constants::Element::POISON, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "blast of rot")
         return true
     end
 end
@@ -60,8 +58,7 @@ class SpellBladeRune < Spell
         super(
             name: "blade rune",
             keywords: ["blade rune"],
-            lag: 0.25,
-            position: Constants::Position::STAND
+            lag: 0.25
         )
     end
 
@@ -96,7 +93,6 @@ class SpellBless < Spell
             name: "bless",
             keywords: ["bless"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -120,7 +116,6 @@ class SpellBlindness < Spell
             name: "blindness",
             keywords: ["blindness"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -158,7 +153,6 @@ class SpellBlink < Spell
             name: "blink",
             keywords: ["blink"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -178,7 +172,6 @@ class SpellBlur < Spell
             name: "blur",
             keywords: ["blur"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -196,7 +189,6 @@ class SpellBurningHands < Spell
             name: "burning hands",
             keywords: ["burning hands"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -221,7 +213,7 @@ class SpellBurningHands < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 50, noun:"burning hands", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 50, "burning hands")
         return true
     end
 end
@@ -232,8 +224,7 @@ class SpellBurstRune < Spell
         super(
             name: "burst rune",
             keywords: ["burst rune"],
-            lag: 0.25,
-            position: Constants::Position::STAND
+            lag: 0.25
         )
     end
 

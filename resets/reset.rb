@@ -14,7 +14,7 @@ class Reset
     # called when the time for reset has come to determine if the reset was successful.
     # if it wasn't, it reactivates itself!
     def success?
-        if @chance != 100 && dice(1, 100) > @chance
+        if @pop_time != 0 && @chance != 100 && dice(1, 100) > @chance
             self.activate
             return false
         end
@@ -34,7 +34,6 @@ class Reset
         else
             @pop_time = Time.now.to_i + @timer
         end
-        @active = true
         Game.instance.activate_reset(self)
     end
 

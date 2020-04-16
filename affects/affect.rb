@@ -184,10 +184,22 @@ class Affect
     # Overwrite the data with a new hash
     # (Also probably only used when loading existing affects from the database)
     def overwrite_data(data)
-        @data = data
+        if !data
+            return
+        end
+        if !@data
+            @data = {}
+        end
+        data.each do |key, value|
+            @data[key] = value
+        end
     end
 
-    # REMOVE FROM HERE ON
+    def id
+        self.class.id || -1
+    end
+
+    # Class methods
 
     def name
         return self.class.affect_info[:name]
@@ -209,7 +221,15 @@ class Affect
         }
     end
 
-    # STOP REMOVAL
+    # affect ID methods
+    def self.set_id(id)
+        @id = id
+    end
+
+    def self.id
+        @id
+    end
+
 
 end
 

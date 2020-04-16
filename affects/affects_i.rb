@@ -52,7 +52,7 @@ class AffectIgnoreWounds < Affect
 
 end
 
-class AffectImmune < Affect
+class AffectImmunity < Affect
 
     def initialize(source, target, level)
         super(
@@ -66,39 +66,35 @@ class AffectImmune < Affect
             Visibility::HIDDEN, # visibility
             true # savable
         )
-        @data = { element: -1 } # this gets set from outside of this class
+        @data = {
+            element_id: -1, # this gets set from outside of this class
+            value: 1.0
+        }
     end
 
     def self.affect_info
         return @info || @info = {
-            name: "immune",
-            keywords: ["immune"],
+            name: "immunity",
+            keywords: ["immunity"],
             application_type: :multiple,
         }
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_immune)
-        Game.instance.add_event_listener(@target, :event_display_immunes, self, :do_display)
+        Game.instance.add_event_listener(@target, :event_get_resists, self, :do_resist)
     end
 
     def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
-        Game.instance.remove_event_listener(@target, :event_display_immunes, self)
+        Game.instance.remove_event_listener(@target, :event_get_resists, self)
     end
 
-    def do_immune(data)
-        if data[:element] == @data[:element]
-            data[:immune] = true
-        end
-    end
-
-    def do_display(data)
-        element_string = Constants::Element::STRINGS[@data[:element]]
-        data[:string] += "\nYou are immune to #{element_string} damage."
+    def do_resist(data)
+        element = Game.instance.elements[@data[:element_id]]
+        data[element] += @data[:value]
     end
 
 end
+
 
 class AffectIndoors < Affect
 

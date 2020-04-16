@@ -7,7 +7,7 @@ class SkillDisarm < Skill
             name: "disarm",
             keywords: ["disarm"],
             lag: 2,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -43,7 +43,7 @@ class SkillDirtKick < Skill
             name: "dirt kick",
             keywords: ["dirt kick"],
             lag: 2,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -52,10 +52,7 @@ class SkillDirtKick < Skill
             actor.output "Who did you want to dirt kick?"
             return false
         end
-        if actor.position < Constants::Position::STAND
-            actor.output "You have to stand up first."
-            return false
-        elsif actor.attacking and args.length <= 0
+        if actor.attacking and args.length <= 0
             do_dirtkick( actor, actor.attacking )
             return true
         elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
@@ -71,7 +68,7 @@ class SkillDirtKick < Skill
         if not target.affected? "blind"
             actor.room.occupants.each_output "0<N> is blinded by the dirt in 0<p> eyes!", [target]
             target.apply_affect(AffectBlind.new( actor, target, actor.level ))
-            actor.deal_damage(target: target, damage: 5, noun:"bash", element: Constants::Element::NONE, type: Constants::Damage::PHYSICAL, silent: true)
+            actor.deal_damage(target, 5, "dirt kick", true)
         else
             target.output "They are already blind!"
         end

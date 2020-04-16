@@ -47,7 +47,7 @@ class AffectRegeneration < Affect
 
 end
 
-class AffectResist < Affect
+class AffectResistance < Affect
 
     def initialize(source, target, level)
         super(
@@ -61,36 +61,31 @@ class AffectResist < Affect
             Visibility::HIDDEN, # visibility
             true # savable
         )
-        @data = { element: -1 } # this gets set from outside of this class
+        @data = {
+            element_id: -1, # this gets set from outside of this class
+            value: 0.3
+        }
     end
 
     def self.affect_info
         return @info || @info = {
-            name: "resist",
-            keywords: ["resist"],
+            name: "resistance",
+            keywords: ["resistance"],
             application_type: :multiple,
         }
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_resist)
-        Game.instance.add_event_listener(@target, :event_display_resists, self, :do_display)
+        Game.instance.add_event_listener(@target, :event_get_resists, self, :do_resist)
     end
 
     def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
-        Game.instance.remove_event_listener(@target, :event_display_resists, self)
+        Game.instance.remove_event_listener(@target, :event_get_resists, self)
     end
 
     def do_resist(data)
-        if data[:element] == @data[:element]
-            data[:damage] = (data[:damage] * Constants::Damage::RESIST_MULTIPLIER).to_i
-        end
-    end
-
-    def do_display(data)
-        element_string = Constants::Element::STRINGS[@data[:element]]
-        data[:string] += "\nYou are resistant to #{element_string} damage."
+        element = Game.instance.elements[@data[:element_id]]
+        data[element] += @data[:value]
     end
 
 end

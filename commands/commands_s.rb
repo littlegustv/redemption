@@ -6,7 +6,7 @@ class CommandSay < Command
         super(
             name: "say",
             keywords: ["say", "'"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -50,7 +50,7 @@ class CommandSell < Command
             name: "sell",
             keywords: ["sell"],
             lag: 0,
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -89,7 +89,7 @@ class CommandSkills < Command
 
     def attempt( actor, cmd, args, input )
         actor.output %Q(Skills:
-#{ actor.skills.map{ |skill| actor.learned.include?( skill ) ? "{G#{ skill }{x" : "{y#{skill}{x" }.each_slice(2).map{ |row| "#{row[0].to_s.rpad(18)}       #{row[1].to_s.rpad(18)} " }.join("\n")})
+#{ actor.skills.map{ |skill| actor.knows( skill ) ? "{G#{ skill }{x" : "{y#{skill}{x" }.each_slice(2).map{ |row| "#{row[0].to_s.rpad(18)}       #{row[1].to_s.rpad(18)} " }.join("\n")})
         return true
     end
 
@@ -106,7 +106,7 @@ class CommandSpells < Command
 
     def attempt( actor, cmd, args, input )
         actor.output %Q(Spells:
-#{ actor.spells.map{ |spell| actor.learned.include?( spell ) ? "{C#{ spell }{x" : "{y#{spell}{x" }.each_slice(2).map{ |row| "#{row[0].to_s.rpad(18)}       #{row[1].to_s.rpad(18)} " }.join("\n")})
+#{ actor.spells.map{ |spell| actor.knows( spell ) ? "{C#{ spell }{x" : "{y#{spell}{x" }.each_slice(2).map{ |row| "#{row[0].to_s.rpad(18)}       #{row[1].to_s.rpad(18)} " }.join("\n")})
         return true
     end
 
@@ -123,18 +123,17 @@ class CommandSleep < Command
     end
 
     def attempt( actor, cmd, args, input )
-        case actor.position
-        when Constants::Position::SLEEP
+        if actor.position == :sleeping
             actor.output "You are already asleep."
             return false
-        when Constants::Position::REST, Constants::Position::STAND
+        elsif actor.position == :resting || actor.position == :standing
             actor.output "You go to sleep."
             (actor.room.occupants - [actor]).each_output "0<N> lies down and goes to sleep.", [actor]
         else
             actor.output "You can't quite get comfortable enough."
             return false
         end
-        actor.position = Constants::Position::SLEEP
+        actor.position = :sleeping.to_position
         return true
     end
 end
@@ -207,19 +206,19 @@ class CommandStand < Command
     end
 
     def attempt( actor, cmd, args, input )
-        case actor.position
-        when Constants::Position::SLEEP
+        case actor.position.symbol
+        when :sleeping
             actor.output "You wake and stand up."
             (actor.room.occupants - [actor]).each_output "0<N> wakes and stands up.", [actor]
-            actor.position = Constants::Position::STAND
+            actor.position = :standing.to_position
             actor.look_room
             return true
-        when Constants::Position::REST
+        when :resting
             actor.output "You stand up."
             (actor.room.occupants - [actor]).each_output "0<N> stands up.", [actor]
-            actor.position = Constants::Position::STAND
+            actor.position = :standing.to_position
             return true
-        when Constants::Position::STAND
+        when :standing
             actor.output "You are already standing."
             return false
         else

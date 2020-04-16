@@ -42,9 +42,12 @@ end
 class Array
 
     def each_output( message, objects = [], send_to_sleeping: false )
-        targets = self.reject{ |t| t.respond_to?(:output) == false }
+        targets = self.select{ |t| t.instance_of? Player }
+        if targets.size == 0
+            return
+        end
         if !send_to_sleeping
-            targets.reject!{ |t| t.respond_to?(:position) && t.position == Constants::Position::SLEEP }
+            targets.reject!{ |t| t.position == :sleeping }
         end
         targets.each do | player |
             player.output( message, objects.to_a )
@@ -138,6 +141,73 @@ class String
         return self.rjust(n, fill)
     end
 
+    def to_element
+        self.to_sym.to_element
+    end
+
+    def to_gender
+        self.to_sym.to_gender
+    end
+
+    def to_genre
+        self.to_sym.to_genre
+    end
+
+    def to_material
+        self.to_sym.to_material
+    end
+
+    def to_noun
+        self.to_sym.to_noun
+    end
+
+    def to_position
+        self.to_sym.to_position
+    end
+
+    def to_sector
+        self.to_sym.to_sector
+    end
+
+    def to_size
+        self.to_sym.to_size
+    end
+end
+
+class Symbol
+
+    def to_element
+        return Game.instance.element_with_symbol(self)
+    end
+
+    def to_gender
+        return Game.instance.gender_with_symbol(self)
+    end
+
+    def to_genre
+        return Game.instance.genre_with_symbol(self)
+    end
+
+    def to_material
+        return Game.instance.material_with_symbol(self)
+    end
+
+    def to_noun
+        return Game.instance.noun_with_symbol(self)
+    end
+
+    def to_position
+        return Game.instance.position_with_symbol(self)
+    end
+
+    def to_sector
+        return Game.instance.sector_with_symbol(self)
+    end
+
+    def to_size
+        return Game.instance.size_with_symbol(self)
+    end
+
 end
 
 def dice( count, sides )
@@ -168,17 +238,20 @@ class Logger
         @line = ""
     end
 
-    def log(s, newline)
+    def log(s, newline, min_line_length)
         s = s.to_s.gsub(/\n/, "\n#{" " * 20} ")
         if @last_newline
             @timestamp = Time.now
             s = "{d[#{@timestamp.strftime("%M-%d %T.%L")}]\033{x #{s}"
         end
+        if min_line_length > s.length + @line.length
+            s += (" " * (min_line_length - s.length - @line.length))
+        end
         @line << s
         if !@last_newline && newline
             diff = Time.now - @timestamp
             col = @@time_diffs.select { |k, v| k <= diff }.values.last
-            s = "#{s}#{" " * [75 - @line.length, 0].max}#{col}#{diff.to_s[0..4]}{x\n\r"
+            s = "#{s}#{" " * [80 - @line.length, 0].max}#{col}#{diff.to_s[0..6]}{x\n\r"
         elsif newline
             s += "\n\r"
         end
@@ -192,6 +265,6 @@ class Logger
 end
 
 # pass-through for the logger
-def log(s, newline = true)
-    Logger.instance.log(s, newline)
+def log(s, newline = true, min_line_length = 0)
+    Logger.instance.log(s, newline, min_line_length)
 end

@@ -5,23 +5,24 @@ class EquipSlot
 
     attr_reader :item
     attr_reader :owner
+    attr_reader :equip_slot_info
 
-    def initialize(slot, owner)
+    def initialize(owner, equip_slot_info)
         @owner = owner          # the room/mobile/item that contains these items
-        @slot = slot
+        @equip_slot_info = equip_slot_info
         @item = nil             # the item that is equipped in this slot (or nil)
     end
 
     def equip_message
-        Game.instance.equip_slot_data.dig( @slot, :equip_message )
+        @equip_slot_info.equip_message
     end
 
     def list_prefix
-        Game.instance.equip_slot_data.dig( @slot, :list_prefix )
+        @equip_slot_info.list_prefix
     end
 
-    def wear_flag
-        Game.instance.equip_slot_data.dig( @slot, :wear_flag )
+    def wear_locations
+        @equip_slot_info.wear_locations
     end
 
     def items

@@ -7,7 +7,6 @@ class SpellNexus < Spell
             name: "nexus",
             keywords: ["nexus"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 25
         )
     end
@@ -22,7 +21,6 @@ class SpellNexus < Spell
             # remove auto-added affect
             portal.remove_affect("portal")
             portal.apply_affect( AffectPortal.new( target: portal, game: Game.instance, destination: target.room ) )
-            Game.instance.add_global_item( portal )
 
             actor.output "0<N> rises up before you.", [portal]
             (actor.room.occupants - [actor]).each_output "0<N> rises up from the ground.", [portal]
@@ -31,7 +29,6 @@ class SpellNexus < Spell
             # remove auto-added affect
             portal.remove_affect("portal")
             portal.apply_affect( AffectPortal.new( target: portal, game: Game.instance, destination: actor.room ) )
-            Game.instance.add_global_item( portal )
 
             (target.room.occupants - [actor]).each_output "0<N> rises up from the ground.", [portal]
         else

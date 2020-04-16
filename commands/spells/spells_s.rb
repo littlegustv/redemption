@@ -7,7 +7,6 @@ class SpellScramble < Spell
             name: "scramble",
             keywords: ["scramble"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -45,7 +44,6 @@ class SpellShackleRune < Spell
             name: "shackle rune",
             keywords: ["shackle rune"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -71,7 +69,6 @@ class SpellShield < Spell
             name: "shield",
             keywords: ["shield", "shield"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -89,7 +86,6 @@ class SpellShockingGrasp < Spell
             name: "shocking grasp",
             keywords: ["shocking grasp"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -114,7 +110,7 @@ class SpellShockingGrasp < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 50, noun:"shocking grasp", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 50, "shocking grasp")
         return true
     end
 end
@@ -126,7 +122,6 @@ class SpellSleep < Spell
             name: "sleep",
             keywords: ["sleep"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -148,7 +143,6 @@ class SpellSlow < Spell
             name: "slow",
             keywords: ["slow"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -186,7 +180,6 @@ class SpellStoneSkin < Spell
             name: "stone skin",
             keywords: ["stone skin", "stoneskin"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -204,7 +197,6 @@ class SpellStun < Spell
             name: "stun",
             keywords: ["stun"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -234,7 +226,6 @@ class SpellSummon < Spell
             name: "summon",
             keywords: ["summon"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 25
         )
     end

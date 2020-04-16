@@ -7,7 +7,6 @@ class SpellWeaken < Spell
             name: "weaken",
             keywords: ["weaken"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -45,7 +44,6 @@ class SpellWordOfRecall < Spell
             name: "word of recall",
             keywords: ["word of recall"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end

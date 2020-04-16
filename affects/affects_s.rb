@@ -374,12 +374,12 @@ class AffectSleep < Affect
     end
 
     def start
-        @target.position = Constants::Position::SLEEP
+        @target.position = :sleeping.to_position
         Game.instance.add_event_listener(@target, :event_try_wake, self, :do_slept)
     end
 
     def complete
-        @target.position = Constants::Position::STAND
+        @target.position = :standing.to_position
         Game.instance.remove_event_listener(@target, :event_try_wake, self)
     end
 

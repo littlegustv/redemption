@@ -6,7 +6,7 @@ class CommandQuaff < Command
         super(
             name: "quaff",
             keywords: ["quaff"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -28,7 +28,7 @@ class CommandQuest < Command
             name: "quest",
             keywords: ["quest"],
             lag: 0,
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 
@@ -80,7 +80,7 @@ class CommandQuest < Command
         else
             actor.output "QUEST commands: !POINTS INFO TIME REQUEST COMPLETE !LIST !BUY !TALK !DOUBLE."
             actor.output "For more information, type 'HELP QUEST'."
-        end        
+        end
     end
 
 end
@@ -92,7 +92,7 @@ class CommandQuicken < Command
             name: "quicken",
             keywords: ["quicken"],
             lag: 0.5,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 

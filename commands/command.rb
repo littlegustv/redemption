@@ -1,6 +1,6 @@
 class Command
 
-    attr_reader :priority, :name, :creation_points
+    attr_reader :id, :priority, :name, :creation_points
 
     # Set what you need to here, but most of it is overwritten by values in the database,
     # if they can be found.
@@ -10,17 +10,18 @@ class Command
         keywords: ["defaultcommand"],
         lag: 0,
         usable_in_combat: true,
-        position: Constants::Position::SLEEP,
+        position: :sleeping,
         hp_cost: 0,
         mana_cost: 0,
         movement_cost: 0
     )
+        @id = nil
         @priority = priority
         @keywords = keywords
         @lag = lag
         @name = name
         @usable_in_combat = usable_in_combat
-        @position = position
+        @position = position.to_position
         @hp_cost = hp_cost
         @mana_cost = mana_cost
         @movement_cost = movement_cost
@@ -37,11 +38,10 @@ class Command
     end
 
     def execute( actor, cmd, args, input )
-        if actor.position < @position # Check position
-            case actor.position
-            when Constants::Position::SLEEP
+        if actor.position.value > @position.value # Check position
+            if actor.position == :sleeping
                 actor.output "In your dreams, or what?"
-            when Constants::Position::REST
+            elsif actor.position == :resting
                 actor.output "Nah... You feel too relaxed..."
             else
                 actor.output "You can't quite get comfortable enough."
@@ -64,6 +64,7 @@ class Command
 
     # overwrite attributes using values from the database
     def overwrite_attributes(new_attr_hash)
+        @id = new_attr_hash[:id].to_i
         @priority = new_attr_hash[:priority].to_i
         @keywords = new_attr_hash[:keywords].to_s.split(",")
         @keywords = [""] if @keywords.empty?
@@ -71,10 +72,7 @@ class Command
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = !(new_attr_hash[:usable_in_combat].to_i.zero?)
         @creation_points = new_attr_hash[:creation_points]
-        new_position = Constants::Position::STRINGS.find{ |k, v| v == new_attr_hash[:position].to_s }
-        if new_position
-            @position = new_position[0]
-        end
+        @position = Game.instance.positions[(new_attr_hash[:position] || 1)]
         @hp_cost = new_attr_hash[:hp_cost].to_i
         @mana_cost = new_attr_hash[:mana_cost].to_i
         @movement_cost = new_attr_hash[:movement_cost].to_i

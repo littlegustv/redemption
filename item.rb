@@ -1,4 +1,4 @@
-class Item < GameObject
+    class Item < GameObject
 
     attr_accessor :active
     attr_accessor :weight
@@ -10,31 +10,42 @@ class Item < GameObject
     attr_reader :material
     attr_reader :level
 
-    def initialize( data, parent_inventory )
-        super(data[:name], data[:keywords])
-        @id = data[:id]
-        @short_description = data[:short_desc]
-        @level = data[:level]
-        @weight = data[:weight]
-        @cost = data[:cost]
-        @long_description = data[:long_desc]
-        @type = data[:type]
-        @material = data[:material]
-        @extra_flags = data[:extra_flags]
-        @wear_flags = data[:wear_flags]
+    def initialize( model, parent_inventory )
+        super(nil, model.keywords)
+        @model = model
+        @id = @model.id
+        @name = nil
+        @short_description = nil
+        @level = model.level
+        @weight = model.weight
+        @cost = @model.cost
+        @material = @model.material
+
         @active = true
         @parent_inventory = nil
         @modifiers = Hash.new
-        @level = data[:level] || 0
-        # @ac = data[:ac] || [0,0,0,0]
 
-        apply_affect_flags( @extra_flags, true )
+        @model.affect_models.each do |affect_model|
+            self.apply_affect_model(affect_model, true)
+        end
 
         move(parent_inventory)
     end
 
+    def name
+         @name || @model.name
+    end
+
+    def short_description
+        @short_description || @model.short_description
+    end
+
+    def self.type
+        return "item"
+    end
+
     def to_s
-        return @name
+        return self.name
     end
 
     def to_someone
@@ -42,7 +53,7 @@ class Item < GameObject
     end
 
     def to_store_listing( quantity )
-        "[#{@level.to_s.lpad(2)} #{carrier.sell_price( self ).to_s.lpad(7)} #{ [quantity, 99].min.to_s.lpad(2) } ] #{@name}"
+        "[#{@level.to_s.lpad(2)} #{carrier.sell_price( self ).to_s.lpad(7)} #{ [quantity, 99].min.to_s.lpad(2) } ] #{self.name}"
     end
 
     def modifier( key )
@@ -51,7 +62,7 @@ class Item < GameObject
 
     def lore
 %Q(
-Object '#{ @short_description }' is of type #{ @type }.
+Object '#{ self.short_description }' is of type #{ self.type }.
 Description: #{ @long_description }
 Keywords '#{ @keyword_string }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
@@ -111,24 +122,19 @@ end
 
 class Weapon < Item
 
-	attr_accessor :noun, :element, :flags, :genre
+	attr_accessor :noun, :flags, :genre
 
-	def initialize( data, parent_inventory )
-		super(data, parent_inventory)
+	def initialize( model, parent_inventory )
+		super(model, parent_inventory)
 
-		@noun = data[:noun] || "pierce"
-		@flags = data[:flags] || []
-		@element = data[:element] || "iron"
-        @genre = data[:genre] || "exotic"
-		@dice_count = data[:dice_count] || 2
-		@dice_sides = data[:dice_sides] || 6
-        @dice_bonus = data[:dice_bonus] || 0
-
-        apply_affect_flags(data[:flags], true)
+		@noun = model.noun
+        @genre = model.genre
+		@dice_count = model.dice_count
+		@dice_sides = model.dice_sides
 	end
 
 	def damage
-        dice( @dice_count, @dice_sides ) + @dice_bonus
+        dice( @dice_count, @dice_sides )
 	end
 
 end
@@ -166,7 +172,7 @@ class Consumable < Item
                 casting.attempt( actor, spell[:spell], [], "", spell[:level] )
                 # log( "FOUND #{casting} #{spell}" )
             else
-                log( "CONSUMABLE ITEM SPELL NOT FOUND #{@name} #{spell}")
+                log( "CONSUMABLE ITEM SPELL NOT FOUND #{self.name} #{spell}")
             end
         end
     end
@@ -220,7 +226,6 @@ class Tattoo < Item
         @runist = runist
         @duration = 600.0 * runist.level
         @slot = slot
-        Game.instance.items.add self
     end
 
     def update(elapsed)
@@ -235,7 +240,6 @@ class Tattoo < Item
         @runist.magic_hit(@runist, 100, "burning flesh", "flaming") if damage
         @runist.output "Your tattoo crumbles into dust." if not damage
         @runist.equipment[ @slot.to_sym ] = nil
-        Game.instance.items.delete self
     end
 
     def lore

@@ -6,7 +6,7 @@ class SkillAppraise < Skill
         super(
             name: "appraise",
             keywords: ["appraise"],
-            position: Constants::Position::STAND,
+            position: :standing,
             lag: 0.25
         )
     end

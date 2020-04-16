@@ -3,18 +3,13 @@ require_relative 'game_save'
 
 class Game
 
-    attr_accessor :mobiles
-    attr_accessor :mobile_count
-    attr_accessor :items
-    attr_reader :race_data
-    attr_reader :class_data
-    attr_reader :equip_slot_data
-    attr_reader :affects
+    include Singleton
+    include GameSetup
+    include GameSave
+
     attr_reader :help_data
     attr_reader :social_data
-    attr_reader :gender_data
-    attr_reader :spells
-    attr_reader :continents
+
     attr_reader :game_settings
     attr_reader :saved_player_data
     attr_reader :account_data
@@ -23,48 +18,44 @@ class Game
     attr_reader :players
     attr_reader :logging_players
     attr_reader :client_account_ids
-    attr_reader :rooms
+    attr_reader :continents
     attr_reader :areas
-    attr_reader :frame_count
+    attr_reader :rooms
     attr_reader :skills
+    attr_reader :spells
     attr_reader :abilities
 
-    include Singleton
-    include GameSetup
-    include GameSave
+    # models
+    attr_reader :mobile_models
+
+    # data classes
+    attr_reader :elements
+    attr_reader :equip_slot_infos
+    attr_reader :genders
+    attr_reader :genres
+    attr_reader :materials
+    attr_reader :mobile_classes
+    attr_reader :nouns
+    attr_reader :positions
+    attr_reader :races
+    attr_reader :sectors
+    attr_reader :sizes
+    attr_reader :wear_locations
 
     def initialize
         @server = nil                       # TCPServer object
         @db = nil                           # Sequel database connection
         @started = false                    # Boolean: start has been called?
-        @next_uuid = 1                      # Next available UUID for a GameObject. Overridden with value from game_settings
+        @next_uuid = 1                      # Next available UUID for a GameObject.
         @start_time = nil                   # Time the server actually began running/accepting players
         @frame_count = 0                    # Frame count - goes up by 1 every frame (:
         @starting_room = nil                # The room that players log in to - currently gets set in make_rooms
 
         # Database tables
         @game_settings = Hash.new           # Hash with values for next_uuid, login_splash, etc
-        @race_data = Hash.new               # Race table as array      (uses :id as key)
-        @class_data = Hash.new              # Class table as array     (uses :id as key)
-        @equip_slot_data = Hash.new         # equip_slot table as hash (uses :id as key)
-        @continent_data = Hash.new          # Continent table as hash  (uses :id as key)
-        @area_data = Hash.new               # Area table as hash       (uses :id as key)
-        @room_data = Hash.new               # Room table as hash       (uses :id as key)
-        @exit_data = Hash.new               # Room exit table as hash  (uses :id as key)
-        @room_description_data = Hash.new   # Room desc rable as hash  (uses :id as key)
-        @mobile_data = Hash.new             # Mobile table as hash     (uses :id as key)
-        @item_data = Hash.new               # Item table as hash       (uses :id as key)
-        @item_modifiers = Hash.new
-        @ac_data = Hash.new                 # Item subtables           (use :item_id as key)
-        @weapon_data = Hash.new
-        @container_data = Hash.new
-        @shop_data = Hash.new               # Shop table as hash       (uses :id as key)
-        @skill_data = Hash.new              # Skill table as hash      (uses :id as key)
-        @spell_data = Hash.new              # Spell table as hash      (uses :id as key)
-        @command_data = Hash.new            # Command table as hash    (uses :id as key)
 
-                                                # Reset tables are cleared after reset objects are generated.
-        @reset_mobile_data = Hash.new           # Mobile reset table as hash (uses :id as key)
+        @shop_data = Hash.new               # Shop table as hash       (uses :mobile_id as key)
+
         # @new_reset_
 
         @saved_player_id_max = 0                # max id in database table saved_player_base
@@ -74,17 +65,35 @@ class Game
 
         @help_data = Hash.new                   # Help table as hash  (uses :id as key)
         @social_data = Hash.new                 # Social table as hash (uses :id as key)
-        @gender_data = Hash.new                 # Gender table as hash (uses :id as key)
         @account_data = Hash.new                # Account table as hash (uses :id  as key)
         @saved_player_data = Hash.new           # Saved player table as hash    (uses :id as key)
 
+        @affect_class_hash = Hash.new           # Affect classes as hash (uses :id as key)
+
+        # Models
+        @item_model_classes = Hash.new      # hash of item model classes - uses item_type_id as key
+        @item_models = Hash.new             # hash of item models (uses :id as key)
+        @mobile_models = Hash.new           # Hash of mobile models (uses :id as key)
 
         # Resets
         @mobile_resets = []                 # Mobile resets
-
         @active_resets = []                 # Array of Resets waiting to pop - sorted by reset.pop_time (ascending)
         @active_resets_sorted = false       # set to false when a new reset is activated. resets will be sorted on next handle_resets
         @initial_reset = true
+
+        # Data Classes
+        @elements =         Hash.new        # hash of damage element objects  (uses :id as key)
+        @equip_slot_infos = Hash.new        # hash of the equip slot info objects
+        @genders =          Hash.new
+        @genres =           Hash.new        # hash of weapon genres           (uses :id as key)
+        @materials =        Hash.new        # hash of materials               (uses :id as key)
+        @mobile_classes =   Hash.new        # hash of mobile class objects    (uses :id as key)
+        @nouns =            Hash.new        # hash of damage noun objects     (uses :id as key)
+        @positions =        Hash.new        # hash of mobile positions        (uses :id as key)
+        @races =            Hash.new        # hash of race objects            (uses :id as key)
+        @sectors =          Hash.new        # hash of sector ObjectSpace      (uses :id as key)
+        @sizes =            Hash.new        # hash of mobile sizes            (uses :id as key)
+        @wear_locations =   Hash.new        # hash of wear locations          (uses :id as key)
 
         # GameObjects
         @continents = Hash.new              # Continent objects as hash   (uses :id as key)
@@ -101,7 +110,6 @@ class Game
         @items = Set.new
         @item_count = Hash.new
         @mobiles = Set.new
-        @mobile_count = Hash.new
 
         @combat_mobs = Set.new
         @regen_mobs = Set.new
@@ -196,7 +204,9 @@ class Game
             update( elapsed )
             update_time = Time.now - before
 
-            send_to_client
+            @players.each do | player |
+                player.send_to_client
+            end
 
             end_time = Time.now
             loop_computation_time = end_time - start_time
@@ -242,7 +252,7 @@ class Game
                 end
                 causes << "  Update   {c%0.4f{x" % [update_time]
                 percent_overage = (loop_computation_time * 100 / (1.0 / Constants::Interval::FPS) - 100).floor
-                log ("Frame {m#{frame_count}{x took {c#{percent_overage}\%{x too long - possible causes:\n#{causes.join("\n")}")
+                log ("Frame {m#{@frame_count}{x took {c#{percent_overage}\%{x too long - possible causes:\n#{causes.join("\n")}")
 
             else
                 sleep([sleep_time, 0].max) #
@@ -281,9 +291,9 @@ class Game
         end
         # @wander_mobiles = @mobiles.dup
         # @wander_mobiles.shuffle.
-        @mobiles.each do | mobile |
-            mobile.update(elapsed)
-        end
+        # @mobiles.each do | mobile |
+        #     mobile.update(elapsed)
+        # end
         # @items.each do | item |
         #     item.update(elapsed)
         # end
@@ -306,12 +316,6 @@ class Game
             else
                 @affects.delete(affect)
             end
-        end
-    end
-
-    def send_to_client
-        @players.each do | player |
-            player.send_to_client
         end
     end
 
@@ -364,6 +368,119 @@ class Game
         targets = targets[ offset...offset+quantity ].to_a
 
         return targets
+    end
+
+    def affect_class_with_id(id)
+        return @affect_class_hash.dig(id)
+    end
+
+    def element_with_symbol(symbol)
+        element = @elements.values.find { |e| e.symbol == symbol}
+        if !element
+            log ("No element with symbol #{symbol} found. Creating one now. Stack trace:")
+            puts caller[0..3]
+            new_id = (@elements.keys.min || 0) - 1
+            element = Element.new({
+                id: new_id,
+                name: symbol.to_s
+            })
+            @elements[new_id] = element
+        end
+        return element
+    end
+
+    def gender_with_symbol(symbol)
+        size = @genders.values.find { |g| g.symbol == symbol}
+        if !size
+            log ("No gender with symbol #{symbol} found. Creating one now. Stack trace:")
+            puts caller[0..3]
+            new_id = (@genders.keys.min || 0) - 1
+            size = Genre.new({
+                id: new_id,
+                name: symbol.to_s,
+                personal_objective: "it",
+                personal_subjective: "it",
+                possessive: "its",
+                reflexive: "itself",
+            })
+            @genres[new_id] = size
+        end
+        return size
+    end
+
+    def genre_with_symbol(symbol)
+        genre = @genres.values.find { |g| g.symbol == symbol}
+        if !genre
+            log ("No genre with symbol #{symbol} found. Creating one now. Stack trace:")
+            puts caller[0..3]
+            new_id = (@genres.keys.min || 0) - 1
+            new_value = 0
+            genre = Genre.new({
+                id: new_id,
+                name: symbol.to_s
+            })
+            @genres[new_id] = genre
+        end
+        return genre
+    end
+
+    def noun_with_symbol(symbol)
+        noun = @nouns.values.find { |n| n.symbol == symbol }
+        if !noun
+            copy_noun = @nouns.values.first
+            if !copy_noun
+                log ("No damage nouns exist. That's going to be a problem!")
+                return nil
+            end
+            log("No noun with symbol #{symbol} found. Creating one using #{copy_noun.name} as a base. Stack trace:")
+            puts caller[0..3]
+            new_id = (@nouns.keys.min || 0) - 1
+            @nouns[new_id] = Noun.new({
+                id: new_id,
+                name: symbol.to_s,
+                element: copy_noun.element.id,
+                magic: copy_noun.magic
+            })
+        end
+        return noun
+    end
+
+    def position_with_symbol(symbol)
+        position = @positions.values.find { |p| p.symbol == symbol}
+        if !position
+            log ("No position with symbol #{symbol} found. Creating one now. Stack trace:")
+            puts caller[0..3]
+            new_id = (@positions.keys.min || 0) - 1
+            position = Position.new(new_id, symbol.to_s)
+            @positions[new_id] = position
+        end
+        return position
+    end
+
+    def sector_with_symbol(symbol)
+        sector = @sectors.values.find { |s| s.symbol == symbol}
+        if !sector
+            log ("No sector with symbol #{symbol} found. Creating one now. Stack trace:")
+            puts caller[0..3]
+            new_id = (@sectors.keys.min || 0) - 1
+            new_value = 0
+            sector = Sector.new(new_id, symbol.to_s, new_value)
+            @sectors[new_id] = sector
+        end
+        return sector
+    end
+
+    def size_with_symbol(symbol)
+        size = @sizes.values.find { |s| s.symbol == symbol}
+        if !size
+            log ("No size with symbol #{symbol} found. Creating one now. Stack trace:")
+            puts caller[0..3]
+            new_id = (@sizes.keys.min || 0) - 1
+            new_value = 0
+            size = Size.new(new_id, symbol.to_s, new_value)
+            @sizes[new_id] = size
+        end
+        return size
     end
 
     def target_global_items(query)
@@ -427,9 +544,9 @@ class Game
         current_time = Time.now.to_i
         [@active_resets.size, limit].min.times do
             reset = @active_resets.first
-            if current_time >= reset.pop_time && reset.success?
+            if current_time >= reset.pop_time
                 @active_resets.shift
-                reset.pop
+                reset.pop if reset.success?
             else
                 # stop trying to reset, all resets in loop after here are in the future!
                 break
@@ -441,17 +558,10 @@ class Game
         end
     end
 
-    def load_mob( id, room, reset = nil )
-        row = @mob_data[ id ]
-        race_matches = @race_data.select{ |k, v| v[:name] == row[:race] }
-        race_id = 0
-        class_id = 0
-        if race_matches.any?
-            race_id = race_matches.first[0]
-        end
-        mob = Mobile.new( row, race_id, class_id, room, reset )
+    def load_mob( mobile_model, room, reset = nil )
+        mob = Mobile.new( mobile_model, room, reset )
         add_global_mobile(mob)
-        if not @shop_data[ id ].nil?
+        if not @shop_data[ mobile_model.id ].nil?
             mob.apply_affect( AffectShopkeeper.new( mob, mob, 0 ), true )
         end
         return mob
@@ -491,7 +601,7 @@ class Game
     def do_command( actor, cmd, args = [], input = cmd )
         matches = (
             @commands.select { |command| command.check( cmd ) } +
-            @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill.to_s ) }
+            @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill ) }
         ).sort_by(&:priority)
 
         if matches.any?
@@ -500,10 +610,6 @@ class Game
         end
 
     	actor.output "Huh?"
-    end
-
-    def recall_room( continent )
-        return @rooms[continent.recall_room_id]
     end
 
     # Send an event to a list of objects
@@ -706,8 +812,8 @@ class Game
     end
 
     def new_inactive_room
-        return Room.new(0, "inactive room".freeze, "no description".freeze, "no sector".freeze,
-                self.new_inactive_area, "", 0, 0)
+        return Room.new("inactive room".freeze, 0, "no description".freeze, "inside".to_sector,
+                self.new_inactive_area, 0, 0)
     end
 
     # destroy a mobile object
@@ -727,8 +833,6 @@ class Game
              remove_global_item(mobile.hand_to_hand_weapon)
         end
         remove_global_mobile(mobile)
-        @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i - 1
-        @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         @mobiles.delete(mobile)
     end
 

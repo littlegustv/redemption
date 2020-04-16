@@ -1,6 +1,6 @@
 require_relative 'affect.rb'
 
-class AffectVuln < Affect
+class AffectVulnerable < Affect
 
     def initialize(source, target, level)
         super(
@@ -14,36 +14,31 @@ class AffectVuln < Affect
             Visibility::HIDDEN, # visibility
             true # savable
         )
-        @data = { element: -1 } # this gets set from outside of this class
+        @data = {
+            element_id: -1, # this gets set from outside of this class
+            value: -0.3
+        }
     end
 
     def self.affect_info
         return @info || @info = {
-            name: "vuln",
-            keywords: ["vuln"],
+            name: "vulnerable",
+            keywords: ["vulnerable"],
             application_type: :multiple,
         }
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_vuln)
-        Game.instance.add_event_listener(@target, :event_display_vulns, self, :do_display)
+        Game.instance.add_event_listener(@target, :event_get_resists, self, :do_resist)
     end
 
     def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
-        Game.instance.remove_event_listener(@target, :event_display_vulns, self)
+        Game.instance.remove_event_listener(@target, :event_get_resists, self)
     end
 
-    def do_vuln(data)
-        if data[:element] == @data[:element]
-            data[:damage] = (data[:damage] * Constants::Damage::VULN_MULTIPLIER).to_i
-        end
-    end
-
-    def do_display(data)
-        element_string = Constants::Element::STRINGS[@data[:element]]
-        data[:string] += "\nYou are vulnerable to #{element_string} damage."
+    def do_resist(data)
+        element = Game.instance.elements[@data[:element_id]]
+        data[element] += @data[:value]
     end
 
 end

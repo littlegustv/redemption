@@ -75,10 +75,10 @@ class Spell < Command
 
     def execute( actor, cmd, args, input )
         if actor.position < @position # Check position
-            case actor.position
-            when Constants::Position::SLEEP
+            case actor.position.symbol
+            when :sleeping
                 actor.output "In your dreams, or what?"
-            when Constants::Position::REST
+            when :resting
                 actor.output "Nah... You feel too relaxed..."
             else
                 actor.output "You can't quite get comfortable enough."

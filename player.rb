@@ -3,20 +3,22 @@ class Player < Mobile
     attr_reader :client
     attr_reader :account_id
 
-    def initialize( data, room, client )
-        data[:keywords] = data[:name]
-        data[:short_desc] = data[:name]
-        data[:long_desc] = "#{data[:name]} the Master Rune Maker is here."
-        super(data, data[:race_id], data[:class_id], room)
-        @creation_points = data[:creation_points].to_i
-        @learned = data[:learned].to_s.split(",")
-        @account_id = data[:account_id]
+    def initialize( player_model, room, client )
+        super(player_model, room)
+        @creation_points = player_model.creation_points
+        @account_id = player_model.account_id
+        @learned_skills = player_model.learned_skills
+        @learned_spells = player_model.learned_spells
         @buffer = ""
         @delayed_buffer = ""
         @scroll = 60
 	    @lag = 0
         @client = client
         @commands = []
+
+        @hitpoints = @model.current_hp || maxhitpoints
+        @manapoints = @model.current_mana || maxmanapoints
+        @movepoints = @model.current_movement || maxmovepoints
     end
 
     # Player destroy works a little differently from other gameobjects.
@@ -40,15 +42,8 @@ class Player < Mobile
                 affect.active = true
                 Game.instance.add_global_affect(affect)
             end
-            @inventory.items.each do |item|
-                Game.instance.items << item
-                item.affects.each do |affect|
-                    affect.active = true
-                    Game.instance.add_global_affect(affect)
-                end
-            end
-            equipment.each do |item|
-                Game.instance.items << item
+            self.items.each do |item|
+                Game.instance.add_global_item(item)
                 item.affects.each do |affect|
                     affect.active = true
                     Game.instance.add_global_affect(affect)
@@ -178,10 +173,10 @@ class Player < Mobile
         @affects.each do |affect|
             affect.clear(silent: true) if !affect.permanent
         end
-        room = Game.instance.recall_room( @room.continent )
+        room = Game.instance.rooms[@room.continent.recall_room_id]
         move_to_room( room )
         @hitpoints = 10
-        @position = Constants::Position::REST
+        @position = :resting.to_position
     end
 
     def quit(silent: false)

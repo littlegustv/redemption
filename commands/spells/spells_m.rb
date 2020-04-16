@@ -7,7 +7,6 @@ class SpellMagicMissile < Spell
             name: "magic missile",
             keywords: ["magic missile"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -33,7 +32,7 @@ class SpellMagicMissile < Spell
             return false
         end
         level.times do |i|
-            actor.deal_damage(target: target, damage: 20, noun:"magic missile", element: Constants::Element::ENERGY, type: Constants::Damage::MAGICAL)
+            actor.deal_damage(target, 20, "magic missile")
         end
         return true
     end
@@ -46,7 +45,6 @@ class SpellManaDrain < Spell
             name: "mana drain",
             keywords: ["mana drain"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -71,7 +69,7 @@ class SpellManaDrain < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"life drain", element: Constants::Element::NEGATIVE, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "life drain")
         target.use_mana( 10 )
         actor.regen( 0, 10, 0 )
         target.output "You feel your energy slipping away!"
@@ -87,7 +85,6 @@ class SpellMassHealing < Spell
             name: "mass healing",
             keywords: ["mass healing"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
             priority: 13
         )
@@ -117,7 +114,6 @@ class SpellMassInvisibility < Spell
             name: "mass invisibility",
             keywords: ["mass invisibility"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5
         )
     end
@@ -135,7 +131,6 @@ class SpellMinimation < Spell
             name: "minimation",
             keywords: ["minimation"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -151,7 +146,6 @@ class SpellMirrorImage < Spell
             name: "mirror image",
             keywords: ["mirror image"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 5,
             usable_in_combat: false
         )

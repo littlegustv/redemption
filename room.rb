@@ -1,39 +1,33 @@
 class Room < GameObject
 
     attr_accessor :area
-    attr_accessor :continent
     attr_accessor :exits
 
     attr_reader :id
     attr_reader :inventory
     attr_reader :mobiles
-    attr_reader :mobile_count
     attr_reader :players
     attr_reader :sector
 
-    def initialize( id, name, description, sector, area, flags, hp_regen, mana_regen)
+    def initialize(name, id, short_description, sector, area, hp_regen, mana_regen)
         super(name, nil)
-        @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
         @id = id
-        @description = description
+        @short_description = short_description
         @sector = sector
         @area = area
-        @flags = flags
         @hp_regen = hp_regen
         @mana_regen = mana_regen
-        @continent = area.continent
+
+        @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
         @mobiles = []
-        @mobile_count = {}
         @players = []
         @inventory = Inventory.new(self)
-
-        apply_affect_flags( @flags.to_a )
     end
 
     def show( looker )
         if looker.can_see? self
             out = "#{ @name }\n" +
-            "  #{ @description }\n" +
+            "  #{ @short_description }\n" +
             "[Exits: #{ @exits.select { |direction, room| not room.nil? }.map{ |k, v| v.to_s }.join(", ") }]"
             description_data = {extra_show: ""}
             Game.instance.fire_event(self, :event_calculate_room_description, description_data)
@@ -55,8 +49,6 @@ class Room < GameObject
             @players.unshift(mobile)
         else
             @mobiles.unshift(mobile)
-            @mobile_count[mobile.id] = @mobile_count[mobile.id].to_i + 1
-            @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end
         Game.instance.fire_event(self, :event_room_mobile_enter, {mobile: mobile})
     end
@@ -66,8 +58,6 @@ class Room < GameObject
             @players.delete(mobile)
         else
             @mobiles.delete(mobile)
-            @mobile_count[mobile.id] = @mobile_count[mobile.id] - 1
-            @mobile_count.delete(mobile.id) if @mobile_count[mobile.id] <= 0
         end
         Game.instance.fire_event(self, :event_room_mobile_exit, {mobile: mobile})
     end
@@ -100,6 +90,10 @@ class Room < GameObject
     # sort of a hack to add a room method to items
     def room
         return self
+    end
+
+    def continent
+        @area.continent
     end
 
 end

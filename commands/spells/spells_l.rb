@@ -6,8 +6,7 @@ class SpellLightningBolt < Spell
         super(
             name: "lightning bolt",
             keywords: ["lightning bolt"],
-            lag: 0.25,
-            position: Constants::Position::STAND
+            lag: 0.25
         )
     end
 
@@ -30,7 +29,7 @@ class SpellLightningBolt < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"lightning bolt", element: Constants::Element::LIGHTNING, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "lightning bolt")
         return true
     end
 end
@@ -41,8 +40,7 @@ class SpellLocateObject < Spell
         super(
             name: "locate object",
             keywords: ["locate object"],
-            lag: 0.25,
-            position: Constants::Position::STAND
+            lag: 0.25
         )
     end
 

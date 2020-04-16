@@ -1,5 +1,12 @@
 class Client
 
+    module ClientState
+        LOGIN = 0
+        ACCOUNT = 1
+        CREATION = 2
+        PLAYER = 3
+    end
+
     @@sleep_time = 0.005
 
     attr_accessor :player
@@ -10,7 +17,7 @@ class Client
         @thread = thread
         @quit = false
         @account_id = nil
-        @client_state = Constants::ClientState::LOGIN
+        @client_state = ClientState::LOGIN
         @player = nil
         @tries = 0
         @scroll = 60 # unused?
@@ -22,13 +29,13 @@ class Client
         send_output(Game.instance.game_settings[:login_splash])
         loop do
             case @client_state
-            when Constants::ClientState::LOGIN
+            when ClientState::LOGIN
                 do_login
-            when Constants::ClientState::ACCOUNT
+            when ClientState::ACCOUNT
                 do_account
-            when Constants::ClientState::CREATION
+            when ClientState::CREATION
                 do_creation
-            when Constants::ClientState::PLAYER
+            when ClientState::PLAYER
                 do_player
             end
             if @tries > 2
@@ -42,7 +49,7 @@ class Client
     end
 
     # Log into an account.
-    # When successful, +@client_state+ will be set to +Constants::ClientState::ACCOUNT+,
+    # When successful, +@client_state+ will be set to +ClientState::ACCOUNT+,
     # and account management will commence.
     def do_login
         account_row = nil
@@ -119,7 +126,7 @@ class Client
         @account_id = account_row[:id]
         @name = account_row[:name]
         Game.instance.client_account_ids.push(@account_id)
-        @client_state = Constants::ClientState::ACCOUNT
+        @client_state = ClientState::ACCOUNT
         send_output("\nWelcome, #{@name}.\n")
         list_characters
     end
@@ -138,7 +145,7 @@ class Client
             return
         end
         if "new".fuzzy_match(word1)
-            @client_state = Constants::ClientState::CREATION
+            @client_state = ClientState::CREATION
             return
         elsif "play".fuzzy_match(word1)
             if word2.length < 1
@@ -156,7 +163,7 @@ class Client
                 sleep(@@sleep_time) # wait until the player has been loaded by the game thread
             end
             @player.login
-            @client_state = Constants::ClientState::PLAYER
+            @client_state = ClientState::PLAYER
         elsif "quit".fuzzy_match(word1) || "exit".fuzzy_match(word1)
             @quit = true
         elsif "list".fuzzy_match(word1)
@@ -180,7 +187,7 @@ class Client
     def do_creation
         send_output("Type \"back\" at any point to abandon character creation.\n")
         name = nil
-        @client_state = Constants::ClientState::ACCOUNT # the only way out of this is back to account management
+        @client_state = ClientState::ACCOUNT # the only way out of this is back to account management
         while name.nil?
             send_output("By what name do you wish to be known?")
             name = get_input.capitalize
@@ -200,8 +207,8 @@ class Client
         end
 
         race_id = nil
-        race_rows = Game.instance.race_data.values.select{ |row| row[:player_race] == 1 && row[:starter_race] == 1 }
-        race_names = race_rows.map{ |row| row[:name] }
+        races = Game.instance.races.values.select{ |race| race.player_race == 1 && race.starter_race == 1 }
+        race_names = races.map{ |race| race.name }
         send_output("The following races are available:\n" +
         "#{race_names.map{ |n| n.rpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n")
         while race_id.nil?
@@ -210,9 +217,9 @@ class Client
             if race_input.downcase == "back"
                 return
             end
-            race_row = race_rows.find{ |row| row[:name].fuzzy_match(race_input) }
-            if race_row
-                race_id = race_row[:id]
+            race = races.find{ |race| race.name.fuzzy_match(race_input) }
+            if race
+                race_id = race.id
             elsif race_input.fuzzy_match("help")
                 send_output("Placeholder race help - p2implement")
             else
@@ -220,20 +227,20 @@ class Client
             end
         end
 
-        class_id = nil
-        class_rows = Game.instance.class_data.values.select{ |row| row[:starter_class] == 1 }
-        class_names = class_rows.map{ |row| row[:name] }
+        mobile_class_id = nil
+        classes = Game.instance.mobile_classes.values.select{ |c| c.starter_class == 1 }
+        class_names = classes.map{ |c| c.name }
         send_output("Select a class:\n--------------\n" +
         "#{class_names.join("\n")}\n")
-        while class_id.nil?
+        while mobile_class_id.nil?
             send_output("What is your class (help for more information)?")
             class_input = get_input
             if class_input.downcase == "back"
                 return
             end
-            class_row = class_rows.find{ |row| row[:name].fuzzy_match(class_input) }
-            if class_row
-                class_id = class_row[:id]
+            mobile_class = classes.find{ |c| c.name.fuzzy_match(class_input) }
+            if mobile_class
+                mobile_class_id = mobile_class.id
             elsif class_input.fuzzy_match("help")
                 send_output("Placeholder class help - p2implement")
             else
@@ -259,33 +266,34 @@ class Client
             end
         end
 
-        gender = nil
-        genders = Game.instance.gender_data.values
+        gender_id = nil
+        genders = Game.instance.genders.values
 
         if genders.length > 1
-            while gender.nil?
-                send_output("You may be #{genders[0..-2].map{|row| row[:name]}.join(", ")}#{genders.size > 2 ? "," : ""} or #{genders[-1][:name]}.\nWhat is your gender?")
+            while gender_id.nil?
+                send_output("You may be #{genders[0..-2].map{|g| g.name }.join(", ")}#{genders.size > 2 ? "," : ""} or #{genders[-1].name}.\nWhat is your gender?")
                 gender_input = get_input
-                genders.each do |row|
-                    if row[:name].fuzzy_match(gender_input)
-                        gender = row[:id]
-                    end
+                if gender_input.downcase == "back"
+                    return
                 end
-                if gender.nil?
+                gender = genders.find{ |g| g.name.fuzzy_match(gender_input) }
+                if gender
+                    gender_id = gender.id
+                else
                     send_output("Please enter a valid gender.")
                 end
             end
         else
-            gender = genders[0][:id]
+            gender = genders.first.id
         end
 
         player_data = {
             account_id: @account_id,
             name: name,
             race_id: race_id,
-            class_id: class_id,
+            mobile_class_id: mobile_class_id,
             alignment: alignment,
-            gender: gender,
+            gender_id: gender_id,
             creation_points: 5,
         }
         send_output("Creating #{name}...")
@@ -302,7 +310,7 @@ class Client
         if @player
             @player.input(input)
         else
-            @client_state = Constants::ClientState::ACCOUNT
+            @client_state = ClientState::ACCOUNT
             list_characters
             do_account(input)
         end
@@ -315,8 +323,8 @@ class Client
         lines = []
         c_rows.each do |c_row|
             level = c_row[:level]
-            race_name = Game.instance.race_data.dig(c_row[:race_id], :display_name).to_s
-            class_name = Game.instance.class_data.dig(c_row[:class_id], :name).to_s
+            race_name = Game.instance.races[c_row[:race_id]].display_name
+            class_name = Game.instance.mobile_classes[c_row[:mobile_class_id]].name
             name = c_row[:name]
             lines << "[#{level.to_s.lpad(2)} #{race_name.rpad(8)} #{class_name.capitalize.lpad(8)}] #{name}"
         end

@@ -9,7 +9,6 @@ class SpellFarsight < Spell
             name: "farsight",
             keywords: ["farsight"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -60,7 +59,6 @@ class SpellFireball < Spell
             name: "fireball",
             keywords: ["fireball"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -69,7 +67,7 @@ class SpellFireball < Spell
         (actor.room.occupants - [actor]).each_output "0<N> summons a burning ball of fire!", [actor]
         actor.output "You summon a fireball!"
         ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
-            actor.deal_damage(target: target, damage: 100, noun:"fireball", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
+            actor.deal_damage(target, 100, "fireball")
         end
         return true
     end
@@ -82,7 +80,6 @@ class SpellFireRune < Spell
             name: "fire rune",
             keywords: ["fire rune"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -106,8 +103,7 @@ class SpellFlamestrike < Spell
         super(
             name: "flamestrike",
             keywords: ["flamestrike"],
-            lag: 0.25,
-            position: Constants::Position::STAND
+            lag: 0.25
         )
     end
 
@@ -130,7 +126,7 @@ class SpellFlamestrike < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target: target, damage: 100, noun:"flamestrike", element: Constants::Element::FIRE, type: Constants::Damage::MAGICAL)
+        actor.deal_damage(target, 100, "flamestrike")
         return true
     end
 end
@@ -142,7 +138,6 @@ class SpellFly < Spell
             name: "fly",
             keywords: ["fly"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10
         )
     end
@@ -164,7 +159,6 @@ class SpellFrenzy < Spell
             name: "frenzy",
             keywords: ["frenzy"],
             lag: 0.25,
-            position: Constants::Position::STAND,
             mana_cost: 10,
         )
     end

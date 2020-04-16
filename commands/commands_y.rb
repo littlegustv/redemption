@@ -6,7 +6,7 @@ class CommandYell < Command
         super(
             name: "yell",
             keywords: ["yell"],
-            position: Constants::Position::REST
+            position: :resting
         )
     end
 

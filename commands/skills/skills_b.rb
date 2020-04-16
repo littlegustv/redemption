@@ -7,7 +7,7 @@ class SkillBackstab < Command
             name: "backstab",
             keywords: ["backstab"],
             lag: 1,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
@@ -16,10 +16,7 @@ class SkillBackstab < Command
             actor.output "Who did you want to backstab?"
             return false
         end
-        if actor.position < Constants::Position::STAND
-            actor.output "You have to stand up first."
-            return false
-        elsif actor.attacking and args.length <= 0
+        if actor.attacking and args.length <= 0
             do_backstab( actor, actor.attacking )
             return true
         elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
@@ -33,7 +30,8 @@ class SkillBackstab < Command
 
     def do_backstab( actor, target )
         if target.condition_percent >= 50
-            actor.deal_damage(target: target, damage: 150, noun:"backstab", element: Constants::Element::PIERCE, type: Constants::Damage::PHYSICAL)
+            actor.weapon_hit(target, actor.level, actor.level, nil, nil, "backstab")
+
         else
             actor.output "0<N> is hurt and suspicious... you can't sneak up.", [target]
         end
@@ -47,7 +45,7 @@ class SkillBash < Skill
             name: "bash",
             keywords: ["bash"],
             lag: 2,
-            position: Constants::Position::STAND
+            position: :standing
         )
         @data[:target_lag] = 0.5
     end
@@ -66,10 +64,6 @@ class SkillBash < Skill
         if target == actor
             actor.output "You fall flat on your face!"
             return true
-        end
-        if actor.position < Constants::Position::STAND
-            actor.output "You have to stand up first."
-            return false
         end
         do_bash( actor, target )
         return true
@@ -92,7 +86,7 @@ class SkillBash < Skill
         else
             actor.output "You slam into 0<n>, and send 0<o> flying!", [target]
             (actor.room.occupants - [actor]).each_output "0<N> sends 1<n> flying with a powerful bash!", [actor, target]
-            actor.deal_damage(target: target, damage: 100, noun:"bash", element: Constants::Element::BASH, type: Constants::Damage::PHYSICAL)
+            actor.deal_damage(target, 100, "bash")
             target.lag += @data[:target_lag]
         end
     end
@@ -105,7 +99,7 @@ class SkillBerserk < Skill
             name: "berserk",
             keywords: ["berserk"],
             lag: 0.5,
-            position: Constants::Position::STAND
+            position: :standing
         )
     end
 
