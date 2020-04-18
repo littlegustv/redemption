@@ -17,6 +17,14 @@ class Position
         super(other_object) || @symbol == other_object
     end
 
+    def <(other_object)
+        @value < other_object.value
+    end
+
+    def >(other_object)
+        @value > other_object.value
+    end
+
     def to_position
         self
     end
