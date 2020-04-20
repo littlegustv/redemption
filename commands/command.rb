@@ -38,7 +38,7 @@ class Command
     end
 
     def execute( actor, cmd, args, input )
-        if actor.position.value > @position.value # Check position
+        if actor.position.value < @position.value # Check position
             if actor.position == :sleeping
                 actor.output "In your dreams, or what?"
             elsif actor.position == :resting
@@ -72,7 +72,7 @@ class Command
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = !(new_attr_hash[:usable_in_combat].to_i.zero?)
         @creation_points = new_attr_hash[:creation_points]
-        @position = Game.instance.positions[(new_attr_hash[:position] || 1)]
+        @position = Game.instance.positions[(new_attr_hash[:position_id] || 1)]
         @hp_cost = new_attr_hash[:hp_cost].to_i
         @mana_cost = new_attr_hash[:mana_cost].to_i
         @movement_cost = new_attr_hash[:movement_cost].to_i
