@@ -16,9 +16,10 @@ class Player < Mobile
         @client = client
         @commands = []
 
-        @hitpoints = @model.current_hp || maxhitpoints
-        @manapoints = @model.current_mana || maxmanapoints
-        @movepoints = @model.current_movement || maxmovepoints
+        # overrides '0' as saved HP with max hp        
+        @hitpoints = @model.current_hp.to_i != 0 ? @model.current_hp : maxhitpoints
+        @manapoints = @model.current_mana.to_i != 0 ? @model.current_mana : maxmanapoints
+        @movepoints = @model.current_movement.to_i != 0 ? @model.current_movement : maxmovepoints
     end
 
     # Player destroy works a little differently from other gameobjects.

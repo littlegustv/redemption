@@ -342,7 +342,7 @@ module GameSetup
         spell_rows.each do |spell_row|
             spell = @spells.find { |spell| spell.id == spell_row[:spell_id] }
             if spell
-                @mobile_classes[spell_row[:class_id]].skills << spell
+                @mobile_classes[spell_row[:class_id]].spells << spell
             end
         end
         log( "done." )
@@ -410,7 +410,7 @@ module GameSetup
         spell_rows.each do |spell_row|
             spell = @spells.find { |spell| spell.id == spell_row[:spell_id] }
             if spell
-                @races[spell_row[:race_id]].skills << spell
+                @races[spell_row[:race_id]].spells << spell
             end
         end
         log( "done." )
