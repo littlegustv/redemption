@@ -409,10 +409,15 @@ module GameSave
             if source # online player has been found
                 return source
             end
-            # check inactive players
-            source = @inactive_players.values.find { |p| p.weakref_alive? && p.id == data[:source_id] }
+            # check affects from inactive players
+            if @inactive_player_source_affects.dig(data[:source_id])
+                if @inactive_player_source_affects[data[:source_id]].size > 0
+                    source = @inactive_player_source_affects[data[:source_id]].first.source
+                end
+            end
+
             if source # inactive player found as source
-                return source.__getobj__ # get actual reference from the WeakRef
+                return source
             end
             # check database players
             player_data = @db[:saved_player_base].where(id: data[:source_id]).first
