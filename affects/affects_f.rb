@@ -147,7 +147,7 @@ class AffectFlamingWeapon < Affect
             data[:target].output "0<N> burns your flesh!", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is burned by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
             if dice(1, 100) <= @data[:chance]
-                data[:target].apply_affect(AffectFireBlind.new(data[:source], data[:target], @target.level))
+                AffectFireBlind.new(data[:source], data[:target], @target.level).apply
             end
         end
     end
@@ -210,7 +210,7 @@ class AffectFloodingWeapon < Affect
             data[:target].output "You are smothered in water from 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is smothered in water from 1<n>'s 2<n>.", [data[:target], data[:source], @target]
             if dice(1, 100) <= @data[:chance]
-                data[:target].apply_affect(AffectFlooded.new(data[:source], data[:target], @target.level))
+                AffectFlooded.new(data[:source], data[:target], @target.level).apply
             end
         end
     end
@@ -437,7 +437,7 @@ class AffectFrostWeapon < Affect
                 data[:target].output "The cold touch of 0<n> surrounds you with ice.", [@target]
                 (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is frozen by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
                 if dice(1, 100) <= @data[:chance]
-                    data[:target].apply_affect(AffectChilled.new(data[:source], data[:target], @target.level))
+                    AffectChilled.new(data[:source], data[:target], @target.level).apply
                 end
             end
         end

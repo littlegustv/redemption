@@ -19,7 +19,7 @@ class SpellCalm < Spell
             entity.remove_affect "frenzy"
             entity.remove_affect "taunt"
             entity.stop_combat
-            entity.apply_affect( AffectCalm.new( nil, entity, actor.level ) )
+            AffectCalm.new( nil, entity, actor.level ).apply
         end
     end
 
@@ -217,8 +217,8 @@ class SpellCharmPerson < Spell
             if rand(1..10) <= 5
                 actor.output "0<N> looks at you with adoring eyes.", [target]
                 target.output "Isn't 0<n> just so nice??", [actor]
-                target.apply_affect( AffectFollow.new( actor, target, 1 ) )
-                target.apply_affect( AffectCharm.new( actor, target, actor.level ) )
+                AffectFollow.new( actor, target, 1 ).apply
+                AffectCharm.new( actor, target, actor.level ).apply
             else
                 actor.output "You failed."
                 target.start_combat( actor )
@@ -242,7 +242,7 @@ class SpellCloakOfMind < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectCloakOfMind.new( nil, actor, actor.level ) )
+        AffectCloakOfMind.new( nil, actor, actor.level ).apply
     end
 
 end
@@ -259,7 +259,7 @@ class SpellCloudkill < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.room.apply_affect( AffectCloudkill.new( actor, actor.room, actor.level ) )
+        AffectCloudkill.new( actor, actor.room, actor.level ).apply
     end
 
 end
@@ -316,7 +316,7 @@ class SpellContinualLight < Spell
             item = Game.instance.load_item( 1952, actor.inventory )
             actor.room.occupants.each_output "0<N> twiddles 0<p> thumbs and 1<n> appears.", [actor, item]
         elsif ( target = Game.instance.target( { list: actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
-            target.apply_affect( AffectGlowing.new( nil, target, actor.level ))
+            AffectGlowing.new( nil, target, actor.level ).apply
         else
             actor.output "You don't see that here."
         end
@@ -593,7 +593,7 @@ class SpellCurse < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectCurse.new( actor, target, actor.level ) )
+        AffectCurse.new( actor, target, actor.level ).apply
         target.start_combat( actor )
         return true
     end

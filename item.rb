@@ -24,12 +24,18 @@
         @active = true
         @parent_inventory = nil
         @modifiers = Hash.new
+        move(parent_inventory)
 
         @model.affect_models.each do |affect_model|
             self.apply_affect_model(affect_model, true)
         end
 
-        move(parent_inventory)
+    end
+
+    def destroy
+        super
+        self.move(nil)
+        Game.instance.destroy_item(self)
     end
 
     def name
@@ -86,11 +92,6 @@ Extra flags: #{ @extraFlags }
             end
         end
         @parent_inventory = new_inventory
-    end
-
-    # alias for Game.instance.destroy_item(self)
-    def destroy
-        Game.instance.destroy_item(self)
     end
 
     def db_source_type

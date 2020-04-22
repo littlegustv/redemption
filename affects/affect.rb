@@ -1,15 +1,14 @@
 class Affect
     attr_accessor :duration
     attr_accessor :permanent
-    attr_accessor :source
     attr_accessor :savable
-    attr_accessor :active
     attr_reader :data
     attr_reader :visibility
     attr_reader :level
     attr_reader :modifiers
     attr_reader :period
     attr_reader :target
+    attr_reader :source
 
     module Visibility
         NORMAL = 0
@@ -48,11 +47,11 @@ class Affect
         @permanent = permanent
         @visibility = visibility
         @savable = true
-        @active = true
         @info = nil
 
         @clock = 0
         @data = nil                            # Additional data. Only "primitives". Saved to the database.
+
     end
 
     # Override this method to output start messages.
@@ -91,9 +90,6 @@ class Affect
     end
 
     def update( elapsed )
-        if !@active
-            return
-        end
         if @period
             @clock += elapsed
             if @clock >= @period
@@ -104,15 +100,81 @@ class Affect
         if !@permanent
             @duration -= elapsed
             if @duration <= 0
-                clear(silent: false)
+                self.clear(false)
             end
         end
     end
 
+    ##
+    # Apply this affect to a +GameObject+ according to its application type
+    # +target+:: The GameObject that is the target of this affect
+    # +silent+:: Whether or not the affect should send its application messages. Defaults to false. (boolean)
+    # returns +self+ on successful application, or +nil+ if application of affect fails
+    def apply(silent = false)
+        if !@target || !@target.active
+            # no target or target is inactive, don't apply
+            return false
+        end
+        existing_affects = @target.affects.select { |a| self.shares_keywords_with?(a) }
+        if [:source_overwrite, :source_stack, :source_single].include?(@application_type) && @source
+            existing_affects.select! { |a| a.source == @source }
+        end
+        if !existing_affects.empty?
+            case @application_type
+            when :global_overwrite, :source_overwrite
+                # delete old affect(s) and push the new one
+                existing_affects.each { |a| a.clear(true) }
+                self.send_refresh_messages if !silent
+                @target.affects.unshift(self)
+                Game.instance.add_global_affect(self)
+                self.start
+            when :global_stack, :source_stack
+                existing_affects.first.send_refresh_messages if !silent
+                existing_affects.first.stack(self)
+            when :global_single, :source_single
+                # existing single affect already exists!
+                return nil
+            when :multiple
+                # :multiple application type affects stack no matter what
+                self.send_start_messages if !silent
+                @target.affects.unshift(self)
+                Game.instance.add_global_affect(self)
+                self.start
+            else
+                log "Unknown application type #{@application_type} in affect.apply, affect: #{self.name} target: #{@target.name}"
+                return nil
+            end
+        else
+            # no relevant existing affects, apply normally
+            self.send_start_messages if !silent
+            @target.affects.unshift(self)
+            Game.instance.add_global_affect(self)
+            self.start
+        end
+        if @source
+            @source.source_affects << self
+        end
+        return self
+    end
+
+    def set_source(source)
+        log "transferring affect source"
+        if @source
+            @source.source_affects.delete(self)
+        end
+        @source = source
+        if @source
+            @source.source_affects << self
+        end
+    end
+
     # Call this method to remove an affect from a GameObject.
-    def clear(silent: false)
+    def clear(silent = false)
         complete
         @target.affects.delete self
+        if @source
+            @source.source_affects.delete(self)
+        end
         Game.instance.remove_global_affect(self)
         send_complete_messages if !silent
     end

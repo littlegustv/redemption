@@ -12,7 +12,7 @@ class SpellBarkskin < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectBarkSkin.new( nil, actor, actor.level ) )
+        AffectBarkSkin.new( nil, actor, actor.level ).apply
     end
 
 end
@@ -76,7 +76,7 @@ class SpellBladeRune < Spell
                 actor.output "The existing blade rune repels your magic."
                 return false
             else
-                target.apply_affect( AffectBladeRune.new( actor, target, actor.level ) )
+                AffectBladeRune.new( actor, target, actor.level ).apply
                 return true
             end
         else
@@ -99,9 +99,9 @@ class SpellBless < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
-            actor.apply_affect( AffectBless.new( nil, actor, actor.level ) )
+            AffectBless.new( nil, actor, actor.level ).apply
         elsif ( target = Game.instance.target({ list: actor.items + @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
-            target.apply_affect( AffectBless.new( nil, target, actor.level ) )
+            AffectBless.new( nil, target, actor.level ).apply
         else
             actor.output "There is no one here with that name."
         end
@@ -139,7 +139,7 @@ class SpellBlindness < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectBlind.new( actor, target, actor.level ) )
+        AffectBlind.new( actor, target, actor.level ).apply
         target.start_combat( actor )
         return true
     end
@@ -177,7 +177,7 @@ class SpellBlur < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectBlur.new( nil, actor, actor.level ) )
+        AffectBlur.new( nil, actor, actor.level ).apply
     end
 
 end
@@ -243,7 +243,7 @@ class SpellBurstRune < Spell
                 actor.output "The existing burst rune repels your magic."
                 return false
             else
-                target.apply_affect( AffectBurstRune.new( actor, target, level ) )
+                AffectBurstRune.new( actor, target, level ).apply
                 return true
             end
         else

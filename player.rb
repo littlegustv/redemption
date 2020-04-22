@@ -16,7 +16,7 @@ class Player < Mobile
         @client = client
         @commands = []
 
-        # overrides '0' as saved HP with max hp        
+        # overrides '0' as saved HP with max hp
         @hitpoints = @model.current_hp.to_i != 0 ? @model.current_hp : maxhitpoints
         @manapoints = @model.current_mana.to_i != 0 ? @model.current_mana : maxmanapoints
         @movepoints = @model.current_movement.to_i != 0 ? @model.current_movement : maxmovepoints
@@ -26,6 +26,7 @@ class Player < Mobile
     # Player destroy just marks it for destruction in the main thread so you can call it
     # from the client's own thread.
     def destroy
+        super
         if @client
             @client.player = nil
             @client = nil
@@ -172,7 +173,7 @@ class Player < Mobile
         Game.instance.fire_event(self, :event_on_die, {} )
         stop_combat
         @affects.each do |affect|
-            affect.clear(silent: true) if !affect.permanent
+            affect.clear(true) if !affect.permanent
         end
         room = Game.instance.rooms[@room.continent.recall_room_id]
         move_to_room( room )

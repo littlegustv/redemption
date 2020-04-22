@@ -4,6 +4,7 @@ class Continent < GameObject
     attr_reader :preposition
     attr_reader :recall_room_id
     attr_reader :starting_room_id
+    attr_reader :areas
 
     def initialize( data )
         super(data[:name], data[:name].split(" "))
@@ -11,10 +12,14 @@ class Continent < GameObject
         @preposition = data[:preposition]
         @recall_room_id = data[:recall_room_id]
         @starting_room_id = data[:starting_room_id]
+        @areas = []
     end
 
-    # alias for Game.instance.destroy_continent(self)
     def destroy
+        super
+        @areas.each do |area|
+            area.destroy
+        end
         Game.instance.destroy_continent(self)
     end
 

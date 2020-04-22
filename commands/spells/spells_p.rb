@@ -12,7 +12,7 @@ class SpellPassDoor < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectPassDoor.new( nil, actor, actor.level ) )
+        AffectPassDoor.new( nil, actor, actor.level ).apply
     end
 
 end
@@ -31,8 +31,8 @@ class SpellPhantasmMonster < Spell
     def attempt( actor, cmd, args, input, level )
         actor.output "You call forth phantasmic forces!"
         mob = Game.instance.load_mob( 1844, actor.room )
-        mob.apply_affect( AffectFollow.new( actor, mob, 1 ) )
-        mob.apply_affect( AffectCharm.new( actor, mob, actor.level ) )
+        AffectFollow.new( actor, mob, 1 ).apply
+        AffectCharm.new( actor, mob, actor.level ).apply
     end
 
 end
@@ -102,7 +102,7 @@ class SpellPlague < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectPlague.new( actor, target, actor.level ) )
+        AffectPlague.new( actor, target, actor.level ).apply
         target.start_combat( actor )
         return true
     end
@@ -139,7 +139,7 @@ class SpellPoison < Spell
             actor.output "They aren't here."
             return false
         end
-        target.apply_affect( AffectPoison.new( actor, target, actor.level ) )
+        AffectPoison.new( actor, target, actor.level ).apply
         target.start_combat( actor )
         return true
     end
@@ -165,7 +165,7 @@ class SpellPortal < Spell
             portal = Game.instance.load_item( 1956, actor.room.inventory )
             # remove auto-added affect
             portal.remove_affect("portal")
-            portal.apply_affect( AffectPortal.new( target: portal, game: Game.instance, destination: target.room ) )
+            AffectPortal.new( portal, target.room ).apply
 
             actor.output "0<N> rises up before you.", [portal]
             (actor.room.occupants - [actor]).each_output "%N rises up from the ground.", [portal]
@@ -189,11 +189,11 @@ class SpellProtection < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.to_s.fuzzy_match("good")
-            actor.apply_affect( AffectProtectionGood.new( nil, actor, actor.level ) )
+            AffectProtectionGood.new( nil, actor, actor.level ).apply
         elsif args.first.to_s.fuzzy_match("neutral")
-            actor.apply_affect( AffectProtectionNeutral.new( nil, actor, actor.level ) )
+            AffectProtectionNeutral.new( nil, actor, actor.level ).apply
         elsif args.first.to_s.fuzzy_match("evil")
-            actor.apply_affect( AffectProtectionEvil.new( nil, actor, actor.level ) )
+            AffectProtectionEvil.new( nil, actor, actor.level ).apply
         end
     end
 

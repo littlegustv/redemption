@@ -20,7 +20,7 @@ class SkillAppraise < Skill
             if target.affected? "appraised"
             	actor.output "%N has already been appraised.", [target]
             else
-            	target.apply_affect( Affect.new( name: "appraised", permanent: true, keywords: ["appraised"], target: target, source: nil ) )
+            	# Affect.new( name: "appraised", permanent: true, keywords: ["appraised"], target: target, source: nil ).apply
             	target.cost *= 1.15
                 actor.room.occupants.each_output "0<N> glitters and shines more brightly as 1<n> appraise1<,s> it.", [target, actor]
             end

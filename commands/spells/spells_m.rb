@@ -120,7 +120,7 @@ class SpellMassInvisibility < Spell
 
     def attempt( actor, cmd, args, input, level )
         ( targets = Game.instance.target( args.first.to_s.to_query.merge({ list: actor.room.occupants, visible_to: actor }) ) ).each do |target|
-            target.apply_affect( AffectInvisibility.new( actor, target, level ) )
+            AffectInvisibility.new( actor, target, level ).apply
         end
     end
 end
@@ -136,7 +136,7 @@ class SpellMinimation < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectMinimation.new( nil, actor, actor.level ) )
+        AffectMinimation.new( nil, actor, actor.level ).apply
     end
 end
 
@@ -152,6 +152,6 @@ class SpellMirrorImage < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.apply_affect( AffectMirrorImage.new( actor, actor, level ) )
+        AffectMirrorImage.new( actor, actor, level ).apply
     end
 end

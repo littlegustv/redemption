@@ -1,7 +1,8 @@
 class GameObject
 
     attr_accessor :name, :keywords, :affects, :uuid, :active, :short_description, :long_description
-    attr_reader :listeners, :room, :gender
+    attr_reader :room, :gender
+    attr_reader :source_affects
 
     def initialize( name, keywords, reset = nil )
         @name = name
@@ -21,10 +22,23 @@ class GameObject
         end
         @reset = reset
         @affects = []
-        @listeners = {}
+        @source_affects = []
+
         @uuid = Game.instance.new_uuid
         @active = true
         @gender = Game.instance.genders.values.first
+    end
+
+    # handles its own destruction - override in subclasses but call +super+ !
+    def destroy
+        @affects.each do |affect|
+            affect.clear(true)
+        end
+        self.deactivate
+    end
+
+    def deactivate
+        @active = false
     end
 
     def update( elapsed )
@@ -102,49 +116,6 @@ class GameObject
         @affects.select{ |affect| affect.check(key) }.count > 0
     end
 
-    ##
-    # Apply a new affect according to its application type
-    # +new_affect+:: The new affect to be applied
-    # +silent+:: Whether or not the affect should send its application messages. Defaults to false. (boolean)
-    def apply_affect(new_affect, silent = false)
-        # existing_affects = @affects.select { |a| a.shares_ancestors_with?(new_affect) }
-        existing_affects = @affects.select { |a| a.shares_keywords_with?(new_affect) }
-        type = new_affect.application_type
-        if [:source_overwrite, :source_stack, :source_single].include?(type)
-            existing_affects.select! { |a| a.source == new_affect.source }
-        end
-        if !existing_affects.empty?
-            case type
-            when :global_overwrite, :source_overwrite              # delete old affect(s) and push the new one
-                existing_affects.each { |a| a.clear(silent: true) }
-                new_affect.send_refresh_messages if !silent
-                affects.unshift(new_affect)
-                Game.instance.add_global_affect(new_affect)
-                new_affect.start
-            when :global_stack, :source_stack                      # stack with existing affect
-                existing_affects.first.send_refresh_messages if !silent
-                existing_affects.first.stack(new_affect)
-                existing_affects.first.start
-            when :global_single, :source_single                    # do nothing, already applied
-                return false
-            when :multiple
-                new_affect.send_start_messages if !silent
-                affects.unshift(new_affect)
-                Game.instance.add_global_affect(new_affect)
-                new_affect.start
-            else
-                log "unknown application type #{affect.application_type} in apply_affect on affect #{affect} belonging to #{self}"
-                return false
-            end
-        else
-            new_affect.send_start_messages if !silent
-            affects.unshift(new_affect)
-            Game.instance.add_global_affect(new_affect)
-            new_affect.start
-        end
-        return true
-    end
-
     # Applies an affect using a matching id.
     # +id+:: id of an affect.
     # +silent+:: true if the affects should not output messages
@@ -160,7 +131,7 @@ class GameObject
             if data
                 affect.overwrite_data(data)
             end
-            apply_affect(affect, silent)
+            affect.apply(silent)
             array << affect if array
         end
     end
@@ -173,7 +144,7 @@ class GameObject
             if affect_model.data
                 affect.overwrite_data(affect_model.data)
             end
-            apply_affect(affect, silent)
+            affect.apply(silent)
             array << affect if array
         end
     end
@@ -183,13 +154,8 @@ class GameObject
     def remove_affect(term)
         list = @affects.select{ |a| a.check( term )  }
         list.each do |affect|
-            affect.clear(silent: false)
+            affect.clear(false)
         end
-    end
-
-    # handles its own destruction - override in subclasses
-    def destroy
-        log "GameObject::destroy being called by object #{self} : This shouldn't happen!"
     end
 
     # Generates a hash to provide affect source fields for the database

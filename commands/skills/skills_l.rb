@@ -12,7 +12,7 @@ class SkillLair < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        actor.room.apply_affect( AffectLair.new( actor, actor.room, actor.level ) )
+        AffectLair.new( actor, actor.room, actor.level ).apply
     end
 
 end
@@ -30,7 +30,7 @@ class SkillLivingStone < Command
 
     def attempt( actor, cmd, args, input )
         if not actor.affected? "living stone"
-            actor.apply_affect(AffectLivingStone.new( actor, actor, actor.level ))
+            AffectLivingStone.new( actor, actor, actor.level ).apply
             return true
         else
             actor.output "You did not manage to turn to stone."

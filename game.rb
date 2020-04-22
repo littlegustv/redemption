@@ -104,7 +104,9 @@ class Game
         @new_accounts = []                  # Accounts waiting to be created - added to from client threads
         @new_players = []                   # Players waiting to be created - added to from client threads
         @players = []                       # players online - array
-        @inactive_players = Hash.new        # inactive players - they've logged but not been garbage collected yet
+
+        @inactive_player_source_affects = Hash.new
+
         @logging_players = []               # ids of players waiting to be added to the game
         @quitting_players = []              # players who have placed themselves here are to be quit
         @items = Set.new
@@ -148,29 +150,21 @@ class Game
                 @new_players.delete(player_data)
             end
 
-            # deal with inactive players that have been garbage collected
-            # p "#{@frame_count} #{@inactive_players.keys}" if @inactive_players.length > 0
-            @inactive_players.each do |name, player|
-                if !player.weakref_alive?
-                    @inactive_players.delete(name)
-                    puts "#{name} has been deleted from memory."
-                end
-            end
-
             # load any players whose ids have been added to the logging_players queue
             @logging_players.each do |player_id, client|
                 @logging_players.delete([player_id, client])
                 player = nil
                 if (player = @players.find{ |p| p.id == player_id }) # found in online player
                     player.reconnect(client)
-                elsif (player = @inactive_players.values.find { |p| p.weakref_alive? && p.id == player_id })
-                    player = player.__getobj__             # found in inactive player
-                    @inactive_players.delete(player.name)
-                    player.reconnect(client)
                 elsif (player = load_player(player_id, client) )
                     # load player normally - nothing else to do, maybe!
                 end
                 if player
+                    if @inactive_player_source_affects.dig(player.id)
+                        @inactive_player_source_affects[player.id].each do |source_aff|
+                            source_aff.set_source(player)
+                        end
+                    end
                     @players.unshift(player)
                 end
             end
@@ -212,6 +206,7 @@ class Game
             loop_computation_time = end_time - start_time
             sleep_time = ((1.0 / Constants::Interval::FPS) - loop_computation_time)
             total_time += loop_computation_time
+            sleep_time = 0.016667
 
             # Sleep until the next frame, if there's time left over
             if sleep_time < 0 && !@initial_reset # try to figure out why there isn't (initial reset frames don't really count :) )!
@@ -257,7 +252,7 @@ class Game
             else
                 sleep([sleep_time, 0].max) #
             end
-            last_gc_stat = GC.stat
+            # last_gc_stat = GC.stat
         end
     end
 
@@ -311,11 +306,7 @@ class Game
         # end
         affects = @affects.to_a
         affects.each do |affect|
-            if affect.active
-                affect.update(elapsed)
-            else
-                @affects.delete(affect)
-            end
+            affect.update(elapsed)
         end
     end
 
@@ -562,7 +553,7 @@ class Game
         mob = Mobile.new( mobile_model, room, reset )
         add_global_mobile(mob)
         if not @shop_data[ mobile_model.id ].nil?
-            mob.apply_affect( AffectShopkeeper.new( mob, mob, 0 ), true )
+            AffectShopkeeper.new( mob, mob, 0 ).apply(true)
         end
         return mob
     end
@@ -583,7 +574,7 @@ class Game
             if not @portal_data[ id ].nil?
                 # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
                 # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
-                item.apply_affect( AffectPortal.new( item, @rooms[ @portal_data[id][:to_room_id] ] ) )
+                AffectPortal.new( item, @rooms[ @portal_data[id][:to_room_id] ] ).apply
             end
 
             if item
@@ -713,6 +704,13 @@ class Game
 
     def remove_global_affect(affect)
         @affects.delete(affect)
+        source = affect.source
+        if source && source.is_a?(Player) && @inactive_player_source_affects.dig(source.id)
+            @inactive_player_source_affects[source.id].delete(affect)
+            if @inactive_player_source_affects[source.id].size == 0
+                @inactive_player_source_affects.delete(source.id)
+            end
+        end
     end
 
     def add_combat_mobile(mobile)
@@ -734,13 +732,6 @@ class Game
 
     # destroy a continent object
     def destroy_continent(continent)
-        continent.affects.each do |affect|
-            remove_global_affect(affect)
-        end
-        areas = @areas.select{ |area| area.continent == continent}
-        areas.each do |area|
-            destroy_area(area)
-        end
         @continents.delete(continent.id)
     end
 
@@ -757,12 +748,6 @@ class Game
 
     # destroy an area object
     def destroy_area(area)
-        area.affects.each do |affect|
-            remove_global_affect(affect)
-        end
-        area.rooms.each do |room|
-            destroy_room(room)
-        end
         @areas.delete(area.id)
     end
 
@@ -773,6 +758,7 @@ class Game
             builders: "no builders".freeze,
             continent: self.new_inactive_continent,
             control: "no control".freeze,
+
             credits: "no credits".freeze,
             gateable: 0,
             id: 0,
@@ -792,77 +778,25 @@ class Game
                 end
             end
         end
-
-        rooms.affects.each do |affect|
-            remove_global_affect(affect)
-        end
-        room.mobiles.each do |mobile|
-            destroy_mobile(mobile)
-        end
-        room.players.each do |player|
-            player.move_to_room(@starting_room) # just move players out
-        end
-        room.inventory.items.each do |item|
-            item.active = false
-            item.affects.each do |affect|
-                affect.active = false
-            end
-        end
         @rooms.delete(room.id)
-    end
-
-    def new_inactive_room
-        return Room.new("inactive room".freeze, 0, "no description".freeze, "inside".to_sector,
-                self.new_inactive_area, 0, 0)
     end
 
     # destroy a mobile object
     def destroy_mobile(mobile)
-        mobile.move_to_room(self.new_inactive_room)
-        mobile.deactivate
-        mobile.affects.each do |affect|
-            affect.active = false
-        end
-        mobile.items.each do |item|
-            remove_global_item(item)
-            item.affects.each do |affect|
-                affect.active = false
-            end
-        end
-        if mobile.hand_to_hand_weapon
-             remove_global_item(mobile.hand_to_hand_weapon)
-        end
         remove_global_mobile(mobile)
         @mobiles.delete(mobile)
     end
 
     # destroy a player object
     def destroy_player(player)
-        @inactive_players[player.name] = WeakRef.new(player)
-        player.room.mobile_exit(player)
-        player.affects.each do |affect|
-            affect.active = false
-        end
-        player.items.each do |item|
-            remove_global_item(item)
-            item.affects.each do |affect|
-                affect.active = false
-            end
-        end
-        if player.hand_to_hand_weapon
-             remove_global_item(player.hand_to_hand_weapon)
-        end
-        player.deactivate
+        @inactive_player_source_affects[player.id] = player.source_affects
+        remove_global_mobile(player)
         @players.delete(player)
     end
 
     # destroy an item object
     def destroy_item(item)
         item.move(nil)          # remove its inventory references by moving it to a nil inventory
-        item.active = false
-        item.affects.each do |affect|
-            affect.active = false
-        end
         remove_global_item(item)
     end
 

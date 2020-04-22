@@ -335,7 +335,8 @@ module GameSave
                     end
                     affect.overwrite_modifiers(modifiers)
                     affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
-                    player.apply_affect(affect, true)
+                    affect.apply(true)
+
                 end
             end
         end
@@ -358,11 +359,12 @@ module GameSave
                         end
                         affect.overwrite_modifiers(modifiers)
                         affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
-                        item.apply_affect(affect, true)
+                        affect.apply(true)
                     end
                 end
             end
         end
+        add_global_mobile(player)
         return player
     end
 

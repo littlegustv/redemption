@@ -46,7 +46,7 @@ class SpellEnchantArmor < Spell
             # dam =
             affect = AffectEnchantArmor.new( nil, target, actor.level )
             affect.overwrite_modifiers({ ac_pierce: -1 * level, ac_slash: -1 * level, ac_bash: -1 * level, ac_magic: -1 * level })
-            target.apply_affect( affect )
+            affect.apply
             return true
         else
             actor.output "You don't see that here."
@@ -80,7 +80,7 @@ class SpellEnchantWeapon < Spell
             # dam =
             affect = AffectEnchantWeapon.new( nil, target, actor.level )
             affect.overwrite_modifiers({hitroll: level, damroll: 10})
-            target.apply_affect( affect )
+            affect.apply
             return true
         else
             actor.output "You don't see that here."

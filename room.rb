@@ -24,6 +24,33 @@ class Room < GameObject
         @inventory = Inventory.new(self)
     end
 
+    def self.inactive_room
+        return Room.new(
+            "inactive room".freeze,
+            0,
+            "no description".freeze,
+            "inside".to_sector,
+            Area.inactive_area,
+            0,
+            0
+        )
+    end
+
+    def destroy
+        super
+        @area.rooms.delete self
+        @inventory.items.each do |item|
+            item.destroy
+        end
+        @mobiles.each do |mob|
+            mob.destroy
+        end
+        @players.each do |player|
+            player.move_to_room(Game.instance.starting_room)
+        end
+        Game.instance.destroy_room(self)
+    end
+
     def show( looker )
         if looker.can_see? self
             out = "#{ @name }\n" +

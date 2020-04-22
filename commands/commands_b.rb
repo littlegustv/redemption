@@ -14,7 +14,7 @@ class CommandBlind < Command
     def attempt( actor, cmd, args, input )
         if not actor.affected? "blind"
             actor.output "You have been blinded!"
-            actor.apply_affect(AffectBlind.new( actor, actor, actor.level ))
+            AffectBlind.new( actor, actor, actor.level ).apply
             return true
         else
             actor.output "You are already blind!"

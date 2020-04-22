@@ -18,6 +18,7 @@ class Area < GameObject
         @age = row[:age]
         @builders = row[:builders]
 		@continent = Game.instance.continents[row[:continent_id]]
+        @continent.areas << self
         @control = row[:control]
         @credits = row[:credits]
         range = @credits.match(/{\s?(\d+)\s+(\d+)}/)
@@ -50,8 +51,12 @@ class Area < GameObject
         return @rooms.map { |room| room.items }.flatten
     end
 
-    # alias for Game.instance.destroy_area(self)
     def destroy
+        super
+        @continent.areas.delete self
+        @rooms.each do |room|
+            room.destroy
+        end
         Game.instance.destroy_area(self)
     end
 

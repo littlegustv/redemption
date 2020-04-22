@@ -51,9 +51,9 @@ class CommandQuest < Command
             else
                 if ( questmaster = actor.target( list: actor.room.mobiles, affect: "questmaster", visible_to: actor, not: actor ).first )
                     if args[1].to_s.fuzzy_match "VILLAIN"
-                        actor.apply_affect( AffectQuestVillain.new( actor, actor, actor.level ) )
+                        AffectQuestVillain.new( actor, actor, actor.level ).apply
                     elsif args[1].to_s.fuzzy_match "ITEM"
-                        actor.apply_affect( AffectQuestItem.new( actor, actor, actor.level ) )
+                        AffectQuestItem.new( actor, actor, actor.level ).apply
                     else
                         actor.output "What type of quest would you like to request? [ITEM] or [VILLAIN]"
                     end
@@ -98,7 +98,7 @@ class CommandQuicken < Command
 
     def attempt( actor, cmd, args, input )
         if not actor.affected? "haste"
-            actor.apply_affect(AffectHaste.new( actor, actor, actor.level ))
+            AffectHaste.new( actor, actor, actor.level ).apply
             return true
         else
             actor.output "You are already moving as fast as you can!"

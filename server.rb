@@ -1,6 +1,5 @@
 require 'singleton'
 require 'socket'
-require 'weakref'
 require 'digest'
 require 'json'
 require 'set'

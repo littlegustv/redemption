@@ -71,7 +71,7 @@ class AffectPlague < Affect
         @target.output "You writhe in agony from the plague."
         @target.receive_damage(nil, 10, "plague", true, true)
         (@target.room.occupants - [@target]).each do |occupant|
-            occupant.apply_affect( AffectPlague.new( nil, occupant, @level ) ) if rand(1...100) < 50
+            AffectPlague.new( nil, occupant, @level ).apply if rand(1...100) < 50
         end
     end
 

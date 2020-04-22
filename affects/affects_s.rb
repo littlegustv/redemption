@@ -147,7 +147,7 @@ class AffectShackleRune < Affect
         if data[:mobile] == @source # || rand(0..100) < 50
             data[:mobile].output "You sense the power of the room's rune and avoid it!"
         else
-            data[:mobile].apply_affect( AffectShackle.new( @source, data[:mobile], @source.level, Game.instance ) )
+            AffectShackle.new( @source, data[:mobile], @source.level, Game.instance ).apply
         end
     end
 
@@ -282,7 +282,7 @@ class AffectShockingWeapon < Affect
             data[:target].output "You are shocked by 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is struck by lightning from 1<n>'s 2<n>'.", [data[:target], data[:source], @target]
             if dice(1, 100) <= @data[:chance]
-                data[:target].apply_affect(AffectCorroded.new(data[:source], data[:target], @target.level))
+                AffectCorroded.new(data[:source], data[:target], @target.level).apply
             end
         end
     end

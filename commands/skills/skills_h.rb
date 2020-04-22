@@ -11,6 +11,6 @@ class SkillHide < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        actor.apply_affect( AffectHide.new( nil, actor, actor.level ) )
+        AffectHide.new( nil, actor, actor.level ).apply
     end
 end

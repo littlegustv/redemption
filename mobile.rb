@@ -42,7 +42,7 @@ class Mobile < GameObject
         @attacking = nil
         @lag = 0
         @id = model.id
-        @h2h_equip_slot = EquipSlot.new(-1, self)
+        @h2h_equip_slot = EquipSlot.new(self, Game.instance.equip_slot_infos.values.first)
 
         @learned_skills = []
         @learned_spells = []
@@ -128,8 +128,17 @@ class Mobile < GameObject
 
     end
 
-    # alias for Game.instance.destroy_mobile(self)
     def destroy
+        super
+        @room.mobile_exit(self) if @room
+        @race_affects.clear
+        @mobile_class_affects.clear
+        self.items.each do |item|
+            item.destroy
+        end
+        if hand_to_hand_weapon
+            hand_to_hand_weapon.destroy
+        end
         Game.instance.destroy_mobile(self)
     end
 
@@ -170,7 +179,8 @@ class Mobile < GameObject
     end
 
     def proficient( genre )
-        genres.include? genre
+        result = @race.genres.include?(genre) || @mobile_class.genres.include?(genre)
+        return result
     end
 
     def earn( n )
@@ -281,7 +291,7 @@ class Mobile < GameObject
 
         # only the one being attacked
         if attacker.attacking != self && @attacking != attacker && is_player?
-            attacker.apply_affect( AffectKiller.new(slot.to_i, self) ) if attacker.is_player?
+            AffectKiller.new(nil, self, 0).apply if attacker.is_player?
             do_command "yell Help I am being attacked by #{attacker}!"
         end
         old_position = @position
@@ -569,7 +579,7 @@ class Mobile < GameObject
         Game.instance.fire_event( self, :event_on_die, { died: self, killer: killer } )
 
         @affects.each do |affect|
-            affect.clear(silent: true)
+            affect.clear(true)
         end
         killer.xp( self ) if killer
         (@room.occupants - [self]).each_output "0<N>'s head is shattered, and 0<p> brains splash all over you.", [self]
@@ -587,10 +597,6 @@ class Mobile < GameObject
             @reset = nil
         end
         destroy
-    end
-
-    def deactivate
-        @active = false
     end
 
     # this COULD be handled with events, but they are so varied that I thought I'd try it this way first...
@@ -957,7 +963,7 @@ You are #{@position.name}.)
             wear(item: item, silent: true)
         end
         @race_affects.each do |affect|
-            affect.clear(silent: true)
+            affect.clear(true)
         end
         @race_affects = []
         @race.affect_models.each do |affect_model|
@@ -979,7 +985,7 @@ You are #{@position.name}.)
             wear(item: item, silent: true)
         end
         @mobile_class_affects.each do |affect|
-            affect.clear(silent: true)
+            affect.clear(true)
         end
         @mobile_class_affects = []
         @mobile_class.affect_models.each do |affect_model|
