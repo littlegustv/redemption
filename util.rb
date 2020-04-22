@@ -67,7 +67,7 @@ class String
     end
 
     def fuzzy_match( arg )
-        self.start_with? arg.to_s.downcase
+        self.downcase.start_with? arg.to_s.downcase
             # arg = arg.to_s.downcase
             # self[0, arg.length].downcase == arg
         # self.match(/#{arg}/i)

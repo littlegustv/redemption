@@ -36,6 +36,9 @@ module GameSetup
         load_item_types
         load_affects
 
+        load_help_data
+        load_social_data
+
         load_elements
         load_positions
         load_commands
@@ -63,11 +66,9 @@ module GameSetup
         load_item_data
         load_shop_data
         load_reset_data
-        load_help_data
         load_account_data
         load_saved_player_data
         load_portal_data
-        load_social_data
 
         load_max_ids
 
