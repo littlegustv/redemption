@@ -379,7 +379,7 @@ class Mobile < GameObject
             level: @level,
             weight: 0,
             cost: 0,
-            material: "flesh",
+            material: "flesh".to_material,
             fixed: 0,
 
             noun: @race.hand_to_hand_noun,
