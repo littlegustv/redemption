@@ -17,7 +17,6 @@ class Mobile < GameObject
     attr_accessor :wealth
 
     attr_reader :game
-    attr_reader :room
     attr_reader :race
     attr_reader :size
     attr_reader :mobile_class
@@ -140,6 +139,10 @@ class Mobile < GameObject
             hand_to_hand_weapon.destroy
         end
         Game.instance.destroy_mobile(self)
+    end
+
+    def room
+        return @room || Room.inactive_room
     end
 
     def learn( skill_name )

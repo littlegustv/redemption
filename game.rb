@@ -415,6 +415,22 @@ class Game
         return genre
     end
 
+    def material_with_symbol(symbol)
+        material = @materials.values.find { |m| m.symbol == symbol }
+        if !material
+            log ("No material with symbol #{symbol} found. Creating one now. Stack trace:")
+            puts caller[0..3]
+            new_id = (@materials.keys.min || 0) - 1
+            new_value = 0
+            material = Material.new({
+                id: new_id,
+                name: symbol.to_s
+            })
+            @materials[new_id] = material
+        end
+        return material
+    end
+
     def noun_with_symbol(symbol)
         noun = @nouns.values.find { |n| n.symbol == symbol }
         if !noun
@@ -735,37 +751,9 @@ class Game
         @continents.delete(continent.id)
     end
 
-    def new_inactive_continent
-        data = {
-            name: "inactive continent".freeze,
-            id: 0,
-            preposition: "on".freeze,
-            recall_room_id: 0,
-            starting_room_id: 0
-        }
-        return Continent.new(data)
-    end
-
     # destroy an area object
     def destroy_area(area)
         @areas.delete(area.id)
-    end
-
-    def new_inactive_area
-        data = {
-            name: "inactive area".freeze,
-            age: 0,
-            builders: "no builders".freeze,
-            continent: self.new_inactive_continent,
-            control: "no control".freeze,
-
-            credits: "no credits".freeze,
-            gateable: 0,
-            id: 0,
-            questable: 0,
-            security: 0
-        }
-        return Area.new(data)
     end
 
     # destroy a room object

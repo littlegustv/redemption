@@ -101,12 +101,18 @@ Extra flags: #{ @extraFlags }
     # gets the room this object is in, whether it's in a room directly, in a mobile inventory/equip_slot,
     # or in another item
     def room
+        if @parent_inventory.nil?
+            return Room.inactive_room
+        end
         return @parent_inventory.owner.room
     end
 
     # returns the gameobject that carries this item, whether it's the room that this object is on
     # the floor in, a mobile with this item in a container, or just a mobile with this in an equip_slot
     def carrier
+        if @parent_inventory.nil?
+            return Room.inactive_room
+        end
         owner = @parent_inventory.owner
         while Item === owner
             owner = owner.parent_inventory.owner

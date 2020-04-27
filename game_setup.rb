@@ -453,7 +453,13 @@ module GameSetup
         continent_data = @db[:continent_base].to_hash(:id)
 
         continent_data.each do |id, row|
-            @continents[id] = Continent.new(row)
+            @continents[id] = Continent.new(
+                row[:id],
+                row[:name],
+                row[:preposition],
+                row[:recall_room_id],
+                row[:starting_room_id]
+            )
         end
         log( "done." )
     end
@@ -464,7 +470,7 @@ module GameSetup
         area_data = @db[:area_base].to_hash(:id)
 
         area_data.each do |id, row|
-            @areas[id] = Area.new(row)
+            @areas[id] = Area.new(row[:id], row[:name], row[:age], @continents[row[:continent_id]], row[:credits], row[:gateable], row[:questable], row[:security])
         end
         log( "done." )
     end
@@ -486,8 +492,8 @@ module GameSetup
         room_data.each do |id, row|
             area = @areas[row[:area_id]]
             @rooms[id] = Room.new(
-                row[:name],
                 row[:id],
+                row[:name],
                 row[:short_description],
                 @sectors[row[:sector_id]],
                 @areas[row[:area_id]],

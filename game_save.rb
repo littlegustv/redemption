@@ -300,7 +300,7 @@ module GameSave
         player_model = PlayerModel.new(player_data[:id], player_row)
         player = Player.new(
             player_model,
-            @rooms[player_data[:room_id]] || @starting_room,
+            @rooms.dig(player_data[:room_id]) || @starting_room,
             client
         )
         player.experience = player_data[:experience]

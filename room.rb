@@ -1,6 +1,5 @@
 class Room < GameObject
 
-    attr_accessor :area
     attr_accessor :exits
 
     attr_reader :id
@@ -9,7 +8,7 @@ class Room < GameObject
     attr_reader :players
     attr_reader :sector
 
-    def initialize(name, id, short_description, sector, area, hp_regen, mana_regen)
+    def initialize(id, name, short_description, sector, area, hp_regen, mana_regen)
         super(name, nil)
         @id = id
         @short_description = short_description
@@ -22,18 +21,6 @@ class Room < GameObject
         @mobiles = []
         @players = []
         @inventory = Inventory.new(self)
-    end
-
-    def self.inactive_room
-        return Room.new(
-            "inactive room".freeze,
-            0,
-            "no description".freeze,
-            "inside".to_sector,
-            Area.inactive_area,
-            0,
-            0
-        )
     end
 
     def destroy
@@ -49,6 +36,18 @@ class Room < GameObject
             player.move_to_room(Game.instance.starting_room)
         end
         Game.instance.destroy_room(self)
+    end
+
+    def self.inactive_room
+        if @@inactive_room.nil?
+            @@inactive_room = Room.new("inactive room", 0, "no description", "inside".to_sector, nil, 0, 0)
+            @@inactive_room.deactivate
+        end
+        return @@inactive_room
+    end
+
+    def area
+        return @area || Area.inactive_area
     end
 
     def show( looker )
