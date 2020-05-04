@@ -1,5 +1,34 @@
 require_relative 'command.rb'
 
+class CommandFind < Command
+
+    def initialize
+        super(
+            name: "find",
+            keywords: ["find"],
+            lag: 0,
+            position: :sleeping
+        )
+    end
+
+
+    def attempt( actor, cmd, args, input )
+        if args.length <= 0
+            actor.output "Syntax: find <keywords>"
+            return false
+        else
+            item = Game.instance.load_item( args.first.to_i, actor.inventory )
+            if !item
+                actor.output "No such item."
+                return false
+            end
+            actor.room.occupants.each_output "0<N> 0<have,has> loaded item: 1<n>.", [actor, item]
+            return true
+        end
+    end
+
+end
+
 class CommandFlee < Command
 
     def initialize

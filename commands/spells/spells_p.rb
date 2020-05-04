@@ -139,7 +139,7 @@ class SpellPoison < Spell
             actor.output "They aren't here."
             return false
         end
-        AffectPoison.new( actor, target, actor.level ).apply
+        AffectPoisoned.new( actor, target, actor.level ).apply
         target.start_combat( actor )
         return true
     end

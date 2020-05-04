@@ -45,11 +45,15 @@ class AffectBerserk < Affect
             level, # level
             60, # duration
             {damroll: (level / 10).to_i, hitroll: (level / 10).to_i}, # modifiers: nil
-            1, # period: nil
+            nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
             true # savable
         )
+        @healing_left = 3 * level
+        if @healing_left > 0
+            toggle_periodic(1)
+        end
     end
 
     def self.affect_info
@@ -66,7 +70,12 @@ class AffectBerserk < Affect
     end
 
     def periodic
-        @target.regen 10, 0, 0
+        heal = [@healing_left, 3].min
+        @healing_left -= heal
+        @target.regen heal, 0, 0
+        if @healing_left == 0
+            toggle_periodic(nil)
+        end
     end
 
     def complete

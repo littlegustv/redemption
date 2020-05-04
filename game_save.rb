@@ -49,10 +49,12 @@ module GameSave
             if query_hash[:player_learned_skill].length > 0 # player skills
                 query = "INSERT INTO `saved_player_skill` " +
                 "(`saved_player_id`, `skill_id`) VALUES #{query_hash[:player_learned_skill].join(", ")}"
+                @db.run(query)
             end
             if query_hash[:player_learned_spell].length > 0 # player spells
                 query = "INSERT INTO `saved_player_spell` " +
                 "(`saved_player_id`, `spell_id`) VALUES #{query_hash[:player_learned_spell].join(", ")}"
+                @db.run(query)
             end
             if query_hash[:player_affect].length > 0 # player affects
                 query = "INSERT INTO `saved_player_affect` " +
@@ -183,6 +185,16 @@ module GameSave
         # query_hash[:player_base] << "UPDATE `saved_player_base` SET #{hash_to_update_query_values(player_data)} WHERE (`id` = #{player.id});\n"
         query_hash[:player_base] << hash_to_insert_query_values(player_data)
 
+        # skills and spells
+        player.learned_skills.each do |s|
+            query_hash[:player_learned_skill] << "(#{player.id},#{s.id})"
+        end
+
+        player.learned_spells.each do |s|
+            query_hash[:player_learned_spell] << "(#{player.id},#{s.id})"
+        end
+
+
         # save current affects
         player.affects.select{ |affect| affect.savable }.each do |affect|
             save_player_affect(affect, player.id, query_hash).to_s
@@ -192,6 +204,8 @@ module GameSave
         player.items.each do |item|
             save_player_item(item, player.id, query_hash)
         end
+
+
     end
 
     #save one player affect
@@ -292,8 +306,8 @@ module GameSave
             return
         end
         player_row = {
-            learned_skill_ids: skill_rows.map(&:skill_id),
-            learned_spell_ids: spell_rows.map(&:spell_id),
+            learned_skill_ids: skill_rows.map { |row| row[:skill_id] },
+            learned_spell_ids: spell_rows.map { |row| row[:spell_id] },
         }
         player_row.merge!(player_data)
 

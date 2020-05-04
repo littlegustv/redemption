@@ -22,6 +22,9 @@ class ItemModel
         @level = row[:level] || 0
         @weight = row[:weight] || 0
         @cost = row[:cost] || 0
+        @fixed = row[:fixed] || 0
+
+        # material
         if row.dig(:material_id)
             @material = Game.instance.materials[row[:material_id]]
         elsif row.dig(:material)
@@ -29,14 +32,31 @@ class ItemModel
         else
             @material = Game.instance.materials.values.first
         end
-        @fixed = row[:fixed] || 0
 
-        @affect_models = []
-        @modifiers = Hash.new
+        # wear locations
+        if row.dig(:wear_locations)
+            @wear_locations = row[:wear_locations]
+        else
+            @wear_locations = Array.new
+        end
 
+        # modifiers
+        if row.dig(:modifiers)
+            @modifiers = row[:modifiers]
+        else
+            @modifiers = Hash.new
+        end
+
+        # affect models
+
+        if row.dig(:affect_models)
+            @affect_models = row[:affect_models]
+        else
+            @affect_models = []
+        end
     end
 
-    def self.name
+    def self.item_class_name
         "item".freeze
     end
 

@@ -1,15 +1,18 @@
-require_relative 'game_setup'
+require_relative 'game_lookups'
 require_relative 'game_save'
+require_relative 'game_setup'
 
 class Game
 
-    include Singleton
-    include GameSetup
+    include GameLookups
     include GameSave
+    include GameSetup
+    include Singleton
 
     attr_reader :help_data
     attr_reader :social_data
 
+    attr_reader :frame_time
     attr_reader :game_settings
     attr_reader :saved_player_data
     attr_reader :account_data
@@ -27,6 +30,7 @@ class Game
 
     # models
     attr_reader :mobile_models
+    attr_reader :item_models
 
     # data classes
     attr_reader :elements
@@ -47,7 +51,7 @@ class Game
         @db = nil                           # Sequel database connection
         @started = false                    # Boolean: start has been called?
         @next_uuid = 1                      # Next available UUID for a GameObject.
-        @start_time = nil                   # Time the server actually began running/accepting players
+        @frame_time = 0
         @frame_count = 0                    # Frame count - goes up by 1 every frame (:
         @starting_room = nil                # The room that players log in to - currently gets set in make_rooms
 
@@ -119,6 +123,9 @@ class Game
         @item_keyword_map = Hash.new
         @mobile_keyword_map = Hash.new
 
+        @new_periodic_affects = Set.new
+        @timed_affects = []
+        @periodic_affects = []
         @affects = Set.new                  # Master list of all applied affects in the game
         @skills = []                        # Skill object array
         @spells = []                        # Spell object array
@@ -131,11 +138,10 @@ class Game
     end
 
     def game_loop
-        last_gc_stat = {}
         total_time = 0
-        last_frame_time = Time.now
+        last_frame_time = Time.now.to_f - (1.0 / Constants::Interval::FPS)
         loop do
-            start_time = Time.now
+            @frame_time = Time.now.to_f
             @frame_count += 1
 
             # insert into the database any new accounts waiting
@@ -164,6 +170,7 @@ class Game
                         @inactive_player_source_affects[player.id].each do |source_aff|
                             source_aff.set_source(player)
                         end
+                        @inactive_player_source_affects.delete(player.id)
                     end
                     @players.unshift(player)
                 end
@@ -171,88 +178,93 @@ class Game
 
             # save every so often!
             # add one to the frame_count so it doesn't save on combat frames, etc
-            before = Time.now
+            before = Time.now.to_f
             if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0
                 save
             end
-            save_time = Time.now - before
+            save_time = Time.now.to_f - before
 
             # each combat ROUND
-            before = Time.now
+            before = Time.now.to_f
             if @frame_count % Constants::Interval::ROUND == 0
                 combat
             end
-            round_time = Time.now - before
+            round_time = Time.now.to_f - before
 
-            before = Time.now
+            before = Time.now.to_f
             if @frame_count % Constants::Interval::TICK == 0
                 tick
             end
-            tick_time = Time.now - before
+            tick_time = Time.now.to_f - before
 
             handle_resets
 
-            before = Time.now
-            elapsed = Time.now - last_frame_time
-            last_frame_time = Time.now
+            before = Time.now.to_f
+            elapsed = @frame_time - last_frame_time
+            last_frame_time = @frame_time
             update( elapsed )
-            update_time = Time.now - before
+            update_time = Time.now.to_f - before
 
             @players.each do | player |
                 player.send_to_client
             end
 
-            end_time = Time.now
-            loop_computation_time = end_time - start_time
+            end_time = Time.now.to_f
+            loop_computation_time = end_time - @frame_time
             sleep_time = ((1.0 / Constants::Interval::FPS) - loop_computation_time)
             total_time += loop_computation_time
-            sleep_time = 0.016667
 
             # Sleep until the next frame, if there's time left over
             if sleep_time < 0 && !@initial_reset # try to figure out why there isn't (initial reset frames don't really count :) )!
-                gc_stat = GC.stat
-                if $VERBOSE
-                    lines = []
-                    gc_stat.each do |key, value|
-                        if value != last_gc_stat[key]
-                            lines << key.to_s.ljust(30) + last_gc_stat[key].to_s.ljust(14) + " -> " + value.to_s
-                        end
-                    end
-                    log lines.join("\n")
-                end
-                causes = []
-                if gc_stat[:minor_gc_count] != last_gc_stat[:minor_gc_count]
-                    causes << "  Minor Garbage Collection"
-                end
-                if gc_stat[:major_gc_count] != last_gc_stat[:major_gc_count]
-                    causes << "  Major Garbage Collection"
-                end
-                if (gc_stat[:heap_allocatable_pages] != last_gc_stat[:heap_allocatable_pages] ||
-                    gc_stat[:heap_available_slots] != last_gc_stat[:heap_available_slots] ||
-                    gc_stat[:heap_allocated_pages] != last_gc_stat[:heap_allocated_pages] )
-                    causes << "  Heap Allocation"
-                end
-                last_heap_free = last_gc_stat[:heap_free_slots].to_i == 0 ? 1 : last_gc_stat[:heap_free_slots]
-                if (gc_stat[:heap_free_slots] || 1) / last_heap_free > 3 # drastic increase in open heap slots
-                    causes << "  Freeing Heap Slots"
-                end
-                if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0
-                    causes << "  Save     {c%0.4f{x" % [save_time]
-                end
-                if @frame_count % Constants::Interval::ROUND == 0
-                    causes << "  Round    {c%0.4f{x" % [round_time]
-                end
-                if @frame_count % Constants::Interval::TICK == 0
-                    causes << "  Tick     {c%0.4f{x" % [tick_time]
-                end
-                causes << "  Update   {c%0.4f{x" % [update_time]
-                percent_overage = (loop_computation_time * 100 / (1.0 / Constants::Interval::FPS) - 100).floor
-                log ("Frame {m#{@frame_count}{x took {c#{percent_overage}\%{x too long - possible causes:\n#{causes.join("\n")}")
-
+                slow_frame_diagnostic(loop_computation_time)
             else
                 sleep([sleep_time, 0].max) #
             end
-            # last_gc_stat = GC.stat
+        end
+    end
+
+    def slow_frame_diagnostic(loop_computation_time)
+        percent_overage = (loop_computation_time * 100 / (1.0 / Constants::Interval::FPS) - 100).floor
+        if $VERBOSE
+            @last_gc_stat = GC.stat
+            gc_stat = GC.stat
+            lines = []
+            gc_stat.each do |key, value|
+                if value != last_gc_stat[key]
+                    lines << key.to_s.ljust(30) + last_gc_stat[key].to_s.ljust(14) + " -> " + value.to_s
+                end
+            end
+            log lines.join("\n")
+            causes = []
+            if gc_stat[:minor_gc_count] != last_gc_stat[:minor_gc_count]
+                causes << "  Minor Garbage Collection"
+            end
+            if gc_stat[:major_gc_count] != last_gc_stat[:major_gc_count]
+                causes << "  Major Garbage Collection"
+            end
+            if (gc_stat[:heap_allocatable_pages] != last_gc_stat[:heap_allocatable_pages] ||
+                gc_stat[:heap_available_slots] != last_gc_stat[:heap_available_slots] ||
+                gc_stat[:heap_allocated_pages] != last_gc_stat[:heap_allocated_pages] )
+                causes << "  Heap Allocation"
+            end
+            last_heap_free = last_gc_stat[:heap_free_slots].to_i == 0 ? 1 : last_gc_stat[:heap_free_slots]
+            if (gc_stat[:heap_free_slots] || 1) / last_heap_free > 3 # drastic increase in open heap slots
+                causes << "  Freeing Heap Slots"
+            end
+            if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0
+                causes << "  Save     {c%0.4f{x" % [save_time]
+            end
+            if @frame_count % Constants::Interval::ROUND == 0
+                causes << "  Round    {c%0.4f{x" % [round_time]
+            end
+            if @frame_count % Constants::Interval::TICK == 0
+                causes << "  Tick     {c%0.4f{x" % [tick_time]
+            end
+            causes << "  Update   {c%0.4f{x" % [update_time]
+            percent_overage = (loop_computation_time * 100 / (1.0 / Constants::Interval::FPS) - 100).floor
+            log ("Frame {m#{@frame_count}{x took {c#{percent_overage}\%{x too long - possible causes:\n#{causes.join("\n")}")
+        else
+            log ("Frame {m#{@frame_count}{x took {c#{percent_overage}\%{x too long.")
         end
     end
 
@@ -284,30 +296,12 @@ class Game
             # player.update(elapsed)
             player.process_commands(elapsed)
         end
-        # @wander_mobiles = @mobiles.dup
-        # @wander_mobiles.shuffle.
         # @mobiles.each do | mobile |
         #     mobile.update(elapsed)
         # end
-        # @items.each do | item |
-        #     item.update(elapsed)
-        # end
-        # @rooms.values.each do | room |
-        #     room.update(elapsed)
-        # end
-        # @areas.values.each do | area |
-        #     area.update(elapsed)
-        # end
-        # @affects.each do |affect|
-        #     affect.update(elapsed)
-        # end
-        # @continents.values.each do | continent |
-        #     continent.update(elapsed)
-        # end
-        affects = @affects.to_a
-        affects.each do |affect|
-            affect.update(elapsed)
-        end
+
+        handle_periodic_affects
+        handle_timed_affects
     end
 
     def combat
@@ -361,135 +355,6 @@ class Game
         return targets
     end
 
-    def affect_class_with_id(id)
-        return @affect_class_hash.dig(id)
-    end
-
-    def element_with_symbol(symbol)
-        element = @elements.values.find { |e| e.symbol == symbol}
-        if !element
-            log ("No element with symbol #{symbol} found. Creating one now. Stack trace:")
-            puts caller[0..3]
-            new_id = (@elements.keys.min || 0) - 1
-            element = Element.new({
-                id: new_id,
-                name: symbol.to_s
-            })
-            @elements[new_id] = element
-        end
-        return element
-    end
-
-    def gender_with_symbol(symbol)
-        size = @genders.values.find { |g| g.symbol == symbol}
-        if !size
-            log ("No gender with symbol #{symbol} found. Creating one now. Stack trace:")
-            puts caller[0..3]
-            new_id = (@genders.keys.min || 0) - 1
-            size = Genre.new({
-                id: new_id,
-                name: symbol.to_s,
-                personal_objective: "it",
-                personal_subjective: "it",
-                possessive: "its",
-                reflexive: "itself",
-            })
-            @genres[new_id] = size
-        end
-        return size
-    end
-
-    def genre_with_symbol(symbol)
-        genre = @genres.values.find { |g| g.symbol == symbol}
-        if !genre
-            log ("No genre with symbol #{symbol} found. Creating one now. Stack trace:")
-            puts caller[0..3]
-            new_id = (@genres.keys.min || 0) - 1
-            new_value = 0
-            genre = Genre.new({
-                id: new_id,
-                name: symbol.to_s
-            })
-            @genres[new_id] = genre
-        end
-        return genre
-    end
-
-    def material_with_symbol(symbol)
-        material = @materials.values.find { |m| m.symbol == symbol }
-        if !material
-            log ("No material with symbol #{symbol} found. Creating one now. Stack trace:")
-            puts caller[0..3]
-            new_id = (@materials.keys.min || 0) - 1
-            new_value = 0
-            material = Material.new({
-                id: new_id,
-                name: symbol.to_s
-            })
-            @materials[new_id] = material
-        end
-        return material
-    end
-
-    def noun_with_symbol(symbol)
-        noun = @nouns.values.find { |n| n.symbol == symbol }
-        if !noun
-            copy_noun = @nouns.values.first
-            if !copy_noun
-                log ("No damage nouns exist. That's going to be a problem!")
-                return nil
-            end
-            log("No noun with symbol #{symbol} found. Creating one using #{copy_noun.name} as a base. Stack trace:")
-            puts caller[0..3]
-            new_id = (@nouns.keys.min || 0) - 1
-            @nouns[new_id] = Noun.new({
-                id: new_id,
-                name: symbol.to_s,
-                element: copy_noun.element.id,
-                magic: copy_noun.magic
-            })
-        end
-        return noun
-    end
-
-    def position_with_symbol(symbol)
-        position = @positions.values.find { |p| p.symbol == symbol}
-        if !position
-            log ("No position with symbol #{symbol} found. Creating one now. Stack trace:")
-            puts caller[0..3]
-            new_id = (@positions.keys.min || 0) - 1
-            position = Position.new(new_id, symbol.to_s)
-            @positions[new_id] = position
-        end
-        return position
-    end
-
-    def sector_with_symbol(symbol)
-        sector = @sectors.values.find { |s| s.symbol == symbol}
-        if !sector
-            log ("No sector with symbol #{symbol} found. Creating one now. Stack trace:")
-            puts caller[0..3]
-            new_id = (@sectors.keys.min || 0) - 1
-            new_value = 0
-            sector = Sector.new(new_id, symbol.to_s, new_value)
-            @sectors[new_id] = sector
-        end
-        return sector
-    end
-
-    def size_with_symbol(symbol)
-        size = @sizes.values.find { |s| s.symbol == symbol}
-        if !size
-            log ("No size with symbol #{symbol} found. Creating one now. Stack trace:")
-            puts caller[0..3]
-            new_id = (@sizes.keys.min || 0) - 1
-            new_value = 0
-            size = Size.new(new_id, symbol.to_s, new_value)
-            @sizes[new_id] = size
-        end
-        return size
-    end
-
     def target_global_items(query)
         targets = []
         query[:keyword].each do |keyword|
@@ -531,11 +396,128 @@ class Game
         weather
     end
 
+    ##
+    # Add a new timed affect.
+    # Affect will be cleared when its clear_time has come.
+    def add_timed_affect(affect)
+        if affect.permanent
+            # how'd you get in here?
+            log "Error: Trying to add permanent affect #{affect.name} as a timed affect."
+            puts caller[0..3]
+            return
+        end
+        index = @timed_affects.bsearch_index { |aff| aff.clear_time >= affect.clear_time }
+        if index
+            @timed_affects.insert(index, affect)
+        else
+            @timed_affects << affect
+        end
+    end
+
+    ##
+    # Remove a timed affect early.
+    # Affect will be removed from @timed_affects instantly.
+    def remove_timed_affect(affect)
+        if affect.permanent || !affect.clear_time
+            # how'd you get in here?
+            log "Error trying to remove affect #{affect.name} from timed affects."
+            puts caller[0..3]
+            return false
+        end
+        # find index of first affect with the same clear time
+        index = @timed_affects.bsearch_index { |aff| aff.clear_time >= affect.clear_time}
+        if !index # no such index found
+            return false
+        end
+        # check each of those affects with identical clear_time for the correct one
+        while @timed_affects[index].clear_time == affect.clear_time
+            if @timed_affects[index] == affect
+                @timed_affects.delete_at(index)
+                return true
+            end
+            index += 1
+        end
+        return false
+    end
+
+    ##
+    # Clear all affects whose clear_times have come.
+    def handle_timed_affects
+        index = @timed_affects.bsearch_index { |aff| aff.clear_time > @frame_time }
+        # slice array where affects are supposed to be cleared up until
+        @timed_affects.slice!(0...index).each do |aff|
+            aff.clear
+        end
+    end
+
+    ##
+    # Add a new periodic affect.
+    # Will be integrated into the @periodic_affect array in next Game#handle_periodic_affects.
+    def add_periodic_affect(affect)
+        if !affect.period
+            log "Error: Trying to add affect #{affect.name} with no period as a periodic affect."
+            puts caller[0..3]
+            return
+        end
+        @new_periodic_affects.add(affect)
+    end
+
+    ##
+    # Remove an affect from @periodic_affects and @new_periodic_affects
+    def remove_periodic_affect(affect)
+        @new_periodic_affects.delete(affect)
+        if !affect.period
+            # how'd you get in here?
+            log "Error: Trying to remove affect without period #{affect.name} from periodic affects."
+            puts caller[0..3]
+            return false
+        end
+        # find index of first affect with the same next_periodic_time
+        index = @periodic_affects.bsearch_index { |aff| aff.next_periodic_time >= affect.next_periodic_time}
+        if !index # no such index found
+            return false
+        end
+        #check each of those affects with identical next_periodic_time for the correct one
+        while @periodic_affects[index].next_periodic_time == affect.next_periodic_time
+            if @periodic_affects[index] == affect
+                @periodic_affects.delete_at(index)
+                return true
+            end
+            index += 1
+        end
+        return false
+    end
+
+    ##
+    # Handle affects with periodic methods
+    def handle_periodic_affects
+        # join new periodic affects into the master array
+        @new_periodic_affects.each do |new_aff|
+            index = @periodic_affects.bsearch_index { |aff| aff.next_periodic_time >= new_aff.next_periodic_time }
+            if index
+                @periodic_affects.insert(index, new_aff)
+            else
+                @periodic_affects << new_aff
+            end
+        end
+        @new_periodic_affects.clear
+        # slice the periodic-ready affects out of the array
+        index = @periodic_affects.bsearch_index { |aff| aff.next_periodic_time > @frame_time }
+
+        @periodic_affects.slice!(0...index).each_with_index do |aff, index|
+            aff.update
+        end
+    end
+
     ## Activate a reset.
     # _Called only by the reset itself_
     def activate_reset(reset)
-        @active_resets << reset             # add to the list of active resets!
-        @active_resets_sorted = false
+        index = @active_resets.bsearch_index { |r| r.pop_time >= reset.pop_time }
+        if index
+            @active_resets.insert(index, reset)
+        else
+            @active_resets << reset
+        end
     end
 
     ## Handle resets.
@@ -543,10 +525,6 @@ class Game
     def handle_resets(limit = Constants::Interval::RESETS_PER_FRAME)
         if @active_resets.size == 0
             return
-        end
-        if !@active_resets_sorted
-            @active_resets.sort_by!(&:pop_time)
-            @active_resets_sorted = true
         end
         current_time = Time.now.to_i
         [@active_resets.size, limit].min.times do
@@ -575,34 +553,20 @@ class Game
     end
 
     def load_item( id, inventory )
-        item = nil
-        if ( row = @item_data[ id ] )
-            if row[:noun]
-                item = Weapon.new( row, inventory )
-            elsif row[:type] == "container"
-                item = Container.new( row, inventory )
-            elsif row[:type] == "pill" or row[:type] == "potion"
-                item = Consumable.new( row, inventory, @item_spells[ id ] )
-            else
-                item = Item.new( row, inventory )
-            end
-
-            if not @portal_data[ id ].nil?
-                # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
-                # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
-                AffectPortal.new( item, @rooms[ @portal_data[id][:to_room_id] ] ).apply
-            end
-
-            if item
-                add_global_item(item)
-                return item
-            else
-                log "[Item creation unsuccessful]"
-                return nil
-            end
-        else
-            log "load_item [ITEM NOT FOUND] Item ID: #{ id }"
+        model = @item_models[id]
+        if !model
+            log "load_item [ITEM MODEL NOT FOUND] Item ID: #{id}"
+            return
         end
+        item_class = model.class.item_class
+        item = item_class.new(model, inventory)
+        add_global_item(item)
+        if not @portal_data[ id ].nil?
+            # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
+            # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
+            AffectPortal.new( item, @rooms[ @portal_data[id][:to_room_id] ] ).apply
+        end
+        return item
     end
 
     def do_command( actor, cmd, args = [], input = cmd )
@@ -619,18 +583,23 @@ class Game
     	actor.output "Huh?"
     end
 
+    ##
+    # Returns true if a given GameObject responds to a given event
+    def responds_to_event(object, event)
+        return true
+        return @responders.dig(object.uuid, event).nil?
+    end
+
     # Send an event to a list of objects
     #
     # Examples:
     #  fire_event(some_mobile, :event_test, {})
     #  fire_event(some_mobile, :event_on_hit, data)
     def fire_event(object, event, data)
-        if !( r = @responders.dig(object.uuid, event) )
-            return
-        end
-        r.each do |callback_object, callback, priority|
+        @responders.dig(object.uuid, event).to_a.each do |callback_object, callback, priority|
             callback_object.send(callback, data)
         end
+        return true
     end
 
     def add_event_listener(object, event, callback_object, callback, priority = 100)
@@ -676,7 +645,6 @@ class Game
         end
     end
 
-
     def remove_global_item(item)
         @items.delete(item)
         item.keywords.each do |keyword|
@@ -712,23 +680,6 @@ class Game
         end
     end
 
-    def add_global_affect(affect)
-        if !affect.permanent || affect.period
-            @affects.add(affect)
-        end
-    end
-
-    def remove_global_affect(affect)
-        @affects.delete(affect)
-        source = affect.source
-        if source && source.is_a?(Player) && @inactive_player_source_affects.dig(source.id)
-            @inactive_player_source_affects[source.id].delete(affect)
-            if @inactive_player_source_affects[source.id].size == 0
-                @inactive_player_source_affects.delete(source.id)
-            end
-        end
-    end
-
     def add_combat_mobile(mobile)
         @combat_mobs.add(mobile)
     end
@@ -737,14 +688,20 @@ class Game
         @combat_mobs.delete(mobile)
     end
 
-    # Object removal methods:
-    #
-    # objects passed to these methods will be allowed to be garbage collected, provided they are not
-    # the source of any remaining affects in the game.
-    #
-    # Calling destroy_mobile does NOT call destroy_item on the mobile's items
-    # figure out what to do with continents/areas/rooms?
-    #
+    # Affect/GameObject destruction:
+
+    def destroy_affect(affect)
+        if affect.clear_time
+            remove_timed_affect(affect)
+        end
+        source = affect.source
+        if source && source.is_a?(Player) && @inactive_player_source_affects.dig(source.id)
+            @inactive_player_source_affects[source.id].delete(affect)
+            if @inactive_player_source_affects[source.id].size == 0
+                @inactive_player_source_affects.delete(source.id)
+            end
+        end
+    end
 
     # destroy a continent object
     def destroy_continent(continent)
@@ -777,6 +734,7 @@ class Game
 
     # destroy a player object
     def destroy_player(player)
+        pp player.affects.map {|a| "#{a.name}"}
         @inactive_player_source_affects[player.id] = player.source_affects
         remove_global_mobile(player)
         @players.delete(player)

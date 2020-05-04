@@ -30,11 +30,11 @@ class Continent < GameObject
     end
 
     def starting_room
-        Game.instance.rooms.dig(starting_room_id)
+        Game.instance.rooms.dig(@starting_room_id) || Game.instance.rooms.values.first
     end
 
     def recall_room
-        Game.instance.rooms.dig(recall_room_id)
+        Game.instance.rooms.dig(@recall_room_id) || Game.instance.rooms.values.first
     end
 
     def db_source_type

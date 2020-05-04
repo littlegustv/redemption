@@ -29,16 +29,19 @@ class AffectVulnerable < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_get_resists, self, :do_resist)
+        element = Game.instance.elements[@data[:element_id]]
+        event = "event_get_#{element.name}_resist".to_sym
+        Game.instance.add_event_listener(@target, event, self, :do_resist)
     end
 
     def complete
-        Game.instance.remove_event_listener(@target, :event_get_resists, self)
+        element = Game.instance.elements[@data[:element_id]]
+        event = "event_get_#{element.name}_resist".to_sym
+        Game.instance.remove_event_listener(@target, event, self)
     end
 
     def do_resist(data)
-        element = Game.instance.elements[@data[:element_id]]
-        data[element] += @data[:value]
+        data[:value] += @data[:value]
     end
 
 end

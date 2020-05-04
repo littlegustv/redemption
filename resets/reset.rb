@@ -32,7 +32,7 @@ class Reset
         if instant
             @pop_time = 0
         else
-            @pop_time = Time.now.to_i + @timer
+            @pop_time = Game.instance.frame_time + @timer
         end
         Game.instance.activate_reset(self)
     end

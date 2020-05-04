@@ -141,37 +141,6 @@ class String
         return self.rjust(n, fill)
     end
 
-    def to_element
-        self.to_sym.to_element
-    end
-
-    def to_gender
-        self.to_sym.to_gender
-    end
-
-    def to_genre
-        self.to_sym.to_genre
-    end
-
-    def to_material
-        self.to_sym.to_material
-    end
-
-    def to_noun
-        self.to_sym.to_noun
-    end
-
-    def to_position
-        self.to_sym.to_position
-    end
-
-    def to_sector
-        self.to_sym.to_sector
-    end
-
-    def to_size
-        self.to_sym.to_size
-    end
 end
 
 class Symbol
@@ -242,7 +211,7 @@ class Logger
         s = s.to_s.gsub(/\n/, "\n#{" " * 20} ")
         if @last_newline
             @timestamp = Time.now
-            s = "{d[#{@timestamp.strftime("%M-%d %T.%L")}]\033{x #{s}"
+            s = "{d[#{@timestamp.strftime("%m-%d %T.%L")}]\033{x #{s}"
         end
         if min_line_length > s.length + @line.length
             s += (" " * (min_line_length - s.length - @line.length))

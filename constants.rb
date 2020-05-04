@@ -130,10 +130,10 @@ module Constants
 
     module Interval
         FPS = 30
-        ROUND = FPS * 1	    	# 1 second
+        ROUND = FPS * 3	    	# let's try 3 seconds
         TICK = FPS * 60			# 1 minute
         AUTOSAVE = FPS * 60     # 1 minute
-        RESETS_PER_FRAME = 200
+        RESETS_PER_FRAME = 10000 / FPS
     end
 
     DAMAGE_DECORATORS = {
@@ -494,7 +494,8 @@ module Constants
         AffectMirrorImage,
         AffectPassDoor,
         AffectPlague,
-        AffectPoison,
+        AffectPoisoned,
+        AffectPoisonWeapon,
         AffectPortal,
         AffectProtectionEvil,
         AffectProtectionGood,

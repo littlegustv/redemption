@@ -135,7 +135,7 @@ class AffectGuard < Affect
             level, # level
             60, # duration
             nil, # modifiers: nil
-            2, # period: nil
+            nil, # period: nil
             false, # permanent: false
             Visibility::HIDDEN, # visibility
             true # savable
@@ -151,24 +151,22 @@ class AffectGuard < Affect
     end
 
     #
-    # def start
-    #     Game.instance.add_event_listener(@target, :event_mobile_enter, self, :do_guard)
-    # end
-    #
-    # def complete
-    #     Game.instance.remove_event_listener(@target, :event_mobile_enter, self)
-    # end
-    #
-    # def do_guard(data)
-    #     if @target.can_see?(data[:mobile]) && data[:mobile].affected?("killer") && !data[:mobile].affected?("cloak of mind")
-    #     	@target.do_command "yell #{data[:mobile]} is a KILLER! PROTECT THE INNOCENT!! BANZAI!!"
-    #     	@target.start_combat data[:mobile]
-    #     end
-    # end
+    def start
+        Game.instance.add_event_listener(@target, :event_observe_mobile_enter, self, :toggle_guard)
+    end
+
+    def complete
+        Game.instance.remove_event_listener(@target, :event_observe_mobile_enter, self)
+    end
+
+    def toggle_guard(data)
+        toggle_periodic(rand * 3)
+    end
 
     def periodic
         players = @target.room.players
         if players.empty?
+            toggle_periodic(nil)
             return
         end
         if !@target.attacking

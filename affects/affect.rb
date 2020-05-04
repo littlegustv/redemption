@@ -2,11 +2,14 @@ class Affect
     attr_accessor :duration
     attr_accessor :permanent
     attr_accessor :savable
+    attr_accessor :visibility
+    attr_reader :start_time
+    attr_reader :clear_time
     attr_reader :data
-    attr_reader :visibility
     attr_reader :level
     attr_reader :modifiers
     attr_reader :period
+    attr_reader :next_periodic_time
     attr_reader :target
     attr_reader :source
 
@@ -41,6 +44,7 @@ class Affect
         @duration = duration
         @modifiers = modifiers
         @period = period
+        @next_periodic_time = nil
         @application_type = application_type   # :global_overwrite, :global_stack, :global_single,
                                                # :source_overwrite, :source_stack, :source_single,
                                                # :multiple
@@ -49,8 +53,16 @@ class Affect
         @savable = true
         @info = nil
 
+        if @duration
+            @duration = @duration.to_f
+        end
+        if @period
+            @period = @period.to_f
+        end
+        @start_time = 0                         # Time of the affect's application.
+        @clear_time = nil                       # Time when the affect should clear, or nil if permanent.
         @clock = 0
-        @data = nil                            # Additional data. Only "primitives". Saved to the database.
+        @data = self.class.affect_info[:data]   # Additional data. Only "primitives". Saved to the database.
 
     end
 
@@ -89,19 +101,10 @@ class Affect
     def complete
     end
 
-    def update( elapsed )
+    def update
         if @period
-            @clock += elapsed
-            if @clock >= @period
-                periodic
-                @clock = 0
-            end
-        end
-        if !@permanent
-            @duration -= elapsed
-            if @duration <= 0
-                self.clear(false)
-            end
+            periodic
+            schedule_next_periodic_time
         end
     end
 
@@ -126,11 +129,11 @@ class Affect
                 existing_affects.each { |a| a.clear(true) }
                 self.send_refresh_messages if !silent
                 @target.affects.unshift(self)
-                Game.instance.add_global_affect(self)
                 self.start
             when :global_stack, :source_stack
                 existing_affects.first.send_refresh_messages if !silent
                 existing_affects.first.stack(self)
+                return nil
             when :global_single, :source_single
                 # existing single affect already exists!
                 return nil
@@ -138,7 +141,6 @@ class Affect
                 # :multiple application type affects stack no matter what
                 self.send_start_messages if !silent
                 @target.affects.unshift(self)
-                Game.instance.add_global_affect(self)
                 self.start
             else
                 log "Unknown application type #{@application_type} in affect.apply, affect: #{self.name} target: #{@target.name}"
@@ -148,17 +150,27 @@ class Affect
             # no relevant existing affects, apply normally
             self.send_start_messages if !silent
             @target.affects.unshift(self)
-            Game.instance.add_global_affect(self)
             self.start
         end
         if @source
             @source.source_affects << self
         end
+        @start_time = Game.instance.frame_time
+        if @permanent
+            @clear_time = nil
+        else
+            @clear_time = @start_time + @duration
+            Game.instance.add_timed_affect(self)
+        end
+        if @period
+            @next_periodic_time = @start_time + @period
+            Game.instance.add_periodic_affect(self)
+        end
         return self
     end
 
     def set_source(source)
-        log "transferring affect source"
+        log "transferring affect source #{self.name}"
         if @source
             @source.source_affects.delete(self)
         end
@@ -175,11 +187,34 @@ class Affect
         if @source
             @source.source_affects.delete(self)
         end
-        Game.instance.remove_global_affect(self)
+        toggle_periodic(nil)
+        Game.instance.destroy_affect(self)
         send_complete_messages if !silent
     end
 
+    def toggle_periodic(new_period)
+        if @period
+            Game.instance.remove_periodic_affect(self)
+        end
+        @period = new_period
+        self.schedule_next_periodic_time
+    end
+
+    def schedule_next_periodic_time
+        if @period
+            if @next_periodic_time
+                @next_periodic_time += @period
+            else
+                @next_periodic_time = Game.instance.frame_time + @period
+            end
+            Game.instance.add_periodic_affect(self)
+        else
+            @next_periodic_time = nil
+        end
+    end
+
     def periodic
+
     end
 
     def check( key )
@@ -280,6 +315,7 @@ class Affect
             name: "affect_name",
             keywords: ["affect_keywords"],
             application_type: :global_overwrite,
+            data: @data
         }
     end
 
@@ -292,42 +328,9 @@ class Affect
         @id
     end
 
+    def self.set_data(data)
+        @data = data
+    end
+
 
 end
-
-# The AffectCondition is an object that an +Affect+ can evaluate at each +update+ to determine whether or not     <br>
-# the +Affect+ should clear itself. When added to an +Affect+'s +conditions+ array, the affect will clear itself  <br>
-# upon finding any condition to be false.
-#                                                                            # evaluates as:
-#  AffectCondition.new(some_mobile, [:room], :==, some_room, [])             # some_mobile.room == some_room
-#  AffectCondition.new(some_mobile, [:room, :area], :==, some_room, [:area]) # some_mobile.room.area == some_room.area
-#
-# class AffectCondition
-#
-#     # Creates a new instance.
-#     # +l_object+:: Base object on the lefthand side of the operator
-#     # +l_symbols+:: Any methods to call on l_object at each +evaluate+
-#     # +operator+:: The comparison operator
-#     # +r_object+:: Base object on the righthand side of the operator
-#     # +r_symbols+:: Any methods to call on r_object at each +evaluate+
-#     def initialize(l_object, l_symbols, operator, r_object, r_symbols)
-#         @l_object = (l_object.frozen?) ? l_object : WeakRef.new(l_object)
-#         @l_symbols = l_symbols
-#         @operator = operator
-#         @r_object = (r_object.frozen?) ? r_object : WeakRef.new(r_object)
-#         @r_symbols = r_symbols
-#     end
-#
-#     # The affect will call this in +update+
-#     def evaluate
-#         if (!@l_object.frozen? && !@l_object.weakref_alive?) || (!@r_object.frozen? && !@r_object.weakref_alive?)
-#             return false
-#         end
-#         l = @l_object
-#         @l_symbols.each { |symbol| l = l.send(symbol) }
-#         r = @r_object
-#         @r_symbols.each { |symbol| r = r.send(symbol) }
-#         return l.send(@operator, r)
-#     end
-#
-# end

@@ -69,9 +69,9 @@ class AffectPlague < Affect
     def periodic
         (@target.room.occupants - [@target]).each_output "0<N> writhes in agony as plague sores erupt from their skin.", [@target]
         @target.output "You writhe in agony from the plague."
-        @target.receive_damage(nil, 10, "plague", true, true)
+        @target.receive_damage(nil, 10, :plague, true, true)
         (@target.room.occupants - [@target]).each do |occupant|
-            AffectPlague.new( nil, occupant, @level ).apply if rand(1...100) < 50
+            # AffectPlague.new( nil, occupant, @level ).apply if rand(1...100) < 50
         end
     end
 
@@ -84,7 +84,7 @@ class AffectPlague < Affect
     end
 end
 
-class AffectPoison < Affect
+class AffectPoisoned < Affect
 
     def initialize(source, target, level)
         super(
@@ -102,27 +102,25 @@ class AffectPoison < Affect
 
     def self.affect_info
         return @info || @info = {
-            name: "poison",
-            keywords: ["poison"],
+            name: "poisoned",
+            keywords: ["poisoned"],
             application_type: :source_stack,
         }
     end
 
     def send_start_messages
         (@target.room.occupants - [@target]).each_output "{m0<N> looks very ill.{x", [@target]
-        # @target.output "{mYou feel poison coursing through your veins.{x"
         @target.output "You feel very sick."
     end
 
     def send_refresh_messages
         (@target.room.occupants - [@target]).each_output "{m0<N> looks very ill.{x", [@target]
-        # @target.output "{mYou feel poison coursing through your veins.{x"
         @target.output "You feel very sick."
     end
 
     def periodic
         @target.room.occupants.each_output("0<N> shiver0<,s> and suffer0<,s>.", @target)
-        @source.deal_damage(@target, 10, "poison", true)
+        @source.deal_damage(@target, 10, :poison, true)
     end
 
     def send_complete_messages
@@ -131,6 +129,68 @@ class AffectPoison < Affect
 
     def summary
         super + "\n" + (" " * 24) + " : damage over time for #{ duration.to_i } seconds"
+    end
+end
+
+class AffectPoisonWeapon < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Visibility::NORMAL, # visibility
+            true # savable
+        )
+        @data = {
+            chance: 5
+        }
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "poisonous",
+            keywords: ["poisonous"],
+            application_type: :global_single,
+        }
+    end
+
+    def start
+        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
+        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
+        if @target.equipped?
+            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
+        end
+    end
+
+    def complete
+        Game.instance.remove_event_listener(@target, :event_item_wear, self)
+        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
+        if @target.equipped?
+            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        end
+    end
+
+    def add_flag(data)
+        Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_flag)
+    end
+
+    def remove_flag(data)
+        Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
+    end
+
+    def do_flag(data)
+        if data[:weapon] == @target && data[:target].active
+            if dice(1, 100) <= @data[:chance]
+                aff = AffectPoisoned.new(data[:source], data[:target], @target.level)
+                aff.duration = 60
+                aff.apply
+            end
+        end
     end
 end
 

@@ -5,6 +5,7 @@ class Player < Mobile
 
     def initialize( player_model, room, client )
         super(player_model, room)
+        @name = player_model.name
         @creation_points = player_model.creation_points
         @account_id = player_model.account_id
         @learned_skills = player_model.learned_skills
@@ -175,7 +176,7 @@ class Player < Mobile
         @affects.each do |affect|
             affect.clear(true) if !affect.permanent
         end
-        room = Game.instance.rooms[@room.continent.recall_room_id]
+        room = @room.continent.recall_room
         move_to_room( room )
         @hitpoints = 10
         @position = :resting.to_position

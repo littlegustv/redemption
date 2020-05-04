@@ -9,7 +9,7 @@ class AffectAggressive < Affect
             0, # level
             0, # duration
             nil, # modifiers
-            2, # period
+            nil, # period
             true, # permanent
             Visibility::HIDDEN, # visibility
             true # savable
@@ -24,25 +24,23 @@ class AffectAggressive < Affect
         }
     end
 
-    # def start
-    #     Game.instance.add_event_listener(@target, :event_observe_mobile_enter, self, :do_aggro)
-    # end
-    #
-    # def complete
-    #     Game.instance.remove_event_listener(@target, :event_observe_mobile_enter, self)
-    # end
-    #
-    # def do_aggro(data)
-    #     if @target.can_see?(data[:mobile]) && !data[:mobile].affected?("cloak of mind")
-    #         @target.room.occupants.each_output "0{N} 0{scream, screams} and 0{attack, attacks}!!", [@target]
-    #         @target.start_combat data[:mobile]
-    #         @target.do_round_of_attacks(target: data[:mobile])
-    #     end
-    # end
+    def start
+        Game.instance.add_event_listener(@target, :event_observe_mobile_enter, self, :toggle_aggro)
+        Game.instance.add_event_listener(@target, :event_mobile_enter, self, :toggle_aggro)
+    end
+
+    def complete
+        Game.instance.remove_event_listener(@target, :event_observe_mobile_enter, self)
+        Game.instance.remove_event_listener(@target, :event_mobile_enter, self)
+    end
+
+    def toggle_aggro(data)
+        toggle_periodic(rand * 3)
+    end
 
     def periodic
-        players = @target.room.players
-        if players.empty?
+        if (players = @target.room.players).empty?
+            # toggle_periodic(nil)
             return
         end
         player = players.select{ |t| @target.can_see?(t) }.shuffle!.first

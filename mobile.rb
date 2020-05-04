@@ -117,8 +117,8 @@ class Mobile < GameObject
         # wander "temporarily" disabled :)
         @wander_range = 0 # data[:act_flags].to_a.include?("sentinel") ? 0 : 1
 
-        @hitpoints = model.current_hp || maxhitpoints
-        @manapoints = model.current_mana || maxmanapoints
+        @hitpoints = model.hp || model.current_hp || maxhitpoints
+        @manapoints = model.mana || model.current_mana || maxmanapoints
         @movepoints = model.current_movement || maxmovepoints
 
         if model.size
@@ -135,8 +135,8 @@ class Mobile < GameObject
         self.items.each do |item|
             item.destroy
         end
-        if hand_to_hand_weapon
-            hand_to_hand_weapon.destroy
+        if @h2h_equip_slot.item
+            @h2h_equip_slot.item.destroy
         end
         Game.instance.destroy_mobile(self)
     end
@@ -288,7 +288,7 @@ class Mobile < GameObject
     # When calling 'start_combat', call it first for the 'victim', then for the attacker
 
     def start_combat( attacker )
-        if !@active || !attacker.active || !@room.contains?([self, attacker]) || attacker == self
+        if !@active || !attacker.active || !@room.contains?(attacker) || attacker == self
             return
         end
 
@@ -306,7 +306,7 @@ class Mobile < GameObject
             @attacking = attacker
         end
 
-        Game.instance.fire_event( self, :event_on_start_combat, {} )
+        Game.instance.fire_event( self, :event_on_start_combat, nil )
         Game.instance.add_combat_mobile(self)
         attacker.start_combat( self ) if attacker.attacking.nil?
     end
@@ -338,9 +338,12 @@ class Mobile < GameObject
     end
 
     def regen( hp, mp, mv )
-        data = { hp: hp, mp: mp, mv: mv }
-        Game.instance.fire_event( self, :event_calculate_regeneration, data )
-        hp, mp, mv = data.values
+        if Game.instance.responds_to_event(self, :event_calculate_regeneration)
+            Game.instance.fire_event( self, :event_calculate_regeneration, data )
+            data = { hp: hp, mp: mp, mv: mv }
+            hp, mp, mv = data.values
+        end
+
         @hitpoints = [@hitpoints + hp, maxhitpoints].min
         @manapoints = [@manapoints + mp, maxmanapoints].min
         @movepoints = [@movepoints + mv, maxmovepoints].min
@@ -429,10 +432,13 @@ class Mobile < GameObject
 
         # check for override event - i.e. burst rune
 
-        override = { confirm: false, source: self, target: target, weapon: weapon }
-        Game.instance.fire_event( self, :event_override_hit, override )
-        if override[:confirm]
-            return
+
+        if Game.instance.responds_to_event(self, :event_override_hit)
+            override = { confirm: false, source: self, target: target, weapon: weapon }
+            Game.instance.fire_event( self, :event_override_hit, override )
+            if override[:confirm]
+                return
+            end
         end
         # calculate hit chance ... I guess burst rune auto-hits?
         hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon.noun.element ) ).clamp( 5, 95 )
@@ -444,20 +450,27 @@ class Mobile < GameObject
         end
 
         # modify hit damage
-        data = { damage: damage, source: self, target: target, weapon: weapon }
-        Game.instance.fire_event( self, :event_calculate_weapon_hit_damage, data )
-        damage = data[:damage].to_i
+
+        if Game.instance.responds_to_event(self, :event_calculate_weapon_hit_damage)
+            data = { damage: damage, source: self, target: target, weapon: weapon }
+            Game.instance.fire_event( self, :event_calculate_weapon_hit_damage, data )
+            damage = data[:damage].to_i
+        end
 
         deal_damage(target, damage, noun, false, false, noun_name_override)
 
         if hit
-            override = { confirm: false, source: self, target: target, weapon: weapon }
-            Game.instance.fire_event( target, :event_override_receive_hit, override )
-            if override[:confirm]
-                return
+            if Game.instance.responds_to_event(self, :event_override_receive_hit)
+                override = { confirm: false, source: self, target: target, weapon: weapon }
+                Game.instance.fire_event( target, :event_override_receive_hit, override )
+                if override[:confirm]
+                    return
+                end
             end
-            data = { damage: damage, source: self, target: target, weapon: weapon }
-            Game.instance.fire_event(self, :event_on_hit, data)
+            if Game.instance.responds_to_event(self, :event_on_hit)
+                data = { damage: damage, source: self, target: target, weapon: weapon }
+                Game.instance.fire_event(self, :event_on_hit, data)
+            end
         end
 
     end
@@ -472,13 +485,16 @@ class Mobile < GameObject
     #  mob1.deal_damage(mob2, 60, "stab")
     #  mob1.deal_damage(mob2, 10, "bleeding", true, true)
     def deal_damage(target, damage, noun = "hit", silent = false, anonymous = false, noun_name_override = nil)
-        if !target || !target.active # if this is inactive, it can still deal damage
+        if !target
             return
         end
         noun = noun.to_noun
-        calculation_data = { source: self, target: target, damage: damage, noun: noun }
-        Game.instance.fire_event(self, :event_calculate_damage, calculation_data)
-        damage = calculation_data[:damage]
+
+        if Game.instance.responds_to_event(self, :event_calculate_damage)
+            calculation_data = { source: self, target: target, damage: damage, noun: noun }
+            Game.instance.fire_event(self, :event_calculate_damage, calculation_data)
+            damage = calculation_data[:damage]
+        end
         target.receive_damage(self, damage, noun, silent, anonymous, noun_name_override)
     end
 
@@ -497,15 +513,21 @@ class Mobile < GameObject
         if source && source != self
             self.start_combat( source )
         end
-        override = { confirm: false, source: source, target: self, damage: damage, noun: noun }
-        Game.instance.fire_event(self, :event_override_receive_damage, override)
-        if override[:confirm]
-            return
+
+        if Game.instance.responds_to_event(self, :event_override_receive_damage)
+            override = { confirm: false, source: source, target: self, damage: damage, noun: noun }
+            Game.instance.fire_event(self, :event_override_receive_damage, override)
+            if override[:confirm]
+                return
+            end
         end
-        calculation_data = { source: source, target: self, damage: damage, noun: noun }
-        Game.instance.fire_event(self, :event_calculate_receive_damage, calculation_data)
-        damage = calculation_data[:damage]
-        resistance = self.resistances[noun.element]
+        if Game.instance.responds_to_event(self, :event_calculate_receive_damage)
+            calculation_data = { source: source, target: self, damage: damage, noun: noun }
+            Game.instance.fire_event(self, :event_calculate_receive_damage, calculation_data)
+            damage = calculation_data[:damage]
+        end
+        resistance = self.resistance(noun.element)
+        # resistance = 0
         noun_name = noun_name_override || noun.name
         if resistance >= 1.0 # immune!
             if !silent
@@ -518,7 +540,7 @@ class Mobile < GameObject
             return # immunity means we stop here!
         end
         damage = (damage * (1.0 - resistance)).to_i
-        if !silent
+        if !silent && ((source && source.is_player?) || self.room.players.length > 0)
             decorators = Constants::DAMAGE_DECORATORS
             if noun.magic
                 decorators = Constants::MAGIC_DAMAGE_DECORATORS
@@ -578,6 +600,7 @@ class Mobile < GameObject
         if !@active
             return
         end
+        killer = nil if killer == self
         (@room.occupants - [self]).each_output "0<N> is DEAD!!", [self]
         Game.instance.fire_event( self, :event_on_die, { died: self, killer: killer } )
 
@@ -675,19 +698,19 @@ class Mobile < GameObject
 
     def recall
         @room.occupants.each_output "0<N> pray0<,s> for transportation!", [self]
-        data = { mobile: self, success: true }
-        Game.instance.fire_event(self, :event_try_recall, data)
-
-        if data[:success]
-            (@room.occupants - [self]).each_output "0<N> disappears!", [self]
-            room = Game.instance.rooms[@room.continent.recall_room_id]
-            move_to_room( room )
-            (@room.occupants - [self]).each_output "0<N> arrives in a puff of smoke!", [self]
-            return true
-        else
-            output "#{@deity} has forsaken you."
-            return false
+        if Game.instance.responds_to_event(self, :event_try_recall)
+            data = { mobile: self, success: true }
+            Game.instance.fire_event(self, :event_try_recall, data)
+            if !data[:success]
+                output "#{@deity} has forsaken you."
+                return false
+            end
         end
+        (@room.occupants - [self]).each_output "0<N> disappears!", [self]
+        room = @room.continent.recall_room
+        move_to_room( room )
+        (@room.occupants - [self]).each_output "0<N> arrives in a puff of smoke!", [self]
+        return true
     end
 
     def condition_percent
@@ -697,9 +720,11 @@ class Mobile < GameObject
     def condition
         percent = condition_percent
 
-        data = { percent: percent }
-        Game.instance.fire_event( self, :event_show_condition, data )
-        percent = data[:percent]
+        if Game.instance.responds_to_event(self, :event_show_condition)
+            data = { percent: percent }
+            Game.instance.fire_event( self, :event_show_condition, data )
+            percent = data[:percent]
+        end
 
         if (percent >= 100)
             return "#{self.name.capitalize_first} is in excellent condition.\n"
@@ -748,12 +773,6 @@ class Mobile < GameObject
         self.name.to_s
     end
 
-    def short_description
-        data = { description: self.short_description }
-        Game.instance.fire_event(self, :event_calculate_description, data )
-        return data[:description]
-    end
-
     def show_short_description(observer:)
         data = {description: ""}
         auras = self.long_auras
@@ -790,6 +809,11 @@ class Mobile < GameObject
     # returns true if self can see target
     def can_see?(target)
         return true if target == self
+        if !Game.instance.responds_to_event(self, :event_try_can_see) &&
+            !Game.instance.responds_to_event(self.room, :event_try_can_see_room) &&
+            !Game.instance.responds_to_event(target, :event_try_can_be_seen)
+            return true
+        end
         data = {chance: 100, target: target, observer: self}
         Game.instance.fire_event(self, :event_try_can_see, data)
         Game.instance.fire_event(self.room, :event_try_can_see_room, data)
@@ -944,9 +968,19 @@ You are #{@position.name}.)
         return (@race.spells | @mobile_class.spells)
     end
 
+    def resistance(element)
+        event = "event_get_#{element.name}_resist".to_sym
+        if Game.instance.responds_to_event(self, event)
+            resist_data = {value: 0}
+            Game.instance.fire_event(self, event, resist_data)
+            return resist_data[:value]
+        else
+            return 0
+        end
+    end
+
     def resistances
-        element_data = Game.instance.elements.values.map { |e| [e, 0] }.to_h
-        Game.instance.fire_event(self, :event_get_resists, element_data)
+        element_data = Game.instance.elements.values.map { |e| [e, self.resist(e)] }.to_h
         return element_data
     end
 

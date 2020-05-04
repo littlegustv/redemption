@@ -2,7 +2,6 @@
 
     attr_accessor :active
     attr_accessor :weight
-    attr_accessor :type
     attr_accessor :cost
     attr_reader :id
     attr_reader :wear_flags
@@ -23,7 +22,7 @@
 
         @active = true
         @parent_inventory = nil
-        @modifiers = Hash.new
+        @modifiers = model.modifiers.dup
         move(parent_inventory)
 
         @model.affect_models.each do |affect_model|
@@ -46,7 +45,7 @@
         @short_description || @model.short_description
     end
 
-    def self.type
+    def type_name
         return "item"
     end
 
@@ -68,7 +67,7 @@
 
     def lore
 %Q(
-Object '#{ self.short_description }' is of type #{ self.type }.
+Object '#{ self.short_description }' is of type #{ self.type_name }.
 Description: #{ @long_description }
 Keywords '#{ @keyword_string }'
 Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.

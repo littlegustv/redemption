@@ -42,8 +42,8 @@ module GameSetup
         load_elements
         load_positions
         load_commands
-        load_skills
-        load_spells
+        load_abilities
+        load_wear_locations
         load_equip_slots
         load_genders
         load_genres
@@ -53,7 +53,6 @@ module GameSetup
         load_races
         load_sectors
         load_sizes
-        load_wear_locations
 
 
         load_continents
@@ -72,7 +71,6 @@ module GameSetup
 
         load_max_ids
 
-        @start_time = Time.now
         log( "Redemption is ready to rock on port #{port}!" )
         log( "Starting initial resets." )
 
@@ -80,7 +78,7 @@ module GameSetup
 
         # game update loop runs on a single thread
         Thread.start do
-            game_loop
+        game_loop
         end
 
         # each client runs on its own thread as well
@@ -137,7 +135,7 @@ module GameSetup
         item_type_rows = @db[:item_type_base].to_hash(:id)
 
         item_type_rows.each do |id, row|
-            model_class = Constants::ITEM_MODEL_CLASSES.find{|model_class| model_class.name == row[:name]}
+            model_class = Constants::ITEM_MODEL_CLASSES.find{|model_class| model_class.item_class_name == row[:name]}
             if !model_class
                 model_class = ItemModel
             end
@@ -157,6 +155,7 @@ module GameSetup
             if row
                 id = row[:id]
                 aff_class.set_id(id)
+                aff_class.set_data(JSON.parse(row[:data], symbolize_names: true)) if row.dig(:data)
                 @affect_class_hash[id] = aff_class
             end
         end
@@ -192,48 +191,36 @@ module GameSetup
     end
 
     # load skill data from database
-    protected def load_skills
-        log("Loading Skill tables... ", false, 70)
-        skill_data = @db[:skill_base].to_hash(:id)
+    protected def load_abilities
+        log("Loading Ability tables... ", false, 70)
+        ability_data = @db[:ability_base].to_hash(:id)
 
         missing = []
         Constants::SKILL_CLASSES.each do |skill_class|
             skill = skill_class.new
-            row = skill_data.values.find{ |row| row[:name] == skill.name }
+            row = ability_data.values.find{ |row| row[:name] == skill.name }
             if row
                 skill.overwrite_attributes(row)
             else
                 missing << skill.name
             end
             @skills.push skill
-            @abilities[ skill.name ] = skill
+            @abilities[ skill.id ] = skill
         end
-        log( "done." )
-        if missing.size > 0
-            log "Skills not found in database: {y#{missing.join("\n\r#{" " * 51}")}{x"
-        end
-    end
-
-    # load spell data from database
-    protected def load_spells
-        log("Loading Spell tables... ", false, 70)
-        spell_data = @db[:spell_base].to_hash(:id)
-
-        missing = []
         Constants::SPELL_CLASSES.each do |spell_class|
             spell = spell_class.new
-            row = spell_data.values.find{ |row| row[:name] == spell.name }
+            row = ability_data.values.find{ |row| row[:name] == spell.name }
             if row
                 spell.overwrite_attributes(row)
             else
                 missing << spell.name
             end
             @spells.push spell
-            @abilities[ spell.name ] = spell
+            @abilities[ spell.id ] = spell
         end
         log( "done." )
         if missing.size > 0
-            log "Spells not found in database: {y#{missing.join("\n\r#{" " * 51}")}{x"
+            log "Abilities not found in database: {y#{missing.join("\n\r#{" " * 51}")}{x"
         end
     end
 
@@ -576,23 +563,32 @@ module GameSetup
         ac_rows = @db[:item_armor].to_hash(:item_id)
         weapon_rows = @db[:item_weapon].to_hash(:item_id)
         container_rows = @db[:item_container].to_hash(:item_id)
-        spell_rows = @db[:item_spell].to_hash_groups(:item_id)
+
+        spell_rows = @db[:item_ability].to_hash_groups(:item_id)
         item_modifier_rows = @db[:item_modifier].to_hash_groups(:item_id)
+        item_wear_locations = @db[:item_wear_location].to_hash_groups(:item_id)
+        item_affect_rows = @db[:item_affect].to_hash_groups(:item_id)
 
         item_rows.each do |id, row|
             row.merge!(weapon_rows[id]) if weapon_rows.dig(id)
-            row.merge!(ac_rows[id]) if ac_rows.dig(id)
             row.merge!(container_rows[id]) if container_rows.dig(id)
 
-            @item_models[id] = @item_model_classes[row[:item_type_id]].new(id, row)
+
+            row[:modifiers] = Hash.new
             if item_modifier_rows.dig(id)
-                item_modifier_rows[id].each do |modifier_row|
-                    @item_models[id].modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
-                end
+                row[:modifiers] = item_modifier_rows[id].map { |row| [row[:field].to_sym, row[:value]] }.to_h
             end
             if ac_rows.dig(id)
-                @item_models[id].modifiers.merge!(ac_rows[id].reject{ |k, v| [:id, :item_id].include?(k) })
+                row[:modifiers].merge!(ac_rows[id].reject{ |k, v| [:id, :item_id].include?(k) })
             end
+            if item_wear_locations.dig(id)
+                row[:wear_locations] = item_wear_locations[id].map { |row| @wear_locations.dig(row[:wear_location_id]) }
+            end
+            if item_affect_rows.dig(id)
+                row[:affect_models] = item_affect_rows[id].map { |row| AffectModel.new(row) }
+            end
+
+            @item_models[id] = @item_model_classes[row[:item_type_id]].new(id, row)
         end
         log( "done." )
     end
@@ -618,7 +614,7 @@ module GameSetup
 
     # load reset tables from database
     protected def load_reset_data
-        log("Loading reset tables... ", false, 70)
+        log("Loading Reset tables... ", false, 70)
         reset_mobile_data = @db[:new_reset_mobile].to_hash(:id)
 
         reset_mobile_data.values.each do |row|

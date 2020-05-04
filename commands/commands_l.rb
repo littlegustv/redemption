@@ -96,7 +96,7 @@ class CommandLoadItem < Command
                 actor.output "No such item."
                 return false
             end
-            actor.room.occupants.each_output "0<N> 0<have,has> loaded item: 1<n>.", [actor]
+            actor.room.occupants.each_output "0<N> 0<have,has> loaded item: 1<n>.", [actor, item]
             return true
         end
     end
