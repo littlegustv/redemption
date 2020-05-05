@@ -734,7 +734,6 @@ class Game
 
     # destroy a player object
     def destroy_player(player)
-        pp player.affects.map {|a| "#{a.name}"}
         @inactive_player_source_affects[player.id] = player.source_affects
         remove_global_mobile(player)
         @players.delete(player)

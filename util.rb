@@ -37,6 +37,10 @@ class Integer
         self.gold > 0 ? "#{ self.gold } gold and #{ self.silver } silver" : "#{ self.silver } silver"
     end
 
+    def to_b
+        !self.zero?
+    end
+
 end
 
 class Array

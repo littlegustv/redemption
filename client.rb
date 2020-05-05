@@ -378,7 +378,7 @@ class Client
             log(msg)
         end
         @client_connection = nil
-        log("Disconnected client with account_id #{@account_id}")
+        # log("Disconnected client with account_id #{@account_id}")
         begin
             Thread.kill(@thread)
         rescue

@@ -13,7 +13,7 @@ class Noun
         @element = Game.instance.elements[row[:element_id]]
         @name = row[:name]
         @symbol = row[:name].to_s.to_sym
-        @magic = row[:magic] != 0
+        @magic = row[:magic].to_i.to_b
     end
 
     def ==(other_object)

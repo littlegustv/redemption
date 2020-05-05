@@ -40,7 +40,7 @@ class Room < GameObject
 
     def self.inactive_room
         if @@inactive_room.nil?
-            @@inactive_room = Room.new("inactive room", 0, "no description", "inside".to_sector, nil, 0, 0)
+            @@inactive_room = Room.new("inactive room", 0, "no description", :inside.to_sector, nil, 0, 0)
             @@inactive_room.deactivate
         end
         return @@inactive_room

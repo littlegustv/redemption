@@ -59,7 +59,7 @@ class Mobile < GameObject
         @in_group = nil
         @deity = "Gabriel".freeze # deity table?
 
-        @gender = model.genders.sample || "neutral".to_gender
+        @gender = model.genders.sample || :neutral.to_gender
 
         @casting = nil
         @casting_args = nil
@@ -385,11 +385,11 @@ class Mobile < GameObject
             level: @level,
             weight: 0,
             cost: 0,
-            material: "flesh".to_material,
+            material: :"flesh".to_material,
             fixed: 0,
 
             noun: @race.hand_to_hand_noun,
-            genre: "hand to hand".to_genre,
+            genre: :"hand to hand".to_genre,
             dice_count: @model.hand_to_hand_dice_count || 6,
             dice_sides: @model.hand_to_hand_dice_sides || 7
         }
@@ -616,7 +616,7 @@ class Mobile < GameObject
 
     # this COULD be handled with events, but they are so varied that I thought I'd try it this way first...
     def can_move?( direction )
-        if (@room.sector == "air" || @room.exits[ direction.to_sym ].destination.sector == "air") && !self.affected?("flying")
+        if (@room.sector.requires_flight || @room.exits[ direction.to_sym ].destination.sector.requires_flight) && !self.affected?("flying")
             output "You can't fly!"
             return false
         else

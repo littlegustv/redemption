@@ -84,7 +84,7 @@ class MobileModel
         elsif row.dig(:hand_to_hand_noun)
             @hand_to_hand_noun = row[:hand_to_hand_noun]
         else
-            @hand_to_hand_noun = "hit".to_noun
+            @hand_to_hand_noun = :hit.to_noun
         end
 
         # position
@@ -93,7 +93,7 @@ class MobileModel
         elsif row.dig(:position)
             @position = row[:position]
         else
-            @position = "standing".to_position
+            @position = :standing.to_position
         end
 
         # size
