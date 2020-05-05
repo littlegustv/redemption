@@ -30,7 +30,7 @@ class SpellHarm < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 100, "harm")
+        target.receive_damage(actor, 100, :harm)
         return true
     end
 end
@@ -113,7 +113,7 @@ class SpellHeatMetal < Spell
         end
 
         target.equipment.select{ |item| item.material.metallic }.each do | item |
-            actor.deal_damage(target, 10, "scalding #{item.material}")
+            target.receive_damage(actor, 10, :fireball, false, true, "the scalding #{item.material} of #{item.name}")
         end
         return true
     end
@@ -162,7 +162,7 @@ class SpellHurricane < Spell
         (actor.room.occupants - [actor]).each_output "0<N> summons the power of a hurricane!", [actor]
         actor.output "You summon a hurricane!"
     	( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
-    		actor.deal_damage(target, 100, "hurricane")
+    		target.receive_damage(actor, 100, :hurricane)
     	end
         return true
     end

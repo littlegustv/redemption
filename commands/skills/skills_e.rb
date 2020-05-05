@@ -12,7 +12,7 @@ class SkillEnvenom < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target({ list: actor.items, item_type: "weapon", visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = Game.instance.target({ list: actor.items, item_type: Weapon, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
             aff = AffectPoisonWeapon.new( nil, target, actor.level )
             aff.duration = 300
 	        aff.apply

@@ -33,7 +33,7 @@ class SpellAcidBlast < Spell
             return false
         end
         damage = @damage_formula.evaluate(actor)
-        actor.deal_damage(target, damage, "acid blast")
+        target.receive_damage(actor, damage, :"acid blast")
         return true
     end
 end

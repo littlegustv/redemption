@@ -183,7 +183,7 @@ class AffectDeathRune < Affect
         ( @level * 3 ).times do
             (@target.room.area.occupants - @target.room.occupants).each_output "A flaming meteor crashes into the ground nearby and explodes!"
             ( @target.room.occupants - [@target] ).each do |victim|
-                @target.deal_damage(victim, 100, "meteor's impact")
+                victim.receive_damage(@target, 100, :"meteor's impact")
             end
         end
     end

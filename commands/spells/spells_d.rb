@@ -78,7 +78,7 @@ class SpellDemonFire < Spell
 
         (actor.room.occupants - [target, actor]).each_output "0<N> calls forth the demons of Hell upon 1<n>!", [actor, target]
 
-        actor.deal_damage(target, 100, "torments")
+        target.receive_damage(actor, 100, :torments)
         actor.alignment = [ actor.alignment - 50, -1000 ].max
 
         AffectCurse.new( nil, target, actor.level ).apply
@@ -108,7 +108,7 @@ class SpellDestroyRune < Spell
                 actor.output "There are no runes found."
                 return false
             end
-    	elsif ( target = actor.target({ list: actor.equipment + actor.inventory, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
+    	elsif ( target = actor.target({ list: actor.equipment + actor.inventory, item_type: Weapon }.merge( args.first.to_s.to_query )).first )
     		if target.affected?("rune")
     			actor.output "The runes on 0<n> slowly fade out of existence.", [target]
     			target.remove_affect( "rune" )

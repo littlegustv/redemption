@@ -67,7 +67,7 @@ class SpellFireball < Spell
         (actor.room.occupants - [actor]).each_output "0<N> summons a burning ball of fire!", [actor]
         actor.output "You summon a fireball!"
         ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
-            actor.deal_damage(target, 100, "fireball")
+            target.receive_damage(actor, 100, :fireball)
         end
         return true
     end
@@ -126,7 +126,7 @@ class SpellFlamestrike < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 100, "flamestrike")
+        target.receive_damage(actor, 100, :flamestrike)
         return true
     end
 end

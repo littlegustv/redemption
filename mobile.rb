@@ -457,7 +457,7 @@ class Mobile < GameObject
             damage = data[:damage].to_i
         end
 
-        deal_damage(target, damage, noun, false, false, noun_name_override)
+        target.receive_damage(self, damage, noun, false, false, noun_name_override)
 
         if hit
             if Game.instance.responds_to_event(self, :event_override_receive_hit)
@@ -475,42 +475,29 @@ class Mobile < GameObject
 
     end
 
-    # Deal some damage to a mobile.
-    # +target+:: the mobile who will be receiving the damage
-    # +damage+:: the amount of damage being dealt
-    # +noun+:: the noun of the damage (flamestirke, fire, magic)
-    # +silent+:: true if damage decorators should not be broadcast
-    # +anonymous+:: true if output messages should omit the +source+
-    # +noun_name_override+ override the given noun's name with this string, "backstab" for example
-    #  mob1.deal_damage(mob2, 60, "stab")
-    #  mob1.deal_damage(mob2, 10, "bleeding", true, true)
-    def deal_damage(target, damage, noun = "hit", silent = false, anonymous = false, noun_name_override = nil)
-        if !target
-            return
-        end
-        noun = noun.to_noun
-
-        if Game.instance.responds_to_event(self, :event_calculate_damage)
-            calculation_data = { source: self, target: target, damage: damage, noun: noun }
-            Game.instance.fire_event(self, :event_calculate_damage, calculation_data)
-            damage = calculation_data[:damage]
-        end
-        target.receive_damage(self, damage, noun, silent, anonymous, noun_name_override)
-    end
-
     # Receive some damage!
-    # +source+:: the mobile dealing the damage (can be nil)
+    # +source+:: the object dealing the damage (can be nil)
     # +damage+:: the amount of damage being dealt
     # +noun+:: the element of the damage (flamestirke, fire, magic)
     # +silent+:: true if damage decorators should not be broadcast
     # +anonymous+:: true if output messages should omit the +source+
     # +noun_name_override+ override the given noun's name with this string, "backstab" for example
-    def receive_damage(source, damage, noun = "hit", silent = false, anonymous = false, noun_name_override = nil)
+    def receive_damage(source, damage, noun = :hit, silent = false, anonymous = false, noun_name_override = nil)
+
         if !@active # inactive mobiles can't take damage.
             return
         end
+        # source event stuff (used to be in +deal_damage+)
+        if source
+            if Game.instance.responds_to_event(source, :event_calculate_damage)
+                calculation_data = { source: source, target: self, damage: damage, noun: noun }
+                Game.instance.fire_event(source, :event_calculate_damage, calculation_data)
+                damage = calculation_data[:damage]
+            end
+        end
+
         noun = noun.to_noun
-        if source && source != self
+        if source && source.is_a?(Mobile) && source != self
             self.start_combat( source )
         end
 
@@ -540,7 +527,7 @@ class Mobile < GameObject
             return # immunity means we stop here!
         end
         damage = (damage * (1.0 - resistance)).to_i
-        if !silent && ((source && source.is_player?) || self.room.players.length > 0)
+        if !silent && ((source && source.is_a?(Player)) || self.room.players.length > 0)
             decorators = Constants::DAMAGE_DECORATORS
             if noun.magic
                 decorators = Constants::MAGIC_DAMAGE_DECORATORS
@@ -557,7 +544,6 @@ class Mobile < GameObject
     end
 
     def level_up
-        self.generate_hand_to_hand_weapon
         @experience = (@experience - @experience_to_level)
         @level += 1
         @basehitpoints += 20
@@ -567,6 +553,7 @@ class Mobile < GameObject
         output "You raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices."
         output "You have gained 1 creation points.  Maybe you can get a new skill??"
         Game.instance.fire_event(self, :event_on_level_up, {level: @level})
+        self.generate_hand_to_hand_weapon
     end
 
     def xp( target )
@@ -600,7 +587,9 @@ class Mobile < GameObject
         if !@active
             return
         end
-        killer = nil if killer == self
+        if killer == self || !killer.is_a?(Mobile)
+            killer = nil
+        end
         (@room.occupants - [self]).each_output "0<N> is DEAD!!", [self]
         Game.instance.fire_event( self, :event_on_die, { died: self, killer: killer } )
 

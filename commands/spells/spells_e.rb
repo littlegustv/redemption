@@ -15,7 +15,7 @@ class SpellEarthquake < Spell
         (actor.room.area.occupants - [actor]).each_output "The earth trembles and shivers."
         actor.output "The earth trembles beneath your feet!"
         ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
-            actor.deal_damage(target, 100, "earthquake")
+            target.receive_damage(actor, 100, :earthquake)
         end
         return true
     end
@@ -41,7 +41,7 @@ class SpellEnchantArmor < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.inventory.items, item_type: "armor" }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.inventory.items, item_type: Armor }.merge( args.first.to_s.to_query )).first )
             fail = 25
             # dam =
             affect = AffectEnchantArmor.new( nil, target, actor.level )
@@ -75,7 +75,7 @@ class SpellEnchantWeapon < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.inventory.items, item_type: "weapon" }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.inventory.items, item_type: Weapon }.merge( args.first.to_s.to_query )).first )
             fail = 25
             # dam =
             affect = AffectEnchantWeapon.new( nil, target, actor.level )
@@ -120,7 +120,7 @@ class SpellEnergyDrain < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 100, "life drain")
+        target.receive_damage(actor, 100, :"life drain")
         target.use_movement( 10 )
         actor.regen( 0, 0, 10 )
         target.output "You feel your energy slipping away!"

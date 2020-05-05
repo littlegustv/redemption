@@ -86,7 +86,7 @@ class SkillBash < Skill
         else
             actor.output "You slam into 0<n>, and send 0<o> flying!", [target]
             (actor.room.occupants - [actor]).each_output "0<N> sends 1<n> flying with a powerful bash!", [actor, target]
-            actor.deal_damage(target, 100, "bash")
+            target.receive_damage(actor, 100, :bash)
             target.lag += @data[:target_lag]
         end
     end

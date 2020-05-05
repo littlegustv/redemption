@@ -30,7 +30,7 @@ class SpellIceBolt < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 100, "ice blast")
+        target.receive_damage(actor, 100, :"ice blast")
         return true
     end
 end

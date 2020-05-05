@@ -47,7 +47,7 @@ class SpellBlastOfRot < Spell
     		actor.output "They aren't here."
             return false
     	end
-        actor.deal_damage(target, 100, "blast of rot")
+        target.receive_damage(actor, 100, :"blast of rot")
         return true
     end
 end
@@ -71,7 +71,7 @@ class SpellBladeRune < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.items, item_type: "weapon", visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.items, item_type: Weapon, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if target.affected? "blade rune"
                 actor.output "The existing blade rune repels your magic."
                 return false
@@ -213,7 +213,7 @@ class SpellBurningHands < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 50, "burning hands")
+        target.receive_damage(actor, 50, :"burning hands")
         return true
     end
 end
@@ -238,7 +238,7 @@ class SpellBurstRune < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.items, item_type: "weapon", visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target({ list: actor.items, item_type: Weapon, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if target.affected? "burst rune"
                 actor.output "The existing burst rune repels your magic."
                 return false

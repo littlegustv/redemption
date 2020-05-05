@@ -120,7 +120,7 @@ class AffectPoisoned < Affect
 
     def periodic
         @target.room.occupants.each_output("0<N> shiver0<,s> and suffer0<,s>.", @target)
-        @source.deal_damage(@target, 10, :poison, true)
+        @target.receive_damage(@source, 10, :poison, true)
     end
 
     def send_complete_messages

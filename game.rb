@@ -338,7 +338,7 @@ class Game
 
         targets = targets.select { |t| t.uuid == query[:uuid] }                                                     if query[:uuid]
         targets = targets.select { |t| query[:affect].to_a.any?{ |affect| t.affected?( affect.to_s ) } }            if query[:affect]
-        targets = targets.select { |t| t.type == query[:item_type] }                                                if query[:item_type]
+        targets = targets.select { |t| t.is_a?(query[:item_type]) }                                                 if query[:item_type]
         targets = targets.select { |t| !query[:not].to_a.include? t }                                               if query[:not]
         targets = targets.select { |t| query[:attacking].to_a.include? t.attacking }                                if query[:attacking]
         targets = targets.select { |t| t.fuzzy_match( query[:keyword] ) }                                           if query[:keyword]

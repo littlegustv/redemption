@@ -233,7 +233,7 @@ class AffectCloudkill < Affect
 
     def periodic
         @target.occupants.each do |t|
-            @source.deal_damage(t, dice(2, 6), "the caustic gas", false, true)
+            t.receive_damage(@source, dice(2, 6), :"the caustic gas", false, true)
         end
     end
 

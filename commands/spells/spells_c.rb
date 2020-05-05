@@ -72,7 +72,7 @@ class SpellCauseLight < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 25, "cause light wounds")
+        target.receive_damage(actor, 25, :"cause light wounds")
         return true
     end
 end
@@ -107,7 +107,7 @@ class SpellCauseSerious < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 50, "cause serious wounds")
+        target.receive_damage(actor, 50, :"cause serious wounds")
         return true
     end
 end
@@ -142,7 +142,7 @@ class SpellCauseCritical < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 75, "cause critical wounds")
+        target.receive_damage(actor, 75, :"cause critical wounds")
         return true
     end
 end
@@ -180,7 +180,7 @@ class SpellChainLightning < Spell
         actor.room.occupants.each_output "A lightning bolt leaps from 0<n>'s hand and arcs to 1<n>1<!,.>", [actor, target]
 
         damage = 100
-        actor.deal_damage(target, damage, "lightning bolt")
+        target.receive_damage(actor, damage, :"lightning bolt")
         while (damage -= 10) >= 0
             target = actor.room.occupants.sample # TODO: target only combatable mobs?
 
@@ -191,7 +191,7 @@ class SpellChainLightning < Spell
                 actor.room.occupants.each_output "The bolt arcs to 0<n>!", [target]
             end
 
-            actor.deal_damage(target, damage, "lightning bolt")
+            target.receive_damage(actor, damage, :"lightning bolt")
         end
 
         (actor.room.occupants - [target]).each_output "The bolt seems to have fizzled out."
@@ -295,7 +295,7 @@ class SpellColorSpray < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 50, "color spray")
+        target.receive_damage(actor, 50, :"color spray")
         return true
     end
 end

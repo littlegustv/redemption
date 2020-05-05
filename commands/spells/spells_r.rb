@@ -36,7 +36,7 @@ class SpellRayOfTruth < Spell
         end
 
         actor.alignment = [ actor.alignment + 50, 1000 ].min
-        actor.deal_damage(target, 50, "ray of truth")
+        target.receive_damage(actor, 50, :"ray of truth")
         return true
     end
 end
@@ -133,7 +133,7 @@ class SpellRukusMagna < Spell
             actor.output "They aren't here."
             return false
         end
-        actor.deal_damage(target, 100, "rukus magna")
+        target.receive_damage(actor, 100, :"rukus magna")
         return true
     end
 end

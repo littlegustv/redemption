@@ -46,7 +46,7 @@
     end
 
     def type_name
-        return "item"
+        "item"
     end
 
     def to_s
@@ -139,6 +139,10 @@ class Weapon < Item
 		@dice_sides = model.dice_sides
 	end
 
+    def type_name
+        "weapon"
+    end
+
 	def damage
         dice( @dice_count, @dice_sides )
 	end
@@ -159,6 +163,10 @@ class Container < Item
         @inventory = Inventory.new(self)
     end
 
+    def type_name
+        "container"
+    end
+
     def get_item(item)
         item.move(@inventory)
     end
@@ -172,6 +180,10 @@ class Consumable < Item
         @spells = spells
     end
 
+    def type_name
+        "consumable"
+    end
+
     def consume( actor )
         @spells.each do |spell|
             if ( casting = Game.instance.spells.select{ |skill| skill.check( spell[:spell] ) }.sort_by(&:priority).last )
@@ -183,6 +195,18 @@ class Consumable < Item
         end
     end
 
+end
+
+class Pill < Consumable
+    def type_name
+        "pill"
+    end
+end
+
+class Potion < Consumable
+    def type_name
+        "potion"
+    end
 end
 
 class Tattoo < Item
@@ -224,7 +248,6 @@ class Tattoo < Item
             level: runist.level,
             weight: 0,
             cost: 0,
-            type: "tattoo",
             material: "tattoo",
             extraFlags: "noremove",
             ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
@@ -232,6 +255,10 @@ class Tattoo < Item
         @runist = runist
         @duration = 600.0 * runist.level
         @slot = slot
+    end
+
+    def type_name
+        "tattoo"
     end
 
     def update(elapsed)
