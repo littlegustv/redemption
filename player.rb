@@ -68,10 +68,8 @@ class Player < Mobile
         
         if command.nil?
             output "Huh?"
-        elsif command.lag > 0
-            @commands.push( [ command, cmd, args.to_s.to_args, s ])
         else
-            command.execute self, cmd, args.to_s.to_args, s
+            @commands.push( [ command, cmd, args.to_s.to_args, s ])
         end
     end
 
@@ -211,6 +209,17 @@ class Player < Mobile
     end
 
     def process_commands(elapsed)
+
+        # handle initial instants at top of command stack
+        @commands.each do | command_row |
+            if command_row[0].lag <= 0
+                command_row[0].execute( self, command_row[1], command_row[2], command_row[3] )
+                @commands -= [ command_row ]
+            else
+                break
+            end
+        end
+
         if @lag > 0
             @lag -= elapsed
         elsif @casting
@@ -227,6 +236,14 @@ class Player < Mobile
             command_row = @commands.shift
             command_row[0].execute( self, command_row[1], command_row[2], command_row[3] )
             # do_command @commands.shift
+        end
+
+        # pull out remaining instants
+        instants = @commands.select{ |command_row| command_row[0].lag <= 0 }
+        @commands -= instants
+        
+        instants.each do |instant|
+            instant[0].execute( self, instant[1], instant[2], instant[3] )
         end
     end
 
