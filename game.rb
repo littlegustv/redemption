@@ -569,12 +569,18 @@ class Game
         return item
     end
 
-    def do_command( actor, cmd, args = [], input = cmd )
+    def find_commands( actor, cmd )
         matches = (
             @commands.select { |command| command.check( cmd ) } +
             @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill ) }
         ).sort_by(&:priority)
+        return matches
+    end
 
+
+    def do_command( actor, cmd, args = [], input = cmd )
+        matches = find_commands( actor, cmd )
+        
         if matches.any?
             matches.last.execute( actor, cmd, args, input )
             return

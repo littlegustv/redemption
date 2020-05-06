@@ -1,6 +1,6 @@
 class Command
 
-    attr_reader :id, :priority, :name, :creation_points
+    attr_reader :id, :priority, :name, :creation_points, :lag
 
     # Set what you need to here, but most of it is overwritten by values in the database,
     # if they can be found.
@@ -68,7 +68,7 @@ class Command
         @priority = new_attr_hash[:priority].to_i
         @keywords = new_attr_hash[:keywords].to_s.split(",")
         @keywords = [""] if @keywords.empty?
-        @lag = new_attr_hash[:lag].to_i
+        @lag = new_attr_hash[:lag].to_f
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = !(new_attr_hash[:usable_in_combat].to_i.zero?)
         @creation_points = new_attr_hash[:creation_points]

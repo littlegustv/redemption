@@ -63,7 +63,16 @@ class Player < Mobile
         if @delayed_buffer.length > 0 && s.length > 0
             @delayed_buffer = ""
         end
-        @commands.push(s)
+        cmd, args = s.sanitize.split " ", 2
+        command = Game.instance.find_commands( self, cmd ).last
+        
+        if command.nil?
+            output "Huh?"
+        elsif command.lag > 0
+            @commands.push( [ command, cmd, args.to_s.to_args, s ])
+        else
+            command.execute self, cmd, args.to_s.to_args, s
+        end
     end
 
     # Called when a player first logs in.
@@ -215,7 +224,9 @@ class Player < Mobile
                 @casting_args = []
             end
         elsif @commands.length > 0
-            do_command @commands.shift
+            command_row = @commands.shift
+            command_row[0].execute( self, command_row[1], command_row[2], command_row[3] )
+            # do_command @commands.shift
         end
     end
 

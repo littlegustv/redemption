@@ -61,8 +61,13 @@ class Array
 end
 
 class String
+    
     def to_a
         [ self ]
+    end
+
+    def to_args
+        self.scan(/(((\d+|all)\*)?((\d+|all)\.)?([^\s\.\'\*]+|'[\w\s]+'?))/i).map(&:first).map{ |arg| arg.gsub("'", "") }
     end
 
     def to_columns( column_width, column_count )

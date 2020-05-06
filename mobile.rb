@@ -279,7 +279,7 @@ class Mobile < GameObject
 
     def do_command( input )
         cmd, args = input.sanitize.split " ", 2
-        Game.instance.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?([^\s\.\'\*]+|'[\w\s]+'?))/i).map(&:first).map{ |arg| arg.gsub("'", "") }, input )
+        Game.instance.do_command( self, cmd, args.to_s.to_args, input )
         # Game.instance.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
     end
 
@@ -339,8 +339,8 @@ class Mobile < GameObject
 
     def regen( hp, mp, mv )
         if Game.instance.responds_to_event(self, :event_calculate_regeneration)
-            Game.instance.fire_event( self, :event_calculate_regeneration, data )
             data = { hp: hp, mp: mp, mv: mv }
+            Game.instance.fire_event( self, :event_calculate_regeneration, data )
             hp, mp, mv = data.values
         end
 
