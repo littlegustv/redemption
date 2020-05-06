@@ -10,7 +10,7 @@ module GameLookups
             @element_lookup = @elements.values.map { |e| [e.symbol, e] }.to_h
         end
         if !(e = @element_lookup[symbol])
-            log ("No element with symbol #{symbol} found. Creating one now.")
+            log ("No element with symbol #{symbol} found. Creating one now. Stack trace:")
             id = (@elements.keys.min || 0) - 1
             e = Element.new({
                 id: id,
@@ -27,7 +27,7 @@ module GameLookups
             @gender_lookup = @genders.values.map { |g| [g.symbol, g] }.to_h
         end
         if !(g = @gender_lookup[symbol])
-            log ("No gender with symbol #{symbol} found. Creating one now.")
+            log ("No gender with symbol #{symbol} found. Creating one now. Stack trace:")
             id = (@genders.keys.min || 0) - 1
             g = Gender.new({
                 id: id,
@@ -48,7 +48,7 @@ module GameLookups
             @genre_lookup = @genres.values.map { |g| [g.symbol, g] }.to_h
         end
         if !(g = @genre_lookup[symbol])
-            log ("No genre with symbol #{symbol} found. Creating one now.")
+            log ("No genre with symbol #{symbol} found. Creating one now. Stack trace:")
             id = (@genres.keys.min || 0) - 1
             g = Genre.new({
                 id: id,
@@ -65,7 +65,7 @@ module GameLookups
             @material_lookup = @materials.values.map { |m| [m.symbol, m] }.to_h
         end
         if !(m = @material_lookup[symbol])
-            log ("No material with symbol #{symbol} found. Creating one now.")
+            log ("No material with symbol #{symbol} found. Creating one now. Stack trace:")
             id = (@materials.keys.min || 0) - 1
             m = Material.new({
                 id: id,
@@ -82,7 +82,7 @@ module GameLookups
             @noun_lookup = @nouns.values.map { |n| [n.symbol, n] }.to_h
         end
         if !(n = @noun_lookup[symbol])
-            log ("No noun with symbol #{symbol} found. Creating one now.")
+            log ("No noun with symbol #{symbol} found. Creating one now. Stack trace:")
             copy_noun = @nouns.values.first
             if !copy_noun
                 log ("No nouns exist. That's going to be a problem!")
@@ -106,7 +106,7 @@ module GameLookups
             @position_lookup = @positions.values.map { |p| [p.symbol, p] }.to_h
         end
         if !(p = @position_lookup[symbol])
-            log ("No position with symbol #{symbol} found. Creating one now.")
+            log ("No position with symbol #{symbol} found. Creating one now. Stack trace:")
             id = (@positions.keys.min || 0) - 1
             p = Position.new({
                 id: id,
@@ -124,7 +124,7 @@ module GameLookups
             @sector_lookup = @sectors.values.map { |s| [s.symbol, s] }.to_h
         end
         if !(s = @sector_lookup[symbol])
-            log ("No sectors with symbol #{symbol} found. Creating one now.")
+            log ("No sectors with symbol #{symbol} found. Creating one now. Stack trace:")
             id = (@sectors.keys.min || 0) - 1
             s = Sector.new({
                 id: id,
@@ -141,7 +141,7 @@ module GameLookups
             @size_lookup = @sizes.values.map { |s| [s.symbol, s] }.to_h
         end
         if !(s = @size_lookup[symbol])
-            log ("No sizes with symbol #{symbol} found. Creating one now.")
+            log ("No sizes with symbol #{symbol} found. Creating one now. Stack trace:")
             id = (@sizes.keys.min || 0) - 1
             s = Size.new({
                 id: id,

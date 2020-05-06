@@ -339,19 +339,16 @@ module GameSave
             affect_class = Game.instance.affect_class_with_id(affect_row[:affect_id])
             if affect_class
                 source = find_affect_source(affect_row, player, player.items)
-                if source != false # source can be nil, just not false - see find_affect_source
-                    affect = affect_class.new(source, player, affect_row[:level])
-                    affect.duration = affect_row[:duration]
-                    modifiers = {}
-                    modifier_rows = all_modifier_rows.select{ |row| row[:saved_player_affect_id] == affect_row[:id] }
-                    modifier_rows.each do |modifier_row|
-                        modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
-                    end
-                    affect.overwrite_modifiers(modifiers)
-                    affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
-                    affect.apply(true)
-
+                affect = affect_class.new(source, player, affect_row[:level])
+                affect.duration = affect_row[:duration]
+                modifiers = {}
+                modifier_rows = all_modifier_rows.select{ |row| row[:saved_player_affect_id] == affect_row[:id] }
+                modifier_rows.each do |modifier_row|
+                    modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
                 end
+                affect.overwrite_modifiers(modifiers)
+                affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
+                affect.apply(true)
             end
         end
         # apply affects to items
@@ -361,20 +358,19 @@ module GameSave
                 affect_class = Game.instance.affect_class_with_id(affect_row[:affect_id])
                 if affect_class
                     source = find_affect_source(affect_row, player, player.items)
-                    if affect_row[:name] == "portal"
+                    # portal??
+                    # if affect_row[:name] == "portal"
                         # need to make portal use standard initialize args
-                    elsif source != false # source can be nil, just not false - see find_affect_source
-                        affect = affect_class.new(source, item, affect_row[:level])
-                        affect.duration = affect_row[:duration]
-                        modifiers = {}
-                        modifier_rows = all_item_modifier_rows.select{ |row| row[:saved_player_item_affect_id] == affect_row[:id] }
-                        modifier_rows.each do |modifier_row|
-                            modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
-                        end
-                        affect.overwrite_modifiers(modifiers)
-                        affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
-                        affect.apply(true)
+                    affect = affect_class.new(source, item, affect_row[:level])
+                    affect.duration = affect_row[:duration]
+                    modifiers = {}
+                    modifier_rows = all_item_modifier_rows.select{ |row| row[:saved_player_item_affect_id] == affect_row[:id] }
+                    modifier_rows.each do |modifier_row|
+                        modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
                     end
+                    affect.overwrite_modifiers(modifiers)
+                    affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
+                    affect.apply(true)
                 end
             end
         end
@@ -386,7 +382,7 @@ module GameSave
     protected def load_player_item(player, item_row, all_item_rows, item_saved_id_hash)
         item = load_item(item_row[:item_id], player.inventory)
         if item_row[:equipped] == 1
-            player.wear(item: item, silent: true)
+            player.wear(item, true)
         end
         item_saved_id_hash[item_row[:id]] = item
         all_item_rows.select{ |row| row[:container_id] == item_row[:id] }.each do |contained_item_row|
@@ -397,7 +393,8 @@ module GameSave
     end
 
     # Find/load a source for an affect.
-    # Returns the source (or nil if that was the affect's source) or false for a failure to find the source
+    # Returns the source (or nil if that was the affect's source)
+    # Can also return nil if the source wasn't found.
     protected def find_affect_source(data, player, items)
         source = nil
         if data[:source_type] == "Player"
@@ -444,8 +441,9 @@ module GameSave
             if source               # found the mobile with that uuid - great!
                 return source
             end
-            source = load_mob(data[:source_id], nil)
-            if (source)
+            model = @mobile_models.dig(data[:source_id])
+            if model
+                source = load_mob(model, nil)
                 source.destroy # mark as inactive, remove affects, etc
             end
         when "Item"
@@ -453,9 +451,10 @@ module GameSave
             if source               # found the item with that uuid - :)
                 return source
             end
-            source = load_item(data[:source_id], nil)
-            if (source)
-                source.destroy
+            model = @item_models.dig(data[:source_id])
+            if model
+                source = load_item(model, nil)
+                source.destroy # mark as inactive, remove affects, etc
             end
         else
             log "Unknown source_type in find_affect_source"
@@ -465,7 +464,7 @@ module GameSave
         if source
             return source
         end
-        return false
+        return nil
     end
 
     def new_uuid

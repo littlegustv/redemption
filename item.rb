@@ -4,13 +4,12 @@
     attr_accessor :weight
     attr_accessor :cost
     attr_reader :id
-    attr_reader :wear_flags
     attr_reader :parent_inventory
     attr_reader :material
     attr_reader :level
 
-    def initialize( model, parent_inventory )
-        super(nil, model.keywords)
+    def initialize( model, parent_inventory, reset = nil )
+        super(nil, model.keywords, reset)
         @model = model
         @id = @model.id
         @name = nil
@@ -78,19 +77,23 @@ Extra flags: #{ @extraFlags }
 
     # move this item to another inventory - nil is passed when an item is going to be destroyed
     def move(new_inventory)
+        if @reset && @parent_inventory && (new_inventory.nil? || @parent_inventory.owner != new_inventory.owner)
+            @reset.activate(@parent_inventory.owner)
+            @reset = nil
+        end
         if @parent_inventory
             if equipped?
                 Game.instance.fire_event(self, :event_item_unwear, {mobile: carrier})
             end
             @parent_inventory.remove_item(self)
         end
+        @parent_inventory = new_inventory
         if new_inventory
             new_inventory.add_item(self)
             if equipped?
                 Game.instance.fire_event(self, :event_item_wear, {mobile: carrier})
             end
         end
-        @parent_inventory = new_inventory
     end
 
     def db_source_type
@@ -124,14 +127,22 @@ Extra flags: #{ @extraFlags }
         EquipSlot === @parent_inventory
     end
 
+    def wear_locations
+        @model.wear_locations
+    end
+
+    def fixed
+        @model.fixed
+    end
+
 end
 
 class Weapon < Item
 
 	attr_accessor :noun, :flags, :genre
 
-	def initialize( model, parent_inventory )
-		super(model, parent_inventory)
+	def initialize( model, parent_inventory, reset = nil )
+		super(model, parent_inventory, reset)
 
 		@noun = model.noun
         @genre = model.genre
@@ -153,8 +164,8 @@ class Container < Item
 
     attr_accessor :inventory
 
-	def initialize( data, parent_inventory )
-        super(data, parent_inventory)
+	def initialize( data, parent_inventory, reset = nil )
+        super(data, parent_inventory, reset)
         @flags = data[:flags]
         @max_item_weight = data[:max_item_weight]
         @weight_multiplier = data[:weight_multiplier]
@@ -171,12 +182,22 @@ class Container < Item
         item.move(@inventory)
     end
 
+    # when a container moves, it has to remove resets from its inventory items
+    # then it calls move(@inventory) on them to recursively remove resets.
+    def move(new_inventory)
+        super(new_inventory)
+        @inventory.items.each do |item|
+            item.reset = nil
+            item.move(@inventory)
+        end
+    end
+
 end
 
 class Consumable < Item
 
-    def initialize( data, parent_inventory, spells )
-        super( data, parent_inventory )
+    def initialize( data, parent_inventory, spells, reset = nil )
+        super( data, parent_inventory, reset )
         @spells = spells
     end
 
@@ -243,7 +264,7 @@ class Tattoo < Item
         age: { min: 10, max: 30, noun: "hourglass", adjective: "ancient" },
     }
 
-    def initialize( runist, slot )
+    def initialize( runist, slot, reset = nil )
         super({
             level: runist.level,
             weight: 0,
@@ -251,7 +272,7 @@ class Tattoo < Item
             material: "tattoo",
             extraFlags: "noremove",
             ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
-        }.merge( paint ), runist.inventory)
+        }.merge( paint ), runist.inventory, reset)
         @runist = runist
         @duration = 600.0 * runist.level
         @slot = slot

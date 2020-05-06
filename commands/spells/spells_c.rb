@@ -339,7 +339,7 @@ class SpellFloatingDisc < Spell
             actor.output "You create a floating disc."
             (actor.room.occupants - [actor]).each_output "0<N> has created a floating black disc.", [actor]
             disc = Game.instance.load_item( 1954, actor.inventory )
-            actor.wear( item: disc )
+            actor.wear( disc )
             return true
         else
             actor.output "Your airspace is too crowded for any more entities."

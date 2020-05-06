@@ -1,7 +1,7 @@
 module MobileItem
 
     # returns true if the mobile can wear a given item
-    def can_wear(item:, silent: false)
+    def can_wear(item, silent = false)
         if item.level <= self.level
             return true
         else
@@ -12,24 +12,25 @@ module MobileItem
     end
 
     # returns true if mobile can unwear a given item
-    def can_unwear(item:, silent: false)
+    def can_unwear(item, silent = false)
         return true
     end
 
     # wear an item
-    def wear( item:, silent: false )
+    def wear( item, silent = false )
         if !item
             log ("Nil item passed into Mobile.wear #{name}")
             return false
         end
-        if !can_wear(item: item, silent: silent)
+        if !can_wear(item, silent)
             return false
         end
+        slots = self.equip_slots.select { |slot| (item.wear_locations & slot.wear_locations).size > 0 }
         equip_slots.each do |equip_slot|   # first try to find empty slots
-            if item.wear_flags.include?(equip_slot.wear_flag) && !equip_slot.item
+            if ( (item.wear_locations & equip_slot.wear_locations).size > 0) && !equip_slot.item
                 if !silent
                     @room.occupants.each_output(equip_slot.equip_message, [self, item])
-                    if equip_slot.wear_flag == "wield"
+                    if item.is_a?(Weapon)
                         if proficient( item.genre )
                             output "0<N> feels like a part of you!", [item]
                         else
@@ -42,11 +43,11 @@ module MobileItem
             end
         end
         equip_slots.each do |equip_slot|   # then try to find used slots
-            if item.wear_flags.include?(equip_slot.wear_flag) && equip_slot.item
-                if unwear(item: equip_slot.item, silent: silent)
+            if ( (item.wear_locations & equip_slot.wear_locations).size > 0) && equip_slot.item
+                if unwear(equip_slot.item, silent)
                     if !silent
                         @room.occupants.each_output(equip_slot.equip_message, [self, item])
-                        if equip_slot.wear_flag == "wield"
+                        if item.is_a?(Weapon)
                             if proficient( item.genre )
                                 output "0<N> feels like a part of you!", [item]
                             else
@@ -62,30 +63,30 @@ module MobileItem
         if !silent
             output "You can't wear that."
         end
-        get_item(item, silent: true)
+        get_item(item, true)
         return false
     end
 
     def wear_all
         self.equip_slots.select(&:empty?).each do |equip_slot|
-            item = self.inventory.items.find{ |i| i.wear_flags.include?(equip_slot.wear_flag) }
-            wear(item: item) if item
+            item = self.inventory.items.find{ |i| (i.wear_locations & equip_slot.wear_locations).size > 0 }
+            wear(item) if item
         end
     end
 
     # remove an item that is equipped
-    def unwear( item:, silent: false )
+    def unwear( item, silent = false )
         if !item
             log ("Nil item passed into Mobile.unwear #{name}")
             return false
         end
-        if !can_unwear(item: item, silent: silent)
+        if !can_unwear(item, silent)
             return false
         end
         if !silent
             self.room.occupants.each_output "0<N> stop0<,s> using 1<n>.", [self, item]
         end
-        get_item(item, silent: true)
+        get_item(item, true)
         return true
     end
 
@@ -119,20 +120,20 @@ module MobileItem
 
     # return an array of equipped items in equip_slots with the 'wield' wear flag
     def wielded
-        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_flag == "wield" }.map(&:item)
+        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.item.is_a?(Weapon) }.map(&:item)
     end
 
     # return an array of equipped items in equip_slots with arbitrary wear flag
-    def equipped( slot )
-        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_flag == slot }.map(&:item)
+    def equipped( wear_location )
+        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_locations.include?(wear_location) }.map(&:item)
     end
 
-    def free?( slot )
-        return self.equip_slots.any?{ |equip_slot| equip_slot.item.nil? && equip_slot.wear_flag == slot }
+    def free?( wear_location )
+        return self.equip_slots.any?{ |equip_slot| equip_slot.item.nil? && equip_slot.wear_locations.include?(wear_location) == slot }
     end
 
     # puts an item into a container
-    def put_item(item, container, silent: false)
+    def put_item(item, container, silent = false)
         if item == container
             output "That would be a bad idea."
             return
@@ -145,8 +146,8 @@ module MobileItem
     end
 
     # Gets an item, regardless of where it is.
-    def get_item(item, silent: false)
-        if !item.wear_flags.include? "take"
+    def get_item(item, silent = false)
+        if item.fixed
             output "You can't take 0<n>.", [item]
             return
         end
@@ -155,8 +156,9 @@ module MobileItem
         else
             @room.occupants.each_output("0<N> get0<,s> 1<n>.", [self, item]) if !silent
         end
-
-        Game.instance.fire_event( self, :event_get_item, { actor: self, item: item } )
+        if Game.instance.responds_to_event(self, :event_get_item)
+            Game.instance.fire_event( self, :event_get_item, { actor: self, item: item } )
+        end
 
         # if !@inventory # no inventory, create one
         #     @inventory = Inventory.new(self)
@@ -164,15 +166,15 @@ module MobileItem
         item.move(@inventory)
     end
 
-    def give_item(item, mobile, silent: false)
+    def give_item(item, mobile, silent = false)
         @room.occupants.each_output("0<N> give0<,s> 1<n> to 2<n>.", [self, item, mobile]) if !silent
-        mobile.get_item(item, silent: true)
+        mobile.get_item(item, true)
         # if @inventory && @inventory.items.size == 0
         #     @inventory = nil
         # end
     end
 
-    def drop_item(item, silent: false)
+    def drop_item(item, silent = false)
         @room.occupants.each_output("0<N> drop0<,s> 1<n>.", [self, item]) if !silent
         @room.get_item(item)
         # if @inventory && @inventory.items.size == 0

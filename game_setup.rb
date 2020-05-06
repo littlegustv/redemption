@@ -615,11 +615,37 @@ module GameSetup
     # load reset tables from database
     protected def load_reset_data
         log("Loading Reset tables... ", false, 70)
-        reset_mobile_data = @db[:new_reset_mobile].to_hash(:id)
+        reset_mobile_data = @db[:reset_mobile].all
+        reset_mobile_itemgroups = @db[:reset_mobile_itemgroup].to_hash_groups(:mobile_reset_id)
+        reset_itemgroup_item_data = @db[:reset_itemgroup_item].to_hash_groups(:reset_group_id)
 
-        reset_mobile_data.values.each do |row|
+        # pp reset_mobile_itemgroups
+
+        reset_mobile_data.each do |row|
+
+            mob_itemgroup_rows = reset_mobile_itemgroups[row[:id]]
             row[:quantity].times do
-                reset = ResetMobile.new( row[:room_id], row[:mobile_id], row[:timer], row[:chance])
+                timer = row[:timer]
+                reset = MobileReset.new( row[:room_id], row[:mobile_id], row[:timer])
+
+                if mob_itemgroup_rows
+                    item_resets = (reset.item_resets = [])
+                    mob_itemgroup_rows.each do |mob_itemgroup_row|
+                        equipped = mob_itemgroup_row[:equipped]
+                        itemgroup_rows = reset_itemgroup_item_data[mob_itemgroup_row[:itemgroup_id]]
+                        itemgroup_rows.each do |item_row|
+                            item_id = item_row[:item_id]
+                            child_itemgroup_id = item_row[:child_itemgroup_id]
+
+                            item_row[:quantity].times do
+                                item_reset = ItemReset.new(item_id, nil, timer, equipped)
+                                item_resets << item_reset
+                            end
+                        end
+                        # ItemReset.new(itemgroup_row)
+                        # puts itemgroup_row
+                    end
+                end
                 @mobile_resets << reset
                 reset.activate(true)
             end
@@ -659,26 +685,4 @@ module GameSetup
         log( "done." )
     end
 
-    # # release unnecessary tables (already been populated, etc)
-    # protected def clear_tables
-    #     @affect_data = nil
-    #     @position_data = nil
-    #     @element_data = nil
-    #     @material_data = nil
-    #     @genre_data = nil
-    #     @genre_affect_data = nil
-    #     @noun_data = nil
-    #     @size_data = nil
-    #     @new_reset_mobile_data = nil
-    #     @continent_data = nil
-    #     @area_data = nil
-    #     @room_data = nil
-    #     @exit_data = nil
-    #     @room_affect_data = nil
-    #     @room_description_data = nil
-    #     @item_modifiers = nil
-    #     @ac_data = nil
-    #     @weapon_data = nil
-    #     @container_data = nil
-    # end
 end
