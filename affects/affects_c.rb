@@ -332,11 +332,11 @@ class AffectCorrosiveWeapon < Affect
     end
 
     def add_flag(data)
-        Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_flag)
+        Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
     end
 
     def remove_flag(data)
-        Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
+        Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
     end
 
     def do_flag(data)
