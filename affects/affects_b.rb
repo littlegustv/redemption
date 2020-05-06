@@ -192,11 +192,7 @@ class AffectBlind < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_try_can_see, self, :do_blindness)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_try_can_see, self)
+        add_event_listener(@target, :event_try_can_see, :do_blindness)
     end
 
     def send_start_messages
@@ -291,27 +287,7 @@ class AffectBurstRune < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_burst_rune)
-        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_burst_rune)
-        if @target.equipped?
-            Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_burst_rune)
-        end
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_item_wear, self)
-        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
-        if @target.equipped?
-            Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
-        end
-    end
-
-    def add_burst_rune(data)
-        Game.instance.add_event_listener(@target.carrier, :event_override_hit, self, :do_burst_rune)
-    end
-
-    def remove_burst_rune(data)
-        Game.instance.remove_event_listener(@target.carrier, :event_override_hit, self)
+        add_event_listener(@target, :event_override_hit, :do_burst_rune)
     end
 
     def do_burst_rune(data)

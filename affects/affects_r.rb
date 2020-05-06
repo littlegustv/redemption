@@ -25,13 +25,8 @@ class AffectRegeneration < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_regeneration, self, :do_regeneration_bonus)
-        Game.instance.add_event_listener(@target, :event_on_hit, self, :do_regeneration_recovery)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_regeneration, self)
-        Game.instance.remove_event_listener(@target, :event_on_hit, self)
+        add_event_listener(@target, :event_calculate_regeneration, :do_regeneration_bonus)
+        add_event_listener(@target, :event_on_hit, :do_regeneration_recovery)
     end
 
     def do_regeneration_bonus(data)
@@ -78,13 +73,7 @@ class AffectResistance < Affect
     def start
         element = Game.instance.elements[@data[:element_id]]
         event = "event_get_#{element.name}_resist".to_sym
-        Game.instance.add_event_listener(@target, event, self, :do_resist)
-    end
-
-    def complete
-        element = Game.instance.elements[@data[:element_id]]
-        event = "event_get_#{element.name}_resist".to_sym
-        Game.instance.remove_event_listener(@target, event, self)
+        add_event_listener(@target, event, :do_resist)
     end
 
     def do_resist(data)

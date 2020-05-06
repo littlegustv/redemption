@@ -25,11 +25,7 @@ class AffectIgnoreWounds < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_override_receive_damage, self, :do_ignore_wounds)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_override_receive_damage, self)
+        add_event_listener(@target, :event_override_receive_damage, :do_ignore_wounds)
     end
 
     def send_start_messages
@@ -83,13 +79,7 @@ class AffectImmunity < Affect
     def start
         element = Game.instance.elements[@data[:element_id]]
         event = "event_get_#{element.name}_resist".to_sym
-        Game.instance.add_event_listener(@target, event, self, :do_resist)
-    end
-
-    def complete
-        element = Game.instance.elements[@data[:element_id]]
-        event = "event_get_#{element.name}_resist".to_sym
-        Game.instance.remove_event_listener(@target, event, self)
+        add_event_listener(@target, event, :do_resist)
     end
 
     def do_resist(data)
@@ -183,15 +173,9 @@ class AffectInvisibility < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
-        Game.instance.add_event_listener(@target, :event_try_can_be_seen, self, :do_invisibility)
-        Game.instance.add_event_listener(@target, :event_calculate_long_auras, self, :do_invisibility_aura)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_on_start_combat, self)
-        Game.instance.remove_event_listener(@target, :event_try_can_be_seen, self)
-        Game.instance.remove_event_listener(@target, :event_calculate_long_auras, self)
+        add_event_listener(@target, :event_on_start_combat, :do_remove_affect)
+        add_event_listener(@target, :event_try_can_be_seen, :do_invisibility)
+        add_event_listener(@target, :event_calculate_long_auras, :do_invisibility_aura)
     end
 
     def send_start_messages

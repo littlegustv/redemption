@@ -23,7 +23,7 @@ class ItemModel
         @level = row[:level] || 0
         @weight = row[:weight] || 0
         @cost = row[:cost] || 0
-        @fixed = row[:fixed] || 0
+        @fixed = row[:fixed] || false
 
         # material
         if row.dig(:material_id)

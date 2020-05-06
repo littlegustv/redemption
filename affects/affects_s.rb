@@ -25,11 +25,7 @@ class AffectScramble < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_communicate, self, :do_scramble)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_communicate, self)
+        add_event_listener(@target, :event_communicate, :do_scramble)
     end
 
     def send_start_messages
@@ -80,11 +76,7 @@ class AffectShackle < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_mobile_enter, self, :do_shackles)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_mobile_enter, self)
+        add_event_listener(@target, :event_mobile_enter, :do_shackles)
     end
 
     def send_start_messages
@@ -129,13 +121,8 @@ class AffectShackleRune < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :shackle_rune_description)
-        Game.instance.add_event_listener(@target, :event_room_mobile_enter, self, :do_shackle_rune)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
-        Game.instance.remove_event_listener(@target, :event_room_mobile_enter, self)
+        add_event_listener(@target, :event_calculate_room_description, :shackle_rune_description)
+        add_event_listener(@target, :event_room_mobile_enter, :do_shackle_rune)
     end
 
     def send_complete_mesages
@@ -254,31 +241,11 @@ class AffectShockingWeapon < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
-        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
-        if @target.equipped?
-            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-        end
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_item_wear, self)
-        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
-        if @target.equipped?
-            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
-        end
-    end
-
-    def add_flag(data)
-        Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-    end
-
-    def remove_flag(data)
-        Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        add_event_listener(@target, :event_on_hit, :do_flag)
     end
 
     def do_flag(data)
-        if data[:weapon] == @target && data[:target].active
+        if data[:target].active
             data[:target].output "You are shocked by 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is struck by lightning from 1<n>'s 2<n>'.", [data[:target], data[:source], @target]
             if dice(1, 100) <= @data[:chance]
@@ -375,12 +342,11 @@ class AffectSleep < Affect
 
     def start
         @target.position = :sleeping.to_position
-        Game.instance.add_event_listener(@target, :event_try_wake, self, :do_slept)
+        add_event_listener(@target, :event_try_wake, :do_slept)
     end
 
     def complete
         @target.position = :standing.to_position
-        Game.instance.remove_event_listener(@target, :event_try_wake, self)
     end
 
     def send_start_messages

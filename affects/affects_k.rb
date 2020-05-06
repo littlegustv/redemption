@@ -73,13 +73,8 @@ class AffectKiller < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_long_auras, self, :do_long_killer_flag)
-        Game.instance.add_event_listener(@target, :event_calculate_short_auras, self, :do_short_killer_flag)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_long_auras, self)
-        Game.instance.remove_event_listener(@target, :event_calculate_short_auras, self)
+        add_event_listener(@target, :event_calculate_long_auras, :do_long_killer_flag)
+        add_event_listener(@target, :event_calculate_short_auras, :do_short_killer_flag)
     end
 
     def do_long_killer_flag(data)

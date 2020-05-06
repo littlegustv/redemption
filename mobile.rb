@@ -444,6 +444,13 @@ class Mobile < GameObject
                 return
             end
         end
+        if Game.instance.responds_to_event(weapon, :event_override_hit)
+            override = { confirm: false, source: self, target: target, weapon: weapon }
+            Game.instance.fire_event( weapon, :event_override_hit, override )
+            if override[:confirm]
+                return
+            end
+        end
         # calculate hit chance ... I guess burst rune auto-hits?
         hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon.noun.element ) ).clamp( 5, 95 )
         if rand(0...100) < hit_chance
@@ -474,6 +481,10 @@ class Mobile < GameObject
             if Game.instance.responds_to_event(self, :event_on_hit)
                 data = { damage: damage, source: self, target: target, weapon: weapon }
                 Game.instance.fire_event(self, :event_on_hit, data)
+            end
+            if Game.instance.responds_to_event(weapon, :event_on_hit)
+                data = { damage: damage, source: self, target: target, weapon: weapon }
+                Game.instance.fire_event(weapon, :event_on_hit, data)
             end
         end
 

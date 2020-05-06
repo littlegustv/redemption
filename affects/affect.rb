@@ -64,6 +64,8 @@ class Affect
         @clock = 0
         @data = self.class.affect_info[:data]   # Additional data. Only "primitives". Saved to the database.
 
+        @events = nil                           # keeps track of events
+
     end
 
     # Override this method to output start messages.
@@ -99,6 +101,30 @@ class Affect
     #
     # Always gets called when an affect is cleared.
     def complete
+    end
+
+    def add_event_listener(object, event, callback)
+        Game.instance.add_event_listener(object, event, self, callback)
+        if !@events
+            @events = []
+        end
+        @events << [object, event]
+    end
+
+    def remove_event_listener(object, event)
+        Game.instance.remove_event_listener(object, event, self)
+        if @events.size == 0
+            @events = nil
+        end
+    end
+
+    def remove_events
+        if @events
+            @events.each do |object, event|
+                Game.instance.remove_event_listener(object, event, self)
+            end
+            @events = nil
+        end
     end
 
     def update
@@ -183,6 +209,7 @@ class Affect
     # Call this method to remove an affect from a GameObject.
     def clear(silent = false)
         complete
+        remove_events
         @target.affects.delete self
         if @source
             @source.source_affects.delete(self)

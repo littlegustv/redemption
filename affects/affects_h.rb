@@ -69,11 +69,7 @@ class AffectHatchling < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_on_level_up, self, :hatch)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_on_level_up, self)
+        add_event_listener(@target, :event_on_level_up, :hatch)
     end
 
     def hatch(data)
@@ -111,17 +107,10 @@ class AffectHide < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_on_start_combat, self, :do_remove_affect)
-        Game.instance.add_event_listener(@target, :event_mobile_exit, self, :do_remove_affect)
-        Game.instance.add_event_listener(@target, :event_try_can_be_seen, self, :do_hide)
-        Game.instance.add_event_listener(@target, :event_calculate_long_auras, self, :do_hide_aura)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_on_start_combat, self)
-        Game.instance.remove_event_listener(@target, :event_mobile_exit, self)
-        Game.instance.remove_event_listener(@target, :event_try_can_be_seen, self)
-        Game.instance.remove_event_listener(@target, :event_calculate_long_auras, self)
+        add_event_listener(@target, :event_on_start_combat, :do_remove_affect)
+        add_event_listener(@target, :event_mobile_exit, :do_remove_affect)
+        add_event_listener(@target, :event_try_can_be_seen, :do_hide)
+        add_event_listener(@target, :event_calculate_long_auras, :do_hide_aura)
     end
 
     def send_start_messages

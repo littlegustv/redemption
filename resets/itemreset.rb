@@ -26,7 +26,7 @@ class ItemReset < Reset
 
         model = Game.instance.item_models.dig(@item_id)
         if !model
-            log "Invalid owner in item reset: item_id: #{item_id} owner: #{owner.name}"
+            log "Invalid owner in item reset: item_id: #{@item_id} owner: #{owner.name}"
             return false
         end
         item = Game.instance.load_item(model, inventory, self)

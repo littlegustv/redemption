@@ -61,7 +61,7 @@ class Array
 end
 
 class String
-    
+
     def to_a
         [ self ]
     end

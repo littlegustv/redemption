@@ -60,13 +60,8 @@ class AffectFireRune < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :fire_rune_description)
-        Game.instance.add_event_listener(@target, :event_room_mobile_enter, self, :do_fire_rune)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
-        Game.instance.remove_event_listener(@target, :event_room_mobile_enter, self)
+        add_event_listener(@target, :event_calculate_room_description, :fire_rune_description)
+        add_event_listener(@target, :event_room_mobile_enter, :do_fire_rune)
     end
 
     def send_complete_messages
@@ -119,31 +114,11 @@ class AffectFlamingWeapon < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
-        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
-        if @target.equipped?
-            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-        end
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_item_wear, self)
-        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
-        if @target.equipped?
-            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
-        end
-    end
-
-    def add_flag(data)
-        Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-    end
-
-    def remove_flag(data)
-        Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        add_event_listener(@target, :event_on_hit, :do_flag)
     end
 
     def do_flag(data)
-        if data[:weapon] == @target && data[:target].active
+        if data[:target].active
             data[:target].output "0<N> burns your flesh!", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is burned by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
             if dice(1, 100) <= @data[:chance]
@@ -182,31 +157,11 @@ class AffectFloodingWeapon < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
-        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
-        if @target.equipped?
-            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-        end
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_item_wear, self)
-        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
-        if @target.equipped?
-            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
-        end
-    end
-
-    def add_flag(data)
-        Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-    end
-
-    def remove_flag(data)
-        Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        add_event_listener(@target, :event_on_hit, :do_flag)
     end
 
     def do_flag(data)
-        if data[:weapon] == @target && data[:target].active
+        if data[:target].active
             data[:target].output "You are smothered in water from 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is smothered in water from 1<n>'s 2<n>.", [data[:target], data[:source], @target]
             if dice(1, 100) <= @data[:chance]
@@ -324,11 +279,7 @@ class AffectFollow < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_observe_mobile_exit, self, :do_follow)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_observe_mobile_exit, self)
+        add_event_listener(@target, :event_observe_mobile_exit, :do_follow)
     end
 
     def do_follow( data )
@@ -409,31 +360,11 @@ class AffectFrostWeapon < Affect
         end
 
         def start
-            Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
-            Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
-            if @target.equipped?
-                Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-            end
-        end
-
-        def complete
-            Game.instance.remove_event_listener(@target, :event_item_wear, self)
-            Game.instance.remove_event_listener(@target, :event_item_unwear, self)
-            if @target.equipped?
-                Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
-            end
-        end
-
-        def add_flag(data)
-            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-        end
-
-        def remove_flag(data)
-            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+            add_event_listener(@target, :event_on_hit, :do_flag)
         end
 
         def do_flag(data)
-            if data[:weapon] == @target && data[:target].active
+            if data[:target].active
                 data[:target].output "The cold touch of 0<n> surrounds you with ice.", [@target]
                 (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is frozen by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
                 if dice(1, 100) <= @data[:chance]

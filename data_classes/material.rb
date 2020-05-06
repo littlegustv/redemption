@@ -1,5 +1,3 @@
-
-
 class Material
 
     attr_reader :id

@@ -66,11 +66,7 @@ class AffectGlowing < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_long_auras, self, :do_glowing_aura)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_long_auras, self)
+        add_event_listener(@target, :event_calculate_long_auras, :do_glowing_aura)
     end
 
     def do_glowing_aura(data)
@@ -104,11 +100,7 @@ class AffectGrandeur < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_show_condition, self, :do_condition)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_show_condition, self)
+        add_event_listener(@target, :event_show_condition, :do_condition)
     end
 
     def send_start_messages
@@ -135,7 +127,7 @@ class AffectGuard < Affect
             level, # level
             60, # duration
             nil, # modifiers: nil
-            nil, # period: nil
+            1, # period: nil
             false, # permanent: false
             Visibility::HIDDEN, # visibility
             true # savable
@@ -152,11 +144,7 @@ class AffectGuard < Affect
 
     #
     def start
-        Game.instance.add_event_listener(@target, :event_observe_mobile_enter, self, :toggle_guard)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_observe_mobile_enter, self)
+        add_event_listener(@target, :event_observe_mobile_enter, :toggle_guard)
     end
 
     def toggle_guard(data)
