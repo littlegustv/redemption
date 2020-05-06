@@ -2,6 +2,7 @@ class GameObject
 
     attr_accessor :name, :keywords, :affects, :uuid, :active, :short_description, :long_description
     attr_reader :room, :gender
+    attr_reader :reset
     attr_reader :source_affects
 
     def initialize( name, keywords, reset = nil )

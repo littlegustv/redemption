@@ -117,8 +117,8 @@ class Mobile < GameObject
         # wander "temporarily" disabled :)
         @wander_range = 0 # data[:act_flags].to_a.include?("sentinel") ? 0 : 1
 
-        @hitpoints = model.hp || model.current_hp || maxhitpoints
-        @manapoints = model.mana || model.current_mana || maxmanapoints
+        @hitpoints = model.current_hp || maxhitpoints
+        @manapoints = model.current_mana || maxmanapoints
         @movepoints = model.current_movement || maxmovepoints
 
         if model.size
@@ -129,6 +129,10 @@ class Mobile < GameObject
 
     def destroy
         super
+        if @reset
+            @reset.activate
+            @reset = nil
+        end
         @room.mobile_exit(self) if @room
         @race_affects.clear
         @mobile_class_affects.clear
@@ -443,7 +447,7 @@ class Mobile < GameObject
         # calculate hit chance ... I guess burst rune auto-hits?
         hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon.noun.element ) ).clamp( 5, 95 )
         if rand(0...100) < hit_chance
-            damage = damage_rating(weapon: weapon) + damage_bonus + (self.stat(:damroll) * Constants::Damage::DAMROLL_MODIFIER).to_i
+            damage = damage_rating(weapon) + damage_bonus + (self.stat(:damroll) * Constants::Damage::DAMROLL_MODIFIER).to_i
             hit = true
         else
             damage = 0
@@ -607,10 +611,6 @@ class Mobile < GameObject
             killer.earn( @wealth )
         end
         stop_combat
-        if @reset
-            @reset.activate
-            @reset = nil
-        end
         destroy
     end
 
@@ -746,7 +746,7 @@ class Mobile < GameObject
         ( -1 * stat( "armor_#{element}".to_sym ) - 100 ) / 5
     end
 
-    def damage_rating(weapon:)
+    def damage_rating(weapon)
         if proficient( weapon.genre )
             return weapon.damage + stat(:damroll) + strength_to_damage
         else
@@ -762,7 +762,7 @@ class Mobile < GameObject
         self.name.to_s
     end
 
-    def show_short_description(observer:)
+    def show_short_description(observer)
         data = {description: ""}
         auras = self.long_auras
         if self.attacking
@@ -969,7 +969,7 @@ You are #{@position.name}.)
     end
 
     def resistances
-        element_data = Game.instance.elements.values.map { |e| [e, self.resist(e)] }.to_h
+        element_data = Game.instance.elements.values.map { |e| [e, self.resistance(e)] }.to_h
         return element_data
     end
 
@@ -986,7 +986,7 @@ You are #{@position.name}.)
             @race_equip_slots << EquipSlot.new(self, slot)
         end
         old_equipment.each do |item| # try to wear all items that were equipped before
-            wear(item: item, silent: true)
+            wear(item, true)
         end
         @race_affects.each do |affect|
             affect.clear(true)
@@ -1005,10 +1005,10 @@ You are #{@position.name}.)
         end
         @mobile_class_equip_slots = []  # Clear old equip_slots
         @mobile_class.equip_slot_infos.each do |slot|
-            @race_equip_slots << EquipSlot.new(self, slot)
+            @mobile_class_equip_slots << EquipSlot.new(self, slot)
         end
         old_equipment.each do |item| # try to wear all items that were equipped before
-            wear(item: item, silent: true)
+            wear(item, true)
         end
         @mobile_class_affects.each do |affect|
             affect.clear(true)

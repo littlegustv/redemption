@@ -9,6 +9,7 @@ class ItemModel
     attr_reader :weight
     attr_reader :cost
     attr_reader :material
+    attr_reader :wear_locations
     attr_reader :fixed
 
     attr_reader :affect_models
@@ -37,14 +38,14 @@ class ItemModel
         if row.dig(:wear_locations)
             @wear_locations = row[:wear_locations]
         else
-            @wear_locations = Array.new
+            @wear_locations = []
         end
 
         # modifiers
         if row.dig(:modifiers)
             @modifiers = row[:modifiers]
         else
-            @modifiers = Hash.new
+            @modifiers = {}
         end
 
         # affect models

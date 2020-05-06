@@ -64,7 +64,7 @@ class Room < GameObject
         item_list = @inventory.show(observer: looker, short_description: true)
         out += "\n#{item_list}" if item_list.length > 0
 
-        visible_occupant_longs = Game.instance.target({ list: self.occupants, :not => looker, visible_to: looker }).map{ |t| t.show_short_description(observer: looker) }
+        visible_occupant_longs = Game.instance.target({ list: self.occupants, :not => looker, visible_to: looker }).map{ |t| t.show_short_description(looker) }
         out += "\n#{visible_occupant_longs.join("\n")}" if visible_occupant_longs.length > 0
         return out
     end

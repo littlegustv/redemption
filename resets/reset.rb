@@ -5,19 +5,18 @@ class Reset
 
     attr_reader :pop_time
 
-    def initialize(timer, chance)
-        @timer = 5
-        @chance = chance
+    def initialize(timer)
+        @timer = timer
         @pop_time = 0
+        @active = false
     end
 
     # called when the time for reset has come to determine if the reset was successful.
     # if it wasn't, it reactivates itself!
     def success?
-        if @pop_time != 0 && @chance != 100 && dice(1, 100) > @chance
-            self.activate
-            return false
-        end
+        # if something # possibility of event interception?
+        #     self.activate
+        # end
         return true
     end
 
@@ -29,6 +28,10 @@ class Reset
 
     # call to queue the reset as active
     def activate(instant = false)
+        if @active # already active, just return
+            return
+        end
+        @active = true
         if instant
             @pop_time = 0
         else

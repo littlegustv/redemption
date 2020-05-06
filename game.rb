@@ -28,6 +28,9 @@ class Game
     attr_reader :spells
     attr_reader :abilities
 
+    # reset stuff
+    attr_reader :reset_item_groups
+
     # models
     attr_reader :mobile_models
     attr_reader :item_models
@@ -60,8 +63,6 @@ class Game
 
         @shop_data = Hash.new               # Shop table as hash       (uses :mobile_id as key)
 
-        # @new_reset_
-
         @saved_player_id_max = 0                # max id in database table saved_player_base
         @saved_player_affect_id_max = 0         # max id in database table saved_player_affect
         @saved_player_item_id_max = 0           # max id in database table saved_player_item
@@ -74,16 +75,18 @@ class Game
 
         @affect_class_hash = Hash.new           # Affect classes as hash (uses :id as key)
 
-        # Models
-        @item_model_classes = Hash.new      # hash of item model classes - uses item_type_id as key
-        @item_models = Hash.new             # hash of item models (uses :id as key)
-        @mobile_models = Hash.new           # Hash of mobile models (uses :id as key)
-
         # Resets
         @mobile_resets = []                 # Mobile resets
         @active_resets = []                 # Array of Resets waiting to pop - sorted by reset.pop_time (ascending)
         @active_resets_sorted = false       # set to false when a new reset is activated. resets will be sorted on next handle_resets
         @initial_reset = true
+        @reset_item_groups = Hash.new       # hash of item reset groups - key is :id, value is array of ResetItem objects
+
+
+        # Models
+        @item_model_classes = Hash.new      # hash of item model classes - uses item_type_id as key
+        @item_models = Hash.new             # hash of item models (uses :id as key)
+        @mobile_models = Hash.new           # Hash of mobile models (uses :id as key)
 
         # Data Classes
         @elements =         Hash.new        # hash of damage element objects  (uses :id as key)
@@ -543,28 +546,33 @@ class Game
         end
     end
 
-    def load_mob( mobile_model, room, reset = nil )
-        mob = Mobile.new( mobile_model, room, reset )
+    def load_mob( model_or_id, room, reset = nil )
+        model = (model_or_id.is_a?(Integer)) ? @mobile_models.dig(model_or_id) : model_or_id
+        if !model.is_a?(MobileModel)
+            log "load_item [ITEM MODEL NOT FOUND] Model or ID: #{model_or_id}"
+            return nil
+        end
+        mob = Mobile.new( model, room, reset )
         add_global_mobile(mob)
-        if not @shop_data[ mobile_model.id ].nil?
+        if not @shop_data[ model.id ].nil?
             AffectShopkeeper.new( mob, mob, 0 ).apply(true)
         end
         return mob
     end
 
-    def load_item( id, inventory )
-        model = @item_models[id]
-        if !model
-            log "load_item [ITEM MODEL NOT FOUND] Item ID: #{id}"
-            return
+    def load_item( model_or_id, inventory, reset = nil )
+        model = (model_or_id.is_a?(Integer)) ? @item_models.dig(model_or_id) : model_or_id
+        if !model.is_a?(ItemModel)
+            log "load_item [ITEM MODEL NOT FOUND] Model or ID: #{model_or_id}"
+            return nil
         end
         item_class = model.class.item_class
         item = item_class.new(model, inventory)
         add_global_item(item)
-        if not @portal_data[ id ].nil?
+        if not @portal_data[ item.id ].nil?
             # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
             # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
-            AffectPortal.new( item, @rooms[ @portal_data[id][:to_room_id] ] ).apply
+            AffectPortal.new( item, @rooms[ @portal_data[item.id][:to_room_id] ] ).apply
         end
         return item
     end
