@@ -26,8 +26,8 @@ module MobileItem
             return false
         end
         slots = self.equip_slots.select { |slot| (item.wear_locations & slot.wear_locations).size > 0 }
-        equip_slots.each do |equip_slot|   # first try to find empty slots
-            if ( (item.wear_locations & equip_slot.wear_locations).size > 0) && !equip_slot.item
+        slots.each do |equip_slot|   # first try to find empty slots
+            if !equip_slot.item
                 if !silent
                     @room.occupants.each_output(equip_slot.equip_message, [self, item])
                     if item.is_a?(Weapon)
@@ -42,8 +42,8 @@ module MobileItem
                 return true
             end
         end
-        equip_slots.each do |equip_slot|   # then try to find used slots
-            if ( (item.wear_locations & equip_slot.wear_locations).size > 0) && equip_slot.item
+        slots.each do |equip_slot|   # then try to find used slots
+            if equip_slot.item
                 if unwear(equip_slot.item, silent)
                     if !silent
                         @room.occupants.each_output(equip_slot.equip_message, [self, item])

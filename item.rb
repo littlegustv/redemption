@@ -124,7 +124,7 @@ Extra flags: #{ @extraFlags }
 
     # true or false - item is equipped?
     def equipped?
-        EquipSlot === @parent_inventory
+        @parent_inventory.is_a?(EquipSlot)
     end
 
     def wear_locations
