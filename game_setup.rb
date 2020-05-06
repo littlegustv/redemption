@@ -178,7 +178,7 @@ module GameSetup
             command = command_class.new
             row = command_data.values.find{ |row| row[:name] == command.name }
             if row
-                command.overwrite_attributes(row)
+                command.overwrite_attributes(row)                
             else
                 missing << command.name
             end

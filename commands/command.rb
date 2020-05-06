@@ -1,6 +1,6 @@
 class Command
 
-    attr_reader :id, :priority, :name, :creation_points
+    attr_reader :id, :priority, :name, :creation_points, :lag
 
     # Set what you need to here, but most of it is overwritten by values in the database,
     # if they can be found.
