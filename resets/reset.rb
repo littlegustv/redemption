@@ -17,6 +17,7 @@ class Reset
         # if something # possibility of event interception?
         #     self.activate
         # end
+        @active = false
         return true
     end
 

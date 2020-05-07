@@ -66,7 +66,7 @@ class AffectResistance < Affect
         return @info || @info = {
             name: "resistance",
             keywords: ["resistance"],
-            application_type: :multiple,
+            application_type: :global_unique_data,
         }
     end
 

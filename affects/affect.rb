@@ -45,8 +45,8 @@ class Affect
         @modifiers = modifiers
         @period = period
         @next_periodic_time = nil
-        @application_type = application_type   # :global_overwrite, :global_stack, :global_single,
-                                               # :source_overwrite, :source_stack, :source_single,
+        @application_type = application_type   # :global_overwrite, :global_stack, :global_single, :global_unique_data,
+                                               # :source_overwrite, :source_stack, :source_single, :source_unique_data,
                                                # :multiple
         @permanent = permanent
         @visibility = visibility
@@ -145,7 +145,7 @@ class Affect
             return false
         end
         existing_affects = @target.affects.select { |a| self.shares_keywords_with?(a) }
-        if [:source_overwrite, :source_stack, :source_single].include?(@application_type) && @source
+        if [:source_overwrite, :source_stack, :source_single, :source_unique_data].include?(@application_type) && @source
             existing_affects.select! { |a| a.source == @source }
         end
         if !existing_affects.empty?
@@ -163,6 +163,14 @@ class Affect
             when :global_single, :source_single
                 # existing single affect already exists!
                 return nil
+            when :global_unique_data, :source_unique_data
+                if existing_affects.find { |a| a.data == self.data }.nil?
+                    self.send_start_messages if !silent
+                    @target.affects.unshift(self)
+                    self.start
+                else
+                    return nil
+                end
             when :multiple
                 # :multiple application type affects stack no matter what
                 self.send_start_messages if !silent

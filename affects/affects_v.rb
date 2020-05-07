@@ -24,7 +24,7 @@ class AffectVulnerable < Affect
         return @info || @info = {
             name: "vulnerable",
             keywords: ["vulnerable"],
-            application_type: :multiple,
+            application_type: :global_unique_data,
         }
     end
 

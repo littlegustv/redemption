@@ -30,14 +30,14 @@ class ItemReset < Reset
             return false
         end
         item = Game.instance.load_item(model, inventory, self)
-        if @equipped
-            owner.wear(item, true)
-        end
 
         if @child_resets
             @child_resets.each do |reset|
                 reset.pop(item)
             end
+        end
+        if @equipped
+            owner.wear(item, true)
         end
 
         return true

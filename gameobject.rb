@@ -132,8 +132,8 @@ class GameObject
             if data
                 affect.overwrite_data(data)
             end
-            affect.apply(silent)
-            array << affect if array
+            result = affect.apply(silent)
+            array << affect if array && result
         end
     end
 
@@ -145,8 +145,8 @@ class GameObject
             if affect_model.data
                 affect.overwrite_data(affect_model.data)
             end
-            affect.apply(silent)
-            array << affect if array
+            result = affect.apply(silent)
+            array << affect if array && result
         end
     end
 

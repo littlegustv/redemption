@@ -5,8 +5,10 @@ module MobileItem
         if item.level <= self.level
             return true
         else
-            output "You must be level #{ item.level } to use 0<n>.", [item]
-            (@room.occupants - [ self ]).each_output "0<N> tries to use 1<n> but is too inexperienced.", [ self, item ]
+            if !silent
+                output "You must be level #{ item.level } to use 0<n>.", [item]
+                (@room.occupants - [ self ]).each_output "0<N> tries to use 1<n> but is too inexperienced.", [ self, item ]
+            end
             return false
         end
     end

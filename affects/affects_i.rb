@@ -72,7 +72,7 @@ class AffectImmunity < Affect
         return @info || @info = {
             name: "immunity",
             keywords: ["immunity"],
-            application_type: :multiple,
+            application_type: :global_unique_data,
         }
     end
 
