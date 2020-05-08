@@ -166,10 +166,10 @@ class Mobile < GameObject
         to_learn = unlearned.find { |skill| skill.name.fuzzy_match(skill_name) }
         if to_learn
             if to_learn.creation_points <= @creation_points
-                if to_learn.is_a? Skill
-                    @learned_skills << to_learn
-                else
+                if to_learn.is_a?(Spell)
                     @learned_spells << to_learn
+                else
+                    @learned_skills << to_learn
                 end
                 @creation_points -= to_learn.creation_points
                 output "You have learned #{ to_learn.name }!"

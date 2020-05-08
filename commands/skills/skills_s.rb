@@ -1,6 +1,6 @@
 require_relative 'skill.rb'
 
-class SkillShadow < Command
+class SkillShadow < Skill
 
     def initialize
         super(

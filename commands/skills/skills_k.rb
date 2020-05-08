@@ -1,6 +1,6 @@
 require_relative 'skill.rb'
 
-class SkillKick < Command
+class SkillKick < Skill
 
     def initialize
         super(
