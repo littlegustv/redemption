@@ -291,7 +291,7 @@ class AffectBurstRune < Affect
     end
 
     def do_burst_rune(data)
-        if data[:confirm] == false && data[:weapon] == @target && data[:target] && rand(1..100) <= 125
+        if data[:confirm] == false && data[:target] && rand(1..100) <= 125
             data[:source].output @hit_message
             data[:target].receive_damage(data[:source], 100, @noun, false, false, @@NOUN_NAME)
             data[:confirm] = true
