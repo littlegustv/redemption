@@ -1,20 +1,31 @@
 class ItemReset < Reset
 
     attr_reader :item_id
-    attr_reader :quantity
-    attr_reader :child_reset_group_id
+    attr_reader :timer
+    attr_reader :child_resets
 
-    def initialize(item_id, child_resets, timer, equipped = nil)
+    def initialize(item_id, timer, equipped = nil, room_id = nil)
         super(timer)
         @item_id = item_id
-        @child_resets = child_resets
+        @child_resets = nil
         @equipped = equipped
+        @room_id = room_id
         @owner = nil
+    end
+
+    def add_child_reset(child_reset)
+        if !@child_resets
+            @child_resets = []
+        end
+        @child_resets << child_reset
     end
 
     def pop(owner = nil)
         owner = (owner || @owner)
         @owner = nil
+        if @room_id
+            owner = Game.instance.rooms.dig(@room_id)
+        end
         if !owner
             log "Invalid owner in item reset: item_id #{@item_id}"
             return false
@@ -31,9 +42,10 @@ class ItemReset < Reset
         end
         item = Game.instance.load_item(model, inventory, self)
 
-        if @child_resets
-            @child_resets.each do |reset|
+        if @child_resets && item.is_a?(Container)
+            @child_resets.to_a.each do |reset|
                 reset.pop(item)
+                reset.deactivate
             end
         end
         if @equipped
@@ -46,6 +58,13 @@ class ItemReset < Reset
     def activate(instant = false, owner = nil)
         @owner = owner
         super(instant)
+    end
+
+    def deactivate
+        super
+        @child_resets.to_a.each do |reset|
+            reset.deactivate
+        end
     end
 
 end

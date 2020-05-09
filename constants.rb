@@ -524,6 +524,8 @@ module Constants
     ]
 
     ITEM_MODEL_CLASSES = [
+        ConsumableModel,
+        ContainerModel,
         ItemModel,
         WeaponModel,
     ]

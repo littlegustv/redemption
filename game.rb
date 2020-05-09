@@ -77,6 +77,7 @@ class Game
 
         # Resets
         @mobile_resets = []                 # Mobile resets
+        @item_resets = []
         @active_resets = []                 # Array of Resets waiting to pop - sorted by reset.pop_time (ascending)
         @active_resets_sorted = false       # set to false when a new reset is activated. resets will be sorted on next handle_resets
         @initial_reset = true
@@ -567,7 +568,7 @@ class Game
             return nil
         end
         item_class = model.class.item_class
-        item = item_class.new(model, inventory)
+        item = item_class.new(model, inventory, reset)
         add_global_item(item)
         if not @portal_data[ item.id ].nil?
             # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
@@ -588,7 +589,7 @@ class Game
 
     def do_command( actor, cmd, args = [], input = cmd )
         matches = find_commands( actor, cmd )
-        
+
         if matches.any?
             matches.last.execute( actor, cmd, args, input )
             return

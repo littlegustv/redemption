@@ -12,11 +12,13 @@ class Reset
     end
 
     # called when the time for reset has come to determine if the reset was successful.
-    # if it wasn't, it reactivates itself!
     def success?
         # if something # possibility of event interception?
         #     self.activate
         # end
+        if !@active
+            return false
+        end
         @active = false
         return true
     end
@@ -39,6 +41,10 @@ class Reset
             @pop_time = Game.instance.frame_time + @timer
         end
         Game.instance.activate_reset(self)
+    end
+
+    def deactivate
+        @active = false
     end
 
 end
