@@ -547,7 +547,9 @@ class Mobile < GameObject
             if noun.magic
                 decorators = Constants::MAGIC_DAMAGE_DECORATORS
             end
-            decorators = decorators.select{ |key, value| damage <= key}.values.first
+            decorators = decorators.select{ |key, value| damage <= key}.values.first || decorators.values.last
+            if !decorators
+            end
             if source && !anonymous
                 (self.room.occupants | [source]).each_output "0<N>'s#{decorators[2]} #{noun_name} #{decorators[1]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[3]}", [source, self]
             else # anonymous damage

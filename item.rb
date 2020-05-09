@@ -31,8 +31,8 @@
     end
 
     def destroy
-        super
         self.move(nil)
+        super
         Game.instance.destroy_item(self)
     end
 
@@ -78,6 +78,7 @@ Extra flags: #{ @extraFlags }
     # move this item to another inventory - nil is passed when an item is going to be destroyed
     def move(new_inventory)
         if @reset && @parent_inventory && (new_inventory.nil? || @parent_inventory.owner != new_inventory.owner)
+            log "#{self.name} doing reset" if @id == 4204
             @reset.activate(false, @parent_inventory.owner)
             @reset = nil
         end
@@ -197,7 +198,7 @@ end
 
 class Consumable < Item
 
-    def initialize( model, parent_inventory, spells, reset = nil )
+    def initialize( model, parent_inventory, reset = nil )
         super( model, parent_inventory, reset )
         @ability_instances = model.ability_instances
     end

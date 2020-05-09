@@ -29,6 +29,6 @@ class SkillKick < Skill
     end
 
     def do_kick( actor, target )
-        target.receive_damage(actor, 50, :kick)
+        target.receive_damage(actor, 500, :kick)
     end
 end

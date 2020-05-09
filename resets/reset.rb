@@ -6,7 +6,7 @@ class Reset
     attr_reader :pop_time
 
     def initialize(timer)
-        @timer = timer
+        @timer = 1
         @pop_time = 0
         @active = false
     end
@@ -31,6 +31,7 @@ class Reset
 
     # call to queue the reset as active
     def activate(instant = false)
+
         if @active # already active, just return
             return
         end

@@ -215,8 +215,6 @@ class SpellCharmPerson < Spell
     def attempt( actor, cmd, args, input, level )
         if ( target = Game.instance.target( { list: actor.room.occupants - [actor], visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
             if rand(1..10) <= 5
-                actor.output "0<N> looks at you with adoring eyes.", [target]
-                target.output "Isn't 0<n> just so nice??", [actor]
                 AffectFollow.new( actor, target, 1 ).apply
                 AffectCharm.new( actor, target, actor.level ).apply
             else
