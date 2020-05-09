@@ -48,12 +48,12 @@ module GameSave
             end
             if query_hash[:player_learned_skill].length > 0 # player skills
                 query = "INSERT INTO `saved_player_skill` " +
-                "(`saved_player_id`, `skill_id`) VALUES #{query_hash[:player_learned_skill].join(", ")}"
+                "(`saved_player_id`, `skill_id`) VALUES #{query_hash[:player_learned_skill].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_learned_spell].length > 0 # player spells
                 query = "INSERT INTO `saved_player_spell` " +
-                "(`saved_player_id`, `spell_id`) VALUES #{query_hash[:player_learned_spell].join(", ")}"
+                "(`saved_player_id`, `spell_id`) VALUES #{query_hash[:player_learned_spell].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_affect].length > 0 # player affects

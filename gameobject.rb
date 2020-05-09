@@ -1,8 +1,8 @@
 class GameObject
 
     attr_accessor :name, :keywords, :affects, :uuid, :active, :short_description, :long_description
+    attr_accessor :reset
     attr_reader :room, :gender
-    attr_reader :reset
     attr_reader :source_affects
 
     def initialize( name, keywords, reset = nil )
@@ -132,8 +132,8 @@ class GameObject
             if data
                 affect.overwrite_data(data)
             end
-            affect.apply(silent)
-            array << affect if array
+            result = affect.apply(silent)
+            array << affect if array && result
         end
     end
 
@@ -145,8 +145,8 @@ class GameObject
             if affect_model.data
                 affect.overwrite_data(affect_model.data)
             end
-            affect.apply(silent)
-            array << affect if array
+            result = affect.apply(silent)
+            array << affect if array && result
         end
     end
 

@@ -25,15 +25,11 @@ class AffectZeal < Affect
     end
 
     def start
-    	Game.instance.add_event_listener(@target, :event_calculate_weapon_hit_damage, self, :do_zeal)
+    	add_event_listener(@target, :event_calculate_weapon_hit_damage, :do_zeal)
     end
 
     def send_start_messages
         @target.output "You begin to channel pain into a zealous wrath!"
-    end
-
-    def complete
-		Game.instance.remove_event_listener(@target, :event_calculate_weapon_hit_damage, self)
     end
 
     def send_complete_messages

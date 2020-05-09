@@ -25,13 +25,8 @@ class AffectLair < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_try_where_room, self, :do_lair)
-        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :lair_description)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_try_where_room, self)
-        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
+        add_event_listener(@target, :event_try_where_room, :do_lair)
+        add_event_listener(@target, :event_calculate_room_description, :lair_description)
     end
 
     def lair_description(data)

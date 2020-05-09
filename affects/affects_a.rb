@@ -9,7 +9,7 @@ class AffectAggressive < Affect
             0, # level
             0, # duration
             nil, # modifiers
-            nil, # period
+            1, # period
             true, # permanent
             Visibility::HIDDEN, # visibility
             true # savable
@@ -25,13 +25,8 @@ class AffectAggressive < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_observe_mobile_enter, self, :toggle_aggro)
-        Game.instance.add_event_listener(@target, :event_mobile_enter, self, :toggle_aggro)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_observe_mobile_enter, self)
-        Game.instance.remove_event_listener(@target, :event_mobile_enter, self)
+        add_event_listener(@target, :event_observe_mobile_enter, :toggle_aggro)
+        add_event_listener(@target, :event_mobile_enter, :toggle_aggro)
     end
 
     def toggle_aggro(data)
@@ -78,15 +73,9 @@ class AffectAlarmRune < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :alarm_rune_description)
-        Game.instance.add_event_listener(@target, :event_room_mobile_enter, self, :do_alarm_rune)
-        Game.instance.add_event_listener(@source, :event_try_alarm_rune, self, :stop_alarm_rune)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
-        Game.instance.remove_event_listener(@target, :event_room_mobile_enter, self)
-        Game.instance.remove_event_listener(@source, :event_try_alarm_rune, self)
+        add_event_listener(@target, :event_calculate_room_description, :alarm_rune_description)
+        add_event_listener(@target, :event_room_mobile_enter, :do_alarm_rune)
+        add_event_listener(@source, :event_try_alarm_rune, :stop_alarm_rune)
     end
 
     def send_complete_messages

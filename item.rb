@@ -78,7 +78,7 @@ Extra flags: #{ @extraFlags }
     # move this item to another inventory - nil is passed when an item is going to be destroyed
     def move(new_inventory)
         if @reset && @parent_inventory && (new_inventory.nil? || @parent_inventory.owner != new_inventory.owner)
-            @reset.activate(@parent_inventory.owner)
+            @reset.activate(false, @parent_inventory.owner)
             @reset = nil
         end
         if @parent_inventory
@@ -164,13 +164,12 @@ class Container < Item
 
     attr_accessor :inventory
 
-	def initialize( data, parent_inventory, reset = nil )
-        super(data, parent_inventory, reset)
-        @flags = data[:flags]
-        @max_item_weight = data[:max_item_weight]
-        @weight_multiplier = data[:weight_multiplier]
-        @max_total_weight = data[:max_total_weight]
-        @key_id = data[:key_id]
+	def initialize( model, parent_inventory, reset = nil )
+        super(model, parent_inventory, reset)
+        @max_item_weight = model.max_item_weight
+        @weight_multiplier = model.weight_multiplier
+        @max_total_weight = model.max_total_weight
+        @key_id = model.key_id
         @inventory = Inventory.new(self)
     end
 
@@ -185,20 +184,22 @@ class Container < Item
     # when a container moves, it has to remove resets from its inventory items
     # then it calls move(@inventory) on them to recursively remove resets.
     def move(new_inventory)
-        super(new_inventory)
-        @inventory.items.each do |item|
-            item.reset = nil
-            item.move(@inventory)
+        if @inventory && @parent_inventory
+            @inventory.items.each do |item|
+                item.reset = nil
+                item.move(@inventory)
+            end
         end
+        super(new_inventory)
     end
 
 end
 
 class Consumable < Item
 
-    def initialize( data, parent_inventory, spells, reset = nil )
-        super( data, parent_inventory, reset )
-        @spells = spells
+    def initialize( model, parent_inventory, spells, reset = nil )
+        super( model, parent_inventory, reset )
+        @ability_instances = model.ability_instances
     end
 
     def type_name
@@ -206,13 +207,8 @@ class Consumable < Item
     end
 
     def consume( actor )
-        @spells.each do |spell|
-            if ( casting = Game.instance.spells.select{ |skill| skill.check( spell[:spell] ) }.sort_by(&:priority).last )
-                casting.attempt( actor, spell[:spell], [], "", spell[:level] )
-                # log( "FOUND #{casting} #{spell}" )
-            else
-                log( "CONSUMABLE ITEM SPELL NOT FOUND #{self.name} #{spell}")
-            end
+        @ability_instances.each do |ability, level|
+            ability.attempt(actor, ability.name, [], "", level)
         end
     end
 

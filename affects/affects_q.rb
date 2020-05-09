@@ -20,15 +20,9 @@ class AffectQuestItem < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@item, :event_calculate_aura_description, self, :do_quest_flag)
-        Game.instance.add_event_listener(@target, :event_get_item, self, :do_quest)
-        Game.instance.add_event_listener(@target, :event_complete_quest, self, :do_quest_complete)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@item, :event_calculate_aura_description, self)
-        Game.instance.remove_event_listener(@target, :event_get_item, self)
-        Game.instance.remove_event_listener(@target, :event_complete_quest, self)
+        add_event_listener(@item, :event_calculate_aura_description, :do_quest_flag)
+        add_event_listener(@target, :event_get_item, :do_quest)
+        add_event_listener(@target, :event_complete_quest, :do_quest_complete)
     end
 
     def do_quest_flag(data)
@@ -94,15 +88,9 @@ class AffectQuestVillain < Affect
 	end
 
 	def start
-        Game.instance.add_event_listener(@villain, :event_calculate_aura_description, self, :do_quest_flag)
-		Game.instance.add_event_listener(@villain, :event_on_die, self, :do_quest)
-        Game.instance.add_event_listener(@target, :event_complete_quest, self, :do_quest_complete)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@villain, :event_calculate_aura_description, self)
-        Game.instance.remove_event_listener(@villain, :event_on_die, self)
-        Game.instance.remove_event_listener(@target, :event_complete_quest, self)
+        add_event_listener(@villain, :event_calculate_aura_description, :do_quest_flag)
+		add_event_listener(@villain, :event_on_die, :do_quest)
+        add_event_listener(@target, :event_complete_quest, :do_quest_complete)
     end
 
     def do_quest_flag(data)

@@ -17,7 +17,7 @@ class SkillLair < Skill
 
 end
 
-class SkillLivingStone < Command
+class SkillLivingStone < Skill
 
     def initialize
         super(

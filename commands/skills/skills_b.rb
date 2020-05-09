@@ -1,6 +1,6 @@
 require_relative 'skill.rb'
 
-class SkillBackstab < Command
+class SkillBackstab < Skill
 
     def initialize
         super(

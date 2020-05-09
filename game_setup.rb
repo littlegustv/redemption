@@ -135,7 +135,7 @@ module GameSetup
         item_type_rows = @db[:item_type_base].to_hash(:id)
 
         item_type_rows.each do |id, row|
-            model_class = Constants::ITEM_MODEL_CLASSES.find{|model_class| model_class.item_class_name == row[:name]}
+            model_class = Constants::ITEM_MODEL_CLASSES.find{ |model_class| model_class.item_class_name == row[:name] }
             if !model_class
                 model_class = ItemModel
             end
@@ -149,7 +149,7 @@ module GameSetup
         log("Loading Affect tables... ", false, 70)
         affect_data = @db[:affect_base].all
 
-        @affect_class_hash = Hash.new
+        @affect_class_hash = {}
         Constants::AFFECT_CLASSES.each do |aff_class|
             row = affect_data.find { |row| row[:name] == aff_class.affect_info[:name] }
             if row
@@ -178,7 +178,7 @@ module GameSetup
             command = command_class.new
             row = command_data.values.find{ |row| row[:name] == command.name }
             if row
-                command.overwrite_attributes(row)                
+                command.overwrite_attributes(row)
             else
                 missing << command.name
             end
@@ -564,7 +564,7 @@ module GameSetup
         weapon_rows = @db[:item_weapon].to_hash(:item_id)
         container_rows = @db[:item_container].to_hash(:item_id)
 
-        spell_rows = @db[:item_ability].to_hash_groups(:item_id)
+        ability_rows = @db[:item_ability].to_hash_groups(:item_id)
         item_modifier_rows = @db[:item_modifier].to_hash_groups(:item_id)
         item_wear_locations = @db[:item_wear_location].to_hash_groups(:item_id)
         item_affect_rows = @db[:item_affect].to_hash_groups(:item_id)
@@ -574,7 +574,7 @@ module GameSetup
             row.merge!(container_rows[id]) if container_rows.dig(id)
 
 
-            row[:modifiers] = Hash.new
+            row[:modifiers] = {}
             if item_modifier_rows.dig(id)
                 row[:modifiers] = item_modifier_rows[id].map { |row| [row[:field].to_sym, row[:value]] }.to_h
             end
@@ -586,6 +586,10 @@ module GameSetup
             end
             if item_affect_rows.dig(id)
                 row[:affect_models] = item_affect_rows[id].map { |row| AffectModel.new(row) }
+            end
+            if ability_rows.dig(id)
+                row[:ability_instances] = ability_rows[id].map { |row| [@abilities[row[:ability_id]], row[:level].to_i] }
+                row[:ability_instances].reject! { |ability, level| ability.nil? }
             end
 
             @item_models[id] = @item_model_classes[row[:item_type_id]].new(id, row)
@@ -617,9 +621,32 @@ module GameSetup
         log("Loading Reset tables... ", false, 70)
         reset_mobile_data = @db[:reset_mobile].all
         reset_mobile_itemgroups = @db[:reset_mobile_itemgroup].to_hash_groups(:mobile_reset_id)
-        reset_itemgroup_item_data = @db[:reset_itemgroup_item].to_hash_groups(:reset_group_id)
+        reset_itemgroup_item_data = @db[:reset_itemgroup_item].to_hash_groups(:itemgroup_id)
 
         # pp reset_mobile_itemgroups
+
+        reset_room_itemgroups = @db[:reset_room_itemgroup].all
+        reset_room_itemgroups.each do |row|
+            timer = row[:timer]
+            room_id = row[:room_id]
+            itemgroup_id = row[:itemgroup_id]
+            itemgroup_rows = reset_itemgroup_item_data[itemgroup_id]
+            if itemgroup_rows
+                itemgroup_rows.each do |item_row|
+                    item_id = item_row[:item_id]
+                    child_itemgroup_id = item_row[:child_itemgroup_id]
+                    item_row[:quantity].times do
+                        item_reset = ItemReset.new(item_id, timer, nil, room_id)
+                        @item_resets << item_reset
+                        item_reset.activate(true)
+                        if child_itemgroup_id
+                            build_child_item_resets(item_reset, child_itemgroup_id, reset_itemgroup_item_data, [itemgroup_id])
+                        end
+                    end
+                end
+
+            end
+        end
 
         reset_mobile_data.each do |row|
 
@@ -629,21 +656,25 @@ module GameSetup
                 reset = MobileReset.new( row[:room_id], row[:mobile_id], row[:timer])
 
                 if mob_itemgroup_rows
-                    item_resets = (reset.item_resets = [])
+                    mob_item_resets = (reset.item_resets = [])
                     mob_itemgroup_rows.each do |mob_itemgroup_row|
                         equipped = mob_itemgroup_row[:equipped]
-                        itemgroup_rows = reset_itemgroup_item_data[mob_itemgroup_row[:itemgroup_id]]
+                        mob_itemgroup_id = mob_itemgroup_row[:itemgroup_id]
+                        itemgroup_rows = reset_itemgroup_item_data[mob_itemgroup_id]
                         itemgroup_rows.each do |item_row|
                             item_id = item_row[:item_id]
                             child_itemgroup_id = item_row[:child_itemgroup_id]
 
                             item_row[:quantity].times do
-                                item_reset = ItemReset.new(item_id, nil, timer, equipped)
-                                item_resets << item_reset
+                                item_reset = ItemReset.new(item_id, timer, equipped)
+                                mob_item_resets << item_reset
+                                @item_resets << item_reset
+                                if child_itemgroup_id
+                                    build_child_item_resets(item_reset, child_itemgroup_id, reset_itemgroup_item_data, [mob_itemgroup_id])
+                                end
                             end
                         end
-                        # ItemReset.new(itemgroup_row)
-                        # puts itemgroup_row
+
                     end
                 end
                 @mobile_resets << reset
@@ -651,6 +682,31 @@ module GameSetup
             end
         end
         log( "done." )
+    end
+
+    protected def build_child_item_resets(reset, child_itemgroup_id, reset_itemgroup_item_data, id_history)
+        if id_history.include?(child_itemgroup_id)
+            log "Recursive child_itemgroup_id: #{child_itemgroup_id} history: [#{id_history}]"
+            return
+        end
+        id_history << child_itemgroup_id
+        itemgroup_rows = reset_itemgroup_item_data.dig(child_itemgroup_id)
+        if !itemgroup_rows
+            return
+        end
+        timer = reset.timer
+        itemgroup_rows.each do |item_row|
+            child_item_id = item_row[:item_id]
+            child_item_child_resetgroup_id = item_row[:child_itemgroup_id]
+            item_row[:quantity].times do
+                child_reset = ItemReset.new(child_item_id, timer)
+                reset.add_child_reset(child_reset)
+                @item_resets << child_reset
+                if child_item_child_resetgroup_id
+                    build_child_item_resets(child_reset, child_item_child_resetgroup_id, reset_itemgroup_item_data, id_history)
+                end
+            end
+        end
     end
 
     # load helpfiles

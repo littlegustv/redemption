@@ -27,11 +27,7 @@ class AffectDark < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_try_can_see_room, self, :do_dark)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_try_can_see_room, self)
+        add_event_listener(@target, :event_try_can_see_room, :do_dark)
     end
 
     def do_dark( data )
@@ -77,13 +73,8 @@ class AffectDarkness < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_try_can_see_room, self, :do_dark)
-        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :darkness_description)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_try_can_see_room, self)
-        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
+        add_event_listener(@target, :event_try_can_see_room, :do_dark)
+        add_event_listener(@target, :event_calculate_room_description, :darkness_description)
     end
 
     def darkness_description(data)
@@ -159,11 +150,7 @@ class AffectDeathRune < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_on_die, self, :do_death_rune)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_on_die, self)
+        add_event_listener(@target, :event_on_die, :do_death_rune)
     end
 
     def send_start_messages
@@ -223,11 +210,7 @@ class AffectDetectInvisibility < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_try_detect_invis, self, :do_detect_invis)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_try_detect_invis, self)
+        add_event_listener(@target, :event_try_detect_invis, :do_detect_invis)
     end
 
     def do_detect_invis(data)

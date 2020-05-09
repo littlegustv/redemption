@@ -160,31 +160,11 @@ class AffectPoisonWeapon < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
-        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
-        if @target.equipped?
-            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-        end
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_item_wear, self)
-        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
-        if @target.equipped?
-            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
-        end
-    end
-
-    def add_flag(data)
-        Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-    end
-
-    def remove_flag(data)
-        Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        add_event_listener(@target, :event_on_hit, :do_flag)
     end
 
     def do_flag(data)
-        if data[:weapon] == @target && data[:target].active
+        if data[:target].active
             if dice(1, 100) <= @data[:chance]
                 aff = AffectPoisoned.new(data[:source], data[:target], @target.level)
                 aff.duration = 60
@@ -220,11 +200,7 @@ class AffectPortal < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_try_enter, self, :do_portal)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_try_enter, self)
+        add_event_listener(@target, :event_try_enter, :do_portal)
     end
 
     def do_portal( data )
@@ -261,11 +237,7 @@ class AffectProtectionEvil < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_evil)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        add_event_listener(@target, :event_calculate_receive_damage, :do_protection_evil)
     end
 
     def send_start_messages
@@ -311,11 +283,7 @@ class AffectProtectionGood < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_good)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        add_event_listener(@target, :event_calculate_receive_damage, :do_protection_good)
     end
 
     def send_start_messages
@@ -361,11 +329,7 @@ class AffectProtectionNeutral < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_receive_damage, self, :do_protection_neutral)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_receive_damage, self)
+        add_event_listener(@target, :event_calculate_receive_damage, :do_protection_neutral)
     end
 
     def send_start_messages

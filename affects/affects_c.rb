@@ -65,11 +65,7 @@ class AffectCharm < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@source, :event_order, self, :do_order)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@source, :event_order, self)
+        add_event_listener(@source, :event_order, :do_order)
     end
 
     def do_order( data )
@@ -143,13 +139,8 @@ class AffectCloakOfMind < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_try_can_be_seen, self, :do_cloak_of_mind)
-        Game.instance.add_event_listener(@target, :event_on_start_combat, self, :clear)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_try_can_be_seen, self)
-        Game.instance.remove_event_listener(@target, :event_on_start_combat, self)
+        add_event_listener(@target, :event_try_can_be_seen, :do_cloak_of_mind)
+        add_event_listener(@target, :event_on_start_combat, :clear)
     end
 
     def do_cloak_of_mind(data)
@@ -196,20 +187,11 @@ class AffectCloudkill < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_calculate_room_description, self, :cloudkill_description)
-        Game.instance.add_event_listener(@target, :event_room_mobile_enter, self, :add_damage_listener)
-        Game.instance.add_event_listener(@target, :event_room_mobile_exit, self, :remove_damage_listener)
+        add_event_listener(@target, :event_calculate_room_description, :cloudkill_description)
+        add_event_listener(@target, :event_room_mobile_enter, :add_damage_listener)
+        add_event_listener(@target, :event_room_mobile_exit, :remove_damage_listener)
         @target.occupants.each do |t|
-            Game.instance.add_event_listener(t, :event_calculate_damage, self, :cloudkill_poison_damage_calc)
-        end
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_calculate_room_description, self)
-        Game.instance.remove_event_listener(@target, :event_room_mobile_enter, self)
-        Game.instance.remove_event_listener(@target, :event_room_mobile_exit, self)
-        @target.occupants.each do |t|
-            Game.instance.remove_event_listener(t, :event_calculate_damage, self)
+            add_event_listener(t, :event_calculate_damage, :cloudkill_poison_damage_calc)
         end
     end
 
@@ -218,11 +200,11 @@ class AffectCloudkill < Affect
     end
 
     def add_damage_listener(data)
-        Game.instance.add_event_listener(data[:mobile], :event_calculate_damage, self, :cloudkill_poison_damage_calc)
+        add_event_listener(data[:mobile], :event_calculate_damage, :cloudkill_poison_damage_calc)
     end
 
     def remove_damage_listener(data)
-        Game.instance.remove_event_listener(data[:mobile], :event_calculate_damage, self)
+        remove_event_listener(data[:mobile], :event_calculate_damage)
     end
 
     def cloudkill_poison_damage_calc(data)
@@ -316,31 +298,11 @@ class AffectCorrosiveWeapon < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_item_wear, self, :add_flag)
-        Game.instance.add_event_listener(@target, :event_item_unwear, self, :remove_flag)
-        if @target.equipped?
-            Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-        end
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_item_wear, self)
-        Game.instance.remove_event_listener(@target, :event_item_unwear, self)
-        if @target.equipped?
-            Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
-        end
-    end
-
-    def add_flag(data)
-        Game.instance.add_event_listener(@target.carrier, :event_on_hit, self, :do_flag)
-    end
-
-    def remove_flag(data)
-        Game.instance.remove_event_listener(@target.carrier, :event_on_hit, self)
+        add_event_listener(@target, :event_on_hit, :do_flag)
     end
 
     def do_flag(data)
-        if data[:weapon] == @target && data[:target].active
+        if data[:target].active
             data[:target].output "Your flesh is dissolved by 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N>'s flesh is dissolved by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
             if dice(1, 100) <= @data[:chance]
@@ -385,11 +347,7 @@ class AffectCurse < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_try_recall, self, :do_cursed)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_try_recall, self)
+        add_event_listener(@target, :event_try_recall, :do_cursed)
     end
 
     def do_cursed( data )

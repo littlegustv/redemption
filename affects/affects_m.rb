@@ -31,11 +31,7 @@ class AffectMinimation < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_show_condition, self, :do_condition)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_show_condition, self)
+        add_event_listener(@target, :event_show_condition, :do_condition)
     end
 
     def send_start_messages
@@ -79,11 +75,7 @@ class AffectMirrorImage < Affect
     end
 
     def start
-        Game.instance.add_event_listener(@target, :event_override_receive_hit, self, :do_mirror_image)
-    end
-
-    def complete
-        Game.instance.remove_event_listener(@target, :event_override_receive_hit, self)
+        add_event_listener(@target, :event_override_receive_hit, :do_mirror_image)
     end
 
     def send_start_messages
