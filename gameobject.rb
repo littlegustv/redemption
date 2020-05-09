@@ -32,10 +32,10 @@ class GameObject
 
     # handles its own destruction - override in subclasses but call +super+ !
     def destroy
+        self.deactivate
         @affects.dup.each do |affect|
             affect.clear(true)
         end
-        self.deactivate
     end
 
     def deactivate

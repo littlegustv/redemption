@@ -52,8 +52,8 @@ class MobileModel
         @current_mana = row.dig(:current_mana)
         @movement = row.dig(:movement) || 100
         @current_movement = row.dig(:current_movement)
-        @hand_to_hand_dice_sides = row[:hand_to_hand_dice_sides] || 1
-        @hand_to_hand_dice_count = row[:hand_to_hand_dice_count] || 1
+        @hand_to_hand_dice_sides = row.dig(:hand_to_hand_dice_sides)
+        @hand_to_hand_dice_count = row.dig(:hand_to_hand_dice_count)
         @ac_pierce = row[:ac_pierce] || 0
         @ac_bash = row[:ac_bash] || 0
         @ac_slash = row[:ac_slash] || 0

@@ -31,8 +31,8 @@
     end
 
     def destroy
-        self.move(nil)
         super
+        self.move(nil)
         Game.instance.destroy_item(self)
     end
 
@@ -77,10 +77,9 @@ Extra flags: #{ @extraFlags }
 
     # move this item to another inventory - nil is passed when an item is going to be destroyed
     def move(new_inventory)
-        if @reset && @parent_inventory && (new_inventory.nil? || @parent_inventory.owner != new_inventory.owner)
-            log "#{self.name} doing reset" if @id == 4204
+        if @reset && @parent_inventory && @parent_inventory.owner.active && (new_inventory.nil? || @parent_inventory.owner != new_inventory.owner)
             @reset.activate(false, @parent_inventory.owner)
-            @reset = nil
+            unlink_reset
         end
         if @parent_inventory
             if equipped?
@@ -95,6 +94,10 @@ Extra flags: #{ @extraFlags }
                 Game.instance.fire_event(self, :event_item_wear, {mobile: carrier})
             end
         end
+    end
+
+    def unlink_reset
+        @reset = nil
     end
 
     def db_source_type
@@ -182,16 +185,13 @@ class Container < Item
         item.move(@inventory)
     end
 
-    # when a container moves, it has to remove resets from its inventory items
-    # then it calls move(@inventory) on them to recursively remove resets.
-    def move(new_inventory)
-        if @inventory && @parent_inventory
+    def unlink_reset
+        @reset = nil
+        if @inventory
             @inventory.items.each do |item|
-                item.reset = nil
-                item.move(@inventory)
+                item.unlink_reset
             end
         end
-        super(new_inventory)
     end
 
 end

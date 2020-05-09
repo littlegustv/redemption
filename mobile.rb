@@ -401,7 +401,6 @@ class Mobile < GameObject
         @race.hand_to_hand_affect_models.each do |affect_model|
             h2h_model.affect_models << affect_model
         end
-
         weapon = Weapon.new(h2h_model, @h2h_equip_slot)
         return weapon
     end
@@ -617,6 +616,7 @@ class Mobile < GameObject
         (@room.occupants - [self]).each_output "0<N>'s head is shattered, and 0<p> brains splash all over you.", [self]
         if killer
             self.items.each do |item|
+                item.unlink_reset
                 killer.get_item(item)
             end
             killer.output("You get #{ self.wealth.to_worth } from the corpse of 0<n>.", [self])
