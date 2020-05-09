@@ -28,7 +28,7 @@ class WeaponModel < ItemModel
             @genre = Game.instance.genres.values.first
         end
     end
-    
+
     def self.item_class_name
         "weapon".freeze
     end

@@ -135,7 +135,7 @@ module GameSetup
         item_type_rows = @db[:item_type_base].to_hash(:id)
 
         item_type_rows.each do |id, row|
-            model_class = Constants::ITEM_MODEL_CLASSES.find{|model_class| model_class.item_class_name == row[:name]}
+            model_class = Constants::ITEM_MODEL_CLASSES.find{ |model_class| model_class.item_class_name == row[:name] }
             if !model_class
                 model_class = ItemModel
             end
@@ -149,7 +149,7 @@ module GameSetup
         log("Loading Affect tables... ", false, 70)
         affect_data = @db[:affect_base].all
 
-        @affect_class_hash = Hash.new
+        @affect_class_hash = {}
         Constants::AFFECT_CLASSES.each do |aff_class|
             row = affect_data.find { |row| row[:name] == aff_class.affect_info[:name] }
             if row
@@ -564,7 +564,7 @@ module GameSetup
         weapon_rows = @db[:item_weapon].to_hash(:item_id)
         container_rows = @db[:item_container].to_hash(:item_id)
 
-        spell_rows = @db[:item_ability].to_hash_groups(:item_id)
+        ability_rows = @db[:item_ability].to_hash_groups(:item_id)
         item_modifier_rows = @db[:item_modifier].to_hash_groups(:item_id)
         item_wear_locations = @db[:item_wear_location].to_hash_groups(:item_id)
         item_affect_rows = @db[:item_affect].to_hash_groups(:item_id)
@@ -574,7 +574,7 @@ module GameSetup
             row.merge!(container_rows[id]) if container_rows.dig(id)
 
 
-            row[:modifiers] = Hash.new
+            row[:modifiers] = {}
             if item_modifier_rows.dig(id)
                 row[:modifiers] = item_modifier_rows[id].map { |row| [row[:field].to_sym, row[:value]] }.to_h
             end
@@ -586,6 +586,10 @@ module GameSetup
             end
             if item_affect_rows.dig(id)
                 row[:affect_models] = item_affect_rows[id].map { |row| AffectModel.new(row) }
+            end
+            if ability_rows.dig(id)
+                row[:ability_instances] = ability_rows[id].map { |row| [@abilities[row[:ability_id]], row[:level].to_i] }
+                row[:ability_instances].reject! { |ability, level| ability.nil? }
             end
 
             @item_models[id] = @item_model_classes[row[:item_type_id]].new(id, row)

@@ -197,9 +197,9 @@ end
 
 class Consumable < Item
 
-    def initialize( data, parent_inventory, spells, reset = nil )
-        super( data, parent_inventory, reset )
-        @spells = spells
+    def initialize( model, parent_inventory, spells, reset = nil )
+        super( model, parent_inventory, reset )
+        @ability_instances = model.ability_instances
     end
 
     def type_name
@@ -207,13 +207,8 @@ class Consumable < Item
     end
 
     def consume( actor )
-        @spells.each do |spell|
-            if ( casting = Game.instance.spells.select{ |skill| skill.check( spell[:spell] ) }.sort_by(&:priority).last )
-                casting.attempt( actor, spell[:spell], [], "", spell[:level] )
-                # log( "FOUND #{casting} #{spell}" )
-            else
-                log( "CONSUMABLE ITEM SPELL NOT FOUND #{self.name} #{spell}")
-            end
+        @ability_instances.each do |ability, level|
+            ability.attempt(actor, ability.name, [], "", level)
         end
     end
 

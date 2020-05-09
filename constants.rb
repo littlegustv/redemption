@@ -525,6 +525,8 @@ module Constants
 
     ITEM_MODEL_CLASSES = [
         ConsumableModel,
+        PillModel,
+        PotionModel,
         ContainerModel,
         ItemModel,
         WeaponModel,

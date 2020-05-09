@@ -1,8 +1,10 @@
 class ConsumableModel < ItemModel
 
+    attr_reader :ability_instances
 
     def initialize(id, row)
         super(id, row)
+        @ability_instances = row[:ability_instances]
     end
 
     def self.item_class_name
@@ -10,7 +12,7 @@ class ConsumableModel < ItemModel
     end
 
     def self.item_class
-        # return Consumable
+        return Consumable
     end
 
 end
