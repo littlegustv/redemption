@@ -312,6 +312,9 @@ class Game
         @combat_mobs.to_a.each do |mob|
             mob.combat
         end
+        @regen_mobs.to_a.each do |mob|
+            mob.combat_regen
+        end
     end
 
     def target( query = {} )
@@ -701,6 +704,14 @@ class Game
 
     def remove_combat_mobile(mobile)
         @combat_mobs.delete(mobile)
+    end
+
+    def add_regen_mobile(mobile)
+        @regen_mobs.add(mobile)
+    end
+
+    def remove_regen_mobile(mobile)
+        @regen_mobs.add(mobile)
     end
 
     # Affect/GameObject destruction:

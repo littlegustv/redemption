@@ -95,7 +95,7 @@ class AffectEssence < Affect
             }
         e = data[:noun].element.symbol
         chance = 5 + (data[:damage] / 8).to_i
-        if affect_classes.dig(e) && dice(1, 100) <= @data[:chance]
+        if affect_classes.dig(e) && dice(1, 100) <= chance
             affect_classes[e].new(@target, data[:target], @target.level).apply
         end
     end

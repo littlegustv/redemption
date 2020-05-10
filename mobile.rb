@@ -121,10 +121,14 @@ class Mobile < GameObject
         @manapoints = model.current_mana || maxmanapoints
         @movepoints = model.current_movement || maxmovepoints
 
+        @hitpoint_regen_rollover = 0.0
+        @manapoint_regen_rollover = 0.0
+        @movepoint_regen_rollover = 0.0
+
         if model.size
             @size = model.size
         end
-
+        try_add_to_regen_mobs
     end
 
     def destroy
@@ -229,12 +233,22 @@ class Mobile < GameObject
         end
     end
 
+    def use_hp( n )
+        success = (n <= @hitpoints) ? (@hitpoints -= n) : false
+        try_add_to_regen_mobs
+        return success
+    end
+
     def use_mana( n )
-        n <= @manapoints ? (@manapoints -= n) : false
+        success = (n <= @manapoints) ? (@manapoints -= n) : false
+        try_add_to_regen_mobs
+        return success
     end
 
     def use_movement( n )
-        n <= @movepoints ? (@movepoints -= n) : false
+        success = (n <= @movepoints) ? (@movepoints -= n) : false
+        try_add_to_regen_mobs
+        return success
     end
 
     def remove_from_group
@@ -351,12 +365,41 @@ class Mobile < GameObject
         @hitpoints = [@hitpoints + hp, maxhitpoints].min
         @manapoints = [@manapoints + mp, maxmanapoints].min
         @movepoints = [@movepoints + mv, maxmovepoints].min
+        if @hitpoints == maxhitpoints && @manapoints == maxmanapoints && @movepoints == maxmovepoints
+            Game.instance.remove_regen_mobile(self)
+        end
+    end
+
+    def try_add_to_regen_mobs
+        if @hitpoints < maxhitpoints || @manapoints < maxmanapoints || @movepoints < maxmovepoints
+            Game.instance.add_regen_mobile(self)
+        end
     end
 
     def combat
         if @attacking && @active && @attacking.active
             do_round_of_attacks(target: @attacking)
         end
+    end
+
+    def combat_regen
+
+        multiplier = @position.regen_multiplier
+        hitpoints_to_regen = [0.25, 0.0025 * maxhitpoints].max * multiplier
+        manapoints_to_regen = [0.25, 0.0025 * maxmanapoints].max * multiplier
+        movepoints_to_regen = [1, 0.004 * maxmovepoints].max * multiplier
+
+        @hitpoint_regen_rollover += hitpoints_to_regen
+        @manapoint_regen_rollover += manapoints_to_regen
+        @movepoint_regen_rollover += movepoints_to_regen
+
+        # regen floor value
+        regen(@hitpoint_regen_rollover.to_i, @manapoint_regen_rollover.to_i, @movepoint_regen_rollover.to_i)
+
+        # save remainder for next time
+        @hitpoint_regen_rollover -= @hitpoint_regen_rollover.to_i
+        @manapoint_regen_rollover -= @manapoint_regen_rollover.to_i
+        @movepoint_regen_rollover -= @movepoint_regen_rollover.to_i
     end
 
     # Gets a single weapon in wielded slot, cycling on each hit, or hand to hand
@@ -455,7 +498,7 @@ class Mobile < GameObject
         # calculate hit chance ... I guess burst rune auto-hits?
         hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon.noun.element ) ).clamp( 5, 95 )
         if rand(0...100) < hit_chance
-            damage = damage_rating(weapon) + damage_bonus + (self.stat(:damroll) * Constants::Damage::DAMROLL_MODIFIER).to_i
+            damage = damage_rating(weapon) + damage_bonus + (self.damroll * Constants::Damage::DAMROLL_MODIFIER).to_i
             hit = true
         else
             damage = 0
@@ -778,11 +821,15 @@ class Mobile < GameObject
         ( -1 * stat( "armor_#{element}".to_sym ) - 100 ) / 5
     end
 
+    def damroll
+        stat(:damroll) + [strength_to_damage, 0].max
+    end
+
     def damage_rating(weapon)
         if proficient( weapon.genre )
-            return weapon.damage + stat(:damroll) + strength_to_damage
+            return weapon.damage
         else
-            return ( weapon.damage + stat(:damroll) + strength_to_damage ) / 2
+            return ( weapon.damage ) / 2
         end
     end
 
@@ -955,7 +1002,7 @@ Member of clan Kenshi
 #{score_stat("str")}#{score_stat("con")}
 #{score_stat("int")}#{score_stat("wis")}
 #{score_stat("dex")}
-{cHitRoll:{x   #{ stat(:hitroll).to_s.rpad(26)} {cDamRoll:{x   #{ stat(:damroll) }
+{cHitRoll:{x   #{ stat(:hitroll).to_s.rpad(26)} {cDamRoll:{x   #{ self.damroll }
 {cDamResist:{x #{ stat(:damresist).to_s.rpad(26) } {cMagicDam:{x  #{ stat(:magicdam) }
 {cAttackSpd:{x #{ stat(:attack_speed) }
 -------------------------------- Elements -------------------------------
@@ -977,7 +1024,7 @@ You are #{@position.name}.)
         base = @stats[stat_sym] + @race.stats[stat_sym].to_i
         base += 3 if @mobile_class.main_stat == stat_sym
         modified = stat(stat_sym)
-        max = stat(stat_sym)
+        max = stat(max_stat)
         return "{c#{stat_sym.to_s.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".rpad(27)}"
     end
 
