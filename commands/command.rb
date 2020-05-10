@@ -70,7 +70,7 @@ class Command
         @keywords = [""] if @keywords.empty?
         @lag = new_attr_hash[:lag].to_f
         @name = new_attr_hash[:name].to_s
-        @usable_in_combat = !(new_attr_hash[:usable_in_combat].to_i.zero?)
+        @usable_in_combat = new_attr_hash[:usable_in_combat]
         @creation_points = new_attr_hash[:creation_points]
         @position = Game.instance.positions[(new_attr_hash[:position_id] || 1)]
         @hp_cost = new_attr_hash[:hp_cost].to_i

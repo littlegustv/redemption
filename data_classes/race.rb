@@ -21,8 +21,8 @@ class Race
 
     def initialize(row)
         @id = row[:id]
-        @starter_race = row[:starter_race].to_i.to_b
-        @player_race = row[:player_race].to_i.to_b
+        @starter_race = row[:starter_race]
+        @player_race = row[:player_race]
         @name = row[:name]
         @symbol = row[:name].to_s.to_sym
         @display_name = row[:display_name]

@@ -305,6 +305,8 @@ class AffectCorrosiveWeapon < Affect
         if data[:target].active
             data[:target].output "Your flesh is dissolved by 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N>'s flesh is dissolved by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
+            damage = dice(1, 1 + (@target.level / 7))
+            data[:target].receive_damage(data[:source], damage, :"corrosive weapon", true)
             if dice(1, 100) <= @data[:chance]
                 AffectCorroded.new(data[:source], data[:target], @target.level).apply
             end

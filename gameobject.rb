@@ -53,6 +53,10 @@ class GameObject
         Game.instance.target query
     end
 
+    def responds_to_event(event)
+        Game.instance.responds_to_event(self, event)
+    end
+
     def to_a
         [ self ]
     end

@@ -158,7 +158,7 @@ module MobileItem
         else
             @room.occupants.each_output("0<N> get0<,s> 1<n>.", [self, item]) if !silent
         end
-        if Game.instance.responds_to_event(self, :event_get_item)
+        if responds_to_event(:event_get_item)
             Game.instance.fire_event( self, :event_get_item, { actor: self, item: item } )
         end
 

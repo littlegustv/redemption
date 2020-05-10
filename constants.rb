@@ -466,6 +466,7 @@ module Constants
         AffectDetectInvisibility,
         AffectEnchantWeapon,
         AffectEnchantArmor,
+        AffectEssence,
         AffectFireBlind,
         AffectFlamingWeapon,
         AffectFloodingWeapon,

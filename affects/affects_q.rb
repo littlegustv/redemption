@@ -13,7 +13,7 @@ class AffectQuestItem < Affect
                 Visibility::PASSIVE, # visibility
                 false # savable
             )
-        areas = Game.instance.areas.values.select{ |area| area.questable == 1 && area.min < @target.level && area.max > @target.level }
+        areas = Game.instance.areas.values.select{ |area| area.questable && area.min < @target.level && area.max > @target.level }
         @room = areas.map{ |area| area.rooms }.flatten.sample
         @item = Game.instance.load_item( [2089,2090,2091].sample, @room.inventory )
         @completed = false
@@ -82,7 +82,7 @@ class AffectQuestVillain < Affect
 	            Visibility::PASSIVE, # visibility
 	            false # savable
 	        )
-	    areas = Game.instance.areas.values.select{ |area| area.questable == 1 && area.min < @target.level && area.max > @target.level }
+	    areas = Game.instance.areas.values.select{ |area| area.questable && area.min < @target.level && area.max > @target.level }
 		@villain = areas.map(&:mobiles).flatten.select{ |mob| mob.level < @target.level + 5 && mob.level > @target.level - 5 }.sample
         @completed = false
 	end

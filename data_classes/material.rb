@@ -9,7 +9,7 @@ class Material
         @id = row[:id]
         @name = row[:name]
         @symbol = row[:name].to_s.to_sym
-        @metallic = row[:metallic].to_i.to_b
+        @metallic = row[:metallic]
     end
 
     def ==(other_object)

@@ -207,7 +207,7 @@ class Client
         end
 
         race_id = nil
-        races = Game.instance.races.values.select{ |race| race.player_race == 1 && race.starter_race == 1 }
+        races = Game.instance.races.values.select{ |race| race.player_race && race.starter_race }
         race_names = races.map{ |race| race.name }
         send_output("The following races are available:\n" +
         "#{race_names.map{ |n| n.rpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n")
@@ -228,7 +228,7 @@ class Client
         end
 
         mobile_class_id = nil
-        classes = Game.instance.mobile_classes.values.select{ |c| c.starter_class == 1 }
+        classes = Game.instance.mobile_classes.values.select{ |c| c.starter_class }
         class_names = classes.map{ |c| c.name }
         send_output("Select a class:\n--------------\n" +
         "#{class_names.join("\n")}\n")

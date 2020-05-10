@@ -72,8 +72,32 @@ class AffectEssence < Affect
         return @info || @info = {
             name: "essence",
             keywords: ["essence"],
-            application_type: :global_overwrite,
+            application_type: :global_overwrite
         }
+    end
+
+    def start
+        add_event_listener(@target, :event_on_deal_magic_damage, :do_essence)
+    end
+
+    def do_essence( data )
+        if data[:target] == @target
+            # can't essence yourself (?)
+            return
+        end
+        affect_classes = {
+                :acid => AffectCorroded,
+                :cold => AffectChilled,
+                :drowning => AffectFlooded,
+                :fire => AffectFireBlind,
+                :lightning => AffectShocked,
+                :poison => AffectPoisoned,
+            }
+        e = data[:noun].element.symbol
+        chance = 5 + (data[:damage] / 8).to_i
+        if affect_classes.dig(e) && dice(1, 100) <= @data[:chance]
+            affect_classes[e].new(@target, data[:target], @target.level).apply
+        end
     end
 
 end

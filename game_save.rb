@@ -381,7 +381,7 @@ module GameSave
     # loads a single item for a player - does not load affects. that happens later!
     protected def load_player_item(player, item_row, all_item_rows, item_saved_id_hash)
         item = load_item(item_row[:item_id], player.inventory)
-        if item_row[:equipped] == 1
+        if item_row[:equipped]
             player.wear(item, true)
         end
         item_saved_id_hash[item_row[:id]] = item
