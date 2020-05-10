@@ -442,13 +442,13 @@ class SpellCureCritical < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        quantity = 50
+        heal = 50
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.output "You feel better!"
-            target.regen( quantity, 0, 0 )
+            # target.output "You feel better!"
+            target.receive_heal(actor, heal, :"cure critical wounds")
         elsif args.first.nil?
-            actor.output "You feel better"
-            actor.regen( quantity, 0, 0 )
+            # actor.output "You feel better"
+            actor.receive_heal(actor, heal, :"cure critical wounds")
         else
             actor.output "They aren't here."
         end
@@ -495,13 +495,13 @@ class SpellCureLight < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        quantity = 10
+        heal = 10
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.output "You feel better!"
-            target.regen( quantity, 0, 0 )
+            # target.output "You feel better!"
+            target.receive_heal(actor, heal, :"cure light wounds")
         elsif args.first.nil?
-            actor.output "You feel better"
-            actor.regen( quantity, 0, 0 )
+            # actor.output "You feel better"
+            actor.receive_heal(actor, heal, :"cure light wounds")
         else
             actor.output "They aren't here."
         end
@@ -546,15 +546,14 @@ class SpellCureSerious < Spell
             priority: 11
         )
     end
-
     def attempt( actor, cmd, args, input, level )
-        quantity = 25
+        heal = 25
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.output "You feel better!"
-            target.regen( quantity, 0, 0 )
+            # target.output "You feel better!"
+            target.receive_heal(actor, heal, :"cure serious wounds")
         elsif args.first.nil?
-            actor.output "You feel better"
-            actor.regen( quantity, 0, 0 )
+            # actor.output "You feel better"
+            actor.receive_heal(actor, heal, :"cure serious wounds")
         else
             actor.output "They aren't here."
         end

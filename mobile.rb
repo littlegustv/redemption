@@ -350,11 +350,6 @@ class Mobile < GameObject
         end
     end
 
-    # all this does right now is regen some HP
-    def tick
-        regen 100, 100, 100
-    end
-
     def regen( hp, mp, mv )
         if responds_to_event(:event_calculate_regeneration)
             data = { hp: hp, mp: mp, mv: mv }
@@ -534,6 +529,27 @@ class Mobile < GameObject
 
     end
 
+    def receive_heal(source, heal, noun = :heal, silent = false, anonymous = false, noun_name_override = nil)
+        if !@active # inactive mobiles can't be healed.
+            return
+        end
+        noun = noun.to_noun
+        if heal > 0 && source && source.responds_to_event(:event_calculate_heal)
+            calculation_data = { source: source, target: self, heal: heal, noun: noun }
+            Game.instance.fire_event(source, :event_calculate_heal, calculation_data)
+            damage = calculation_data[:damage]
+        end
+
+        if responds_to_event(:event_override_receive_heal)
+            override = { confirm: false, source: source, target: self, heal: heal, noun: noun }
+            Game.instance.fire_event(self, :event_override_receive_heal, override)
+            if override[:confirm]
+                return
+            end
+        end
+        receive_damage(source, -heal, noun, silent, anonymous, noun_name_override)
+    end
+
     # Receive some damage!
     # +source+:: the object dealing the damage (can be nil)
     # +damage+:: the amount of damage being dealt
@@ -546,28 +562,28 @@ class Mobile < GameObject
         if !@active # inactive mobiles can't take damage.
             return
         end
+        noun = noun.to_noun
         # source event stuff (used to be in +deal_damage+)
         if source
-            if responds_to_event(:event_calculate_damage)
+            if damage > 0 && source.responds_to_event(:event_calculate_damage)
                 calculation_data = { source: source, target: self, damage: damage, noun: noun }
                 Game.instance.fire_event(source, :event_calculate_damage, calculation_data)
                 damage = calculation_data[:damage]
             end
         end
 
-        noun = noun.to_noun
-        if source && source.is_a?(Mobile) && source != self
+        if damage > 0 && source && source.is_a?(Mobile) && source != self
             self.start_combat( source )
         end
 
-        if responds_to_event(:event_override_receive_damage)
+        if damage > 0 && responds_to_event(:event_override_receive_damage)
             override = { confirm: false, source: source, target: self, damage: damage, noun: noun }
             Game.instance.fire_event(self, :event_override_receive_damage, override)
             if override[:confirm]
                 return
             end
         end
-        if responds_to_event(:event_calculate_receive_damage)
+        if damage > 0 && responds_to_event(:event_calculate_receive_damage)
             calculation_data = { source: source, target: self, damage: damage, noun: noun }
             Game.instance.fire_event(self, :event_calculate_receive_damage, calculation_data)
             damage = calculation_data[:damage]
@@ -578,29 +594,42 @@ class Mobile < GameObject
         if resistance >= 1.0 # immune!
             if !silent
                 if source && !anonymous
-                    (self.room.occupants | [source]).each_output "0<N>'s #{noun_name} doesn't even bruise #{(source==self) ?"1<r>":"1<n>"}!", [source, self]
+                    (self.room.occupants | [source]).each_output "0<N>'s #{noun_name} has no effect on #{(source==self) ?"1<r>":"1<n>"}!", [source, self]
                 else # anonymous damage
-                    self.room.occupants.each_output("#{noun_name} doesn't even bruise 0<n>!", [self])
+                    self.room.occupants.each_output("#{noun_name} has no effect on 0<n>!", [self])
                 end
             end
             return # immunity means we stop here!
         end
+        if damage < 0 # healing reverses resistance math
+            resistance *= -1
+        end
         damage = (damage * (1.0 - resistance)).to_i
         if !silent && ((source && source.is_a?(Player)) || self.room.players.length > 0)
-            decorators = Constants::DAMAGE_DECORATORS
-            if noun.magic
-                decorators = Constants::MAGIC_DAMAGE_DECORATORS
+            decorators = nil
+            if damage < 0
+                decorators = Constants::HEAL_DECORATORS
+                decorators = decorators.select{ |key, value| -damage <= key}.values.first || decorators.values.last
+            else
+                if noun.magic
+                    decorators = Constants::MAGIC_DAMAGE_DECORATORS
+                else
+                    decorators = Constants::DAMAGE_DECORATORS
+                end
+                decorators = decorators.select{ |key, value| damage <= key}.values.first || decorators.values.last
             end
-            decorators = decorators.select{ |key, value| damage <= key}.values.first || decorators.values.last
-            if !decorators
-            end
+
             if source && !anonymous
                 (self.room.occupants | [source]).each_output "0<N>'s#{decorators[2]} #{noun_name} #{decorators[1]} #{(source==self) ?"1<r>":"1<n>"}#{decorators[3]}", [source, self]
             else # anonymous damage
                 self.room.occupants.each_output("#{noun_name} #{decorators[1]} 0<n>#{decorators[3]} ", [self])
             end
         end
-        @hitpoints -= damage
+        if damage >= 0
+            @hitpoints -= damage
+        else
+            regen(-damage, 0, 0)
+        end
         if source && damage > 0
             if source.responds_to_event(:event_on_deal_damage)
                 data = {source: source, target: self, damage: damage, noun: noun}

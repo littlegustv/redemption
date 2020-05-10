@@ -395,11 +395,6 @@ class Game
             @players.each_output("{MMud newbies '#{ Constants::Tips::TOPTIPS.sample }'{x", send_to_sleeping: true)
         end
 
-        # player tick is called, just to allow for some regen!!
-        ( @players ).each do | entity |
-            entity.tick
-        end
-
         weather
     end
 

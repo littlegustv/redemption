@@ -192,6 +192,20 @@ module Constants
         150 => ["do {RUNSPEAKABLE{x things to", "does {RUNSPEAKABLE{x things to", "", "!!"],
     }
 
+    #renew, regenerate, soothe
+    HEAL_DECORATORS = {
+		0 => ["do nothing for", "does nothing for", " inept", "."],
+		10 => ["only heal", "only heals", "", "a little bit..."],
+		20 => ["heal", "heals", " amateur", "slightly."],
+		40 => ["heal", "heals", " competent", "moderately."],
+		50 => ["heal", "heals", " skillful", "."],
+		60 => ["heal", "heals", " calm", "!"],
+		70 => ["soothe", "soothes", " diligent", "."],
+		80 => ["regenerate", "regenerates", " powerful", "greatly!"],
+		100 => ["restore", "restores", " masterful", ", erasing wounds!"],
+        125 => ["REJUVENATE", "REJUVENATES", " ultimate", " mending bones!"],
+    }
+
     ALIGNMENT_DESCRIPTIONS = {
         700 => "0<n> has a pure and good aura.",
         350 => "0<n> is of excellent moral character.",
