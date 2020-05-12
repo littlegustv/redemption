@@ -547,6 +547,18 @@ module Constants
         WeaponModel,
     ]
 
+    SOURCE_TYPE_ID_TO_SOURCE_CLASS = {
+        0 => nil,
+        1 => GameObject,
+        2 => Mobile,
+        3 => Item,
+        4 => Room,
+        5 => Area,
+        6 => Continent,
+        7 => Exit,
+        8 => Player,
+    }
+
     module Gender
 
         DEFAULT = {

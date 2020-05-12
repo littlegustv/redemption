@@ -37,8 +37,8 @@ class Continent < GameObject
         Game.instance.rooms.dig(@recall_room_id) || Game.instance.rooms.values.first
     end
 
-    def db_source_type
-        return "Continent"
+    def db_source_type_id
+        return 6
     end
 
 end

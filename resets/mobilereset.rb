@@ -26,6 +26,7 @@ class MobileReset < Reset
         @item_resets.to_a.each do |reset|
             reset.pop(mob)
         end
+        mob.restore
         return true
     end
 

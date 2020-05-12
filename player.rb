@@ -229,8 +229,8 @@ class Player < Mobile
         return true
     end
 
-    def db_source_type
-        return "Player"
+    def db_source_type_id
+        return 8
     end
 
 end

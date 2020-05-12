@@ -67,8 +67,8 @@ class Area < GameObject
         return @rooms.map { |room| room.items }.flatten
     end
 
-    def db_source_type
-        return "Area"
+    def db_source_type_id
+        return 5
     end
 
 end

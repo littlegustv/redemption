@@ -331,29 +331,56 @@ class Mobile < GameObject
         end
     end
 
+    def restore
+        regen(100000, 100000, 100000)
+    end
+
     def regen( hp, mp, mv )
+        # max_health = nil
+        # max_mana = nil
+        # max_movement = nil
         if responds_to_event(:event_calculate_regeneration)
             data = { hp: hp, mp: mp, mv: mv }
             Game.instance.fire_event( self, :event_calculate_regeneration, data )
             hp, mp, mv = data.values
         end
-        if @health < max_health
-            @health = [@health + hp, max_health].min
+
+        if hp > 0 && @health < @max_health
+            # max_health = self.max_health
+            @health += hp
+            if @health > @max_health
+                @health = @max_health
+            end
         end
-        if @mana < max_mana
-            @mana = [@mana + mp, max_mana].min
+        if mp > 0 && @mana < @max_mana
+            @mana += mp
+            if @mana > @max_mana
+                @mana = @max_mana
+            end
         end
-        if @movement < max_movement
-            @movement = [@movement + mv, max_movement].min
+        if mv > 0 && @movement < @max_movement
+            @movement += mv
+            if @movement > @max_movement
+                @movement = @max_movement
+            end
         end
-        if @health == max_health && @mana == max_mana && @movement == max_movement
+        if @health == @max_health && @mana == @max_mana && @movement == @max_movement
             Game.instance.remove_regen_mobile(self)
         end
     end
 
+    def update_snapshot
+        @max_health = self.max_health
+        @max_mana = self.max_mana
+        @max_movement = self.max_movement
+    end
+
     def try_add_to_regen_mobs
-        if @health != max_health || @mana != max_mana || @movement != max_movement
+        self.update_snapshot
+        if @health != @max_health || @mana != @max_mana || @movement != @max_movement
             Game.instance.add_regen_mobile(self)
+        else
+            Game.instance.remove_regen_mobile(self)
         end
     end
 
@@ -368,52 +395,52 @@ class Mobile < GameObject
         mana_to_regen = 0
         moves_to_regen = 0
 
-        if @health < max_health
+        if @health < @max_health
 
-            health_to_regen = [0.25, 0.0025 * max_health].max
+            health_to_regen = [0.25, 0.0025 * @max_health].max
             healing_rate = [0.05, stat(:constitution) / 40.0 + @level / 80.0].max
             bonus_multiplier = room.hp_regen
             if responds_to_event(:event_calculate_bonus_health_regen)
                 data = {bonus: bonus_multiplier}
                 Game.instance.fire_event(self, :event_calculate_bonus_health_regen, data)
-                bonus_multiplier = data[:bonus_multiplier]
+                bonus_multiplier = data[:bonus]
             end
             health_to_regen += (healing_rate * bonus_multiplier)
             health_to_regen *= @position.regen_multiplier
             @health_regen_rollover += health_to_regen
-        elsif @health > max_health
+        elsif @health > @max_health
             @health -= 1
         end
 
-        if @mana < max_mana
-            mana_to_regen = [0.50, 0.0025 * max_mana].max
-            healing_rate = [0.10, stat(:intelligence) / 40.0 + stat(:wisdom) / 40.0 + @level / 200.0]
+        if @mana < @max_mana
+            mana_to_regen = [0.50, 0.0025 * @max_mana].max
+            healing_rate = [0.10, stat(:intelligence) / 40.0 + stat(:wisdom) / 40.0 + @level / 200.0].max
             bonus_multiplier = room.mana_regen
             if responds_to_event(:event_calculate_bonus_mana_regen)
                 data = {bonus: bonus_multiplier}
                 Game.instance.fire_event(self, :event_calculate_bonus_mana_regen, data)
-                bonus_multiplier = data[:bonus_multiplier]
+                bonus_multiplier = data[:bonus]
             end
             mana_to_regen += (healing_rate * bonus_multiplier)
             mana_to_regen *= @position.regen_multiplier
             @mana_regen_rollover += mana_to_regen
-        elsif @mana > max_mana
+        elsif @mana > @max_mana
             @mana -= 1
         end
 
-        if @movement < max_movement
-            movement_to_regen = [1, 0.004 * max_movement].max
-            healing_rate = [0.25, stat(:strength) / 40.0 + @level / 60.0]
+        if @movement < @max_movement
+            movement_to_regen = [1, 0.004 * @max_movement].max
+            healing_rate = [0.25, stat(:strength) / 40.0 + @level / 60.0].max
             bonus_multiplier = room.hp_regen
             if responds_to_event(:event_calculate_bonus_movement_regen)
                 data = {bonus: bonus_multiplier}
                 Game.instance.fire_event(self, :event_calculate_bonus_movement_regen, data)
-                bonus_multiplier = data[:bonus_multiplier]
+                bonus_multiplier = data[:bonus]
             end
             movement_to_regen += (healing_rate * bonus_multiplier)
             movement_to_regen *= @position.regen_multiplier
             @movement_regen_rollover += movement_to_regen
-        elsif @movement > max_movement
+        elsif @movement > @max_movement
             @movement -= 1
         end
 
@@ -1023,7 +1050,7 @@ class Mobile < GameObject
         end
         value = @race.stat(s) + @stats.dig(s).to_i
 
-        if @mobile_class.main_stat
+        if @mobile_class && @mobile_class.main_stat
             if s == @mobile_class.main_stat # class main stat bonus
                 value += @mobile_class.main_stat_bonus
             end
@@ -1032,8 +1059,8 @@ class Mobile < GameObject
             end
         end
         # enforce stat.base_cap
-        if s.base_cap
-            value = [s.base_cap, value].min
+        if (cap = s.base_cap) && value > cap
+            value = cap
         end
 
         # add item modifiers and item affect modifiers
@@ -1045,11 +1072,14 @@ class Mobile < GameObject
 
         # enforce max_stat cap
         if s.max_stat
-            value = [value, self.stat(s.max_stat)].min
+            max = self.stat(s.max_stat)
+            if value > max
+                value = max
+            end
         end
         # enforce hard cap (stats can only to 30)
-        if s.hard_cap
-            value = [value, s.hard_cap].min
+        if (cap = s.hard_cap) && value > cap
+            value = cap
         end
         return value
     end
@@ -1208,10 +1238,6 @@ You are #{@position.name}.)
         return [1, casting.to_i].max
     end
 
-    def db_source_type
-        return "Mobile"
-    end
-
     def do_visible
         remove_affect("invisibility")
         output "You are now visible."
@@ -1251,6 +1277,10 @@ You are #{@position.name}.)
     # %R -> reflexive_pronoun (himself, herself, itself)
     def indefinite_reflexive_pronoun
         return "themself"
+    end
+
+    def db_source_type_id
+        return 2
     end
 
 end

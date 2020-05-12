@@ -60,7 +60,7 @@ module GameSave
             if query_hash[:player_affect].length > 0 # player affects
                 query = "INSERT INTO `saved_player_affect` " +
                 "(`id`, `saved_player_id`, `affect_id`, `level`, `duration`, `source_uuid`, " +
-                "`source_id`, `source_type`, `data`) " +
+                "`source_id`, `source_type_id`, `data`) " +
                 "VALUES #{query_hash[:player_affect].join(", ")};"
                 @db.run(query)
             end
@@ -79,7 +79,7 @@ module GameSave
             if query_hash[:player_item_affect].length > 0 # player item affects
                 query = "INSERT INTO `saved_player_item_affect` " +
                 "(`id`, `saved_player_item_id`, `affect_id`, `level`, `duration`, `source_uuid`, " +
-                "`source_id`, `source_type`, `data`) " +
+                "`source_id`, `source_type_id`, `data`) " +
                 "VALUES #{query_hash[:player_item_affect].join(", ")};"
                 @db.run(query)
             end
@@ -219,7 +219,7 @@ module GameSave
             duration: affect.duration,
             source_uuid: 0,
             source_id: 0,
-            source_type: "None",
+            source_type_id: 0,
             data: affect.data.to_json
         }
         if affect.source
@@ -270,7 +270,7 @@ module GameSave
             duration: affect.duration,
             source_uuid: 0,
             source_id: 0,
-            source_type: "None",
+            source_type_id: 0,
             data: affect.data.to_json
         }
         if affect.source
@@ -400,7 +400,8 @@ module GameSave
     # Can also return nil if the source wasn't found.
     protected def find_affect_source(data, player, items)
         source = nil
-        if data[:source_type] == "Player"
+        source_type_class = Constants::SOURCE_TYPE_ID_TO_SOURCE_CLASS.dig(data[:source_type_id])
+        if source_type_class == Player
             source = player if player.id == data[:source_id]
         else
             source = items.find{ |i| i.uuid == data[:source_uuid] }
@@ -408,16 +409,16 @@ module GameSave
         if source
             return source   # source was an item on the player or the player itself? - return it!
         end
-        case data[:source_type]
-        when "None"
+        case source_type_class
+        when nil
             return nil
-        when "Continent"
-            source = @continents[data[:source_id]]
-        when "Area"
-            source = @areas[data[:source_id]]
-        when "Room"
-            source = @rooms[data[:source_id]]
-        when "Player"
+        when Continent
+            source = @continents.dig(data[:source_id])
+        when Area
+            source = @areas.dig(data[:source_id])
+        when Room
+            source = @rooms.dig(data[:source_id])
+        when Player
             # check active players
             source = @players.find { |p| p.id == data[:source_id] }
             if source # online player has been found
@@ -439,7 +440,7 @@ module GameSave
                 source = load_player(player_data[:id], nil)
                 source.quit(silent: true) # removes affects from master lists, puts into inactive players
             end
-        when "Mobile"
+        when Mobile
             source = @mobiles.find{ |m| m.uuid == data[:source_uuid] }
             if source               # found the mobile with that uuid - great!
                 return source
@@ -449,7 +450,7 @@ module GameSave
                 source = load_mob(model, nil)
                 source.destroy # mark as inactive, remove affects, etc
             end
-        when "Item"
+        when Item
             source = @items.find{ |i| i.uuid = data[:source_uuid] }
             if source               # found the item with that uuid - :)
                 return source

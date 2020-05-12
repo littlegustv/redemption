@@ -100,10 +100,6 @@ Extra flags: #{ @extraFlags }
         @reset = nil
     end
 
-    def db_source_type
-        return "Item"
-    end
-
     # gets the room this object is in, whether it's in a room directly, in a mobile inventory/equip_slot,
     # or in another item
     def room
@@ -137,6 +133,10 @@ Extra flags: #{ @extraFlags }
 
     def fixed
         @model.fixed
+    end
+
+    def db_source_type_id
+        return 3
     end
 
 end

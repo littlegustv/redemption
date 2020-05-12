@@ -708,7 +708,7 @@ class Game
     end
 
     def remove_regen_mobile(mobile)
-        @regen_mobs.add(mobile)
+        @regen_mobs.delete(mobile)
     end
 
     # Affect/GameObject destruction:

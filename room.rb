@@ -111,8 +111,8 @@ class Room < GameObject
         item.move(@inventory)
     end
 
-    def db_source_type
-        return "Room"
+    def db_source_type_id
+        return 4
     end
 
     # sort of a hack to add a room method to items

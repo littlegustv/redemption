@@ -134,4 +134,8 @@ class Exit < GameObject
 		end
 	end
 
+    def db_source_type_id
+        return 7
+    end
+
 end
