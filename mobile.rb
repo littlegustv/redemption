@@ -1021,7 +1021,7 @@ class Mobile < GameObject
         if !s
             return 0
         end
-        value = @race.stats.dig(s).to_i + @stats.dig(s).to_i
+        value = @race.stat(s) + @stats.dig(s).to_i
 
         if @mobile_class.main_stat
             if s == @mobile_class.main_stat # class main stat bonus
@@ -1118,7 +1118,7 @@ You are #{@position.name}.)
     def score_stat(s)
         s = s.to_stat
 
-        base = @stats[s].to_i + @race.stats.dig(s).to_i
+        base = @stats[s].to_i + @race.stat(s)
         if s == @mobile_class.main_stat
             base += @mobile_class.main_stat_bonus
         end

@@ -54,7 +54,7 @@ class Race
     end
 
     def stat(s)
-        @stats.dig(stat)
+        @stats.dig(stat).to_i
     end
 
 end

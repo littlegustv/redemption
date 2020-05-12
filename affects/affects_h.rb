@@ -132,7 +132,7 @@ class AffectHide < Affect
     end
 
     def do_hide(data)
-        if data[:observer].stat(:intelligence) > @target.stat(:dex)
+        if data[:observer].stat(:intelligence) > @target.stat(:dexterity)
             data[:chance] *= 1
         else
             data[:chance] *= 0
