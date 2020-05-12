@@ -8,7 +8,10 @@ class AffectHaste < Affect
             target, # target
             level, # level
             120, # duration
-            {dex: 1 + (level / 12).floor.to_i, attack_speed: 1}, # modifiers: nil
+            {
+                dexterity: 1 + level / 12,
+                attack_speed: 1
+            }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -90,7 +93,7 @@ class AffectHide < Affect
             target, # target
             level, # level
             60, # duration
-            { none: 0 }, # modifiers: nil
+            nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
             Visibility::NORMAL, # visibility
@@ -129,7 +132,7 @@ class AffectHide < Affect
     end
 
     def do_hide(data)
-        if data[:observer].stat(:int) > @target.stat(:dex)
+        if data[:observer].stat(:intelligence) > @target.stat(:dex)
             data[:chance] *= 1
         else
             data[:chance] *= 0

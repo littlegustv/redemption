@@ -8,7 +8,7 @@ class AffectWeaken < Affect
             target, # target
             level, # level
             69 + level, # duration
-            { str: -10 }, # modifiers: nil
+            { strength: -10 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

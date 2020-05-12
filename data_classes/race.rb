@@ -23,20 +23,20 @@ class Race
         @id = row[:id]
         @starter_race = row[:starter_race]
         @player_race = row[:player_race]
-        @name = row[:name]
+        @name = row[:name].gsub(/_/, " ")
         @symbol = row[:name].to_s.to_sym
         @display_name = row[:display_name]
         @stats = {
-            :str => row[:str],
-            :int => row[:int],
-            :wis => row[:wis],
-            :dex => row[:dex],
-            :con => row[:con],
-            :max_str => row[:max_str],
-            :max_int => row[:max_int],
-            :max_wis => row[:max_wis],
-            :max_dex => row[:max_dex],
-            :max_con => row[:max_con],
+            :strength.to_stat => row[:strength],
+            :intelligence.to_stat => row[:intelligence],
+            :wisdom.to_stat => row[:wisdom],
+            :dexterity.to_stat => row[:dexterity],
+            :constitution.to_stat => row[:constitution],
+            :max_strength.to_stat => row[:max_strength],
+            :max_intelligence.to_stat => row[:max_intelligence],
+            :max_wisdom.to_stat => row[:max_wisdom],
+            :max_dexterity.to_stat => row[:max_dexterity],
+            :max_constitution.to_stat => row[:max_constitution],
         }
         @size = Game.instance.sizes[row[:size_id]]
         @hand_to_hand_noun = Game.instance.nouns[row[:hand_to_hand_noun_id]]
@@ -51,6 +51,10 @@ class Race
 
     def ==(other_object)
         super(other_object) || @symbol == other_object
+    end
+
+    def stat(s)
+        @stats.dig(stat)
     end
 
 end

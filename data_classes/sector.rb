@@ -10,8 +10,8 @@ class Sector
 
     def initialize(row)
         @id = row[:id]
-        @name = row[:name]
-        @symbol = row[:name].to_s.to_sym
+        @name = row[:name].gsub(/_/, " ")
+        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
         @water = row[:water].to_i.to_b
         @underwater = row[:underwater].to_i.to_b
         @requires_flight = row[:requires_flight].to_i.to_b

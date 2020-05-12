@@ -42,7 +42,7 @@ class AffectPlague < Affect
             target, # target
             level, # level
             180, # duration
-            { str: -1 }, # modifiers: nil
+            { strength: -1 }, # modifiers: nil
             10, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -92,7 +92,7 @@ class AffectPoisoned < Affect
             target, # target
             level, # level
             180, # duration
-            { str: -1 }, # modifiers: nil
+            { strength: -1 }, # modifiers: nil
             10, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

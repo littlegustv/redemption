@@ -57,11 +57,10 @@ class AffectLivingStone < Affect
             level, # level
             60, # duration
             {
-                damroll: 20,
-                hitroll: 20,
+                damage_roll: 20,
+                hit_roll: 20,
                 attack_speed: 3,
-                ac_pierce: -20,
-                armor_slash: -20
+                armor_class: -20
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false

@@ -8,7 +8,7 @@ class AffectGiantStrength < Affect
             target, # target
             level, # level
             120, # duration
-            { str: 1 + (level / 12).floor.to_i }, # modifiers: nil
+            { strength: 1 + level / 12 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

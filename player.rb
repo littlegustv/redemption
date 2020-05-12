@@ -16,11 +16,6 @@ class Player < Mobile
 	    @lag = 0
         @client = client
         @commands = []
-
-        # overrides '0' as saved HP with max hp
-        @hitpoints = @model.current_hp.to_i != 0 ? @model.current_hp : maxhitpoints
-        @manapoints = @model.current_mana.to_i != 0 ? @model.current_mana : maxmanapoints
-        @movepoints = @model.current_movement.to_i != 0 ? @model.current_movement : maxmovepoints
     end
 
     # Player destroy works a little differently from other gameobjects.
@@ -65,7 +60,7 @@ class Player < Mobile
         end
         cmd, args = s.sanitize.split " ", 2
         command = Game.instance.find_commands( self, cmd ).last
-        
+
         if command.nil?
             output "Huh?"
         elsif command.lag > 0
@@ -158,7 +153,7 @@ class Player < Mobile
     end
 
     def prompt
-        "{c<#{@hitpoints}/#{maxhitpoints}hp #{@manapoints}/#{maxmanapoints}mp #{@movepoints}/#{maxmovepoints}mv>{x"
+        "{c<#{@health}/#{max_health}hp #{@mana}/#{max_mana}mp #{@movement}/#{max_movement}mv>{x"
     end
 
     def send_to_client
@@ -187,7 +182,7 @@ class Player < Mobile
         end
         room = @room.continent.recall_room
         move_to_room( room )
-        @hitpoints = 10
+        @health = 10
         @position = :resting.to_position
     end
 

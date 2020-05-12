@@ -42,7 +42,7 @@ class Affect
         @name = name
         @level = level
         @duration = duration
-        @modifiers = modifiers
+        overwrite_modifiers(modifiers)
         @period = period
         @next_periodic_time = nil
         @application_type = application_type   # :global_overwrite, :global_stack, :global_single, :global_unique_data,
@@ -59,12 +59,12 @@ class Affect
         if @period
             @period = @period.to_f
         end
-        @start_time = 0                         # Time of the affect's application.
-        @clear_time = nil                       # Time when the affect should clear, or nil if permanent.
+        @start_time = 0                           # Time of the affect's application.
+        @clear_time = nil                         # Time when the affect should clear, or nil if permanent.
         @clock = 0
-        @data = self.class.affect_info[:data]   # Additional data. Only "primitives". Saved to the database.
+        @data = self.class.affect_info.dig(:data) # Additional data. Only "primitives". Saved to the database.
 
-        @events = nil                           # keeps track of events
+        @events = nil                             # keeps track of events
 
     end
 
@@ -200,6 +200,9 @@ class Affect
             @next_periodic_time = @start_time + @period
             Game.instance.add_periodic_affect(self)
         end
+        if @target.is_a?(Mobile)
+            @target.try_add_to_regen_mobs
+        end
         return self
     end
 
@@ -256,9 +259,9 @@ class Affect
         @keywords.include?( key )
     end
 
-    def modifier( key )
+    def modifier( stat )
         if @modifiers
-            return @modifiers[ key ].to_i
+            return @modifiers.dig(stat) || 0
         else
             return 0
         end
@@ -266,7 +269,7 @@ class Affect
 
     def summary
         if @modifiers && @modifiers.length > 0
-            return "Spell: #{@name.rpad(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
+            return "Spell: #{@name.rpad(17)} : #{ @modifiers.map{ |stat, value| "modifies #{stat.name} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
         else
             if @permanent
                 return "Spell: #{@name}"
@@ -310,7 +313,14 @@ class Affect
     # Overwrite the modifiers with a new set
     # (Probably only used when loading existing affects from database)
     def overwrite_modifiers(modifiers)
-        @modifiers = modifiers
+        if modifiers
+            @modifiers = {}
+            modifiers.each do |stat, value|
+                @modifiers[stat.to_stat] = value
+            end
+        else
+            @modifiers = nil
+        end
     end
 
     # Overwrite the data with a new hash
@@ -347,7 +357,7 @@ class Affect
 
     def self.affect_info
         return @info || @info = {
-            name: "affect_name",
+            name: "affect name",
             keywords: ["affect_keywords"],
             application_type: :global_overwrite,
             data: @data

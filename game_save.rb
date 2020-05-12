@@ -41,8 +41,9 @@ module GameSave
             if query_hash[:player_base].length > 0 # player table
                 query = "INSERT INTO `saved_player_base` " +
                 "(`id`, `account_id`, `name`, `level`, `experience`, `room_id`, `race_id`, " +
-                "`mobile_class_id`, `str`, `dex`, `int`, `wis`, `con`, `hp`, `mana`, `current_hp`, " +
-                "`current_mana`, `wealth`, `quest_points`, `position_id`, `alignment`, `creation_points`, `gender_id`) " +
+                "`mobile_class_id`, `strength`, `dexterity`, `intelligence`, `wisdom`, `constitution`," +
+                " `current_health`, `current_mana`, `current_movement`, " +
+                " `wealth`, `quest_points`, `position_id`, `alignment`, `creation_points`, `gender_id`) " +
                 "VALUES #{query_hash[:player_base].join(", ")};"
                 @db.run(query)
             end
@@ -65,7 +66,7 @@ module GameSave
             end
             if query_hash[:player_affect_modifier].length > 0 # player affect modifiers
                 query = "INSERT INTO `saved_player_affect_modifier` " +
-                "(`saved_player_affect_id`, `field`, `value`) " +
+                "(`saved_player_affect_id`, `stat_id`, `value`) " +
                 "VALUES #{query_hash[:player_affect_modifier].join(", ")};"
                 @db.run(query)
             end
@@ -84,7 +85,7 @@ module GameSave
             end
             if query_hash[:player_item_affect_modifier].length > 0 # player item affect modifiers
                 query = "INSERT INTO `saved_player_item_affect_modifier` " +
-                "(`saved_player_item_affect_id`, `field`, `value`) " +
+                "(`saved_player_item_affect_id`, `stat_id`, `value`) " +
                 "VALUES #{query_hash[:player_item_affect_modifier].join(", ")};"
                 @db.run(query)
             end
@@ -164,15 +165,14 @@ module GameSave
             room_id: player.room.id,
             race_id: player.race.id,
             mobile_class_id: player.mobile_class.id,
-            str: player.stats[:str],
-            dex: player.stats[:dex],
-            int: player.stats[:int],
-            wis: player.stats[:wis],
-            con: player.stats[:con],
-            hp: player.basehitpoints,
-            mana: player.basemanapoints,
-            current_hp: player.hitpoints,
-            current_mana: player.manapoints,
+            strength: player.stats[:strength.to_stat],
+            dexterity: player.stats[:dexterity.to_stat],
+            intelligence: player.stats[:intelligence.to_stat],
+            wisdom: player.stats[:wisdom.to_stat],
+            constitution: player.stats[:constitution.to_stat],
+            health: player.health,
+            mana: player.mana,
+            movement:player.movement,
             wealth: player.wealth,
             quest_points: player.quest_points,
             position_id: player.position.id,
@@ -227,10 +227,10 @@ module GameSave
         end
         query_hash[:player_affect] << hash_to_insert_query_values(affect_data)
         if affect.modifiers
-            affect.modifiers.each do |key, value|
+            affect.modifiers.each do |stat, value|
                 modifier_data = {
                     saved_player_affect_id: @saved_player_affect_id_max,
-                    field: key.to_s,
+                    stat_id: stat.id,
                     value: value
                 }
                 query_hash[:player_affect_modifier] << hash_to_insert_query_values(modifier_data)
@@ -278,10 +278,10 @@ module GameSave
         end
         query_hash[:player_item_affect] << hash_to_insert_query_values(affect_data)
         if affect.modifiers
-            affect.modifiers.each do |key, value|
+            affect.modifiers.each do |stat, value|
                 modifier_data = {
                     saved_player_item_affect_id: @saved_player_item_affect_id_max,
-                    field: key.to_s,
+                    field: stat.id,
                     value: value
                 }
                 query_hash[:player_item_affect_modifier] << hash_to_insert_query_values(modifier_data)
@@ -311,6 +311,7 @@ module GameSave
         }
         player_row.merge!(player_data)
 
+
         player_model = PlayerModel.new(player_data[:id], player_row)
         player = Player.new(
             player_model,
@@ -318,14 +319,10 @@ module GameSave
             client
         )
         player.experience = player_data[:experience]
-
-        player.stats[:str] = player_data[:str]
-        player.stats[:int] = player_data[:int]
-        player.stats[:dex] = player_data[:dex]
-        player.stats[:con] = player_data[:con]
-        player.stats[:wis] = player_data[:wis]
-
         player.quest_points = player_data[:quest_points]
+        player.health = player_data[:current_health]
+        player.mana = player_data[:current_mana]
+        player.movement = player_data[:current_movement]
 
         item_saved_id_hash = Hash.new
         # load items
@@ -344,7 +341,10 @@ module GameSave
                 modifiers = {}
                 modifier_rows = all_modifier_rows.select{ |row| row[:saved_player_affect_id] == affect_row[:id] }
                 modifier_rows.each do |modifier_row|
-                    modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
+                    stat = @stats.dig(modifier_row[:stat_id])
+                    if stat
+                        modifiers[stat] = modifier_row[:value]
+                    end
                 end
                 affect.overwrite_modifiers(modifiers)
                 affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
@@ -366,7 +366,10 @@ module GameSave
                     modifiers = {}
                     modifier_rows = all_item_modifier_rows.select{ |row| row[:saved_player_item_affect_id] == affect_row[:id] }
                     modifier_rows.each do |modifier_row|
-                        modifiers[modifier_row[:field].to_sym] = modifier_row[:value]
+                        stat = @stats.dig(modifier_row[:stat_id])
+                        if stat
+                            modifiers[stat] = modifier_row[:value]
+                        end
                     end
                     affect.overwrite_modifiers(modifiers)
                     affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))

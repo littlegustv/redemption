@@ -11,8 +11,8 @@ class Noun
     def initialize(row)
         @id = row[:id]
         @element = Game.instance.elements[row[:element_id]]
-        @name = row[:name]
-        @symbol = row[:name].to_s.to_sym
+        @name = row[:name].gsub(/_/, " ")
+        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
         @magic = row[:magic]
     end
 

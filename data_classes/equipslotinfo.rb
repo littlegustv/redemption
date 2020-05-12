@@ -10,8 +10,6 @@ class EquipSlotInfo
 
     def initialize(row)
         @id = row[:id]
-        @name = row[:name]
-        @symbol = row[:name].to_s.to_sym
         @equip_message = row[:equip_message]
         @list_prefix = row[:list_prefix]
 

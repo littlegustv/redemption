@@ -152,7 +152,7 @@ class AffectShield < Affect
             target, # target
             level, # level
             300, # duration
-            { ac_pierce: 20, ac_bash: 20, ac_slash: 20, ac_magic: -20 }, # modifiers: nil
+            { resist_pierce: 5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -249,7 +249,7 @@ class AffectShockingWeapon < Affect
             data[:target].output "You are shocked by 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is struck by lightning from 1<n>'s 2<n>'.", [data[:target], data[:source], @target]
             damage = dice(1, 1 + (@target.level / 7))
-            data[:target].receive_damage(data[:source], damage, :"shocking weapon", true)
+            data[:target].receive_damage(data[:source], damage, :shocking_weapon, true)
             if dice(1, 100) <= @data[:chance]
                 AffectCorroded.new(data[:source], data[:target], @target.level).apply
             end
@@ -403,7 +403,7 @@ class AffectStoneSkin < Affect
             target, # target
             level, # level
             300, # duration
-            { ac_pierce: 40 }, # modifiers: nil
+            { resist_pierce: 5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

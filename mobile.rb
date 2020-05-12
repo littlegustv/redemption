@@ -15,18 +15,15 @@ class Mobile < GameObject
     attr_accessor :quest_points
     attr_accessor :alignment
     attr_accessor :wealth
+    attr_accessor :health
+    attr_accessor :mana
+    attr_accessor :movement
 
     attr_reader :game
     attr_reader :race
     attr_reader :size
     attr_reader :mobile_class
     attr_reader :stats
-    attr_reader :hitpoints
-    attr_reader :manapoints
-    attr_reader :movepoints
-    attr_reader :basehitpoints
-    attr_reader :basemanapoints
-    attr_reader :basemovepoints
     attr_reader :creation_points
     attr_reader :learned_skills
     attr_reader :learned_spells
@@ -59,37 +56,21 @@ class Mobile < GameObject
         @in_group = nil
         @deity = "Gabriel".freeze # deity table?
 
-        @gender = model.genders.sample || :neutral.to_gender
+        @gender = model.genders.to_a.sample || :neutral.to_gender
 
         @casting = nil
         @casting_args = nil
         @casting_input = nil
 
         @stats = {
-            success: 100,
-            str: model.stats.dig(:str) || 0,
-            con: model.stats.dig(:con) || 0,
-            int: model.stats.dig(:int) || 0,
-            wis: model.stats.dig(:wis) || 0,
-            dex: model.stats.dig(:dex) || 0,
-            max_str: model.stats.dig(:max_str) || 0,
-            max_con: model.stats.dig(:max_con) || 0,
-            max_int: model.stats.dig(:max_int) || 0,
-            max_wis: model.stats.dig(:max_wis) || 0,
-            max_dex: model.stats.dig(:max_dex) || 0,
-            hitroll: model.stats.dig(:hitroll) || 6,
-            damroll: model.stats.dig(:damroll) || 0,
-            attack_speed: 1,
-            ac_pierce: model.ac_pierce,
-            ac_bash: model.ac_bash,
-            ac_slash: model.ac_slash,
-            ac_magic: model.ac_magic,
+            :success.to_stat => 100,
+            :hit_roll.to_stat => model.stats.dig(:hit_roll) || 6,
+            :damage_roll.to_stat => model.stats.dig(:damage_roll) || 0,
+            :attack_speed.to_stat => 1,
         }
+        @stats.merge!(model.stats) if model.stats
 
         @level = model.level
-        @basehitpoints = model.hp
-        @basemanapoints = model.mana
-        @basemovepoints = model.movement
 
         # @damage_range = data[:damage_range] || nil
         # @noun = data[:attack] || nil
@@ -110,20 +91,20 @@ class Mobile < GameObject
 
         set_race(model.race)
         set_mobile_class(model.mobile_class)
-        @model.affect_models.each do |affect_model|
+        @model.affect_models.to_a.each do |affect_model|
             apply_affect_model(affect_model, true)
         end
 
         # wander "temporarily" disabled :)
         @wander_range = 0 # data[:act_flags].to_a.include?("sentinel") ? 0 : 1
 
-        @hitpoints = model.current_hp || maxhitpoints
-        @manapoints = model.current_mana || maxmanapoints
-        @movepoints = model.current_movement || maxmovepoints
+        @health = max_health
+        @mana = max_mana
+        @movement = max_movement
 
-        @hitpoint_regen_rollover = 0.0
-        @manapoint_regen_rollover = 0.0
-        @movepoint_regen_rollover = 0.0
+        @health_regen_rollover = 0.0
+        @mana_regen_rollover = 0.0
+        @movement_regen_rollover = 0.0
 
         if model.size
             @size = model.size
@@ -234,19 +215,19 @@ class Mobile < GameObject
     end
 
     def use_hp( n )
-        success = (n <= @hitpoints) ? (@hitpoints -= n) : false
+        success = (n <= @health) ? (@health -= n) : false
         try_add_to_regen_mobs
         return success
     end
 
     def use_mana( n )
-        success = (n <= @manapoints) ? (@manapoints -= n) : false
+        success = (n <= @mana) ? (@mana -= n) : false
         try_add_to_regen_mobs
         return success
     end
 
     def use_movement( n )
-        success = (n <= @movepoints) ? (@movepoints -= n) : false
+        success = (n <= @movement) ? (@movement -= n) : false
         try_add_to_regen_mobs
         return success
     end
@@ -356,17 +337,22 @@ class Mobile < GameObject
             Game.instance.fire_event( self, :event_calculate_regeneration, data )
             hp, mp, mv = data.values
         end
-
-        @hitpoints = [@hitpoints + hp, maxhitpoints].min
-        @manapoints = [@manapoints + mp, maxmanapoints].min
-        @movepoints = [@movepoints + mv, maxmovepoints].min
-        if @hitpoints == maxhitpoints && @manapoints == maxmanapoints && @movepoints == maxmovepoints
+        if @health < max_health
+            @health = [@health + hp, max_health].min
+        end
+        if @mana < max_mana
+            @mana = [@mana + mp, max_mana].min
+        end
+        if @movement < max_movement
+            @movement = [@movement + mv, max_movement].min
+        end
+        if @health == max_health && @mana == max_mana && @movement == max_movement
             Game.instance.remove_regen_mobile(self)
         end
     end
 
     def try_add_to_regen_mobs
-        if @hitpoints < maxhitpoints || @manapoints < maxmanapoints || @movepoints < maxmovepoints
+        if @health != max_health || @mana != max_mana || @movement != max_movement
             Game.instance.add_regen_mobile(self)
         end
     end
@@ -378,23 +364,66 @@ class Mobile < GameObject
     end
 
     def combat_regen
+        health_to_regen = 0
+        mana_to_regen = 0
+        moves_to_regen = 0
 
-        multiplier = @position.regen_multiplier
-        hitpoints_to_regen = [0.25, 0.0025 * maxhitpoints].max * multiplier
-        manapoints_to_regen = [0.25, 0.0025 * maxmanapoints].max * multiplier
-        movepoints_to_regen = [1, 0.004 * maxmovepoints].max * multiplier
+        if @health < max_health
 
-        @hitpoint_regen_rollover += hitpoints_to_regen
-        @manapoint_regen_rollover += manapoints_to_regen
-        @movepoint_regen_rollover += movepoints_to_regen
+            health_to_regen = [0.25, 0.0025 * max_health].max
+            healing_rate = [0.05, stat(:constitution) / 40.0 + @level / 80.0].max
+            bonus_multiplier = room.hp_regen
+            if responds_to_event(:event_calculate_bonus_health_regen)
+                data = {bonus: bonus_multiplier}
+                Game.instance.fire_event(self, :event_calculate_bonus_health_regen, data)
+                bonus_multiplier = data[:bonus_multiplier]
+            end
+            health_to_regen += (healing_rate * bonus_multiplier)
+            health_to_regen *= @position.regen_multiplier
+            @health_regen_rollover += health_to_regen
+        elsif @health > max_health
+            @health -= 1
+        end
+
+        if @mana < max_mana
+            mana_to_regen = [0.50, 0.0025 * max_mana].max
+            healing_rate = [0.10, stat(:intelligence) / 40.0 + stat(:wisdom) / 40.0 + @level / 200.0]
+            bonus_multiplier = room.mana_regen
+            if responds_to_event(:event_calculate_bonus_mana_regen)
+                data = {bonus: bonus_multiplier}
+                Game.instance.fire_event(self, :event_calculate_bonus_mana_regen, data)
+                bonus_multiplier = data[:bonus_multiplier]
+            end
+            mana_to_regen += (healing_rate * bonus_multiplier)
+            mana_to_regen *= @position.regen_multiplier
+            @mana_regen_rollover += mana_to_regen
+        elsif @mana > max_mana
+            @mana -= 1
+        end
+
+        if @movement < max_movement
+            movement_to_regen = [1, 0.004 * max_movement].max
+            healing_rate = [0.25, stat(:strength) / 40.0 + @level / 60.0]
+            bonus_multiplier = room.hp_regen
+            if responds_to_event(:event_calculate_bonus_movement_regen)
+                data = {bonus: bonus_multiplier}
+                Game.instance.fire_event(self, :event_calculate_bonus_movement_regen, data)
+                bonus_multiplier = data[:bonus_multiplier]
+            end
+            movement_to_regen += (healing_rate * bonus_multiplier)
+            movement_to_regen *= @position.regen_multiplier
+            @movement_regen_rollover += movement_to_regen
+        elsif @movement > max_movement
+            @movement -= 1
+        end
 
         # regen floor value
-        regen(@hitpoint_regen_rollover.to_i, @manapoint_regen_rollover.to_i, @movepoint_regen_rollover.to_i)
+        regen(@health_regen_rollover.to_i, @mana_regen_rollover.to_i, @movement_regen_rollover.to_i)
 
         # save remainder for next time
-        @hitpoint_regen_rollover -= @hitpoint_regen_rollover.to_i
-        @manapoint_regen_rollover -= @manapoint_regen_rollover.to_i
-        @movepoint_regen_rollover -= @movepoint_regen_rollover.to_i
+        @health_regen_rollover -= @health_regen_rollover.to_i
+        @mana_regen_rollover -= @mana_regen_rollover.to_i
+        @movement_regen_rollover -= @movement_regen_rollover.to_i
     end
 
     # Gets a single weapon in wielded slot, cycling on each hit, or hand to hand
@@ -427,11 +456,11 @@ class Mobile < GameObject
             level: @level,
             weight: 0,
             cost: 0,
-            material: :"flesh".to_material,
+            material: :flesh.to_material,
             fixed: 0,
 
             noun: @race.hand_to_hand_noun,
-            genre: :"hand to hand".to_genre,
+            genre: :hand_to_hand.to_genre,
             # 9d3(22.5) at 51
             dice_count: @model.hand_to_hand_dice_count || (@level * 9 / 51).to_i,
             dice_sides: @model.hand_to_hand_dice_sides || 4,
@@ -491,7 +520,7 @@ class Mobile < GameObject
             end
         end
         # calculate hit chance ... I guess burst rune auto-hits?
-        hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating( weapon.noun.element ) ).clamp( 5, 95 )
+        hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating ).clamp( 5, 95 )
         if rand(0...100) < hit_chance
             damage = damage_rating(weapon) + damage_bonus + (self.damroll * Constants::Damage::DAMROLL_MODIFIER).to_i
             hit = true
@@ -626,7 +655,7 @@ class Mobile < GameObject
             end
         end
         if damage >= 0
-            @hitpoints -= damage
+            @health -= damage
         else
             regen(-damage, 0, 0)
         end
@@ -647,20 +676,18 @@ class Mobile < GameObject
                 end
             end
         end
-        die( source ) if @hitpoints <= 0
+        die( source ) if @health <= 0
     end
 
     def level_up
         @experience = (@experience - @experience_to_level)
         @level += 1
-        @basehitpoints += 20
-        @basemanapoints += 10
-        @basemovepoints += 10
         @creation_points += 1
-        output "You raise a level!!  You gain 20 hit points, 10 mana, 10 move, and 0 practices."
+        output "You raise a level!!"
         output "You have gained 1 creation points.  Maybe you can get a new skill??"
         Game.instance.fire_event(self, :event_on_level_up, {level: @level})
         self.generate_hand_to_hand_weapon
+        try_add_to_regen_mobs
     end
 
     def xp( target )
@@ -807,7 +834,7 @@ class Mobile < GameObject
     end
 
     def condition_percent
-        (( 100 * @hitpoints ) / maxhitpoints).to_i
+        (( 100 * @health ) / max_health).to_i
     end
 
     def condition
@@ -840,18 +867,22 @@ class Mobile < GameObject
 
     def attack_rating( weapon )
         if proficient( weapon.genre )
-            return stat(:hitroll) + (15 + (@level * 3 / 2))
+            return self.hit_roll + (15 + (@level * 3 / 2))
         else
-            return stat(:hitroll) + (15 + (@level * 3 / 2)) * 0.7  # attacking with unfamiliar weapon has a 30% hit chance penalty
+            return self.hit_roll + (15 + (@level * 3 / 2)) * 0.7  # attacking with unfamiliar weapon has a 30% hit chance penalty
         end
     end
 
-    def defense_rating( element )
-        ( -1 * stat( "armor_#{element}".to_sym ) - 100 ) / 5
+    def defense_rating
+        ( -1 * stat(:armor_class ) - 100 ) / 5
     end
 
-    def damroll
-        stat(:damroll) + [strength_to_damage, 0].max
+    def hit_roll
+        stat(:hit_roll)
+    end
+
+    def damage_roll
+        stat(:damage_roll) + [strength_to_damage, 0].max
     end
 
     def damage_rating(weapon)
@@ -863,7 +894,7 @@ class Mobile < GameObject
     end
 
     def strength_to_damage
-        ( 0.5 * stat(:str) - 6 ).to_i
+        ( 0.5 * stat(:strength) - 6 ).to_i
     end
 
     def to_s
@@ -947,42 +978,80 @@ class Mobile < GameObject
         251
     end
 
-    def maxhitpoints
-        @basehitpoints + @level * ( 10 + ( stat(:wis) / 5 ).to_i + ( stat(:con) / 2 ).to_i )
+    def base_health
+        if @stats.dig(:health)
+            return @stats[:health]
+        end
+        return 20 + (@level - 1) * ( 10 + ( stat(:wisdom) / 5 ).to_i + ( stat(:constitution) / 2 ).to_i )
     end
 
-    def maxmanapoints
-        @basemanapoints + @level * ( 10 + ( stat(:wis) / 5 ).to_i + ( stat(:int) / 3 ).to_i )
+    def max_health
+        return base_health + stat(:health)
     end
 
-    def maxmovepoints
-        @basemovepoints + @level * ( 10 + ( stat(:wis) / 5 ).to_i + ( stat(:dex) / 3 ).to_i )
+    def base_mana
+        if @stats.dig(:mana)
+            return @stats[:mana]
+        end
+        return 100 + (@level - 1) * ( 10 + ( stat(:wisdom) / 5 ).to_i + ( stat(:intelligence) / 3 ).to_i )
+    end
+
+    def max_mana
+        return base_mana + stat(:mana)
+    end
+
+    def base_movement
+        if @stats.dig(:movement)
+            return @stats[:movement]
+        end
+        return 100 + (@level - 1) * ( 10 + ( stat(:wisdom) / 5 ).to_i + ( stat(:dexterity) / 3 ).to_i )
+    end
+
+    def max_movement
+        return base_movement + stat(:movement)
     end
 
     # Returns the value of a stat for a given key.
     # Adjusts for
     #
-    #  some_mobile.stat(:str)
-    #  some_mobile.stat(:max_wis)
-    #  some_mobile.stat(:damroll)
-    def stat(key)
-        stat = @race.stats.dig(key).to_i + @stats[key].to_i
+    #  some_mobile.stat(:strength)
+    #  some_mobile.stat(:max_wisdom)
+    def stat(s)
+        s = s.to_stat
+        if !s
+            return 0
+        end
+        value = @race.stats.dig(s).to_i + @stats.dig(s).to_i
 
-        if key == @mobile_class.main_stat # class main stat bonus
-            stat += 3
+        if @mobile_class.main_stat
+            if s == @mobile_class.main_stat # class main stat bonus
+                value += @mobile_class.main_stat_bonus
+            end
+            if s == @mobile_class.main_stat.max_stat
+                value += @mobile_class.main_stat_max_stat_bonus
+            end
         end
-        if key.to_s == "max_#{@mobile_class.main_stat}" # class max main stat bonus
-            stat += 2
+        # enforce stat.base_cap
+        if s.base_cap
+            value = [s.base_cap, value].min
         end
-        if [:max_str, :max_int, :max_dex, :max_con, :max_wis].include?(key) # limit max stats to 25
-            stat = [25, stat].min                                           # (before gear and affects are applied)
+
+        # add item modifiers and item affect modifiers
+        # value += equipment.map{ |item| item.nil? ? 0 : item.modifier(s).to_i + item.affects.map{ |aff| aff.modifier(s) }.reduce(0, :+) }.reduce(0, :+)
+        value += equipment.map{ |item| item.modifier(s) + item.affects.map{ |aff| aff.modifier(s) }.reduce(0, :+) }.reduce(0, :+)
+
+        # add affect modifiers
+        value += @affects.map{ |aff| aff.modifier(s) }.reduce(0, :+)
+
+        # enforce max_stat cap
+        if s.max_stat
+            value = [value, self.stat(s.max_stat)].min
         end
-        stat += equipment.map{ |item| item.nil? ? 0 : item.modifier( key ).to_i + item.affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+) }.reduce(0, :+)
-        stat += @affects.map{ |aff| aff.modifier( key ).to_i }.reduce(0, :+)
-        if [:str, :int, :dex, :con, :wis].include?(key)
-            stat = [stat("max_#{key}".to_sym), stat].min # limit stats by their max_stat
+        # enforce hard cap (stats can only to 30)
+        if s.hard_cap
+            value = [value, s.hard_cap].min
         end
-        return stat
+        return value
     end
 
     # def armor(index)
@@ -1016,29 +1085,28 @@ class Mobile < GameObject
 %Q(#{self.name}
 Member of clan Kenshi
 ---------------------------------- Info ---------------------------------
-{cLevel:{x     #{@level.to_s.rpad(26)} {cAge:{x       17 - 0(0) hours
-{cRace:{x      #{@race.name.to_s.rpad(26)} {cGender:{x    #{@gender.name}
-{cClass:{x     #{@mobile_class.name.to_s.rpad(26)} {cDeity:{x     #{@deity}
-{cAlignment:{x #{@alignment.to_s.rpad(26)} {cDeity Points:{x 0
-{cPracs:{x     N/A                        {cTrains:{x    N/A
-{cExp:{x       #{"#{@experience} (#{@experience_to_level}/lvl)".rpad(26)} {cNext Level:{x #{@experience_to_level - @experience}
-{cQuest Points:{x #{ @quest_points } (#{ @quest_points_to_remort } for remort/reclass)
-{cCarrying:{x  #{ "#{@inventory.count} of #{carry_max}".rpad(26) } {cWeight:{x    #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
-{cGold:{x      #{ @wealth.gold.to_s.rpad(26) } {cSilver:{x    #{ @wealth.silver.to_s }
+{cLevel:{x        #{@level.to_s.rpad(23)} {cAge:{x          17 - 0(0) hours
+{cRace:{x         #{@race.name.to_s.rpad(23)} {cGender:{x       #{@gender.name}
+{cClass:{x        #{@mobile_class.name.to_s.rpad(23)} {cDeity:{x        #{@deity}
+{cAlignment:{x    #{@alignment.to_s.rpad(23)} {cDeity Points:{x 0
+{cPracs:{x        N/A                     {cCreation Points:{x #{@creation_points}
+{cExp:{x          #{"#{@experience} (#{@experience_to_level}/lvl)".rpad(23)} {cNext Level:{x   #{@experience_to_level - @experience}
+{cQuest Points:{x #{ @quest_points }
+{cCarrying:{x     #{ "#{@inventory.count} of #{carry_max}".rpad(23) } {cWeight:{x       #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
+{cGold:{x         #{ @wealth.gold.to_s.rpad(23) } {cSilver:{x       #{ @wealth.silver.to_s }
 ---------------------------------- Stats --------------------------------
-{cHp:{x        #{"#{@hitpoints} of #{maxhitpoints} (#{@basehitpoints})".rpad(26)} {cMana:{x      #{@manapoints} of #{maxmanapoints} (#{@basemanapoints})
-{cMovement:{x  #{"#{@movepoints} of #{maxmovepoints} (#{@basemovepoints})".rpad(26)} {cWimpy:{x     #{@wimpy}
-#{score_stat("str")}#{score_stat("con")}
-#{score_stat("int")}#{score_stat("wis")}
-#{score_stat("dex")}
-{cHitRoll:{x   #{ stat(:hitroll).to_s.rpad(26)} {cDamRoll:{x   #{ self.damroll }
-{cDamResist:{x #{ stat(:damresist).to_s.rpad(26) } {cMagicDam:{x  #{ stat(:magicdam) }
-{cAttackSpd:{x #{ stat(:attack_speed) }
+{cHealth:{x       #{"#{@health} of #{max_health} (#{max_health})".rpad(23)} {cMana:{x         #{@mana} of #{max_mana} (#{max_mana})
+{cMovement:{x     #{"#{@movement} of #{max_movement} (#{max_movement})".rpad(23)} {cWimpy:{x        #{@wimpy}
+#{score_stat(:strength)}#{score_stat(:constitution)}
+#{score_stat(:intelligence)}#{score_stat(:wisdom)}
+#{score_stat(:dexterity)}
+{cHit Roll:{x     #{ self.hit_roll.to_s.rpad(23)} {cDamage Roll:{x  #{ self.damage_roll }
+{cDamResist:{x    #{ stat(:damage_reduction).to_s.rpad(23) } {cSpell Damage:{x #{ stat(:spell_damage) }
+{cAttack Speed:{x #{ stat(:attack_speed) }
 -------------------------------- Elements -------------------------------
 #{resist_string}
 --------------------------------- Armour --------------------------------
-{cPierce:{x    #{ (-1 * stat(:ac_pierce)).to_s.rpad(26) } {cBash:{x      #{ -1 * stat(:ac_bash) }
-{cSlash:{x     #{ (-1 * stat(:ac_slash)).to_s.rpad(26) } {cMagic:{x     #{ -1 * stat(:ac_magic) }
+{cArmor Class:{x   #{ (-1 * stat(:armor_class)).to_s.rpad(23) } {c{x
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
 You are #{@position.name}.)
@@ -1047,14 +1115,16 @@ You are #{@position.name}.)
     # Take a stat name as a string and convert it into a score-formatted output string.
     #
     #  score_stat("str")     # => Str:       14(14) of 23
-    def score_stat(stat_sym)
-        stat_sym = stat_sym.to_sym
-        max_stat = "max_#{stat_sym}".to_sym
-        base = @stats[stat_sym] + @race.stats[stat_sym].to_i
-        base += 3 if @mobile_class.main_stat == stat_sym
-        modified = stat(stat_sym)
-        max = stat(max_stat)
-        return "{c#{stat_sym.to_s.capitalize}:{x       #{"#{base}(#{modified}) of #{max}".rpad(27)}"
+    def score_stat(s)
+        s = s.to_stat
+
+        base = @stats[s].to_i + @race.stats.dig(s).to_i
+        if s == @mobile_class.main_stat
+            base += @mobile_class.main_stat_bonus
+        end
+        modified = stat(s)
+        max = stat(s.max_stat)
+        return "{c#{"#{s.name.capitalize}:".rpad(14)}{x#{"#{base}(#{modified}) of #{max}".rpad(24)}"
     end
 
     def skills

@@ -47,6 +47,7 @@ class Game
     attr_reader :races
     attr_reader :sectors
     attr_reader :sizes
+    attr_reader :stats
     attr_reader :wear_locations
 
     def initialize
@@ -101,6 +102,7 @@ class Game
         @races =            Hash.new        # hash of race objects            (uses :id as key)
         @sectors =          Hash.new        # hash of sector ObjectSpace      (uses :id as key)
         @sizes =            Hash.new        # hash of mobile sizes            (uses :id as key)
+        @stats =            Hash.new        # hash of stats                   (uses :id as key)
         @wear_locations =   Hash.new        # hash of wear locations          (uses :id as key)
 
         # GameObjects

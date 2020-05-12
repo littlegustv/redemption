@@ -3,14 +3,14 @@ require_relative 'affect.rb'
 class AffectKarma < Affect
 
     @@TEXTS = {
-        str: "karma grows stronger!",
-        dex: "karma moves faster!",
-        con: "karma gets tougher!",
-        int: "karma looks smarter!",
-        wis: "karma grows more enlightened!",
+        strength: "karma grows stronger!",
+        dexterity: "karma moves faster!",
+        constitution: "karma gets tougher!",
+        intelligence: "karma looks smarter!",
+        wisdom: "karma grows more enlightened!",
         saves: "karma is now protected!",
-        hitroll: "karma is more accurate!",
-        damroll: "karma is more deadly!"
+        hit_roll: "karma is more accurate!",
+        damage_roll: "karma is more deadly!"
     }
 
     def initialize(source, target, level)

@@ -41,6 +41,7 @@ module MobileItem
                     end
                 end
                 item.move(equip_slot)
+                try_add_to_regen_mobs
                 return true
             end
         end
@@ -58,6 +59,7 @@ module MobileItem
                         end
                     end
                     item.move(equip_slot)
+                    try_add_to_regen_mobs
                     return true
                 end
             end
@@ -89,6 +91,7 @@ module MobileItem
             self.room.occupants.each_output "0<N> stop0<,s> using 1<n>.", [self, item]
         end
         get_item(item, true)
+        try_add_to_regen_mobs
         return true
     end
 

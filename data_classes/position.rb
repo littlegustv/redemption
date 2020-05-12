@@ -9,8 +9,8 @@ class Position
 
     def initialize(row)
         @id = row[:id]
-        @name = row[:name]
-        @symbol = row[:name].to_s.to_sym
+        @name = row[:name].gsub(/_/, " ")
+        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
         @value = row[:value]
         @regen_multiplier = row[:regen_multiplier]
     end

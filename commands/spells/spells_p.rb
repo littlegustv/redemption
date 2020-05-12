@@ -67,7 +67,7 @@ class SpellPhantomForce < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 100, :"ghoulish grasp")
+        target.receive_damage(actor, 100, :ghoulish_grasp)
         return true
     end
 end

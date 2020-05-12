@@ -7,6 +7,8 @@ class Room < GameObject
     attr_reader :mobiles
     attr_reader :players
     attr_reader :sector
+    attr_reader :hp_regen
+    attr_reader :mana_regen
 
     def initialize(id, name, short_description, sector, area, hp_regen, mana_regen)
         super(name, nil)

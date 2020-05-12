@@ -9,21 +9,9 @@ class MobileModel
     attr_reader :race
     attr_reader :mobile_class
     attr_reader :alignment
-    attr_reader :hitroll
-    attr_reader :damroll
-    attr_reader :hp
-    attr_reader :mana
-    attr_reader :movement
-    attr_reader :current_hp
-    attr_reader :current_mana
-    attr_reader :current_movement
     attr_reader :hand_to_hand_dice_sides
     attr_reader :hand_to_hand_dice_count
     attr_reader :hand_to_hand_noun
-    attr_reader :ac_pierce
-    attr_reader :ac_bash
-    attr_reader :ac_slash
-    attr_reader :ac_magic
     attr_reader :position
     attr_reader :wealth
     attr_reader :size
@@ -44,20 +32,8 @@ class MobileModel
         @short_description = row[:short_description].to_s
         @long_description = row[:long_description].to_s
         @alignment = row[:alignment] || 0
-        @hitroll = row[:hitroll] || 0
-        @damroll = row[:damroll] || 0
-        @hp = row.dig(:hp)
-        @current_hp = row.dig(:current_hp)
-        @mana = row.dig(:mana)
-        @current_mana = row.dig(:current_mana)
-        @movement = row.dig(:movement) || 100
-        @current_movement = row.dig(:current_movement)
         @hand_to_hand_dice_sides = row.dig(:hand_to_hand_dice_sides)
         @hand_to_hand_dice_count = row.dig(:hand_to_hand_dice_count)
-        @ac_pierce = row[:ac_pierce] || 0
-        @ac_bash = row[:ac_bash] || 0
-        @ac_slash = row[:ac_slash] || 0
-        @ac_magic = row[:ac_magic] || 0
         @wealth = row[:wealth] || 0
 
         # race
@@ -115,31 +91,39 @@ class MobileModel
         end
 
         # stats
-        if row.dig(:stats)
-            @stats = row[:stats]
-        else
-            @stats = Hash.new
-        end
+        add_stat(:strength, row[:strength]) if row.dig(:strength)
+        add_stat(:dexterity, row[:dexterity]) if row.dig(:dexterity)
+        add_stat(:intelligence, row[:intelligence]) if row.dig(:intelligence)
+        add_stat(:wisdom, row[:wisdom]) if row.dig(:wisdom)
+        add_stat(:constitution, row[:constitution]) if row.dig(:constitution)
+        add_stat(:max_strength, row[:max_strength]) if row.dig(:max_strength)
+        add_stat(:max_dexterity, row[:max_dexterity]) if row.dig(:max_dexterity)
+        add_stat(:max_intelligence, row[:max_intelligence]) if row.dig(:max_intelligence)
+        add_stat(:max_wisdom, row[:max_wisdom]) if row.dig(:max_wisdom)
+        add_stat(:max_constitution, row[:max_constitution]) if row.dig(:max_constitution)
+        add_stat(:armor_class, row[:armor_class]) if row.dig(:armor_class)
+        add_stat(:hit_roll, row[:hit_roll]) if row.dig(:hit_roll)
+        add_stat(:damage_roll, row[:damage_roll]) if row.dig(:damage_roll)
 
         # affect models
         if row.dig(:affect_models)
-            @affet_models = row[:affect_models]
+            @affect_models = row[:affect_models]
         else
-            @affect_models = []
+            @affect_models = nil
         end
 
         # genders
         if row.dig(:genders)
             @genders = row[:genders]
         else
-            @genders = []
+            @genders = nil
         end
 
         # h2h affect models
         if row.dig(:hand_to_hand_affect_models)
             @hand_to_hand_affect_models = row[:hand_to_hand_affect_models]
         else
-            @hand_to_hand_affect_models = []
+            @hand_to_hand_affect_models = nil
         end
 
         # learned skills
@@ -148,7 +132,7 @@ class MobileModel
         elsif row.dig(:learned_skills)
             @learned_skills = row[:learned_skills]
         else
-            @learned_skills = []
+            @learned_skills = nil
         end
 
         # learned spells
@@ -157,8 +141,15 @@ class MobileModel
         elsif row.dig(:learned_spells)
             @learned_spells = row[:learned_spells]
         else
-            @learned_spells = []
+            @learned_spells = nil
         end
+    end
+
+    def add_stat(stat, value)
+        if !@stats
+            @stats = {}
+        end
+        @stats[stat.to_stat] = value
     end
 
 end

@@ -61,7 +61,7 @@
     end
 
     def modifier( key )
-        return @modifiers.nil? ? 0 : @modifiers[ key ].to_i
+        return @modifiers.nil? ? 0 : @modifiers.dig(key).to_i
     end
 
     def lore
@@ -69,9 +69,9 @@
 Object '#{ self.short_description }' is of type #{ self.type_name }.
 Description: #{ @long_description }
 Keywords '#{ @keyword_string }'
-Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
+Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }.
 Extra flags: #{ @extraFlags }
-#{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") if not @modifiers.nil? }
+#{ @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}" }.join("\n\r") if not @modifiers.nil? }
 ) +  show_affects(observer: nil, full: false)
     end
 
@@ -268,7 +268,6 @@ class Tattoo < Item
             cost: 0,
             material: "tattoo",
             extraFlags: "noremove",
-            ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
         }.merge( paint ), runist.inventory, reset)
         @runist = runist
         @duration = 600.0 * runist.level

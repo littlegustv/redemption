@@ -186,6 +186,10 @@ class Symbol
         return Game.instance.size_with_symbol(self)
     end
 
+    def to_stat
+        return Game.instance.stat_with_symbol(self)
+    end
+
 end
 
 def dice( count, sides )
