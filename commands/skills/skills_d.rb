@@ -55,7 +55,7 @@ class SkillDirtKick < Skill
         if actor.attacking and args.length <= 0
             do_dirtkick( actor, actor.attacking )
             return true
-        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, type: ["Mobile", "Player"], visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             do_dirtkick( actor, kill_target )
             return true
         else

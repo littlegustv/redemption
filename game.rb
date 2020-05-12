@@ -324,22 +324,22 @@ class Game
         if query[:list]
             targets = query[:list].reject(&:nil?) # got a crash here once but don't know why - maybe a bad list passed in?
             if query[:type]
-                targets -= targets.select { |t| Area === t }      if !query[:type].to_a.include?("Area")
-                targets -= targets.select { |t| Continent === t } if !query[:type].to_a.include?("Continent")
-                targets -= targets.select { |t| Player === t }    if !query[:type].to_a.include?("Player")
-                targets -= targets.select { |t| Item === t }      if !query[:type].to_a.include?("Item")
-                targets -= targets.select { |t| Mobile === t }    if !query[:type].to_a.include?("Mobile")
+                targets -= targets.select { |t| Area === t }      if !query[:type].to_a.include?(Area)
+                targets -= targets.select { |t| Continent === t } if !query[:type].to_a.include?(Continent)
+                targets -= targets.select { |t| Player === t }    if !query[:type].to_a.include?(Player)
+                targets -= targets.select { |t| Item === t }      if !query[:type].to_a.include?(Item)
+                targets -= targets.select { |t| Mobile === t }    if !query[:type].to_a.include?(Mobile)
             end
         elsif query[:type]
-            targets += @areas.values       if query[:type].to_a.include? "Area"
-            targets += @continents.values  if query[:type].to_a.include? "Continent"
-            targets += @players            if query[:type].to_a.include? "Player"
-            if query[:type].to_a.include? "Item"
+            targets += @areas.values       if query[:type].to_a.include? Area
+            targets += @continents.values  if query[:type].to_a.include? Continent
+            targets += @players            if query[:type].to_a.include? Player
+            if query[:type].to_a.include? Item
                 items = @items.to_a
                 # items = items.reject{ |item| !item.active }
                 targets += items
             end
-            targets += @mobiles.to_a       if query[:type].to_a.include? "Mobile"
+            targets += @mobiles.to_a       if query[:type].to_a.include? Mobile
 
         else
             targets = @areas.values + @players + @items.to_a + @mobiles.to_a

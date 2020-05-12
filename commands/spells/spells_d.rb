@@ -141,7 +141,7 @@ class SpellDestroyTattoo < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-    	if ( target = actor.target({ list: actor.equipment, type: "tattoo" }.merge( args.first.to_s.to_query )).first )
+    	if ( target = actor.target({ list: actor.equipment, item_type: Tattoo }.merge( args.first.to_s.to_query )).first )
     		actor.output "You focus your will and 0<n> explodes into flames!", [target]
     		target.destroy true
             return true
