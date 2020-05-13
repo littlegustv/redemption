@@ -546,7 +546,7 @@ class Game
 
     ## Handle resets.
     # Iterate through resets, popping each until resets not ready to pop are found.
-    def handle_resets(limit = Constants::Interval::RESETS_PER_FRAME)
+    def handle_resets
         i = 0
         if @active_resets.size == 0
             if @initial_reset
@@ -555,7 +555,7 @@ class Game
             end
             return
         end
-        [@active_resets.size].min.times do
+        @active_resets.size.times do
             if Time.now.to_f - @frame_time > Constants::Interval::FRAME_SLEEP_TIME * 0.8
                 break
             end
@@ -574,9 +574,6 @@ class Game
                 # stop trying to reset, all resets in loop after here are in the future!
                 break
             end
-        end
-        if i > 0
-            puts "#{@frame_count} reset #{i}"
         end
     end
 
