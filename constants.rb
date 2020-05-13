@@ -130,10 +130,11 @@ module Constants
 
     module Interval
         FPS = 30
+        FRAME_SLEEP_TIME = 1.0 / FPS
         ROUND = FPS * 3	    	# let's try 3 seconds
         TICK = FPS * 60			# 1 minute
         AUTOSAVE = FPS * 60     # 1 minute
-        RESETS_PER_FRAME = 10000 / FPS
+        RESETS_PER_FRAME = 1000 / FPS
     end
 
     DAMAGE_DECORATORS = {
@@ -322,6 +323,12 @@ module Constants
         CommandEat,
         CommandQuaff,
         CommandPeer,
+    ]
+
+    SERVER_COMMAND_CLASSES = [
+        CommandServerStop,
+        CommandServerReload,
+        CommandServerWhitespace,
     ]
 
     SKILL_CLASSES = [

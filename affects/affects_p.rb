@@ -43,7 +43,7 @@ class AffectPlague < Affect
             level, # level
             180, # duration
             { strength: -1 }, # modifiers: nil
-            10, # period: nil
+            1, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
             true # savable
@@ -69,8 +69,10 @@ class AffectPlague < Affect
     def periodic
         (@target.room.occupants - [@target]).each_output "0<N> writhes in agony as plague sores erupt from their skin.", [@target]
         @target.output "You writhe in agony from the plague."
-        @target.receive_damage(nil, 10, :plague, true, true)
-        (@target.room.occupants - [@target]).each do |occupant|
+        occupants = @target.room.occupants - [target]
+        @target.receive_damage(nil, 1000, :plague, true, true)
+
+        occupants.each do |occupant|
             # AffectPlague.new( nil, occupant, @level ).apply if rand(1...100) < 50
         end
     end
@@ -93,7 +95,7 @@ class AffectPoisoned < Affect
             level, # level
             180, # duration
             { strength: -1 }, # modifiers: nil
-            10, # period: nil
+            1, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
             true # savable
@@ -120,7 +122,7 @@ class AffectPoisoned < Affect
 
     def periodic
         @target.room.occupants.each_output("0<N> shiver0<,s> and suffer0<,s>.", @target)
-        @target.receive_damage(@source, 10, :poison, true)
+        @target.receive_damage(@source, 1000, :poison, true)
     end
 
     def send_complete_messages

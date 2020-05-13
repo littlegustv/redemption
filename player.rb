@@ -18,9 +18,7 @@ class Player < Mobile
         @commands = []
     end
 
-    # Player destroy works a little differently from other gameobjects.
-    # Player destroy just marks it for destruction in the main thread so you can call it
-    # from the client's own thread.
+    # 
     def destroy
         super
         if @client
@@ -186,7 +184,7 @@ class Player < Mobile
         @position = :resting.to_position
     end
 
-    def quit(silent: false)
+    def quit(silent = false)
         Game.instance.save
         stop_combat
         if !silent

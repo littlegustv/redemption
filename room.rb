@@ -28,24 +28,32 @@ class Room < GameObject
     def destroy
         super
         @area.rooms.delete self
-        @inventory.items.each do |item|
+        @exits.dup.each do |direction, exit|
+            # exit.destroy
+        end
+        @inventory.items.dup.each do |item|
             item.destroy
         end
-        @mobiles.each do |mob|
+        @mobiles.dup.each do |mob|
             mob.destroy
         end
-        @players.each do |player|
+        @players.dup.each do |player|
             player.move_to_room(Game.instance.starting_room)
         end
+        @area = nil
+        @exits = nil
+        @inventory = nil
+        @mobiles = nil
+        @players = nil
         Game.instance.destroy_room(self)
     end
 
     def self.inactive_room
-        if @@inactive_room.nil?
-            @@inactive_room = Room.new("inactive room", 0, "no description", :inside.to_sector, nil, 0, 0)
-            @@inactive_room.deactivate
+        if @inactive_room.nil?
+            @inactive_room = Room.new("inactive room", 0, "no description", :inside.to_sector, nil, 0, 0)
+            @inactive_room.deactivate
         end
-        return @@inactive_room
+        return @inactive_room
     end
 
     def area

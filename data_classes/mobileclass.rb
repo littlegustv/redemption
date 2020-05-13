@@ -5,9 +5,7 @@ class MobileClass
     attr_reader :symbol
     attr_reader :starter_class
     attr_reader :casting_multiplier
-    attr_reader :main_stat
-    attr_reader :main_stat_bonus
-    attr_reader :main_stat_max_stat_bonus
+    attr_reader :stats
 
     attr_reader :genres
     attr_reader :equip_slot_infos
@@ -22,9 +20,7 @@ class MobileClass
         @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
         @starter_class = row[:starter_class]
         @casting_multiplier = row[:casting_multiplier]
-        @main_stat = Game.instance.stats.dig(row[:main_stat_id])
-        @main_stat_bonus = row[:main_stat_bonus]
-        @main_stat_max_stat_bonus = row[:main_stat_max_stat_bonus]
+        @stats = Hash.new
 
         @genres = Array.new
         @equip_slot_infos = Array.new
@@ -35,6 +31,17 @@ class MobileClass
 
     def ==(other_object)
         super(other_object) || @symbol == other_object
+    end
+
+    def add_stat(stat, value)
+        if !@stats.dig(stat)
+            @stats[stat] = 0
+        end
+        @stats[stat] += value
+    end
+
+    def stat(s)
+        @stats.dig(s).to_i
     end
 
     def helpfile

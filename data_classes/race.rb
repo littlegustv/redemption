@@ -57,4 +57,11 @@ class Race
         @stats.dig(s).to_i
     end
 
+    def add_stat(stat, value)
+        if !@stats.dig(stat)
+            @stats[stat] = 0
+        end
+        @stats[stat] += value
+    end
+
 end

@@ -13,6 +13,7 @@ class Game
     attr_reader :social_data
 
     attr_reader :frame_time
+    attr_reader :frame_count
     attr_reader :game_settings
     attr_reader :saved_player_data
     attr_reader :account_data
@@ -27,9 +28,6 @@ class Game
     attr_reader :skills
     attr_reader :spells
     attr_reader :abilities
-
-    # reset stuff
-    attr_reader :reset_item_groups
 
     # models
     attr_reader :mobile_models
@@ -62,13 +60,13 @@ class Game
         # Database tables
         @game_settings = Hash.new           # Hash with values for next_uuid, login_splash, etc
 
-        @shop_data = Hash.new               # Shop table as hash       (uses :mobile_id as key)
-
         @saved_player_id_max = 0                # max id in database table saved_player_base
         @saved_player_affect_id_max = 0         # max id in database table saved_player_affect
         @saved_player_item_id_max = 0           # max id in database table saved_player_item
         @saved_player_item_affect_id_max = 0    # max id in database table saved_player_item_affect
 
+        @shop_data = Hash.new               # Shop table as hash       (uses :mobile_id as key)
+        @portal_data = Hash.new
         @help_data = Hash.new                   # Help table as hash  (uses :id as key)
         @social_data = Hash.new                 # Social table as hash (uses :id as key)
         @account_data = Hash.new                # Account table as hash (uses :id  as key)
@@ -80,10 +78,7 @@ class Game
         @mobile_resets = []                 # Mobile resets
         @item_resets = []
         @active_resets = []                 # Array of Resets waiting to pop - sorted by reset.pop_time (ascending)
-        @active_resets_sorted = false       # set to false when a new reset is activated. resets will be sorted on next handle_resets
         @initial_reset = true
-        @reset_item_groups = Hash.new       # hash of item reset groups - key is :id, value is array of ResetItem objects
-
 
         # Models
         @item_model_classes = Hash.new      # hash of item model classes - uses item_type_id as key
@@ -114,13 +109,12 @@ class Game
         @new_accounts = []                  # Accounts waiting to be created - added to from client threads
         @new_players = []                   # Players waiting to be created - added to from client threads
         @players = []                       # players online - array
+        @clients = []                       # connected clients - array
 
         @inactive_player_source_affects = Hash.new
 
         @logging_players = []               # ids of players waiting to be added to the game
-        @quitting_players = []              # players who have placed themselves here are to be quit
         @items = Set.new
-        @item_count = Hash.new
         @mobiles = Set.new
 
         @combat_mobs = Set.new
@@ -132,21 +126,30 @@ class Game
         @new_periodic_affects = Set.new
         @timed_affects = []
         @periodic_affects = []
-        @affects = Set.new                  # Master list of all applied affects in the game
         @skills = []                        # Skill object array
         @spells = []                        # Spell object array
         @commands = []                      # Command object array
+        @server_commands = []
 
         @abilities = Hash.new
 
         @responders = Hash.new                  # Event responders
+
+        @shutdown = false
 
     end
 
     def game_loop
         total_time = 0
         last_frame_time = Time.now.to_f - (1.0 / Constants::Interval::FPS)
-        loop do
+        while !@shutdown do
+            if @reload
+                log "Starting reload..."
+                save
+                reload
+                log "Reload complete."
+                @reload = false
+            end
             @frame_time = Time.now.to_f
             @frame_count += 1
 
@@ -163,7 +166,7 @@ class Game
             end
 
             # load any players whose ids have been added to the logging_players queue
-            @logging_players.each do |player_id, client|
+            @logging_players.dup.each do |player_id, client|
                 @logging_players.delete([player_id, client])
                 player = nil
                 if (player = @players.find{ |p| p.id == player_id }) # found in online player
@@ -180,44 +183,48 @@ class Game
                     end
                     @players.unshift(player)
                 end
+                client.paused = false
             end
 
             # save every so often!
             # add one to the frame_count so it doesn't save on combat frames, etc
-            before = Time.now.to_f
+
             if (@frame_count + 1) % Constants::Interval::AUTOSAVE == 0
+                before = Time.now.to_f
                 save
+                save_time = Time.now.to_f - before
             end
-            save_time = Time.now.to_f - before
+
 
             # each combat ROUND
-            before = Time.now.to_f
+
             if @frame_count % Constants::Interval::ROUND == 0
+                before = Time.now.to_f
                 combat
+                round_time = Time.now.to_f - before
             end
-            round_time = Time.now.to_f - before
 
-            before = Time.now.to_f
             if @frame_count % Constants::Interval::TICK == 0
+                before = Time.now.to_f
                 tick
+                tick_time = Time.now.to_f - before
             end
-            tick_time = Time.now.to_f - before
 
-            handle_resets
-
-            before = Time.now.to_f
+            # before = Time.now.to_f
             elapsed = @frame_time - last_frame_time
             last_frame_time = @frame_time
             update( elapsed )
-            update_time = Time.now.to_f - before
+            # update_time = Time.now.to_f - before
 
             @players.each do | player |
                 player.send_to_client
             end
 
+            handle_resets
+
             end_time = Time.now.to_f
             loop_computation_time = end_time - @frame_time
-            sleep_time = ((1.0 / Constants::Interval::FPS) - loop_computation_time)
+            sleep_time = (Constants::Interval::FRAME_SLEEP_TIME - loop_computation_time)
             total_time += loop_computation_time
 
             # Sleep until the next frame, if there's time left over
@@ -227,6 +234,17 @@ class Game
                 sleep([sleep_time, 0].max) #
             end
         end
+        # game is being shut down after this point!
+        save
+        @players.dup.each do |player|
+            player.quit(true)
+        end
+        @clients.dup.each do |client|
+            client.send_output("{YServer is shutting down. Goodbye!{x")
+            client.disconnect
+        end
+        @client_accept_thread.kill
+        @server_input_thread.kill
     end
 
     def slow_frame_diagnostic(loop_computation_time)
@@ -479,6 +497,7 @@ class Game
         # find index of first affect with the same next_periodic_time
         index = @periodic_affects.bsearch_index { |aff| aff.next_periodic_time >= affect.next_periodic_time}
         if !index # no such index found
+            # puts "#{affect.name} not found in periodic affects"
             return false
         end
         #check each of those affects with identical next_periodic_time for the correct one
@@ -508,7 +527,8 @@ class Game
         # slice the periodic-ready affects out of the array
         index = @periodic_affects.bsearch_index { |aff| aff.next_periodic_time > @frame_time }
 
-        @periodic_affects.slice!(0...index).each_with_index do |aff, index|
+        periodics_affects_to_call = @periodic_affects.slice!(0...index)
+        periodics_affects_to_call.each_with_index do |aff, index|
             aff.update
         end
     end
@@ -527,23 +547,36 @@ class Game
     ## Handle resets.
     # Iterate through resets, popping each until resets not ready to pop are found.
     def handle_resets(limit = Constants::Interval::RESETS_PER_FRAME)
+        i = 0
         if @active_resets.size == 0
+            if @initial_reset
+                log "Initial resets complete."
+                @initial_reset = false
+            end
             return
         end
-        current_time = Time.now.to_i
-        [@active_resets.size, limit].min.times do
+        [@active_resets.size].min.times do
+            if Time.now.to_f - @frame_time > Constants::Interval::FRAME_SLEEP_TIME * 0.8
+                break
+            end
             reset = @active_resets.first
-            if current_time >= reset.pop_time
+            if @initial_reset && reset.pop_time > 0
+                log "Initial resets complete."
+                @initial_reset = false
+            end
+            if @frame_time >= reset.pop_time
                 @active_resets.shift
-                reset.pop if reset.success?
+                if reset.success?
+                    reset.pop
+                    i += 1
+                end
             else
                 # stop trying to reset, all resets in loop after here are in the future!
                 break
             end
         end
-        if @initial_reset && @active_resets.select { |r| r.pop_time == 0 }.size == 0
-            log "Initial resets complete."
-            @initial_reset = false
+        if i > 0
+            puts "#{@frame_count} reset #{i}"
         end
     end
 
@@ -555,7 +588,7 @@ class Game
         end
         mob = Mobile.new( model, room, reset )
         add_global_mobile(mob)
-        if not @shop_data[ model.id ].nil?
+        if @shop_data.dig(model.id)
             AffectShopkeeper.new( mob, mob, 0 ).apply(true)
         end
         return mob
@@ -570,7 +603,7 @@ class Game
         item_class = model.class.item_class
         item = item_class.new(model, inventory, reset)
         add_global_item(item)
-        if not @portal_data[ item.id ].nil?
+        if @portal_data.dig(item.id)
             # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
             # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
             AffectPortal.new( item, @rooms[ @portal_data[item.id][:to_room_id] ] ).apply
@@ -632,6 +665,9 @@ class Game
     end
 
     def remove_event_listener(object, event, callback_object)
+        if @reload
+            return
+        end
         if !object
             log ("Trying to remove event for nil object. #{event} #{callback_object.name}")
         end
@@ -738,11 +774,13 @@ class Game
 
     # destroy a room object
     def destroy_room(room)
-        @rooms.each do |other_room| # remove exits that go to the room being destroyed
-            other_room.exits.each do |direction, exit|
-                if exit.desination == room
-                    other_room[direction] = nil
-                    # destroy exit object as well?
+        if !@reload
+            @rooms.values.each do |other_room| # remove exits that go to the room being destroyed
+                other_room.exits.each do |direction, exit|
+                    if exit && exit.destination == room
+                        exit.destination = nil
+                        # destroy exit object as well?
+                    end
                 end
             end
         end
@@ -764,7 +802,6 @@ class Game
 
     # destroy an item object
     def destroy_item(item)
-        item.move(nil)          # remove its inventory references by moving it to a nil inventory
         remove_global_item(item)
     end
 
@@ -794,6 +831,38 @@ class Game
         elsif time.first == Constants::Time::SUNSET + 1
             @players.each_output "The night has begun."
         end
+    end
+
+    def server_input_loop
+        while !@shutdown
+            input = gets.chomp.to_s
+            cmd, args = input.sanitize.split(" ", 2)
+
+            command = find_server_commands( cmd ).last
+
+            if command.nil?
+                log "Huh?"
+            else
+                command.attempt(nil, cmd, args.to_s.to_args, input)
+            end
+        end
+    end
+
+    def find_server_commands( cmd )
+        matches = @server_commands.select { |command| command.check( cmd ) }.sort_by(&:priority)
+        return matches
+    end
+
+    ##
+    # allows the server to shut down
+    def initiate_reload
+        @reload = true
+    end
+
+    ##
+    # allows the server to shut down
+    def initiate_stop
+        @shutdown = true
     end
 
 end

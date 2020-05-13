@@ -438,7 +438,7 @@ module GameSave
             player_data = @db[:saved_player_base].where(id: data[:source_id]).first
             if player_data # source exists in the database
                 source = load_player(player_data[:id], nil)
-                source.quit(silent: true) # removes affects from master lists, puts into inactive players
+                source.quit(true) # removes affects from master lists, puts into inactive players
             end
         when Mobile
             source = @mobiles.find{ |m| m.uuid == data[:source_uuid] }

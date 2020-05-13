@@ -130,7 +130,9 @@ class Affect
     def update
         if @period
             periodic
-            schedule_next_periodic_time
+            if @period
+                schedule_next_periodic_time
+            end
         end
     end
 
@@ -140,6 +142,7 @@ class Affect
     # +silent+:: Whether or not the affect should send its application messages. Defaults to false. (boolean)
     # returns +self+ on successful application, or +nil+ if application of affect fails
     def apply(silent = false)
+        # return false
         if !@target || !@target.active
             # no target or target is inactive, don't apply
             return false
@@ -228,6 +231,8 @@ class Affect
         toggle_periodic(nil)
         Game.instance.destroy_affect(self)
         send_complete_messages if !silent
+        @source = nil
+        @target = nil
     end
 
     def toggle_periodic(new_period)

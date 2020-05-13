@@ -29,6 +29,117 @@ module GameSetup
         # start TCPServer
         start_server(ip, port)
         # Open database connection
+        reload
+
+        log( "Redemption is ready to rock on port #{port}!" )
+        log( "Starting initial resets." )
+
+        # binding.pry
+
+        # game update loop runs on a single thread
+        game_loop_thread = Thread.start do
+            game_loop
+        end
+
+        # each client runs on its own thread as well
+        @client_accept_thread = Thread.start do
+            loop do
+                client_thread = Thread.start(@server.accept) do |client_connection|
+                    client = Client.new(client_connection, client_thread)
+                    @clients << client
+                    client.input_loop
+                end
+            end
+        end
+        @server_input_thread = Thread.start do
+            server_input_loop
+        end
+
+        game_loop_thread.join
+        log "Server shutdown complete."
+    end
+
+    protected def reload
+
+        @clients.each do |client|
+            client.paused = true
+        end
+
+        @players.dup.each do |player|
+            @logging_players << [player.id, player.client]
+            client = player.client
+            client.paused = true
+            # client.player = nil
+            player.destroy
+            # player.quit(true)
+        end
+        @players.clear
+        @initial_reset = true
+
+        @game_settings = {}
+        @item_model_classes = {}
+        @affect_class_hash = {}
+        @commands = []
+        @server_commands = []
+        @skills = []
+        @spells = []
+        @abilities = {}
+        @elements = {}
+        @equip_slot_infos = {}
+        @genders = {}
+        @genres = {}
+        @materials = {}
+        @mobile_classes = {}
+        @nouns = {}
+        @positions = {}
+        @races = {}
+        @sectors = {}
+        @sizes = {}
+        @stats = {}
+        @wear_locations = {}
+
+        @inactive_player_source_affects = {}
+        @mobile_models = {}
+        @item_models = {}
+        @help_data = {}
+
+        @combat_mobs = Set.new
+        @regen_mobs = Set.new
+
+        @new_periodic_affects.clear
+        @timed_affects.clear
+        @periodic_affects.clear
+        @responders.clear
+
+        @mobile_keyword_map.clear
+        @item_keyword_map.clear
+
+
+        mobiles = @mobiles.dup
+        @mobiles.clear
+        mobiles.each do |mobile|
+            mobile.destroy
+        end
+        items = @items.dup
+        @items.clear
+        items.each do |item|
+            item.destroy
+        end
+        @continents.values.each do |continent|
+            continent.destroy
+        end
+        @areas.values.each do |area|
+            area.destroy
+        end
+        @rooms.values.each do |room|
+            room.destroy
+        end
+        @active_resets = []
+        @item_resets = []
+        @mobile_resets = []
+
+        @inactive_player_source_affects.clear
+
         connect_database
         clean_database
         # load database tables
@@ -43,6 +154,7 @@ module GameSetup
         load_elements
         load_positions
         load_commands
+        load_server_commands
         load_abilities
         load_wear_locations
         load_equip_slots
@@ -72,24 +184,6 @@ module GameSetup
 
         load_max_ids
 
-        log( "Redemption is ready to rock on port #{port}!" )
-        log( "Starting initial resets." )
-
-        # binding.pry
-
-        # game update loop runs on a single thread
-        Thread.start do
-        game_loop
-        end
-
-        # each client runs on its own thread as well
-
-        loop do
-            thread = Thread.start(@server.accept) do |client_connection|
-                client = Client.new(client_connection, thread)
-                client.input_loop
-            end
-        end
     end
 
     # Opens the TCPServer at ip (optional) and port (required)
@@ -135,7 +229,6 @@ module GameSetup
         log("Loading Item Type tables... ", false, 70)
         item_type_rows = @db[:item_type_base].to_hash(:id)
 
-        @item_model_classes
         item_type_rows.each do |id, row|
             model_class = Constants::ITEM_MODEL_CLASSES.find{ |model_class| model_class.item_class_name == row[:name] }
             if !model_class
@@ -151,7 +244,6 @@ module GameSetup
         log("Loading Affect tables... ", false, 70)
         affect_data = @db[:affect_base].all
 
-        @affect_class_hash.clear
         Constants::AFFECT_CLASSES.each do |aff_class|
             row = affect_data.find { |row| row[:name] == aff_class.affect_info[:name] }
             if row
@@ -176,7 +268,6 @@ module GameSetup
 
         # Construct Command objects
         missing = []
-        @commands.clear
         Constants::COMMAND_CLASSES.each do |command_class|
             command = command_class.new
             row = command_data.values.find{ |row| row[:name] == command.name }
@@ -193,15 +284,22 @@ module GameSetup
         end
     end
 
+    protected def load_server_commands
+        log("Loading Server Commands...", false, 70)
+
+        Constants::SERVER_COMMAND_CLASSES.each do |command_class|
+            command = command_class.new
+            @server_commands.push command
+        end
+        log("done")
+    end
+
     # load skill data from database
     protected def load_abilities
         log("Loading Ability tables... ", false, 70)
         ability_data = @db[:ability_base].to_hash(:id)
 
         missing = []
-        @skills.clear
-        @spells.clear
-        @abilities.clear
         Constants::SKILL_CLASSES.each do |skill_class|
             skill = skill_class.new
             row = ability_data.values.find{ |row| row[:name] == skill.name }
@@ -234,7 +332,6 @@ module GameSetup
         log("Loading Element tables... ", false, 70)
         element_data = @db[:element_base].to_hash(:id)
 
-        @elements.clear
         element_data.each do |id, row|
             @elements[id] = Element.new(row)
         end
@@ -247,7 +344,6 @@ module GameSetup
         equip_slot_rows = @db[:equip_slot_base].all
         equip_slot_wear_loc_rows = @db[:equip_slot_wear_location].all
 
-        @equip_slot_infos.clear
         # make EquipSlotInfo objects
         equip_slot_rows.each do |eq_slot_row|
             eq_slot_id = eq_slot_row[:id]
@@ -268,7 +364,6 @@ module GameSetup
         genre_data = @db[:genre_base].to_hash(:id)
         genre_affect_data = @db[:genre_affect].all
 
-        @genres.clear
         genre_data.each do |id, row|
             @genres[id] = Genre.new(row)
         end
@@ -282,7 +377,6 @@ module GameSetup
         log("Loading Gender tables... ", false, 70)
         gender_data = @db[:gender_base].to_hash(:id)
 
-        @genders.clear
         gender_data.each do |id, row|
             @genders[id] = Gender.new(row)
         end
@@ -296,7 +390,6 @@ module GameSetup
         log("Loading Material tables... ", false, 70)
         material_data = @db[:material_base].to_hash(:id)
 
-        @materials.clear
         material_data.each do |id, row|
             @materials[id] = Material.new(row)
         end
@@ -313,8 +406,8 @@ module GameSetup
         equip_slot_rows = @db[:class_equip_slot].all
         skill_rows = @db[:class_skill].all
         spell_rows = @db[:class_spell].all
+        stat_rows = @db[:class_stat].all
 
-        @mobile_classes.clear
         class_rows.each do |id, row|
             @mobile_classes[id] = MobileClass.new(row)
         end
@@ -345,6 +438,12 @@ module GameSetup
                 @mobile_classes[spell_row[:class_id]].spells << spell
             end
         end
+        stat_rows.each do |stat_row|
+            stat = @stats[stat_row[:stat_id]]
+            if stat
+                @mobile_classes[stat_row[:class_id]].add_stat(stat, stat_row[:value])
+            end
+        end
         log( "done." )
     end
 
@@ -352,7 +451,6 @@ module GameSetup
         log("Loading Noun tables... ", false, 70)
         noun_data = @db[:noun_base].to_hash(:id)
 
-        @nouns.clear
         noun_data.each do |id, row|
             @nouns[id] = Noun.new(row)
         end
@@ -363,7 +461,6 @@ module GameSetup
         log("Loading Position tables... ", false, 70)
         position_data = @db[:position_base].to_hash(:id)
 
-        @positions.clear
         position_data.each do |id, row|
             @positions[id] = Position.new(row)
         end
@@ -380,8 +477,8 @@ module GameSetup
         h2h_affect_rows = @db[:race_hand_to_hand_affect].all
         skill_rows = @db[:race_skill].all
         spell_rows = @db[:race_spell].all
+        stat_rows = @db[:race_stat].all
 
-        @races.clear
         # Make Race objects
         race_rows.each do |id, race_row|
             @races[id] = Race.new(race_row)
@@ -416,6 +513,12 @@ module GameSetup
                 @races[spell_row[:race_id]].spells << spell
             end
         end
+        stat_rows.each do |stat_row|
+            stat = @stats[stat_row[:stat_id]]
+            if stat
+                @races[stat_row[:race_id]].add_stat(stat, stat_row[:value])
+            end
+        end
         log( "done." )
     end
 
@@ -423,7 +526,6 @@ module GameSetup
         log("Loading Sector tables... ", false, 70)
         sector_data = @db[:sector_base].to_hash(:id)
 
-        @sectors.clear
         sector_data.each do |id, row|
             @sectors[id] = Sector.new(row)
         end
@@ -434,7 +536,6 @@ module GameSetup
         log("Loading Size tables... ", false, 70)
         size_data = @db[:size_base].to_hash(:id)
 
-        @sizes.clear
         size_data.each do |id, row|
             @sizes[id] = Size.new(row)
         end
@@ -445,7 +546,6 @@ module GameSetup
         log("Loading Stat tables... ", false, 70)
         stat_data = @db[:stat_base].to_hash(:id)
 
-        @stats.clear
         stat_data.each do |id, row|
             @stats[id] = Stat.new(row)
         end
@@ -461,7 +561,6 @@ module GameSetup
         log("Loading Wear location tables... ", false, 70)
         wear_loc_rows = @db[:wear_location_base].to_hash(:id)
 
-        @wear_locations.clear
         wear_loc_rows.each do |id, row|
             @wear_locations[id] = WearLocation.new(row)
         end
@@ -474,7 +573,6 @@ module GameSetup
 
         continent_data = @db[:continent_base].to_hash(:id)
 
-        @continents.clear
         continent_data.each do |id, row|
             @continents[id] = Continent.new(
                 row[:id],
@@ -646,8 +744,6 @@ module GameSetup
         reset_mobile_itemgroups = @db[:reset_mobile_itemgroup].to_hash_groups(:mobile_reset_id)
         reset_itemgroup_item_data = @db[:reset_itemgroup_item].to_hash_groups(:itemgroup_id)
 
-        # pp reset_mobile_itemgroups
-
         reset_room_itemgroups = @db[:reset_room_itemgroup].all
         reset_room_itemgroups.each do |row|
             timer = row[:timer]
@@ -735,8 +831,7 @@ module GameSetup
     # load helpfiles
     protected def load_help_data
         log("Loading Helpfile table... ", false, 70)
-        @help_data.clear
-        # @help_data = @db[:help_base].to_hash(:id)
+        @help_data = @db[:help_base].to_hash(:id)
         # @help_data.each { |id, help| help[:keywords] = help[:keywords].split(" ") }
         log( "done." )
     end

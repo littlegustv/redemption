@@ -36,6 +36,10 @@ class GameObject
         @affects.dup.each do |affect|
             affect.clear(true)
         end
+        @affects = nil
+        # @keywords = nil
+        # @keyword_string = nil
+        # @gender = nil
     end
 
     def deactivate

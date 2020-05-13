@@ -1,6 +1,8 @@
 class Exit < GameObject
 
-	attr_reader :destination, :origin, :pair
+	attr_accessor :destination
+    attr_reader :origin
+    attr_reader :pair
 
 	def initialize( direction, origin, destination, flags, key_id, keywords, description = nil )
 		@direction = direction

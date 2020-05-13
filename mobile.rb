@@ -83,11 +83,11 @@ class Mobile < GameObject
         @room = room
         @room.mobile_enter(self) if @room
         @race = nil
-        @race_equip_slots = []
-        @race_affects = []                  # list of affects applied by race
+        @race_equip_slots = nil
+        @race_affects = nil                  # list of affects applied by race
         @mobile_class = nil
-        @mobile_class_equip_slots = []
-        @mobile_class_affects = []                  # list of affects applied by race
+        @mobile_class_equip_slots = nil
+        @mobile_class_affects = nil                  # list of affects applied by race
 
         set_race(model.race)
         set_mobile_class(model.mobile_class)
@@ -109,7 +109,6 @@ class Mobile < GameObject
         if model.size
             @size = model.size
         end
-        try_add_to_regen_mobs
     end
 
     def destroy
@@ -119,14 +118,18 @@ class Mobile < GameObject
             @reset = nil
         end
         @room.mobile_exit(self) if @room
-        @race_affects.clear
-        @mobile_class_affects.clear
-        self.items.each do |item|
+        @race_affects = nil
+        @mobile_class_affects = nil
+        self.items.dup.each do |item|
             item.destroy
         end
         if @h2h_equip_slot.item
             @h2h_equip_slot.item.destroy
         end
+        @model = nil
+        @inventory = nil
+        Game.instance.remove_regen_mobile(self)
+        Game.instance.remove_combat_mobile(self)
         Game.instance.destroy_mobile(self)
     end
 
@@ -332,7 +335,10 @@ class Mobile < GameObject
     end
 
     def restore
-        regen(100000, 100000, 100000)
+        Game.instance.remove_regen_mobile(self)
+        @health = (@max_heath = max_health)
+        @mana = (@max_mana = max_mana)
+        @movement = (@max_movement = max_movement)
     end
 
     def regen( hp, mp, mv )
@@ -549,7 +555,7 @@ class Mobile < GameObject
         # calculate hit chance ... I guess burst rune auto-hits?
         hit_chance = (hit_bonus + attack_rating( weapon ) - target.defense_rating ).clamp( 5, 95 )
         if rand(0...100) < hit_chance
-            damage = damage_rating(weapon) + damage_bonus + (self.damroll * Constants::Damage::DAMROLL_MODIFIER).to_i
+            damage = damage_rating(weapon) + damage_bonus + (self.damage_roll * Constants::Damage::DAMROLL_MODIFIER).to_i
             hit = true
         else
             damage = 0
@@ -614,14 +620,13 @@ class Mobile < GameObject
     # +anonymous+:: true if output messages should omit the +source+
     # +noun_name_override+ override the given noun's name with this string, "backstab" for example
     def receive_damage(source, damage, noun = :hit, silent = false, anonymous = false, noun_name_override = nil)
-
         if !@active # inactive mobiles can't take damage.
             return
         end
         noun = noun.to_noun
         # source event stuff (used to be in +deal_damage+)
         if source
-            if damage > 0 && source.responds_to_event(:event_calculate_damage)
+            if source.responds_to_event(:event_calculate_damage) && damage > 0
                 calculation_data = { source: source, target: self, damage: damage, noun: noun }
                 Game.instance.fire_event(source, :event_calculate_damage, calculation_data)
                 damage = calculation_data[:damage]
@@ -632,22 +637,25 @@ class Mobile < GameObject
             self.start_combat( source )
         end
 
-        if damage > 0 && responds_to_event(:event_override_receive_damage)
+        if responds_to_event(:event_override_receive_damage) && damage > 0
             override = { confirm: false, source: source, target: self, damage: damage, noun: noun }
             Game.instance.fire_event(self, :event_override_receive_damage, override)
             if override[:confirm]
                 return
             end
         end
-        if damage > 0 && responds_to_event(:event_calculate_receive_damage)
+        if responds_to_event(:event_calculate_receive_damage) && damage > 0
             calculation_data = { source: source, target: self, damage: damage, noun: noun }
             Game.instance.fire_event(self, :event_calculate_receive_damage, calculation_data)
             damage = calculation_data[:damage]
         end
-        resistance = self.resistance(noun.element)
+        resistance = 0
+        if noun.element.resist_stat
+            resistance = stat(noun.element.resist_stat)
+        end
         # resistance = 0
         noun_name = noun_name_override || noun.name
-        if resistance >= 1.0 # immune!
+        if resistance >= 100.0 # immune!
             if !silent
                 if source && !anonymous
                     (self.room.occupants | [source]).each_output "0<N>'s #{noun_name} has no effect on #{(source==self) ?"1<r>":"1<n>"}!", [source, self]
@@ -660,7 +668,9 @@ class Mobile < GameObject
         if damage < 0 # healing reverses resistance math
             resistance *= -1
         end
-        damage = (damage * (1.0 - resistance)).to_i
+        if resistance != 0
+            damage = (damage * (100.0 - resistance)).to_i
+        end
         if !silent && ((source && source.is_a?(Player)) || self.room.players.length > 0)
             decorators = nil
             if damage < 0
@@ -752,11 +762,10 @@ class Mobile < GameObject
             killer = nil
         end
         (@room.occupants - [self]).each_output "0<N> is DEAD!!", [self]
-        Game.instance.fire_event( self, :event_on_die, { died: self, killer: killer } )
-
-        @affects.each do |affect|
-            affect.clear(true)
+        if responds_to_event(:event_on_die)
+            Game.instance.fire_event( self, :event_on_die, { died: self, killer: killer } )
         end
+
         killer.xp( self ) if killer
         (@room.occupants - [self]).each_output "0<N>'s head is shattered, and 0<p> brains splash all over you.", [self]
         if killer
@@ -1050,13 +1059,8 @@ class Mobile < GameObject
         end
         value = @race.stat(s) + @stats.dig(s).to_i
 
-        if @mobile_class && @mobile_class.main_stat
-            if s == @mobile_class.main_stat # class main stat bonus
-                value += @mobile_class.main_stat_bonus
-            end
-            if s == @mobile_class.main_stat.max_stat
-                value += @mobile_class.main_stat_max_stat_bonus
-            end
+        if @mobile_class
+            value += @mobile_class.stat(s)
         end
         # enforce stat.base_cap
         if (cap = s.base_cap) && value > cap
@@ -1068,7 +1072,9 @@ class Mobile < GameObject
         value += equipment.map{ |item| item.modifier(s) + item.affects.map{ |aff| aff.modifier(s) }.reduce(0, :+) }.reduce(0, :+)
 
         # add affect modifiers
-        value += @affects.map{ |aff| aff.modifier(s) }.reduce(0, :+)
+        if @affects
+            value += @affects.map{ |aff| aff.modifier(s) }.reduce(0, :+)
+        end
 
         # enforce max_stat cap
         if s.max_stat
@@ -1184,46 +1190,80 @@ You are #{@position.name}.)
     def set_race(race)
         @race = race
         @size = race.size
-        old_equipment = self.equipment
-        old_equipment.each do |item| # move all equipped items to inventory
-            get_item(item, silent: true)
-        end
-        @race_equip_slots = []  # Clear old equip_slots
 
-        @race.equip_slot_infos.each do |slot|
-            @race_equip_slots << EquipSlot.new(self, slot)
+        old_equipment = nil
+        if @race_equip_slots
+            old_equipment = @race_equip_slots.map { |slot| slot.item }.reject!(&:nil?)
+            old_equipment.each do |item|
+                get_item(item, true)
+            end
         end
-        old_equipment.each do |item| # try to wear all items that were equipped before
-            wear(item, true)
+
+        if @race.equip_slot_infos.size > 0
+            @race_equip_slots = []
+            @race.equip_slot_infos.each do |slot|
+                @race_equip_slots << EquipSlot.new(self, slot)
+            end
+        else
+            @race_equip_slots = nil
         end
-        @race_affects.each do |affect|
-            affect.clear(true)
+
+        if old_equipment
+            old_equipment.each do |item| # try to wear all items that were equipped before
+                wear(item, true)
+            end
         end
-        @race_affects = []
-        @race.affect_models.each do |affect_model|
-            apply_affect_model(affect_model, true, @race_affects)
+        if @race_affects
+            @race_affects.each do |affect|
+                affect.clear(true)
+            end
+        end
+        if @race.affect_models.size > 0
+            @race_affects = []
+            @race.affect_models.each do |affect_model|
+                apply_affect_model(affect_model, true, @race_affects)
+            end
+        else
+            @race_affects = nil
         end
     end
 
     def set_mobile_class(mobile_class)
         @mobile_class = mobile_class
-        old_equipment = self.equipment
-        old_equipment.each do |item| # move all equipped items to inventory
-            get_item(item, silent: true)
+
+        old_equipment = nil
+        if @mobile_class_equip_slots
+            old_equipment = @mobile_class_equip_slots.map { |slot| slot.item }.reject!(&:nil?)
+            old_equipment.each do |item|
+                get_item(item, true)
+            end
         end
-        @mobile_class_equip_slots = []  # Clear old equip_slots
-        @mobile_class.equip_slot_infos.each do |slot|
-            @mobile_class_equip_slots << EquipSlot.new(self, slot)
+        if @mobile_class.equip_slot_infos.size > 0
+            @mobile_class_equip_slots = []
+            @mobile_class.equip_slot_infos.each do |slot|
+                @mobile_class_equip_slots << EquipSlot.new(self, slot)
+            end
+        else
+            @mobile_class_equip_slots = nil
         end
-        old_equipment.each do |item| # try to wear all items that were equipped before
-            wear(item, true)
+        if old_equipment
+            old_equipment.each do |item| # try to wear all items that were equipped before
+                wear(item, true)
+            end
         end
-        @mobile_class_affects.each do |affect|
-            affect.clear(true)
+
+        if @mobile_class_affects
+            @mobile_class_affects.each do |affect|
+                affect.clear(true)
+            end
         end
-        @mobile_class_affects = []
-        @mobile_class.affect_models.each do |affect_model|
-            apply_affect_model(affect_model, true, @mobile_class_affects)
+        if @mobile_class.affect_models.size > 0
+            @mobile_class_affects = []
+            @mobile_class.affect_models.each do |affect_model|
+                apply_affect_model(affect_model, true, @mobile_class_affects)
+            end
+        else
+            @mobile_class_affects = nil
         end
     end
 

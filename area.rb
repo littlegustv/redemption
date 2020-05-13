@@ -33,18 +33,20 @@ class Area < GameObject
     def destroy
         super
         @continent.areas.delete self
-        @rooms.each do |room|
+        @rooms.dup.each do |room|
             room.destroy
         end
+        @continent = nil
+        @rooms = nil
         Game.instance.destroy_area(self)
     end
 
     def self.inactive_area
-        if @@inactive_area.nil?
-            @@inactive_area = Area.new("inactive area", 0, 15, nil, "none", 0, 0, 1)
-            @@inactive_area.deactivate
+        if @inactive_area.nil?
+            @inactive_area = Area.new("inactive area", 0, 15, nil, "none", 0, 0, 1)
+            @inactive_area.deactivate
         end
-        return @@inactive_area
+        return @inactive_area
     end
 
     def continent
