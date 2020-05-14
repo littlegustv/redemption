@@ -52,9 +52,7 @@ class Command
             actor.output "No way! You're still fighting!"
             return false
         end
-
         success = attempt( actor, cmd, args, input )
-        actor.lag += @lag if success
         return success
     end
 

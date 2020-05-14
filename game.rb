@@ -183,7 +183,6 @@ class Game
                     end
                     @players.unshift(player)
                 end
-                client.paused = false
             end
 
             # save every so often!
@@ -211,9 +210,7 @@ class Game
             end
 
             # before = Time.now.to_f
-            elapsed = @frame_time - last_frame_time
-            last_frame_time = @frame_time
-            update( elapsed )
+            update
             # update_time = Time.now.to_f - before
 
             @players.each do | player |
@@ -228,7 +225,7 @@ class Game
             total_time += loop_computation_time
 
             # Sleep until the next frame, if there's time left over
-            if sleep_time < 0 && !@initial_reset # try to figure out why there isn't (initial reset frames don't really count :) )!
+            if sleep_time < 0 # try to figure out why there isn't!
                 slow_frame_diagnostic(loop_computation_time)
             else
                 sleep([sleep_time, 0].max) #
@@ -236,11 +233,13 @@ class Game
         end
         # game is being shut down after this point!
         save
+        @clients.each do |client|
+            client.send_output("{YServer is shutting down. Goodbye!{x")
+        end
         @players.dup.each do |player|
-            player.quit(true)
+            player.quit
         end
         @clients.dup.each do |client|
-            client.send_output("{YServer is shutting down. Goodbye!{x")
             client.disconnect
         end
         @client_accept_thread.kill
@@ -315,15 +314,10 @@ class Game
     end
 
     # eventually, this will handle all game logic
-    def update( elapsed )
+    def update
         @players.each do | player |
-            # player.update(elapsed)
-            player.process_commands(elapsed)
+            player.process_commands
         end
-        # @mobiles.each do | mobile |
-        #     mobile.update(elapsed)
-        # end
-
         handle_periodic_affects
         handle_timed_affects
     end
@@ -547,7 +541,6 @@ class Game
     ## Handle resets.
     # Iterate through resets, popping each until resets not ready to pop are found.
     def handle_resets
-        i = 0
         if @active_resets.size == 0
             if @initial_reset
                 log "Initial resets complete."
@@ -556,7 +549,7 @@ class Game
             return
         end
         @active_resets.size.times do
-            if Time.now.to_f - @frame_time > Constants::Interval::FRAME_SLEEP_TIME * 0.8
+            if Time.now.to_f - @frame_time > Constants::Interval::FRAME_SLEEP_TIME * 0.6
                 break
             end
             reset = @active_resets.first
@@ -568,7 +561,6 @@ class Game
                 @active_resets.shift
                 if reset.success?
                     reset.pop
-                    i += 1
                 end
             else
                 # stop trying to reset, all resets in loop after here are in the future!
@@ -614,18 +606,6 @@ class Game
             @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill ) }
         ).sort_by(&:priority)
         return matches
-    end
-
-
-    def do_command( actor, cmd, args = [], input = cmd )
-        matches = find_commands( actor, cmd )
-
-        if matches.any?
-            matches.last.execute( actor, cmd, args, input )
-            return
-        end
-
-    	actor.output "Huh?"
     end
 
     ##
@@ -793,7 +773,6 @@ class Game
     # destroy a player object
     def destroy_player(player)
         @inactive_player_source_affects[player.id] = player.source_affects
-        remove_global_mobile(player)
         @players.delete(player)
     end
 

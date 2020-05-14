@@ -10,7 +10,6 @@ class Client
     @@sleep_time = 0.005
 
     attr_accessor :player
-    attr_accessor :paused
     attr_accessor :client_connection
 
     def initialize(client_connection, thread)
@@ -23,7 +22,6 @@ class Client
         @tries = 0
         @scroll = 60 # unused?
         @name = nil
-        @paused = false
     end
 
     # Main input loop
@@ -310,15 +308,12 @@ class Client
     # play a character
     def do_player
         input = get_input
-        while @paused
-            sleep(@@sleep_time)
-        end
         if @player
             @player.input(input)
         else
             @client_state = ClientState::ACCOUNT
             list_characters
-            do_account
+            do_account(input)
         end
     end
 

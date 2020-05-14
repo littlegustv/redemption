@@ -281,8 +281,21 @@ class Mobile < GameObject
 
     def do_command( input )
         cmd, args = input.sanitize.split " ", 2
-        Game.instance.do_command( self, cmd, args.to_s.to_args, input )
-        # Game.instance.do_command( self, cmd, args.to_s.scan(/(((\d+|all)\*)?((\d+|all)\.)?(\w+|'[\w\s]+'))/i).map(&:first).map{ |arg| arg.gsub("'", "") } )
+        matches = Game.instance.find_commands( self, cmd )
+
+        if matches.any?
+            command = matches.last
+            success = command.execute( self, cmd, args.to_s.to_args, input )
+            if success
+                if @lag
+                    @lag += command.lag
+                else
+                    @lag = Game.instance.frame_time + command.lag
+                end
+            end
+            return
+        end
+        output "Huh?"
     end
 
     # When mobile is attacked, respond automatically unless already in combat targeting someone else
@@ -824,7 +837,7 @@ class Mobile < GameObject
     end
 
     def look_room
-        Game.instance.do_command self, "look"
+        do_command "look"
     end
 
     def who
@@ -847,7 +860,7 @@ class Mobile < GameObject
             if @position == :sleeping
                 output "Your dreams grow restless."
             else
-                Game.instance.do_command self, "look"
+                do_command "look"
             end
         end
     end
@@ -1155,8 +1168,8 @@ You are #{@position.name}.)
         s = s.to_stat
 
         base = @stats[s].to_i + @race.stat(s)
-        if s == @mobile_class.main_stat
-            base += @mobile_class.main_stat_bonus
+        if @mobile_class
+            base += @mobile_class.stat(s)
         end
         modified = stat(s)
         max = stat(s.max_stat)

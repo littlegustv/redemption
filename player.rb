@@ -13,12 +13,11 @@ class Player < Mobile
         @buffer = ""
         @delayed_buffer = ""
         @scroll = 60
-	    @lag = 0
         @client = client
         @commands = []
     end
 
-    # 
+    #
     def destroy
         super
         if @client
@@ -56,16 +55,10 @@ class Player < Mobile
         if @delayed_buffer.length > 0 && s.length > 0
             @delayed_buffer = ""
         end
-        cmd, args = s.sanitize.split " ", 2
-        command = Game.instance.find_commands( self, cmd ).last
-
-        if command.nil?
-            output "Huh?"
-        elsif command.lag > 0
-            @commands.push( [ command, cmd, args.to_s.to_args, s ])
-        else
-            command.execute self, cmd, args.to_s.to_args, s
-        end
+        s = s.sanitize
+        cmd_keyword = s.to_args[0].to_s
+        command = Game.instance.find_commands( self, cmd_keyword ).last
+        @commands.push([command, s])
     end
 
     # Called when a player first logs in.
@@ -184,8 +177,10 @@ class Player < Mobile
         @position = :resting.to_position
     end
 
-    def quit(silent = false)
-        Game.instance.save
+    def quit(silent = false, save = true)
+        if save
+            Game.instance.save
+        end
         stop_combat
         if !silent
             (@room.occupants - [self]).each_output "0<N> has left the game.", self
@@ -203,10 +198,12 @@ class Player < Mobile
         return true
     end
 
-    def process_commands(elapsed)
-        if @lag > 0
-            @lag -= elapsed
-        elsif @casting
+    def process_commands
+        frame_time = Game.instance.frame_time
+        if @lag && @lag <= frame_time
+            @lag = nil
+        end
+        if @casting
             if rand(1..100) <= stat(:success)
                 @casting.execute( self, @casting.name, @casting_args, @casting_input )
                 @casting = nil
@@ -216,11 +213,14 @@ class Player < Mobile
                 @casting = nil
                 @casting_args = []
             end
-        elsif @commands.length > 0
-            command_row = @commands.shift
-            command_row[0].execute( self, command_row[1], command_row[2], command_row[3] )
-            # do_command @commands.shift
         end
+        @commands.each_with_index do |cmd_array, index|
+            if cmd_array[0].lag == 0 || (!@lag)
+                do_command(cmd_array[1])
+                @commands[index] = nil
+            end
+        end
+        @commands.reject!(&:nil?)
     end
 
     def is_player?

@@ -69,7 +69,11 @@ class Spell < Command
 			actor.room.occupants.each_output "0<N> utter0<,s> the words '#{translate( @name )}'.", [actor]
 
 			actor.cast( self, args, input )
-            actor.lag += @lag
+            if actor.lag
+                actor.lag += @lag
+            else
+                actor.lag = Game.instance.frame_time + @lag
+            end
 		end
 	end
 

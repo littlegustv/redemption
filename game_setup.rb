@@ -61,17 +61,13 @@ module GameSetup
 
     protected def reload
 
-        @clients.each do |client|
-            client.paused = true
-        end
+        save
 
         @players.dup.each do |player|
-            @logging_players << [player.id, player.client]
-            client = player.client
-            client.paused = true
-            # client.player = nil
-            player.destroy
-            # player.quit(true)
+            if player.client
+                player.client.send_output("Database is updating. You will now be logged out.")
+            end
+            player.quit(false, false)
         end
         @players.clear
         @initial_reset = true

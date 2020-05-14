@@ -95,6 +95,7 @@ class String
         result.gsub!(/</, "<<")
         result.gsub!(/>/, ">>")
         result.gsub!(/[\[\]\^]/, "")
+        result.gsub!(/[\n\r]/, "")
         return result
     end
 
