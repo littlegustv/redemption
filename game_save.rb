@@ -366,9 +366,9 @@ module GameSave
         max_health = player.max_health
         max_mana = player.max_mana
         max_movement = player.max_movement
-        player.health = [max_health, player_data[:current_health].to_i + healing_factor * max_health].min
-        player.mana = [max_mana, player_data[:max_mana].to_i + healing_factor * max_mana].min
-        player.movement = [max_movement, player_data[:max_movement].to_i + healing_factor * max_movement].min
+        player.health = [max_health, player_data[:current_health].to_i + healing_factor * max_health].min.to_i
+        player.mana = [max_mana, player_data[:max_mana].to_i + healing_factor * max_mana].min.to_i
+        player.movement = [max_movement, player_data[:max_movement].to_i + healing_factor * max_movement].min.to_i
 
         cooldown_rows.each do |cooldown_row|
             symbol = cooldown_row[:symbol].to_sym
