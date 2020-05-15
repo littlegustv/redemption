@@ -123,11 +123,6 @@ module MobileItem
         return self.equip_slots.select(&:item).map(&:item)
     end
 
-    # return an array of equipped items in equip_slots with the 'wield' wear flag
-    def wielded
-        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.item.is_a?(Weapon) }.map(&:item)
-    end
-
     # return an array of equipped items in equip_slots with arbitrary wear flag
     def equipped( item_class )
         return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.item.is_a?(item_class) }.map(&:item)

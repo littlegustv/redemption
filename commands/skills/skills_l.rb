@@ -33,7 +33,7 @@ class SkillLayHands < Skill
             actor.output "You are too tired."
             return false
         end
-        actor.add_cooldown(:lay_hands, 10 * 60)
+        actor.add_cooldown(:lay_hands, 10 * 60, "Your healing powers are restored.")
         target = actor
         if args[1]
             if !(target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first)

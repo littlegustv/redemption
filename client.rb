@@ -211,7 +211,7 @@ class Client
         races = Game.instance.races.values.select{ |race| race.player_race && race.starter_race }
         race_names = races.map{ |race| race.name }
         send_output("The following races are available:\n" +
-        "#{race_names.map{ |n| n.rpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n")
+        "#{race_names.map{ |n| n.rpad(10) }.each_slice(5).to_a.map(&:join).join("\r\n")}\n")
         while race_id.nil?
             send_output("What is your race (help for more information)?")
             race_input = get_input
@@ -370,7 +370,7 @@ class Client
         if s[-1] != "\n"
             s += "\n"
         end
-        s = s.gsub(/\n/, "\n\r")
+        s = s.gsub(/\n/, "\r\n")
         begin
             @client_connection.print s.replace_color_codes
         rescue StandardError => msg

@@ -29,8 +29,8 @@ class MobileModel
         @level = row[:level] || 1
         @keywords = row[:keywords].to_s.split(" ")
         @name = row[:name].to_s
-        @short_description = row[:short_description].to_s
-        @long_description = row[:long_description].to_s
+        @short_description = row[:short_description].to_s.chomp
+        @long_description = row[:long_description].to_s.chomp
         @alignment = row[:alignment] || 0
         @hand_to_hand_dice_sides = row.dig(:hand_to_hand_dice_sides)
         @hand_to_hand_dice_count = row.dig(:hand_to_hand_dice_count)

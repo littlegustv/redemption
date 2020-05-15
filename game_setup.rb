@@ -1,4 +1,4 @@
-# This module contains methods relevant to Game's initial setup.
+    # This module contains methods relevant to Game's initial setup.
 module GameSetup
 
     # The main setup method for game.
@@ -253,7 +253,7 @@ module GameSetup
         # log list of affects that didn't get an id set
         missing = Constants::AFFECT_CLASSES.select { |aff_class| aff_class.id == nil }.map { |aff_class| aff_class.affect_info[:name] }
         if missing.size > 0
-            log "Affects not found in database: {y#{missing.join("\n\r#{" " * 52}")}{x"
+            log "Affects not found in database: {y#{missing.join("\r\n#{" " * 52}")}{x"
         end
     end
 
@@ -276,7 +276,7 @@ module GameSetup
         end
         log( "done." )
         if missing.size > 0
-            log "Commands not found in database: {y#{missing.join("\n\r#{" " * 53}")}{x"
+            log "Commands not found in database: {y#{missing.join("\r\n#{" " * 53}")}{x"
         end
     end
 
@@ -320,7 +320,7 @@ module GameSetup
         end
         log( "done." )
         if missing.size > 0
-            log "Abilities not found in database: {y#{missing.join("\n\r#{" " * 51}")}{x"
+            log "Abilities not found in database: {y#{missing.join("\r\n#{" " * 51}")}{x"
         end
     end
 
@@ -514,6 +514,9 @@ module GameSetup
             if stat
                 @races[stat_row[:race_id]].add_stat(stat, stat_row[:value])
             end
+        end
+        @races.values.each do |race|
+            race.equip_slot_infos.sort_by!(&:id)
         end
         log( "done." )
     end

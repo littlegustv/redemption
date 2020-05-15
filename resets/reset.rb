@@ -6,7 +6,7 @@ class Reset
     attr_reader :pop_time
 
     def initialize(timer)
-        @timer = 1
+        @timer = timer.to_f
         @pop_time = 0
         @active = false
     end

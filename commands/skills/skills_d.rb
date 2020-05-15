@@ -15,12 +15,12 @@ class SkillDisarm < Skill
         if not actor.attacking
         	actor.output "But you aren't fighting anyone!"
             return false
-        elsif not actor.attacking.wielded.first
+        elsif not actor.attacking.equipped(Weapon).first
         	actor.output "They aren't wielding a weapon."
             return false
         else
             target = actor.attacking
-            weapon = target.wielded.shuffle.first
+            weapon = target.equipped(Weapon).shuffle.first
             if !target.can_unwear(weapon)
                 actor.output("Their weapon won't budge!")
                 return false

@@ -98,9 +98,9 @@ class Mobile < GameObject
         # wander "temporarily" disabled :)
         @wander_range = 0 # data[:act_flags].to_a.include?("sentinel") ? 0 : 1
 
-        @health = max_health
-        @mana = max_mana
-        @movement = max_movement
+        @health = (@max_health = max_health)
+        @mana = (@max_mana = max_mana)
+        @movement = (@max_movement = max_movement)
 
         @health_regen_rollover = 0.0
         @mana_regen_rollover = 0.0
@@ -257,16 +257,16 @@ class Mobile < GameObject
         group_string = ""
 
         if self.group.any?
-            group_string += "Your group:\n\r\n\r"
-            group_string += self.group_desc + "\n\r"
+            group_string += "Your group:\n\n"
+            group_string += self.group_desc + "\n"
             self.group.each do |target|
-                group_string += target.group_desc + "\n\r"
+                group_string += target.group_desc + "\n"
             end
         elsif !self.in_group.nil?
-            group_string += "#{self.in_group}'s group:\n\r\n\r"
-            group_string += self.in_group.group_desc + "\n\r"
+            group_string += "#{self.in_group}'s group:\n\n"
+            group_string += self.in_group.group_desc + "\n"
             self.in_group.group.each do |target|
-                group_string += target.group_desc + "\n\r"
+                group_string += target.group_desc + "\n"
             end
         else
             group_string = "You're not in a group."
@@ -474,7 +474,7 @@ class Mobile < GameObject
 
     # Gets a single weapon in wielded slot, cycling on each hit, or hand to hand
     def weapon_for_next_hit
-        weapons = wielded
+        weapons = equipped(Weapon)
         case weapons.length
         when 0 # hand to hand
             return self.hand_to_hand_weapon
@@ -889,7 +889,7 @@ class Mobile < GameObject
     end
 
     def condition_percent
-        (( 100 * @health ) / max_health).to_i
+        (( 100 * @health ) / @max_health).to_i
     end
 
     def condition

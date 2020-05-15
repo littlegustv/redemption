@@ -64,7 +64,7 @@ class CommandList < Command
                 lines << "#{item.to_store_listing( quantity )}"
                 ids_shown << item.id
             end
-            actor.output lines.join("\n\r")
+            actor.output lines.join("\r\n")
 
         end
         if shopkeepers.length <= 0
@@ -159,7 +159,6 @@ class CommandLook < Command
         elsif ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             actor.output %Q(#{target.long_description}
 #{target.condition}
-
 #{target} is using:)
             target.show_equipment(actor)
             return true

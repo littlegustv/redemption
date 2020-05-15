@@ -46,6 +46,24 @@ class Array
         end
     end
 
+    def to_list(conjunction = nil, separator = ",")
+        if conjunction.to_s.strip.length > 0
+            conjunction = " #{conjunction}"
+        else
+            conjunction = ""
+        end
+        case self.size
+        when 0
+            return ""
+        when 1
+            return self.first.to_s
+        when 2
+            return "#{self[0]}#{conjunction} #{self[1]}"
+        else
+            return self[0...-1].join("#{separator} ").concat("#{separator}#{conjunction} #{self[-1]}")
+        end
+    end
+
 end
 
 class String
@@ -95,7 +113,7 @@ class String
         result.gsub!(/</, "<<")
         result.gsub!(/>/, ">>")
         result.gsub!(/[\[\]\^]/, "")
-        result.gsub!(/[\n\r]/, "")
+        result.gsub!(/[\r\n]/, "")
         return result
     end
 
@@ -222,9 +240,9 @@ class Logger
         if !@last_newline && newline
             diff = Time.now - @timestamp
             col = @@time_diffs.select { |k, v| k <= diff }.values.last
-            s = "#{s}#{" " * [80 - @line.length, 0].max}#{col}#{diff.to_s[0..6]}{x\n\r"
+            s = "#{s}#{" " * [80 - @line.length, 0].max}#{col}#{diff.to_s[0..6]}{x\r\n"
         elsif newline
-            s += "\n\r"
+            s += "\r\n"
         end
         print s.replace_color_codes
         if newline

@@ -65,14 +65,20 @@
     end
 
     def lore
-%Q(
-Object '#{ self.short_description }' is of type #{ self.type_name }.
-Description: #{ @long_description }
-Keywords '#{ @keyword_string }'
-Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }.
-Extra flags: #{ @extraFlags }
-#{ @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}" }.join("\n\r") if not @modifiers.nil? }
-) +  show_affects(observer: nil, full: false)
+        output = "Object '#{ self.short_description }' is of type #{ self.type_name }.\n"
+        output += "Description: #{ @long_description }\n"
+        output += "Keywords '#{ @keyword_string }'\n"
+        output += "Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }.\n"
+        if wear_locations.size > 0
+            output += "Item can #{wear_locations.map(&:display_string).to_list("or")}."
+        end
+        if @modifiers
+            output += @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}" }.join("\n")
+        end
+        if affects.size > 0
+            output += "\n" + show_affects(observer: nil, full: false)
+        end
+        return output
     end
 
     # move this item to another inventory - nil is passed when an item is going to be destroyed
