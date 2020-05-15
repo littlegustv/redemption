@@ -369,7 +369,7 @@ module GameSave
         player.health = [max_health, player_data[:current_health].to_i + healing_factor * max_health].min.to_i
         player.mana = [max_mana, player_data[:current_mana].to_i + healing_factor * max_mana].min.to_i
         player.movement = [max_movement, player_data[:current_mana].to_i + healing_factor * max_movement].min.to_i
-
+        player.update_snapshot
         cooldown_rows.each do |cooldown_row|
             symbol = cooldown_row[:symbol].to_sym
             timer = cooldown_row[:timer]
