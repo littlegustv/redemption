@@ -17,12 +17,17 @@ class CommandFind < Command
             actor.output "Syntax: find <keywords>"
             return false
         else
-            item = Game.instance.load_item( args.first.to_i, actor.inventory )
-            if !item
-                actor.output "No such item."
-                return false
+            item_models = Game.instance.item_models.values
+            args.each do |arg|
+
+                item_models = item_models.reject { |model| !model.keywords.any? { |keyword| keyword.fuzzy_match(arg) } }
             end
-            actor.room.occupants.each_output "0<N> 0<have,has> loaded item: 1<n>.", [actor, item]
+            if item_models.size == 0
+                actor.output "No items found."
+            else
+                actor.output "    ID  Level  Name"
+                actor.output item_models.map { |model| "#{model.id.to_s.lpad(6)}  #{model.level.to_s.lpad(5)}  #{model.name}" }.join("\n")
+            end
             return true
         end
     end

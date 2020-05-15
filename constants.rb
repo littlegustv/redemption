@@ -132,6 +132,7 @@ module Constants
         FPS = 30
         FRAME_SLEEP_TIME = 1.0 / FPS
         ROUND = FPS * 3	    	# let's try 3 seconds
+        SECONDS_PER_ROUND = ROUND / FPS
         TICK = FPS * 60			# 1 minute
         AUTOSAVE = FPS * 60     # 1 minute
     end
@@ -268,6 +269,7 @@ module Constants
         CommandConsider,
         CommandDrop,
         CommandEquipment,
+        CommandFind,
         CommandFlee,
         CommandFollow,
         CommandGet,
@@ -336,6 +338,8 @@ module Constants
         SkillDirtKick,
         SkillDisarm,
         SkillKick,
+        SkillLair,
+        SkillLayHands,
         SkillLivingStone,
         SkillPaintPower,
         SkillSneak,
@@ -349,7 +353,6 @@ module Constants
         SkillHide,
         SkillPickLock,
         SkillAppraise,
-        SkillLair,
     ]
 
     SPELL_CLASSES = [
@@ -551,6 +554,7 @@ module Constants
         ContainerModel,
         ItemModel,
         WeaponModel,
+        LightModel,
     ]
 
     SOURCE_TYPE_ID_TO_SOURCE_CLASS = {

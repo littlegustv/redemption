@@ -129,8 +129,8 @@ module MobileItem
     end
 
     # return an array of equipped items in equip_slots with arbitrary wear flag
-    def equipped( wear_location )
-        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_locations.include?(wear_location) }.map(&:item)
+    def equipped( item_class )
+        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.item.is_a?(item_class) }.map(&:item)
     end
 
     def free?( wear_location )

@@ -119,6 +119,7 @@ class Game
 
         @combat_mobs = Set.new
         @regen_mobs = Set.new
+        @cooldown_objects = Set.new
 
         @item_keyword_map = Hash.new
         @mobile_keyword_map = Hash.new
@@ -320,6 +321,7 @@ class Game
         end
         handle_periodic_affects
         handle_timed_affects
+        handle_cooldown_objects
     end
 
     def combat
@@ -722,6 +724,23 @@ class Game
 
     def remove_regen_mobile(mobile)
         @regen_mobs.delete(mobile)
+    end
+
+    def add_cooldown_object(gameobject)
+        @cooldown_objects.add(gameobject)
+    end
+
+    def remove_cooldown_object(gameobject)
+        @cooldown_objects.delete(gameobject)
+    end
+
+    ##
+    # update objects with pending cooldowns.
+    # They remove themselves when all cooldowns are cleared.
+    def handle_cooldown_objects
+        @cooldown_objects.each do |gameobject|
+            gameobject.update_cooldowns(@frame_time)
+        end
     end
 
     # Affect/GameObject destruction:

@@ -214,8 +214,8 @@ class Player < Mobile
                 @casting_args = []
             end
         end
-        @commands.each_with_index do |cmd_array, index|
-            if cmd_array[0].lag == 0 || (!@lag)
+        @commands.each_with_index do |cmd_array, index|            
+            if !cmd_array[0] || cmd_array[0].lag == 0 || (!@lag)
                 do_command(cmd_array[1])
                 @commands[index] = nil
             end

@@ -646,7 +646,7 @@ class Mobile < GameObject
             end
         end
 
-        if damage > 0 && source && source.is_a?(Mobile) && source != self
+        if damage >= 0 && source && source.is_a?(Mobile) && source != self
             self.start_combat( source )
         end
 
@@ -661,6 +661,12 @@ class Mobile < GameObject
             calculation_data = { source: source, target: self, damage: damage, noun: noun }
             Game.instance.fire_event(self, :event_calculate_receive_damage, calculation_data)
             damage = calculation_data[:damage]
+        end
+        if damage > 10
+            damage -= stat(:damage_reduction)
+            if damage < 10
+                damage = 10
+            end
         end
         resistance = 0
         if noun.element.resist_stat

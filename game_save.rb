@@ -27,11 +27,13 @@ module GameSave
             delete_old_player_data
             query_hash = {
                 player_base: [],
+                player_cooldown: [],
                 player_learned_skill: [],
                 player_learned_spell: [],
                 player_affect: [],
                 player_affect_modifier: [],
                 player_item: [],
+                player_item_cooldown: [],
                 player_item_affect: [],
                 player_item_affect_modifier: []
             }
@@ -43,8 +45,13 @@ module GameSave
                 "(`id`, `account_id`, `name`, `level`, `experience`, `room_id`, `race_id`, " +
                 "`mobile_class_id`, `strength`, `dexterity`, `intelligence`, `wisdom`, `constitution`," +
                 " `current_health`, `current_mana`, `current_movement`, " +
-                " `wealth`, `quest_points`, `position_id`, `alignment`, `creation_points`, `gender_id`) " +
+                " `wealth`, `quest_points`, `position_id`, `alignment`, `creation_points`, `gender_id`, `logout_time`) " +
                 "VALUES #{query_hash[:player_base].join(", ")};"
+                @db.run(query)
+            end
+            if query_hash[:player_cooldown].length > 0 # player cooldowns
+                query = "INSERT INTO `saved_player_cooldown` " +
+                "(`saved_player_id`, `symbol`, `timer`, `message`) VALUES #{query_hash[:player_cooldown].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_learned_skill].length > 0 # player skills
@@ -74,6 +81,11 @@ module GameSave
                 query = "INSERT INTO `saved_player_item` " +
                 "(`id`, `saved_player_id`, `equipped`, `item_id`, `container_id`) " +
                 "VALUES #{query_hash[:player_item].join(", ")};"
+                @db.run(query)
+            end
+            if query_hash[:player_item_cooldown].length > 0
+                query = "INSERT INTO `saved_player_item_cooldown` " +
+                "(`saved_player_item_id`, `symbol`, `timer`, `message) VALUES #{query_hash[:player_item_cooldown]};"
                 @db.run(query)
             end
             if query_hash[:player_item_affect].length > 0 # player item affects
@@ -114,12 +126,16 @@ module GameSave
         @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: old_item_affect_dataset.map(:id)).delete
         # delete item affects
         @db[:saved_player_item_affect].where(saved_player_item_id: old_item_dataset.map(:id)).delete
+        # delete item cooldowns
+        @db[:saved_player_item_cooldown].where(saved_player_item_id: old_item_dataset.map(:id)).delete
         # delete items
         @db[:saved_player_item].where(saved_player_id: player_ids).delete
         # delete skills
         @db[:saved_player_skill].where(saved_player_id: player_ids).delete
         # delete spells
         @db[:saved_player_spell].where(saved_player_id: player_ids).delete
+        # delete cooldowns
+        @db[:saved_player_cooldown].where(saved_player_id: player_ids).delete
     end
 
     # delete saved_player_affect row and relevant rows in subtables for a player with a given name
@@ -178,12 +194,25 @@ module GameSave
             position_id: player.position.id,
             alignment: player.alignment,
             creation_points: player.creation_points,
-            gender_id: player.gender.id
+            gender_id: player.gender.id,
+            logout_time: @frame_time
         }
 
         # update player_base row for this player
         # query_hash[:player_base] << "UPDATE `saved_player_base` SET #{hash_to_update_query_values(player_data)} WHERE (`id` = #{player.id});\n"
         query_hash[:player_base] << hash_to_insert_query_values(player_data)
+
+        if player.cooldowns
+            player.cooldowns.each do |symbol, hash|
+                cooldown_data = {
+                    saved_player_id: player.id,
+                    symbol: symbol.to_s,
+                    timer: hash[:timer],
+                    message: hash[:message]
+                }
+                query_hash[:player_cooldown] << hash_to_insert_query_values(cooldown_data)
+            end
+        end
 
         # skills and spells
         player.learned_skills.each do |s|
@@ -252,6 +281,17 @@ module GameSave
         item.affects.select{ |affect| affect.savable }.each do |affect|
             save_player_item_affect(affect, item, saved_player_id, @saved_player_item_id_max, query_hash)
         end
+        if item.cooldowns
+            item.cooldowns.each do |symbol, hash|
+                cooldown_data = {
+                    saved_player_item_id: @saved_player_item_id_max,
+                    symbol: symbol.to_s,
+                    timer: hash[:timer],
+                    message: hash[:message]
+                }
+                query_hash[:player_item_cooldown] << hash_to_insert_query_values(cooldown_data)
+            end
+        end
         if Container === item
             item.inventory.items.each do |contained_item|
                 save_player_item(contained_item, saved_player_id, query_hash, item_data[:id])
@@ -293,6 +333,7 @@ module GameSave
     def load_player(id, client)
 
         player_data = @db[:saved_player_base].where(id: id).first
+        cooldown_rows = @db[:saved_player_cooldown].where(saved_player_id: id).all
         item_rows = @db[:saved_player_item].where(saved_player_id: player_data[:id]).all.reverse
         all_item_affect_rows = @db[:saved_player_item_affect].where(saved_player_item_id: item_rows.map{ |row| row[:id] }).all.reverse
         all_item_modifier_rows = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: all_item_affect_rows.map{ |row| row[:id]}).all.reverse
@@ -320,16 +361,39 @@ module GameSave
         )
         player.experience = player_data[:experience]
         player.quest_points = player_data[:quest_points]
-        player.health = player_data[:current_health]
-        player.mana = player_data[:current_mana]
-        player.movement = player_data[:current_movement]
+        healing_factor = [1.0, (@frame_time - player_data[:logout_time].to_f) / 86400].min
+
+        max_health = player.max_health
+        max_mana = player.max_mana
+        max_movement = player.max_movement
+        player.health = [max_health, player_data[:current_health].to_i + healing_factor * max_health].min
+        player.mana = [max_mana, player_data[:max_mana].to_i + healing_factor * max_mana].min
+        player.movement = [max_movement, player_data[:max_movement].to_i + healing_factor * max_movement].min
+
+        cooldown_rows.each do |cooldown_row|
+            symbol = cooldown_row[:symbol].to_sym
+            timer = cooldown_row[:timer]
+            message = cooldown_row[:message]
+            player.add_cooldown(symbol, 0, message)
+            player.cooldowns[symbol][:timer] = timer
+        end
 
         item_saved_id_hash = Hash.new
         # load items
 
         # load items not in containers, then load items inside those recursively
+        # also add cooldown data here
         item_rows.select{ |row| row[:container_id] == 0 }.each do |row|
-            load_player_item(player, row, item_rows, item_saved_id_hash)
+            item = load_player_item(player, row, item_rows, item_saved_id_hash)
+            item_cooldown_rows = @db[:saved_player_item_cooldown].where(saved_player_item_id: row[:id]).all
+
+            item_cooldown_rows.each do |cooldown_row|
+                symbol = cooldown_row[:symbol].to_sym
+                timer = cooldown_row[:timer]
+                message = cooldown_row[:message]
+                item.add_cooldown(symbol, 0, message)
+                item.cooldowns[symbol][:timer] = timer
+            end
         end
         # load player affects
         affect_rows.each do |affect_row|
@@ -337,7 +401,7 @@ module GameSave
             if affect_class
                 source = find_affect_source(affect_row, player, player.items)
                 affect = affect_class.new(source, player, affect_row[:level])
-                affect.duration = affect_row[:duration]
+                affect.set_duration(affect_row[:duration])
                 modifiers = {}
                 modifier_rows = all_modifier_rows.select{ |row| row[:saved_player_affect_id] == affect_row[:id] }
                 modifier_rows.each do |modifier_row|
@@ -348,7 +412,9 @@ module GameSave
                 end
                 affect.overwrite_modifiers(modifiers)
                 affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
-                affect.apply(true)
+                if affect.apply(true)
+                    affect.set_duration(affect_row[:duration])
+                end
             end
         end
         # apply affects to items
@@ -362,7 +428,6 @@ module GameSave
                     # if affect_row[:name] == "portal"
                         # need to make portal use standard initialize args
                     affect = affect_class.new(source, item, affect_row[:level])
-                    affect.duration = affect_row[:duration]
                     modifiers = {}
                     modifier_rows = all_item_modifier_rows.select{ |row| row[:saved_player_item_affect_id] == affect_row[:id] }
                     modifier_rows.each do |modifier_row|
@@ -373,7 +438,9 @@ module GameSave
                     end
                     affect.overwrite_modifiers(modifiers)
                     affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
-                    affect.apply(true)
+                    if affect.apply(true)
+                        affect.set_duration(affect_row[:duration])
+                    end
                 end
             end
         end
@@ -484,7 +551,13 @@ module GameSave
     def hash_to_insert_query_values(hash)
         values = []
         hash.each do |k, v|
-            values << "'#{v.to_s.gsub(/'/, "''")}'"
+            if v.is_a?(String)
+                values << "'#{v.to_s.gsub(/'/, "''")}'"
+            elsif v.nil?
+                values << "NULL"
+            else
+                values << "#{v.to_s}"
+            end
         end
         return "(#{values.join(", ")})"
     end

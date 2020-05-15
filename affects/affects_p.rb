@@ -169,7 +169,7 @@ class AffectPoisonWeapon < Affect
         if data[:target].active
             if dice(1, 100) <= @data[:chance]
                 aff = AffectPoisoned.new(data[:source], data[:target], @target.level)
-                aff.duration = 60
+                aff.set_duration(60)
                 aff.apply
             end
         end

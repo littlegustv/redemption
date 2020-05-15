@@ -1,5 +1,4 @@
 class Affect
-    attr_accessor :duration
     attr_accessor :permanent
     attr_accessor :savable
     attr_accessor :visibility
@@ -41,7 +40,7 @@ class Affect
         @keywords = keywords
         @name = name
         @level = level
-        @duration = duration
+        @duration = duration.to_f
         overwrite_modifiers(modifiers)
         @period = period
         @next_periodic_time = nil
@@ -53,9 +52,6 @@ class Affect
         @savable = true
         @info = nil
 
-        if @duration
-            @duration = @duration.to_f
-        end
         if @period
             @period = @period.to_f
         end
@@ -65,6 +61,7 @@ class Affect
         @data = self.class.affect_info.dig(:data) # Additional data. Only "primitives". Saved to the database.
 
         @events = nil                             # keeps track of events
+        @active = false
 
     end
 
@@ -189,16 +186,12 @@ class Affect
             @target.affects.unshift(self)
             self.start
         end
+        @active = true
         if @source
             @source.source_affects << self
         end
         @start_time = Game.instance.frame_time
-        if @permanent
-            @clear_time = nil
-        else
-            @clear_time = @start_time + @duration
-            Game.instance.add_timed_affect(self)
-        end
+        set_duration(@duration)
         if @period
             @next_periodic_time = @start_time + @period
             Game.instance.add_periodic_affect(self)
@@ -210,7 +203,7 @@ class Affect
     end
 
     def set_source(source)
-        log "transferring affect source #{self.name}"
+        # log "transferring affect source #{self.name}"
         if @source
             @source.source_affects.delete(self)
         end
@@ -288,7 +281,7 @@ class Affect
         if @permanent
             return "permanently"
         else
-            return "for #{@duration.to_i} seconds"
+            return "for #{duration.to_i} seconds"
         end
     end
 
@@ -301,7 +294,7 @@ class Affect
                 @modifiers[stat] = bonus + (@modifiers[stat] || 0)
             end
         end
-        @duration = [@duration.to_i, new_affect.duration.to_i].max
+        set_duration([duration.to_f, new_affect.duration.to_f].max)
     end
 
     # Check to see if this affect shares any common ancestors with another, ignoring superclasses
@@ -339,6 +332,28 @@ class Affect
         end
         data.each do |key, value|
             @data[key] = value
+        end
+    end
+
+    def duration
+        if @clear_time
+            return @clear_time - Game.instance.frame_time
+        end
+        return nil
+    end
+
+    def set_duration(duration)
+        if @clear_time && @active
+            Game.instance.remove_timed_affect(self)
+        end
+        @duration = duration
+        if @duration && !@permanent
+            @clear_time = Game.instance.frame_time + duration
+            if @active
+                Game.instance.add_timed_affect(self)
+            end
+        else
+            @permanent = true
         end
     end
 

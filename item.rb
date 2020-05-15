@@ -227,6 +227,12 @@ class Potion < Consumable
     end
 end
 
+class Light < Item
+    def type_name
+        "light"
+    end
+end
+
 class Tattoo < Item
 
     attr_reader :brilliant

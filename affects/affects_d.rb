@@ -35,7 +35,7 @@ class AffectDark < Affect
             #nothing
         elsif !@target.affected?("indoors") && Game.instance.daytime?  # a dark room in daytime is lit by the sun (if it is outside)
             # nothing
-        elsif !data[:observer].equipped("light").empty?     # a dark room is lit by an equipped light
+        elsif !data[:observer].equipped(Light).empty?     # a dark room is lit by an equipped light
             # nothing
         elsif data[:target].affected? "glowing"             # a glowing item is visible even in darkness
             # nothing
