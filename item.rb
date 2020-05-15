@@ -61,7 +61,7 @@
     end
 
     def modifier( key )
-        return @modifiers.nil? ? 0 : @modifiers[ key ].to_i
+        return @modifiers.nil? ? 0 : @modifiers.dig(key).to_i
     end
 
     def lore
@@ -69,17 +69,17 @@
 Object '#{ self.short_description }' is of type #{ self.type_name }.
 Description: #{ @long_description }
 Keywords '#{ @keyword_string }'
-Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material }.
+Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }.
 Extra flags: #{ @extraFlags }
-#{ @modifiers.map { |key, value| "Object modifies #{key} by #{value}" }.join("\n\r") if not @modifiers.nil? }
+#{ @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}" }.join("\n\r") if not @modifiers.nil? }
 ) +  show_affects(observer: nil, full: false)
     end
 
     # move this item to another inventory - nil is passed when an item is going to be destroyed
     def move(new_inventory)
-        if @reset && @parent_inventory && (new_inventory.nil? || @parent_inventory.owner != new_inventory.owner)
+        if @reset && @parent_inventory && @parent_inventory.owner.active && (new_inventory.nil? || @parent_inventory.owner != new_inventory.owner)
             @reset.activate(false, @parent_inventory.owner)
-            @reset = nil
+            unlink_reset
         end
         if @parent_inventory
             if equipped?
@@ -96,8 +96,8 @@ Extra flags: #{ @extraFlags }
         end
     end
 
-    def db_source_type
-        return "Item"
+    def unlink_reset
+        @reset = nil
     end
 
     # gets the room this object is in, whether it's in a room directly, in a mobile inventory/equip_slot,
@@ -133,6 +133,10 @@ Extra flags: #{ @extraFlags }
 
     def fixed
         @model.fixed
+    end
+
+    def db_source_type_id
+        return 3
     end
 
 end
@@ -181,23 +185,20 @@ class Container < Item
         item.move(@inventory)
     end
 
-    # when a container moves, it has to remove resets from its inventory items
-    # then it calls move(@inventory) on them to recursively remove resets.
-    def move(new_inventory)
-        if @inventory && @parent_inventory
+    def unlink_reset
+        @reset = nil
+        if @inventory
             @inventory.items.each do |item|
-                item.reset = nil
-                item.move(@inventory)
+                item.unlink_reset
             end
         end
-        super(new_inventory)
     end
 
 end
 
 class Consumable < Item
 
-    def initialize( model, parent_inventory, spells, reset = nil )
+    def initialize( model, parent_inventory, reset = nil )
         super( model, parent_inventory, reset )
         @ability_instances = model.ability_instances
     end
@@ -223,6 +224,12 @@ end
 class Potion < Consumable
     def type_name
         "potion"
+    end
+end
+
+class Light < Item
+    def type_name
+        "light"
     end
 end
 
@@ -267,7 +274,6 @@ class Tattoo < Item
             cost: 0,
             material: "tattoo",
             extraFlags: "noremove",
-            ac: { ac_pierce: -10, ac_bash: -10, ac_slash: -10, ac_magic: -10 }
         }.merge( paint ), runist.inventory, reset)
         @runist = runist
         @duration = 600.0 * runist.level

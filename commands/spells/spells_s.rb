@@ -110,7 +110,7 @@ class SpellShockingGrasp < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 50, :"shocking grasp")
+        target.receive_damage(actor, 50, :shocking_grasp)
         return true
     end
 end

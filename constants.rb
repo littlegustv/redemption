@@ -130,10 +130,11 @@ module Constants
 
     module Interval
         FPS = 30
+        FRAME_SLEEP_TIME = 1.0 / FPS
         ROUND = FPS * 3	    	# let's try 3 seconds
+        SECONDS_PER_ROUND = ROUND / FPS
         TICK = FPS * 60			# 1 minute
         AUTOSAVE = FPS * 60     # 1 minute
-        RESETS_PER_FRAME = 10000 / FPS
     end
 
     DAMAGE_DECORATORS = {
@@ -190,6 +191,20 @@ module Constants
         130 => ["<! VAPORIZE !>", "<! VAPORIZES !>", "", " completely!"],
         149 => ["<<< ERADICATE >>>", "<<< ERADICATES >>>", "", "!"],
         150 => ["do {RUNSPEAKABLE{x things to", "does {RUNSPEAKABLE{x things to", "", "!!"],
+    }
+
+    #renew, regenerate, soothe
+    HEAL_DECORATORS = {
+		0 => ["do nothing for", "does nothing for", " inept", "."],
+		10 => ["only heal", "only heals", "", "a little bit..."],
+		20 => ["heal", "heals", " amateur", "slightly."],
+		40 => ["heal", "heals", " competent", "moderately."],
+		50 => ["heal", "heals", " skillful", "."],
+		60 => ["heal", "heals", " calm", "!"],
+		70 => ["soothe", "soothes", " diligent", "."],
+		80 => ["regenerate", "regenerates", " powerful", "greatly!"],
+		100 => ["restore", "restores", " masterful", ", erasing wounds!"],
+        125 => ["REJUVENATE", "REJUVENATES", " ultimate", " mending bones!"],
     }
 
     ALIGNMENT_DESCRIPTIONS = {
@@ -254,6 +269,7 @@ module Constants
         CommandConsider,
         CommandDrop,
         CommandEquipment,
+        CommandFind,
         CommandFlee,
         CommandFollow,
         CommandGet,
@@ -310,12 +326,20 @@ module Constants
         CommandPeer,
     ]
 
+    SERVER_COMMAND_CLASSES = [
+        CommandServerStop,
+        CommandServerReload,
+        CommandServerWhitespace,
+    ]
+
     SKILL_CLASSES = [
         SkillBash,
         SkillBerserk,
         SkillDirtKick,
         SkillDisarm,
         SkillKick,
+        SkillLair,
+        SkillLayHands,
         SkillLivingStone,
         SkillPaintPower,
         SkillSneak,
@@ -329,7 +353,6 @@ module Constants
         SkillHide,
         SkillPickLock,
         SkillAppraise,
-        SkillLair,
     ]
 
     SPELL_CLASSES = [
@@ -466,6 +489,7 @@ module Constants
         AffectDetectInvisibility,
         AffectEnchantWeapon,
         AffectEnchantArmor,
+        AffectEssence,
         AffectFireBlind,
         AffectFlamingWeapon,
         AffectFloodingWeapon,
@@ -530,7 +554,20 @@ module Constants
         ContainerModel,
         ItemModel,
         WeaponModel,
+        LightModel,
     ]
+
+    SOURCE_TYPE_ID_TO_SOURCE_CLASS = {
+        0 => nil,
+        1 => GameObject,
+        2 => Mobile,
+        3 => Item,
+        4 => Room,
+        5 => Area,
+        6 => Continent,
+        7 => Exit,
+        8 => Player,
+    }
 
     module Gender
 

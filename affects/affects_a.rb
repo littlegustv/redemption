@@ -109,7 +109,10 @@ class AffectAnimalGrowth < Affect
             target, # target
             level, # level
             120, # duration
-            {con: 3, str: 3}, # modifiers: nil
+            {
+                constitution: 3,
+                strength: 3
+            }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -142,7 +145,7 @@ class AffectArmor < Affect
             target, # target
             level, # level
             300, # duration
-            { ac_pierce: 10, ac_slash: 10, ac_bash: 10, ac_magic: 10 }, # modifiers: nil
+            { armor_class: -20 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

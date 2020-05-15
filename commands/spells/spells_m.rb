@@ -32,7 +32,7 @@ class SpellMagicMissile < Spell
             return false
         end
         level.times do |i|
-            target.receive_damage(actor, 20, :"magic missile")
+            target.receive_damage(actor, 20, :magic_missile)
         end
         return true
     end
@@ -69,7 +69,7 @@ class SpellManaDrain < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 100, :"life drain")
+        target.receive_damage(actor, 100, :life_drain)
         target.use_mana( 10 )
         actor.regen( 0, 10, 0 )
         target.output "You feel your energy slipping away!"

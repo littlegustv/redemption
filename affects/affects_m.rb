@@ -8,13 +8,7 @@ class AffectMinimation < Affect
             target, # target
             level, # level
             level * 60, # duration
-            {
-                damroll: 20,
-                hitroll: 20,
-                attack_speed: 3,
-                ac_pierce: -20,
-                armor_slash: -20
-            }, # modifiers: nil
+            nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

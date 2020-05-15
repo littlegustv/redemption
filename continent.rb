@@ -15,18 +15,19 @@ class Continent < GameObject
 
     def destroy
         super
-        @areas.each do |area|
+        @areas.dup.each do |area|
             area.destroy
         end
+        @areas = nil
         Game.instance.destroy_continent(self)
     end
 
     def self.inactive_continent
-        if @@inactive_continent.nil?
-            @@inactive_continent = Continent.new(0, "inactive continent", "on", 0, 0)
-            @@inactive_continent.deactivate
+        if @inactive_continent.nil?
+            @inactive_continent = Continent.new(0, "inactive continent", "on", 0, 0)
+            @inactive_continent.deactivate
         end
-        return @@inactive_continent
+        return @inactive_continent
     end
 
     def starting_room
@@ -37,8 +38,8 @@ class Continent < GameObject
         Game.instance.rooms.dig(@recall_room_id) || Game.instance.rooms.values.first
     end
 
-    def db_source_type
-        return "Continent"
+    def db_source_type_id
+        return 6
     end
 
 end

@@ -8,7 +8,7 @@ class AffectBarkSkin < Affect
             target, # target
             level, # level
             300, # duration
-            { ac_bash: 40 }, # modifiers: nil
+            { resist_bash: 5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -44,7 +44,10 @@ class AffectBerserk < Affect
             target, # target
             level, # level
             60, # duration
-            {damroll: (level / 10).to_i, hitroll: (level / 10).to_i}, # modifiers: nil
+            {
+                damage_roll: level / 10,
+                hit_roll: level / 10
+            }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -94,7 +97,7 @@ class AffectBladeRune < Affect
         [ "The weapon becomes armor-piercing.", { hitroll: 20 } ],
         # [ "The weapon will deflect incoming attacks.", { none: 0 } ],
         # [ "The weapon becomes more accurate.", { none: 0 } ],
-        [ "The weapon surrounds you with a glowing aura.", { ac_pierce: -20, ac_bash: -20, ac_slash: -20 } ],
+        [ "The weapon surrounds you with a glowing aura.", { armor_class: -30 } ],
         [ "The weapon is endowed with killing dweomers.", { damroll: 10 } ]
     ]
 
@@ -139,7 +142,10 @@ class AffectBless < Affect
             target, # target
             level, # level
             300, # duration
-            { hitroll: 5, saves: -5 }, # modifiers: nil
+            {
+                hit_roll: 5,
+                saves: -5
+            }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -175,7 +181,9 @@ class AffectBlind < Affect
             target, # target
             level, # level
             30, # duration
-            { hitroll: -5 }, # modifiers: nil
+            {
+                hit_roll: -5
+            }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -218,7 +226,7 @@ class AffectBlur < Affect
             target, # target
             level, # level
             300, # duration
-            { ac_slash: 40 }, # modifiers: nil
+            { resist_slash: 5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -263,10 +271,10 @@ class AffectBurstRune < Affect
         )
         @ELEMENTS = [
             ["flooding", "Your weapon carries the {Dstrength{x of the {Btides!{x", "A {Dblack{x and {Bblue{x rune appears.",:hurricane],
-            ["corrosive", "Your attack explodes into {Gcorrosive {Bacid{x!", "A {Ggreen{x and {Bblue{x rune appears.", :"acid blast"],
-            ["frost", "The air is {Wtinged{x with {Bfrost{x as you strike!", "A {Bblue{x and {Wwhite{x rune appears.", :"ice bolt"],
-            ["poison", "Your weapon discharges a {Gvirulent {Dspray!{x", "A {Ggreen{x and {Dblack{x rune appears.", :"blast of rot"],
-            ["shocking", "You strike with the force of a {Ythunder {Bbolt!{x", "A {Ygold{x and {Bblue{x rune appears.", :"lightning bolt"],
+            ["corrosive", "Your attack explodes into {Gcorrosive {Bacid{x!", "A {Ggreen{x and {Bblue{x rune appears.", :acid_blast],
+            ["frost", "The air is {Wtinged{x with {Bfrost{x as you strike!", "A {Bblue{x and {Wwhite{x rune appears.", :ice_bolt],
+            ["poison", "Your weapon discharges a {Gvirulent {Dspray!{x", "A {Ggreen{x and {Dblack{x rune appears.", :blast_of_rot],
+            ["shocking", "You strike with the force of a {Ythunder {Bbolt!{x", "A {Ygold{x and {Bblue{x rune appears.", :lightning_bolt],
             ["flaming", "A {Wblast{x of {Rflames{x explodes from your weapon!", "A {Rred{x and {Wwhite{x rune appears.", :fireball]
         ]
         overwrite_data(Hash.new)

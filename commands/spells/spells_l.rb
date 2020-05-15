@@ -29,7 +29,7 @@ class SpellLightningBolt < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 100, :"lightning bolt")
+        target.receive_damage(actor, 100, :lightning_bolt)
         return true
     end
 end

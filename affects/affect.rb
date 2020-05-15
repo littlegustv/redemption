@@ -1,5 +1,4 @@
 class Affect
-    attr_accessor :duration
     attr_accessor :permanent
     attr_accessor :savable
     attr_accessor :visibility
@@ -41,8 +40,8 @@ class Affect
         @keywords = keywords
         @name = name
         @level = level
-        @duration = duration
-        @modifiers = modifiers
+        @duration = duration.to_f
+        overwrite_modifiers(modifiers)
         @period = period
         @next_periodic_time = nil
         @application_type = application_type   # :global_overwrite, :global_stack, :global_single, :global_unique_data,
@@ -53,18 +52,16 @@ class Affect
         @savable = true
         @info = nil
 
-        if @duration
-            @duration = @duration.to_f
-        end
         if @period
             @period = @period.to_f
         end
-        @start_time = 0                         # Time of the affect's application.
-        @clear_time = nil                       # Time when the affect should clear, or nil if permanent.
+        @start_time = 0                           # Time of the affect's application.
+        @clear_time = nil                         # Time when the affect should clear, or nil if permanent.
         @clock = 0
-        @data = self.class.affect_info[:data]   # Additional data. Only "primitives". Saved to the database.
+        @data = self.class.affect_info.dig(:data) # Additional data. Only "primitives". Saved to the database.
 
-        @events = nil                           # keeps track of events
+        @events = nil                             # keeps track of events
+        @active = false
 
     end
 
@@ -130,7 +127,9 @@ class Affect
     def update
         if @period
             periodic
-            schedule_next_periodic_time
+            if @period
+                schedule_next_periodic_time
+            end
         end
     end
 
@@ -140,6 +139,7 @@ class Affect
     # +silent+:: Whether or not the affect should send its application messages. Defaults to false. (boolean)
     # returns +self+ on successful application, or +nil+ if application of affect fails
     def apply(silent = false)
+        # return false
         if !@target || !@target.active
             # no target or target is inactive, don't apply
             return false
@@ -186,25 +186,24 @@ class Affect
             @target.affects.unshift(self)
             self.start
         end
+        @active = true
         if @source
             @source.source_affects << self
         end
         @start_time = Game.instance.frame_time
-        if @permanent
-            @clear_time = nil
-        else
-            @clear_time = @start_time + @duration
-            Game.instance.add_timed_affect(self)
-        end
+        set_duration(@duration)
         if @period
             @next_periodic_time = @start_time + @period
             Game.instance.add_periodic_affect(self)
+        end
+        if @target.is_a?(Mobile)
+            @target.try_add_to_regen_mobs
         end
         return self
     end
 
     def set_source(source)
-        log "transferring affect source #{self.name}"
+        # log "transferring affect source #{self.name}"
         if @source
             @source.source_affects.delete(self)
         end
@@ -225,6 +224,8 @@ class Affect
         toggle_periodic(nil)
         Game.instance.destroy_affect(self)
         send_complete_messages if !silent
+        @source = nil
+        @target = nil
     end
 
     def toggle_periodic(new_period)
@@ -256,9 +257,9 @@ class Affect
         @keywords.include?( key )
     end
 
-    def modifier( key )
+    def modifier( stat )
         if @modifiers
-            return @modifiers[ key ].to_i
+            return @modifiers.dig(stat) || 0
         else
             return 0
         end
@@ -266,7 +267,7 @@ class Affect
 
     def summary
         if @modifiers && @modifiers.length > 0
-            return "Spell: #{@name.rpad(17)} : #{ @modifiers.map{ |key, value| "modifies #{key} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
+            return "Spell: #{@name.rpad(17)} : #{ @modifiers.map{ |stat, value| "modifies #{stat.name} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
         else
             if @permanent
                 return "Spell: #{@name}"
@@ -280,7 +281,7 @@ class Affect
         if @permanent
             return "permanently"
         else
-            return "for #{@duration.to_i} seconds"
+            return "for #{duration.to_i} seconds"
         end
     end
 
@@ -293,7 +294,7 @@ class Affect
                 @modifiers[stat] = bonus + (@modifiers[stat] || 0)
             end
         end
-        @duration = [@duration.to_i, new_affect.duration.to_i].max
+        set_duration([duration.to_f, new_affect.duration.to_f].max)
     end
 
     # Check to see if this affect shares any common ancestors with another, ignoring superclasses
@@ -310,7 +311,14 @@ class Affect
     # Overwrite the modifiers with a new set
     # (Probably only used when loading existing affects from database)
     def overwrite_modifiers(modifiers)
-        @modifiers = modifiers
+        if modifiers
+            @modifiers = {}
+            modifiers.each do |stat, value|
+                @modifiers[stat.to_stat] = value
+            end
+        else
+            @modifiers = nil
+        end
     end
 
     # Overwrite the data with a new hash
@@ -324,6 +332,28 @@ class Affect
         end
         data.each do |key, value|
             @data[key] = value
+        end
+    end
+
+    def duration
+        if @clear_time
+            return @clear_time - Game.instance.frame_time
+        end
+        return nil
+    end
+
+    def set_duration(duration)
+        if @clear_time && @active
+            Game.instance.remove_timed_affect(self)
+        end
+        @duration = duration
+        if @duration && !@permanent
+            @clear_time = Game.instance.frame_time + duration
+            if @active
+                Game.instance.add_timed_affect(self)
+            end
+        else
+            @permanent = true
         end
     end
 
@@ -347,7 +377,7 @@ class Affect
 
     def self.affect_info
         return @info || @info = {
-            name: "affect_name",
+            name: "affect name",
             keywords: ["affect_keywords"],
             application_type: :global_overwrite,
             data: @data

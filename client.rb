@@ -45,6 +45,7 @@ class Client
         end
         send_output("Goodbye.")
         disconnect
+        puts "hm"
 
     end
 
@@ -63,7 +64,7 @@ class Client
                 name = nil
             end
         end
-        if "new".fuzzy_match(name) # new account
+        if "new" == name.downcase # new account
             name = nil
             while name.nil?
                 send_output("Please choose your account name or \"back\" to cancel.")
@@ -207,7 +208,7 @@ class Client
         end
 
         race_id = nil
-        races = Game.instance.races.values.select{ |race| race.player_race == 1 && race.starter_race == 1 }
+        races = Game.instance.races.values.select{ |race| race.player_race && race.starter_race }
         race_names = races.map{ |race| race.name }
         send_output("The following races are available:\n" +
         "#{race_names.map{ |n| n.rpad(10) }.each_slice(5).to_a.map(&:join).join("\n\r")}\n")
@@ -228,7 +229,7 @@ class Client
         end
 
         mobile_class_id = nil
-        classes = Game.instance.mobile_classes.values.select{ |c| c.starter_class == 1 }
+        classes = Game.instance.mobile_classes.values.select{ |c| c.starter_class }
         class_names = classes.map{ |c| c.name }
         send_output("Select a class:\n--------------\n" +
         "#{class_names.join("\n")}\n")
@@ -342,10 +343,16 @@ class Client
 
     # get a single input
     def get_input
+        if !@client_connection
+            return
+        end
         raw = nil
         begin
             raw = @client_connection.gets.chomp.to_s.sanitize
         rescue StandardError => msg
+            if "#{msg}" != "stream closed in another thread"
+                log "Client #{@account_id} get_input: #{msg}"
+            end
             log "Client #{@account_id} get_input: #{msg}"
             disconnect
         end
@@ -357,6 +364,9 @@ class Client
 
     # do a single output
     def send_output(s)
+        if !@client_connection
+            return
+        end
         if s[-1] != "\n"
             s += "\n"
         end
@@ -369,21 +379,26 @@ class Client
         end
     end
 
-    # handle an early disconnect (not an actual quit/exit)
+    # handle a disconnect
     def disconnect
         Game.instance.client_account_ids.delete(@account_id)
-        begin
-            @client_connection.close
-        rescue StandardError => msg
-            log(msg)
+        if @client_connection
+            begin
+                @client_connection.close
+            rescue StandardError => msg
+                log(msg)
+            end
+            @client_connection = nil
         end
-        @client_connection = nil
         # log("Disconnected client with account_id #{@account_id}")
-        begin
-            Thread.kill(@thread)
-        rescue
+        if @thread
+            begin
+                Thread.kill(@thread)
+            rescue
+            end
+            @thread = nil
         end
-        @thread = nil
+        @quit = true
     end
 
 end

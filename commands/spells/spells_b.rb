@@ -47,7 +47,7 @@ class SpellBlastOfRot < Spell
     		actor.output "They aren't here."
             return false
     	end
-        target.receive_damage(actor, 100, :"blast of rot")
+        target.receive_damage(actor, 100, :blast_of_rot)
         return true
     end
 end
@@ -213,7 +213,7 @@ class SpellBurningHands < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 50, :"burning hands")
+        target.receive_damage(actor, 50, :burning_hands)
         return true
     end
 end

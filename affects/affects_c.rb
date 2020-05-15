@@ -8,7 +8,7 @@ class AffectCalm < Affect
             target, # target
             level, # level
             60, # duration
-            { hitroll: -5, damroll: -5 }, # modifiers: nil
+            { hit_roll: -5, damage_roll: -5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -82,7 +82,7 @@ class AffectChilled < Affect
             target, # target
             level, # level
             30, # duration
-            { str: -2 }, # modifiers: nil
+            { strength: -2 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -215,7 +215,7 @@ class AffectCloudkill < Affect
 
     def periodic
         @target.occupants.each do |t|
-            t.receive_damage(@source, dice(2, 6), :"the caustic gas", false, true)
+            t.receive_damage(@source, dice(2, 6), :the_caustic_gas, false, true)
         end
     end
 
@@ -238,7 +238,7 @@ class AffectCorroded < Affect
             target, # target
             level, # level
             30, # duration
-            { ac_pierce: -10, ac_slash: -10, ac_bash: -10 }, # modifiers: nil
+            { armor_class: 10 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -305,6 +305,8 @@ class AffectCorrosiveWeapon < Affect
         if data[:target].active
             data[:target].output "Your flesh is dissolved by 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N>'s flesh is dissolved by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
+            damage = dice(1, 1 + (@target.level / 7))
+            data[:target].receive_damage(data[:source], damage, :corrosive_weapon, true)
             if dice(1, 100) <= @data[:chance]
                 AffectCorroded.new(data[:source], data[:target], @target.level).apply
             end
@@ -321,7 +323,7 @@ class AffectCurse < Affect
             target, # target
             level, # level
             69 + level, # duration
-            { hitroll: -5 }, # modifiers: nil
+            { hit_roll: -5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

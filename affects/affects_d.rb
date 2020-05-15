@@ -35,7 +35,7 @@ class AffectDark < Affect
             #nothing
         elsif !@target.affected?("indoors") && Game.instance.daytime?  # a dark room in daytime is lit by the sun (if it is outside)
             # nothing
-        elsif !data[:observer].equipped("light").empty?     # a dark room is lit by an equipped light
+        elsif !data[:observer].equipped(Light).empty?     # a dark room is lit by an equipped light
             # nothing
         elsif data[:target].affected? "glowing"             # a glowing item is visible even in darkness
             # nothing
@@ -170,7 +170,7 @@ class AffectDeathRune < Affect
         ( @level * 3 ).times do
             (@target.room.area.occupants - @target.room.occupants).each_output "A flaming meteor crashes into the ground nearby and explodes!"
             ( @target.room.occupants - [@target] ).each do |victim|
-                victim.receive_damage(@target, 100, :"meteor's impact")
+                victim.receive_damage(@target, 100, :meteor_impact)
             end
         end
     end

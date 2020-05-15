@@ -13,19 +13,11 @@ class Player < Mobile
         @buffer = ""
         @delayed_buffer = ""
         @scroll = 60
-	    @lag = 0
         @client = client
         @commands = []
-
-        # overrides '0' as saved HP with max hp
-        @hitpoints = @model.current_hp.to_i != 0 ? @model.current_hp : maxhitpoints
-        @manapoints = @model.current_mana.to_i != 0 ? @model.current_mana : maxmanapoints
-        @movepoints = @model.current_movement.to_i != 0 ? @model.current_movement : maxmovepoints
     end
 
-    # Player destroy works a little differently from other gameobjects.
-    # Player destroy just marks it for destruction in the main thread so you can call it
-    # from the client's own thread.
+    #
     def destroy
         super
         if @client
@@ -63,14 +55,10 @@ class Player < Mobile
         if @delayed_buffer.length > 0 && s.length > 0
             @delayed_buffer = ""
         end
-        cmd, args = s.sanitize.split " ", 2
-        command = Game.instance.find_commands( self, cmd ).last
-        
-        if command.nil?
-            output "Huh?"
-        else
-            @commands.push( [ command, cmd, args.to_s.to_args, s ])
-        end
+        s = s.sanitize
+        cmd_keyword = s.to_args[0].to_s
+        command = Game.instance.find_commands( self, cmd_keyword ).last
+        @commands.push([command, s])
     end
 
     # Called when a player first logs in.
@@ -156,7 +144,7 @@ class Player < Mobile
     end
 
     def prompt
-        "{c<#{@hitpoints}/#{maxhitpoints}hp #{@manapoints}/#{maxmanapoints}mp #{@movepoints}/#{maxmovepoints}mv>{x"
+        "{c<#{@health}/#{max_health}hp #{@mana}/#{max_mana}mp #{@movement}/#{max_movement}mv>{x"
     end
 
     def send_to_client
@@ -185,12 +173,14 @@ class Player < Mobile
         end
         room = @room.continent.recall_room
         move_to_room( room )
-        @hitpoints = 10
+        @health = 10
         @position = :resting.to_position
     end
 
-    def quit(silent: false)
-        Game.instance.save
+    def quit(silent = false, save = true)
+        if save
+            Game.instance.save
+        end
         stop_combat
         if !silent
             (@room.occupants - [self]).each_output "0<N> has left the game.", self
@@ -208,21 +198,12 @@ class Player < Mobile
         return true
     end
 
-    def process_commands(elapsed)
-
-        # handle initial instants at top of command stack
-        @commands.each do | command_row |
-            if command_row[0].lag <= 0
-                command_row[0].execute( self, command_row[1], command_row[2], command_row[3] )
-                @commands -= [ command_row ]
-            else
-                break
-            end
+    def process_commands
+        frame_time = Game.instance.frame_time
+        if @lag && @lag <= frame_time
+            @lag = nil
         end
-
-        if @lag > 0
-            @lag -= elapsed
-        elsif @casting
+        if @casting
             if rand(1..100) <= stat(:success)
                 @casting.execute( self, @casting.name, @casting_args, @casting_input )
                 @casting = nil
@@ -232,27 +213,23 @@ class Player < Mobile
                 @casting = nil
                 @casting_args = []
             end
-        elsif @commands.length > 0
-            command_row = @commands.shift
-            command_row[0].execute( self, command_row[1], command_row[2], command_row[3] )
-            # do_command @commands.shift
         end
 
-        # pull out remaining instants
-        instants = @commands.select{ |command_row| command_row[0].lag <= 0 }
-        @commands -= instants
-        
-        instants.each do |instant|
-            instant[0].execute( self, instant[1], instant[2], instant[3] )
+        @commands.each_with_index do |cmd_array, index|            
+            if !cmd_array[0] || cmd_array[0].lag == 0 || (!@lag)
+                do_command(cmd_array[1])
+                @commands[index] = nil
+            end
         end
+        @commands.reject!(&:nil?)
     end
 
     def is_player?
         return true
     end
 
-    def db_source_type
-        return "Player"
+    def db_source_type_id
+        return 8
     end
 
 end

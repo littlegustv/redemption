@@ -5,12 +5,14 @@ class Position
     attr_reader :name
     attr_reader :symbol
     attr_reader :value
+    attr_reader :regen_multiplier
 
     def initialize(row)
         @id = row[:id]
-        @name = row[:name]
-        @symbol = row[:name].to_s.to_sym
+        @name = row[:name].gsub(/_/, " ")
+        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
         @value = row[:value]
+        @regen_multiplier = row[:regen_multiplier]
     end
 
     def ==(other_object)

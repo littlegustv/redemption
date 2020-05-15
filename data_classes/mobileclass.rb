@@ -5,7 +5,7 @@ class MobileClass
     attr_reader :symbol
     attr_reader :starter_class
     attr_reader :casting_multiplier
-    attr_reader :main_stat
+    attr_reader :stats
 
     attr_reader :genres
     attr_reader :equip_slot_infos
@@ -16,11 +16,11 @@ class MobileClass
 
     def initialize(row)
         @id = row[:id]
-        @name = row[:name]
-        @symbol = row[:name].to_s.to_sym
+        @name = row[:name].gsub(/_/, " ")
+        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
         @starter_class = row[:starter_class]
         @casting_multiplier = row[:casting_multiplier]
-        @main_stat = row[:main_stat].to_sym
+        @stats = Hash.new
 
         @genres = Array.new
         @equip_slot_infos = Array.new
@@ -31,6 +31,21 @@ class MobileClass
 
     def ==(other_object)
         super(other_object) || @symbol == other_object
+    end
+
+    def add_stat(stat, value)
+        if !@stats.dig(stat)
+            @stats[stat] = 0
+        end
+        @stats[stat] += value
+    end
+
+    def stat(s)
+        @stats.dig(s).to_i
+    end
+
+    def helpfile
+
     end
 
 end

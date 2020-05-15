@@ -41,6 +41,7 @@ module MobileItem
                     end
                 end
                 item.move(equip_slot)
+                try_add_to_regen_mobs
                 return true
             end
         end
@@ -58,6 +59,7 @@ module MobileItem
                         end
                     end
                     item.move(equip_slot)
+                    try_add_to_regen_mobs
                     return true
                 end
             end
@@ -89,6 +91,7 @@ module MobileItem
             self.room.occupants.each_output "0<N> stop0<,s> using 1<n>.", [self, item]
         end
         get_item(item, true)
+        try_add_to_regen_mobs
         return true
     end
 
@@ -126,8 +129,8 @@ module MobileItem
     end
 
     # return an array of equipped items in equip_slots with arbitrary wear flag
-    def equipped( wear_location )
-        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.wear_locations.include?(wear_location) }.map(&:item)
+    def equipped( item_class )
+        return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.item.is_a?(item_class) }.map(&:item)
     end
 
     def free?( wear_location )
@@ -158,7 +161,7 @@ module MobileItem
         else
             @room.occupants.each_output("0<N> get0<,s> 1<n>.", [self, item]) if !silent
         end
-        if Game.instance.responds_to_event(self, :event_get_item)
+        if responds_to_event(:event_get_item)
             Game.instance.fire_event( self, :event_get_item, { actor: self, item: item } )
         end
 
@@ -187,7 +190,11 @@ module MobileItem
     def equip_slots
         # data = {equip_slots: (@race_equip_slots + @mobile_class_equip_slots)}
         # Game.instance.fire_event(self, :event_get_equip_slots, data )
-        return @race_equip_slots + @mobile_class_equip_slots
+        slots = @race_equip_slots.to_a
+        if @mobile_class_equip_slots
+            slots += @mobile_class_equip_slots
+        end
+        return slots
     end
 
     def items

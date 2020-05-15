@@ -72,7 +72,7 @@ class SpellCauseLight < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 25, :"cause light wounds")
+        target.receive_damage(actor, 25, :cause_light_wounds)
         return true
     end
 end
@@ -107,7 +107,7 @@ class SpellCauseSerious < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 50, :"cause serious wounds")
+        target.receive_damage(actor, 50, :cause_serious_wounds)
         return true
     end
 end
@@ -142,7 +142,7 @@ class SpellCauseCritical < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 75, :"cause critical wounds")
+        target.receive_damage(actor, 75, :cause_critical_wounds)
         return true
     end
 end
@@ -180,7 +180,7 @@ class SpellChainLightning < Spell
         actor.room.occupants.each_output "A lightning bolt leaps from 0<n>'s hand and arcs to 1<n>1<!,.>", [actor, target]
 
         damage = 100
-        target.receive_damage(actor, damage, :"lightning bolt")
+        target.receive_damage(actor, damage, :lightning_bolt)
         while (damage -= 10) >= 0
             target = actor.room.occupants.sample # TODO: target only combatable mobs?
 
@@ -191,7 +191,7 @@ class SpellChainLightning < Spell
                 actor.room.occupants.each_output "The bolt arcs to 0<n>!", [target]
             end
 
-            target.receive_damage(actor, damage, :"lightning bolt")
+            target.receive_damage(actor, damage, :lightning_bolt)
         end
 
         (actor.room.occupants - [target]).each_output "The bolt seems to have fizzled out."
@@ -215,8 +215,6 @@ class SpellCharmPerson < Spell
     def attempt( actor, cmd, args, input, level )
         if ( target = Game.instance.target( { list: actor.room.occupants - [actor], visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
             if rand(1..10) <= 5
-                actor.output "0<N> looks at you with adoring eyes.", [target]
-                target.output "Isn't 0<n> just so nice??", [actor]
                 AffectFollow.new( actor, target, 1 ).apply
                 AffectCharm.new( actor, target, actor.level ).apply
             else
@@ -295,7 +293,7 @@ class SpellColorSpray < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 50, :"color spray")
+        target.receive_damage(actor, 50, :color_spray)
         return true
     end
 end
@@ -444,13 +442,13 @@ class SpellCureCritical < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        quantity = 50
+        heal = 50
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.output "You feel better!"
-            target.regen( quantity, 0, 0 )
+            # target.output "You feel better!"
+            target.receive_heal(actor, heal, :cure_critical_wounds)
         elsif args.first.nil?
-            actor.output "You feel better"
-            actor.regen( quantity, 0, 0 )
+            # actor.output "You feel better"
+            actor.receive_heal(actor, heal, :cure_critical_wounds)
         else
             actor.output "They aren't here."
         end
@@ -497,13 +495,13 @@ class SpellCureLight < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        quantity = 10
+        heal = 10
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.output "You feel better!"
-            target.regen( quantity, 0, 0 )
+            # target.output "You feel better!"
+            target.receive_heal(actor, heal, :cure_light_wounds)
         elsif args.first.nil?
-            actor.output "You feel better"
-            actor.regen( quantity, 0, 0 )
+            # actor.output "You feel better"
+            actor.receive_heal(actor, heal, :cure_light_wounds)
         else
             actor.output "They aren't here."
         end
@@ -548,15 +546,14 @@ class SpellCureSerious < Spell
             priority: 11
         )
     end
-
     def attempt( actor, cmd, args, input, level )
-        quantity = 25
+        heal = 25
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.output "You feel better!"
-            target.regen( quantity, 0, 0 )
+            # target.output "You feel better!"
+            target.receive_heal(actor, heal, :cure_serious_wounds)
         elsif args.first.nil?
-            actor.output "You feel better"
-            actor.regen( quantity, 0, 0 )
+            # actor.output "You feel better"
+            actor.receive_heal(actor, heal, :cure_serious_wounds)
         else
             actor.output "They aren't here."
         end

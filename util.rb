@@ -1,15 +1,3 @@
-class Object
-    def instance_options_try(options)
-        options.each do |key, value|
-            if instance_variable_defined?("@#{key}")
-                self.instance_variable_set("@#{key}", value)
-            else
-                log "Illegal instance variable tried [key: #{key}, value: #{value}]."
-            end
-        end
-    end
-end
-
 class Integer
 
     def ordinalize
@@ -107,6 +95,7 @@ class String
         result.gsub!(/</, "<<")
         result.gsub!(/>/, ">>")
         result.gsub!(/[\[\]\^]/, "")
+        result.gsub!(/[\n\r]/, "")
         return result
     end
 
@@ -184,6 +173,10 @@ class Symbol
 
     def to_size
         return Game.instance.size_with_symbol(self)
+    end
+
+    def to_stat
+        return Game.instance.stat_with_symbol(self)
     end
 
 end

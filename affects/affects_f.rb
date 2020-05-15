@@ -7,12 +7,12 @@ class AffectFireBlind < AffectBlind
             source, # source
             target, # target
             level, # level
-            # 60, # duration
-            # nil, # modifiers: nil
-            # nil, # period: nil
-            # false, # permanent: false
-            # Visibility::NORMAL, # visibility
-            # true # savable
+            60, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Visibility::NORMAL, # visibility
+            true # savable
         )
     end
 
@@ -74,7 +74,7 @@ class AffectFireRune < Affect
     	elsif rand(0..100) < 50
     		data[:mobile].output "You are engulfed in flames as you enter the room!"
     		(@target.room.occupants - [data[:mobile]]).each_output "%N has been engulfed in flames!", [data[:mobile]]
-            data[:mobile].receive_damage(@source, 100, :fireball)
+            data[:mobile].receive_damage(@source, 100, :fire_rune)
 	    else
 	    	data[:mobile].output "You sense the power of the room's rune and avoid it!"
 	    end
@@ -121,6 +121,8 @@ class AffectFlamingWeapon < Affect
         if data[:target].active
             data[:target].output "0<N> burns your flesh!", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is burned by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
+            damage = dice(1, 1 + (@target.level / 7))
+            data[:target].receive_damage(data[:source], damage, :flaming_weapon, true)
             if dice(1, 100) <= @data[:chance]
                 AffectFireBlind.new(data[:source], data[:target], @target.level).apply
             end
@@ -164,6 +166,8 @@ class AffectFloodingWeapon < Affect
         if data[:target].active
             data[:target].output "You are smothered in water from 0<n>.", [@target]
             (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is smothered in water from 1<n>'s 2<n>.", [data[:target], data[:source], @target]
+            damage = dice(1, 1 + (@target.level / 7))
+            data[:target].receive_damage(data[:source], damage, :flooding_weapon, true)
             if dice(1, 100) <= @data[:chance]
                 AffectFlooded.new(data[:source], data[:target], @target.level).apply
             end
@@ -180,7 +184,7 @@ class AffectFlooded < Affect
             target, # target
             level, # level
             30, # duration
-            { attack_speed: -1, dex: -1 }, # modifiers: nil
+            { attack_speed: -1, dexterity: -1 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -190,8 +194,8 @@ class AffectFlooded < Affect
 
     def self.affect_info
         return @info || @info = {
-            name: "flooding",
-            keywords: ["flooding", "slow"],
+            name: "flooded",
+            keywords: ["flooded", "slow"],
             application_type: :source_overwrite,
         }
     end
@@ -300,11 +304,9 @@ class AffectFrenzy < Affect
             level, # level
             90 + level * 10, # duration
             {
-                damroll: (level / 6).to_i,
-                hitroll: (level / 6).to_i,
-                ac_pierce: level + 9,
-                ac_bash: level + 9,
-                ac_slash: level + 9
+                damage_roll: (level / 6).to_i,
+                hit_roll: (level / 6).to_i,
+                armor_class: level + 9,
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
@@ -367,6 +369,8 @@ class AffectFrostWeapon < Affect
             if data[:target].active
                 data[:target].output "The cold touch of 0<n> surrounds you with ice.", [@target]
                 (data[:target].room.occupants | data[:source].room.occupants).each_output "0<N> is frozen by 1<n>'s 2<n>.", [data[:target], data[:source], @target]
+                damage = dice(1, 1 + (@target.level / 7))
+                data[:target].receive_damage(data[:source], damage, :frost_weapon, true)
                 if dice(1, 100) <= @data[:chance]
                     AffectChilled.new(data[:source], data[:target], @target.level).apply
                 end

@@ -8,7 +8,7 @@ class AffectTaunt < Affect
             target, # target
             level, # level
             147 + level * 3, # duration
-            {damroll: 7, hitroll: 7 }, # modifiers: nil
+            {damage_roll: 7, hit_roll: 7 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

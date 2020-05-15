@@ -4,6 +4,7 @@ class GameObject
     attr_accessor :reset
     attr_reader :room, :gender
     attr_reader :source_affects
+    attr_reader :cooldowns
 
     def initialize( name, keywords, reset = nil )
         @name = name
@@ -24,6 +25,7 @@ class GameObject
         @reset = reset
         @affects = []
         @source_affects = []
+        @cooldowns = nil
 
         @uuid = Game.instance.new_uuid
         @active = true
@@ -32,10 +34,14 @@ class GameObject
 
     # handles its own destruction - override in subclasses but call +super+ !
     def destroy
+        self.deactivate
         @affects.dup.each do |affect|
             affect.clear(true)
         end
-        self.deactivate
+        @affects = nil
+        # @keywords = nil
+        # @keyword_string = nil
+        # @gender = nil
     end
 
     def deactivate
@@ -51,6 +57,10 @@ class GameObject
 
     def target( query )
         Game.instance.target query
+    end
+
+    def responds_to_event(event)
+        Game.instance.responds_to_event(self, event)
     end
 
     def to_a
@@ -161,15 +171,15 @@ class GameObject
 
     # Generates a hash to provide affect source fields for the database
     def db_source_fields
-        source_data = { source_type: self.db_source_type,
+        source_data = { source_type_id: self.db_source_type_id,
                         source_uuid: @uuid,
                         source_id: (self.respond_to?(:id)) ? self.id : 0 }
         return source_data
     end
 
-    # Override this in subclasses to generate correct source_type strings
-    def db_source_type
-        return "GameObject"
+    # Override this in subclasses to generate correct source_type_ids
+    def db_source_type_id
+        return 1
     end
 
     # Show the affects on this object to an observer
@@ -341,5 +351,48 @@ class GameObject
         data = { description: "" }
         Game.instance.fire_event( self, :event_calculate_long_auras, data )
         return data[:description]
+    end
+
+    def add_cooldown(symbol, timer, message = nil)
+        symbol = symbol.to_sym
+        timer = timer.to_f
+        if !@cooldowns
+            @cooldowns = {}
+            Game.instance.add_cooldown_object(self)
+        end
+        if @cooldowns.dig(symbol)
+            @cooldowns[symbol][:timer] += timer
+        else
+            @cooldowns[symbol] = {}
+            @cooldowns[symbol][:timer] = Game.instance.frame_time + timer
+        end
+        @cooldowns[symbol][:message] = message
+    end
+
+    def cooldown(symbol)
+        symbol = symbol.to_sym
+        if !@cooldowns || !@cooldowns.dig(symbol)
+            return nil
+        end
+        return @cooldowns[symbol][:timer] - Game.instance.frame_time
+    end
+
+    def update_cooldowns(frame_time)
+        # could change to a binary search in a sorted container if speed becomes an issue (very doubtful)
+        if @cooldowns
+            @cooldowns.each do |symbol, hash|
+                if hash[:timer] <= frame_time
+                    if hash[:message]
+                        output hash[:message]
+                    end
+                    @cooldowns.delete(symbol)
+                end
+            end
+        end
+        if @cooldowns.length == 0
+            # mischief managed!
+            @cooldowns = nil
+            Game.instance.remove_cooldown_object(self)
+        end
     end
 end

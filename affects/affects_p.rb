@@ -42,7 +42,7 @@ class AffectPlague < Affect
             target, # target
             level, # level
             180, # duration
-            { str: -1 }, # modifiers: nil
+            { strength: -1 }, # modifiers: nil
             10, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -69,9 +69,11 @@ class AffectPlague < Affect
     def periodic
         (@target.room.occupants - [@target]).each_output "0<N> writhes in agony as plague sores erupt from their skin.", [@target]
         @target.output "You writhe in agony from the plague."
+        occupants = @target.room.occupants - [target]
         @target.receive_damage(nil, 10, :plague, true, true)
-        (@target.room.occupants - [@target]).each do |occupant|
-            # AffectPlague.new( nil, occupant, @level ).apply if rand(1...100) < 50
+
+        occupants.each do |occupant|
+            AffectPlague.new( nil, occupant, @level ).apply if rand(1...100) < 50
         end
     end
 
@@ -92,7 +94,7 @@ class AffectPoisoned < Affect
             target, # target
             level, # level
             180, # duration
-            { str: -1 }, # modifiers: nil
+            { strength: -1 }, # modifiers: nil
             10, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -167,7 +169,7 @@ class AffectPoisonWeapon < Affect
         if data[:target].active
             if dice(1, 100) <= @data[:chance]
                 aff = AffectPoisoned.new(data[:source], data[:target], @target.level)
-                aff.duration = 60
+                aff.set_duration(60)
                 aff.apply
             end
         end

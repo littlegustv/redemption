@@ -45,7 +45,7 @@ class SpellEnchantArmor < Spell
             fail = 25
             # dam =
             affect = AffectEnchantArmor.new( nil, target, actor.level )
-            affect.overwrite_modifiers({ ac_pierce: -1 * level, ac_slash: -1 * level, ac_bash: -1 * level, ac_magic: -1 * level })
+            affect.overwrite_modifiers({ armor_class: -1 * level })
             affect.apply
             return true
         else
@@ -79,7 +79,7 @@ class SpellEnchantWeapon < Spell
             fail = 25
             # dam =
             affect = AffectEnchantWeapon.new( nil, target, actor.level )
-            affect.overwrite_modifiers({hitroll: level, damroll: 10})
+            affect.overwrite_modifiers({hit_roll: level, damage_roll: 10})
             affect.apply
             return true
         else
@@ -120,7 +120,7 @@ class SpellEnergyDrain < Spell
             actor.output "They aren't here."
             return false
         end
-        target.receive_damage(actor, 100, :"life drain")
+        target.receive_damage(actor, 100, :life_drain)
         target.use_movement( 10 )
         actor.regen( 0, 0, 10 )
         target.output "You feel your energy slipping away!"

@@ -15,7 +15,7 @@ class SkillShadow < Skill
         if args.first.nil?
             actor.remove_affect("follow")
         elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            if actor.stat(:dex) >= target.stat(:int)
+            if actor.stat(:dexterity) >= target.stat(:intelligence)
                 AffectFollow.new( target, actor, 1 ).apply(true)
                 actor.output "You begin to secretly follow %n.", [target]
             else
