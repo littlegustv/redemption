@@ -179,6 +179,10 @@ class Mobile < GameObject
         return result
     end
 
+    def proficiencies
+        ( @race.genres + @mobile_class.genres ).uniq
+    end
+
     def earn( n )
         @wealth += n
     end

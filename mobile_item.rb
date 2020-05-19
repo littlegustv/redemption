@@ -133,8 +133,9 @@ module MobileItem
         return self.equip_slots.select{ |equip_slot| equip_slot.item && equip_slot.item.is_a?(item_class) }.map(&:item)
     end
 
+    # checks if wear location has a free slot (queried by symbol)
     def free?( wear_location )
-        return self.equip_slots.any?{ |equip_slot| equip_slot.item.nil? && equip_slot.wear_locations.include?(wear_location) == slot }
+        return self.equip_slots.any?{ |equip_slot| equip_slot.item.nil? && equip_slot.wear_locations.map(&:symbol).include?(wear_location) }
     end
 
     # puts an item into a container
