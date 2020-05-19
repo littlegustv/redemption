@@ -9,7 +9,6 @@ class Mobile < GameObject
     attr_accessor :inventory
     attr_accessor :active
     attr_accessor :level
-    attr_accessor :group
     attr_accessor :in_group
     attr_accessor :experience
     attr_accessor :quest_points
@@ -18,6 +17,7 @@ class Mobile < GameObject
     attr_accessor :health
     attr_accessor :mana
     attr_accessor :movement
+    attr_accessor :group
 
     attr_reader :game
     attr_reader :race
@@ -27,6 +27,7 @@ class Mobile < GameObject
     attr_reader :creation_points
     attr_reader :learned_skills
     attr_reader :learned_spells
+    attr_reader :experience_to_level
 
     include MobileItem
 
@@ -52,7 +53,7 @@ class Mobile < GameObject
         @wealth = model.wealth
         @wimpy = 0
         @active = true
-        @group = []
+        @group = nil
         @in_group = nil
         @deity = "Gabriel".freeze # deity table?
 
@@ -324,6 +325,13 @@ class Mobile < GameObject
         Game.instance.fire_event( self, :event_on_start_combat, nil )
         Game.instance.add_combat_mobile(self)
         attacker.start_combat( self ) if attacker.attacking.nil?
+
+        # bring in group members
+        if !@group.nil?
+            @group.joined.each do |member|
+                member.start_combat( attacker ) if member.attacking.nil? && member.room == attacker.room
+            end
+        end
     end
 
     # sets mobiles attacking target to 'nil', so 'combat' method will no longer call a round of attacks

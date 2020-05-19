@@ -107,6 +107,67 @@ class CommandGroup < Command
     end
 
     def attempt( actor, cmd, args, input )
+        
+        if args.empty?
+            if actor.group.nil?
+                actor.output "You aren't in a group."
+            else
+                actor.group.output( actor )
+            end
+        elsif "invite".fuzzy_match args.first.to_s
+            # create/get group, find player in (room/game?) and add to invited - also notify them
+            if ( target = actor.target( { list: Game.instance.players - [actor], visible_to: actor }.merge( args[1].to_s.to_query ) ).first )
+                if actor.group.nil?
+                    actor.group = Group.new( actor )
+                end
+                actor.group.invited << target
+                target.output "{C#{ actor } has invited you to join their group! Type {x'group accept #{ actor }'{C to accept the invitation.{x"
+            else
+                actor.output "Invite who? There is no-one with that name."
+            end
+        elsif "accept".fuzzy_match args.first.to_s
+            # get player from arg -> get their group -> check if self in invited list, if so, add to actual list
+            if !actor.group.nil?
+                actor.output "You are already in a group! Type 'group leave' to leave your current group."
+            elsif ( target = actor.target( { list: Game.instance.players - [actor], visible_to: actor }.merge( args[1].to_s.to_query ) ).first )
+                if target.group.nil?
+                    actor.output "They don't have a group to join - maybe invite them?"
+                elsif target.group.invited.include? actor
+                    target.group.invited.delete( actor )
+                    target.group.joined << actor
+                    actor.group = target.group
+                    actor.group.joined.each_output "{C0<N> 0<have,has> joined the group!{x", [actor]
+                else
+                    target.output "You can't join their group, sorry!"
+                end
+            else
+                actor.output "Join whose group? There is no-one with that name."
+            end
+        elsif "leave".fuzzy_match args.first.to_s
+            # same as above, but remove from actual list
+            if actor.group.nil?
+                actor.output "You aren't in a group!"
+            else
+                actor.group.joined.each_output "{C0<N> 0<have,has> left the group.{x", [actor]
+                actor.group.joined.delete actor
+                actor.group = nil
+            end
+        else
+            actor.output "Huh? Valid group commands are [INVITE] [ACCEPT] and [LEAVE]"
+        end
+    end
+end
+
+class CommandGroupOld < Command
+    def initialize
+        super(
+            name: "group",
+            keywords: ["group"],
+            position: :resting
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
         # Display group status
 
         if args.empty?
