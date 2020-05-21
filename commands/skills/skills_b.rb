@@ -113,3 +113,19 @@ class SkillBerserk < Skill
         end
     end
 end
+
+class SkillBolster < Skill
+
+    def initialize
+        super(
+            name: "bolster",
+            keywords: ["bolster"],
+            position: :standing,
+            lag: 0.25
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        AffectBolster.new( nil, actor, actor.level ).apply
+    end
+end

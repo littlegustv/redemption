@@ -30,7 +30,7 @@ class AffectRegeneration < Affect
     end
 
     def do_regeneration_bonus(data)
-        data[:hp] = (data[:hp] * 1.5).to_i
+        data[:hp] = (data[:hp] * 1.5)
     end
 
     def do_regeneration_recovery(data)

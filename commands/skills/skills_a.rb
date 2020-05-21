@@ -1,5 +1,22 @@
 require_relative 'skill.rb'
 
+class SkillAnoint < Skill
+
+    def initialize
+        super(
+            name: "anoint",
+            keywords: ["anoint"],
+            position: :standing,
+            lag: 0.25
+        )
+    end
+
+    def attempt( actor, cmd, args, input )
+        AffectAnoint.new( nil, actor, actor.level ).apply
+    end
+
+end
+
 class SkillAppraise < Skill
 
     def initialize

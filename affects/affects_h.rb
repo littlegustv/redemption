@@ -78,8 +78,8 @@ class AffectHatchling < Affect
     def hatch(data)
         if data[:level] >= 2
             race_name = @@HATCHLING_MESSAGES.keys.sample
-            @target.set_race(Game.instance.races.values.find { |r| r.name == race_name })
             @target.output("#{@@HATCHLING_MESSAGES[ race_name ].join("\n")}")
+            @target.set_race(Game.instance.races.values.find { |r| r.name == race_name })
         end
     end
 
