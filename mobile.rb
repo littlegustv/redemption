@@ -9,7 +9,6 @@ class Mobile < GameObject
     attr_accessor :inventory
     attr_accessor :active
     attr_accessor :level
-    attr_accessor :group
     attr_accessor :in_group
     attr_accessor :experience
     attr_accessor :quest_points
@@ -18,7 +17,12 @@ class Mobile < GameObject
     attr_accessor :health
     attr_accessor :mana
     attr_accessor :movement
+<<<<<<< HEAD
 
+=======
+    
+    attr_reader :game
+>>>>>>> df6685e8b1922b2d601b6203b13ec23dc35a9403
     attr_reader :race
     attr_reader :size
     attr_reader :mobile_class
@@ -26,6 +30,7 @@ class Mobile < GameObject
     attr_reader :creation_points
     attr_reader :learned_skills
     attr_reader :learned_spells
+    attr_reader :experience_to_level
 
     include MobileItem
 
@@ -180,6 +185,23 @@ class Mobile < GameObject
         end
     end
 
+    def group
+        @group || ( @group = Group.new( self ))
+    end
+
+    def leave_group
+        @group.joined.each_output "{C0<N>{x 0<have,has> left the group.", [self]
+        @group.joined.delete self
+        @group = nil
+    end
+
+    def join_group( group )
+        group.invited.delete( self )
+        group.joined << self
+        @group = group
+        @group.joined.each_output "{C0<N>{x 0<have,has> joined the group!", [self]        
+    end
+
     def knows( ability )
         (@learned_skills.to_a | @learned_spells.to_a).include? ability
     end
@@ -187,6 +209,10 @@ class Mobile < GameObject
     def proficient( genre )
         result = @race.genres.include?(genre) || @mobile_class.genres.include?(genre)
         return result
+    end
+
+    def proficiencies
+        ( @race.genres + @mobile_class.genres ).uniq
     end
 
     def earn( n )
@@ -319,10 +345,11 @@ class Mobile < GameObject
         end
 
         # only the one being attacked
-        if attacker.attacking != self && @attacking != attacker && is_player?
-            AffectKiller.new(nil, self, 0).apply if attacker.is_player?
-            do_command "yell Help I am being attacked by #{attacker}!"
-        end
+        # if attacker.attacking != self && @attacking != attacker && is_player?
+        #     AffectKiller.new(nil, self, 0).apply if attacker.is_player?
+        #     do_command "yell Help I am being attacked by #{attacker}!"
+        # end
+
         old_position = @position
         @position = :standing.to_position
         if old_position == :sleeping
@@ -335,6 +362,13 @@ class Mobile < GameObject
         Game.instance.fire_event( self, :event_on_start_combat, nil )
         Game.instance.add_combat_mobile(self)
         attacker.start_combat( self ) if attacker.attacking.nil?
+
+        # bring in group members
+        if !@group.nil?
+            @group.joined.each do |member|
+                attacker.start_combat( member ) if member.attacking.nil? && member.room == attacker.room
+            end
+        end
     end
 
     # sets mobiles attacking target to 'nil', so 'combat' method will no longer call a round of attacks
@@ -809,17 +843,29 @@ class Mobile < GameObject
             Game.instance.fire_event( self, :event_on_die, { died: self, killer: killer } )
         end
 
-        killer.xp( self ) if killer
         (@room.occupants - [self]).each_output "0<N>'s head is shattered, and 0<p> brains splash all over you.", [self]
+        
         if killer
+            if killer.group
+                killer.group.joined.each{ |k| 
+                    wealth = (@wealth / killer.group.joined.count).to_i
+                    k.xp( self ) 
+                    k.earn( wealth )
+                    k.output("You get #{ wealth.to_worth } from the corpse of 0<n>.", [self])
+                } 
+            else
+                killer.xp( self )
+                killer.earn( @wealth )
+                killer.output("You get #{ self.wealth.to_worth } from the corpse of 0<n>.", [self])
+            end
+
             self.items.each do |item|
                 item.unlink_reset
                 killer.get_item(item)
             end
-            killer.output("You get #{ self.wealth.to_worth } from the corpse of 0<n>.", [self])
             killer.output("You offer your victory to #{@deity} who rewards you with 1 deity points.")
-            killer.earn( @wealth )
         end
+        
         stop_combat
         destroy
     end
@@ -854,7 +900,7 @@ class Mobile < GameObject
             old_room = @room
             if @room.exits[direction].move( self )
                 (@room.occupants - [self]).each_output "0<N> has arrived.", [self] unless self.affected? "sneak"
-                (old_room.occupants - [self]).select { |t| t.position == :sleeping }.each do |t|
+                (old_room.occupants - [self]).select { |t| t.position != :sleeping }.each do |t|
                     Game.instance.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
                 end
                 Game.instance.fire_event( self, :event_mobile_enter, { mobile: self } )

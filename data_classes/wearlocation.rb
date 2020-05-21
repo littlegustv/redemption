@@ -2,6 +2,7 @@ class WearLocation
 
     attr_reader :id
     attr_reader :display_string
+    attr_reader :symbol
 
     def initialize(row)
         @id = row[:id]

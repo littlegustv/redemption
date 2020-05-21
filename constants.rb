@@ -276,6 +276,7 @@ module Constants
         CommandLore,
         CommandMove,
         CommandOrder,
+        CommandOutfit,
         CommandPoison,
         CommandPut,
         CommandQuicken,

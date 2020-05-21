@@ -288,7 +288,6 @@ class AffectFollow < Affect
 
     def do_follow( data )
         if data[:mobile] == @source
-            # p data[:direction]
             @target.do_command data[:direction]
         end
     end

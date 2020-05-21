@@ -89,7 +89,10 @@ class CommandSkills < Command
 
     def attempt( actor, cmd, args, input )
         actor.output %Q(Skills:
-#{ actor.skills.map{ |skill| actor.knows( skill ) ? "{G#{ skill }{x" : "{y#{skill}{x" }.each_slice(2).map{ |row| "#{row[0].to_s.rpad(18)}       #{row[1].to_s.rpad(18)} " }.join("\n")})
+#{ actor.skills.map{ |skill| actor.knows( skill ) ? "{G#{ skill }{x" : "{y#{skill}{x" }.each_slice(2).map{ |row| "#{row[0].to_s.rpad(18)}       #{row[1].to_s.rpad(18)} " }.join("\n")}
+
+Weapons:
+#{ actor.proficiencies.map(&:name).join(", ") })
         return true
     end
 
