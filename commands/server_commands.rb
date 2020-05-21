@@ -1,6 +1,5 @@
 require_relative 'command.rb'
 
-
 class CommandServerReload < Command
 
     def initialize
@@ -23,7 +22,7 @@ class CommandServerStop < Command
     def initialize
         super(
             name: "stop",
-            keywords: ["stop"]
+            keywords: ["stop", "exit", "quit"]
         )
     end
 

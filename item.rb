@@ -9,7 +9,7 @@
     attr_reader :level
 
     def initialize( model, parent_inventory, reset = nil )
-        super(nil, model.keywords, reset)
+        super(nil, nil, reset, model)
         @model = model
         @id = @model.id
         @name = nil
@@ -23,9 +23,10 @@
         @parent_inventory = nil
         @modifiers = model.modifiers.dup
         move(parent_inventory)
-
-        @model.affect_models.each do |affect_model|
-            self.apply_affect_model(affect_model, true)
+        if @model.affect_models
+            @model.affect_models.each do |affect_model|
+                self.apply_affect_model(affect_model, true)
+            end
         end
 
     end
@@ -68,12 +69,12 @@
         output = "Object '#{ self.short_description }' is of type #{ self.type_name }.\n"
         output += "Description: #{ @long_description }\n"
         output += "Keywords '#{ @keyword_string }'\n"
-        output += "Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }.\n"
+        output += "Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }."
         if wear_locations.size > 0
-            output += "Item can #{wear_locations.map(&:display_string).to_list("or")}."
+            output += "\nItem can #{wear_locations.map(&:display_string).to_list("or")}."
         end
         if @modifiers
-            output += @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}" }.join("\n")
+            output += "\n" + @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}#{stat.percent?}" }.join("\n")
         end
         if affects.size > 0
             output += "\n" + show_affects(observer: nil, full: false)
@@ -134,7 +135,7 @@
     end
 
     def wear_locations
-        @model.wear_locations
+        @model.wear_locations.to_a
     end
 
     def fixed
@@ -160,6 +161,25 @@ class Weapon < Item
 		@dice_sides = model.dice_sides
 	end
 
+    def lore
+        output = "Object '#{ self.short_description }' is of type #{ self.type_name }.\n"
+        output += "Description: #{ @long_description }\n"
+        output += "Keywords '#{ @keyword_string }'\n"
+        output += "Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }.\n"
+        output += "Damage is #{@dice_count}d#{@dice_sides} (#{@dice_count}-#{@dice_count*@dice_sides}, average #{@dice_count * (1 + @dice_sides) / 2}).\n"
+        output += "Attack speed is #{@genre.attack_speed}."
+        if wear_locations.size > 0
+            output += "\nItem can #{wear_locations.map(&:display_string).to_list("or")}."
+        end
+        if @modifiers
+            output += "\n" + @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}#{stat.percent?}" }.join("\n")
+        end
+        if affects.size > 0
+            output += "\n" + show_affects(observer: nil, full: false)
+        end
+        return output
+    end
+
     def type_name
         "weapon"
     end
@@ -167,6 +187,10 @@ class Weapon < Item
 	def damage
         dice( @dice_count, @dice_sides )
 	end
+
+    def attack_speed
+        @genre.attack_speed
+    end
 
 end
 

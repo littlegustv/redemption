@@ -37,7 +37,7 @@ class SpellCancellation < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.remove_affect( actor.affects.sample.keywords.first ) if actor.affects.count > 0
+        actor.remove_affect( actor.affects.sample.keywords.first ) if actor.affects && actor.affects.count > 0
     end
 
 end

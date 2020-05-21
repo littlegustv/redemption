@@ -33,7 +33,7 @@ class SkillTrip < Skill
         [actor, target].each_output "0<N> trip0<,s> 1<n> and 1<u> go0<es,> down!", [actor, target]
         (actor.room.occupants - [actor, target]).each_output "0<N> trips 1<n>, sending 1<o> to the ground.", [actor, target]
         target.receive_damage(actor, 5, :trip)
-        Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { success: -50 }).apply
+        Affect.new( name: "tripped", keywords: ["tripped", "stun"], source: actor, target: target, level: actor.level, duration: 1, modifiers: { failure: 50 }).apply
     end
 
 end

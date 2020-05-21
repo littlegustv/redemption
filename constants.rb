@@ -108,17 +108,6 @@ module Constants
         SUNSET = 18
     end
 
-    module Directions
-        INVERSE = {
-            north: :south,
-            south: :north,
-            up: :down,
-            down: :up,
-            east: :west,
-            west: :east
-        }
-    end
-
     module Damage
         DAMROLL_MODIFIER = 0.6
     end
@@ -196,15 +185,15 @@ module Constants
     #renew, regenerate, soothe
     HEAL_DECORATORS = {
 		0 => ["do nothing for", "does nothing for", " inept", "."],
-		10 => ["only heal", "only heals", "", "a little bit..."],
-		20 => ["heal", "heals", " amateur", "slightly."],
-		40 => ["heal", "heals", " competent", "moderately."],
+		10 => ["only heal", "only heals", "", " a little bit..."],
+		20 => ["heal", "heals", " amateur", " slightly."],
+		40 => ["heal", "heals", " competent", " moderately."],
 		50 => ["heal", "heals", " skillful", "."],
 		60 => ["heal", "heals", " calm", "!"],
 		70 => ["soothe", "soothes", " diligent", "."],
-		80 => ["regenerate", "regenerates", " powerful", "greatly!"],
+		80 => ["regenerate", "regenerates", " powerful", " greatly!"],
 		100 => ["restore", "restores", " masterful", ", erasing wounds!"],
-        125 => ["REJUVENATE", "REJUVENATES", " ultimate", " mending bones!"],
+        125 => ["REJUVENATE", "REJUVENATES", " ultimate", ", mending bones!"],
     }
 
     ALIGNMENT_DESCRIPTIONS = {

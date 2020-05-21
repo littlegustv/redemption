@@ -5,6 +5,23 @@ module GameLookups
         return @affect_class_hash.dig(id)
     end
 
+    def direction_with_symbol(symbol)
+        if !@direction_lookup
+            @direction_lookup = @directions.values.map { |d| [d.symbol, d] }.to_h
+        end
+        if !(d = @direction_lookup[symbol])
+            log ("No direction with symbol #{symbol} found. Creating one now.")
+            id = (@directions.keys.min || 0) - 1
+            d = Direction.new({
+                id: id,
+                name: symbol.to_s,
+            })
+            @direction_lookup[symbol] = d
+            @directions[id] = d
+        end
+        return d
+    end
+
     def element_with_symbol(symbol)
         if !@element_lookup
             @element_lookup = @elements.values.map { |e| [e.symbol, e] }.to_h

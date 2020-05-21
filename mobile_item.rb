@@ -186,9 +186,7 @@ module MobileItem
         # data = {equip_slots: (@race_equip_slots + @mobile_class_equip_slots)}
         # Game.instance.fire_event(self, :event_get_equip_slots, data )
         slots = @race_equip_slots.to_a
-        if @mobile_class_equip_slots
-            slots += @mobile_class_equip_slots
-        end
+        slots += @mobile_class_equip_slots.to_a
         return slots
     end
 

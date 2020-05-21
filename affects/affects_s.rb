@@ -186,7 +186,7 @@ class AffectShocked < Affect
             target, # target
             level, # level
             6, # duration
-            { success: -10 }, # modifiers: nil
+            { failure: 10 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility
@@ -437,7 +437,7 @@ class AffectStun < Affect
             target, # target
             level, # level
             2, # duration
-            { success: -50 }, # modifiers: nil
+            { failure: 50 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             Visibility::NORMAL, # visibility

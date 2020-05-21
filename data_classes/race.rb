@@ -41,12 +41,12 @@ class Race
         @size = Game.instance.sizes[row[:size_id]]
         @hand_to_hand_noun = Game.instance.nouns[row[:hand_to_hand_noun_id]]
 
-        @genres = Array.new
-        @equip_slot_infos = Array.new
-        @affect_models = Array.new
-        @hand_to_hand_affect_models = Array.new
-        @skills = Array.new
-        @spells = Array.new
+        @genres = []
+        @equip_slot_infos = []
+        @affect_models = []
+        @hand_to_hand_affect_models = []
+        @skills = []
+        @spells = []
     end
 
     def ==(other_object)

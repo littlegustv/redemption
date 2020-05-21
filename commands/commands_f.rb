@@ -17,6 +17,7 @@ class CommandFind < Command
             actor.output "Syntax: find <keywords>"
             return false
         else
+            args = args.map{ |arg| arg.split(/[' ]/) }.flatten.reject(&:nil?).reject(&:empty?)
             item_models = Game.instance.item_models.values
             args.each do |arg|
 

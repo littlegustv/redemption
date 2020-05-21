@@ -80,4 +80,8 @@ class Command
         end
     end
 
+    def to_helpfile
+
+    end
+
 end

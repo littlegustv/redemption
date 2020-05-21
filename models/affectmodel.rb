@@ -1,4 +1,4 @@
-class AffectModel
+class AffectModel < Model
 
     attr_reader :affect_class # class of the affect to apply, eg. AffectBless
     attr_reader :data # either a hash of data for the affect to overwrite with or nil

@@ -1,7 +1,7 @@
 class PillModel < ConsumableModel
 
-    def initialize(id, row)
-        super(id, row)
+    def initialize(id, row, temporary = true)
+        super(id, row, temporary)
     end
 
     def self.item_class_name

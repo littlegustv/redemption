@@ -1,31 +1,23 @@
 class GameObject
 
-    attr_accessor :name, :keywords, :affects, :uuid, :active, :short_description, :long_description
+    attr_accessor :affects, :uuid, :active, :short_description, :long_description
     attr_accessor :reset
-    attr_reader :room, :gender
-    attr_reader :source_affects
+    attr_reader :room
+    attr_reader :gender
+    attr_accessor :source_affects
     attr_reader :cooldowns
 
-    def initialize( name, keywords, reset = nil )
-        @name = name
-        if keywords
-            @keyword_string = keywords.to_a.join(" ".freeze).downcase
-            @keywords = Set.new
-            keywords.to_a.each do |keyword|
-                keyword_string = keyword.downcase
-                while keyword_string.length > 0
-                    @keywords.add(keyword_string.to_sym)
-                    keyword_string.chop!
-                end
-            end
-        else
-            @keyword_string = "".freeze
-            @keywords = nil
+    def initialize( name, keywords, reset = nil, model = nil )
+        @name = nil
+        @model = model
+        if !model
+            @name = name
         end
         @reset = reset
-        @affects = []
-        @source_affects = []
+        @affects = nil
+        @source_affects = nil
         @cooldowns = nil
+        @keywords = keywords
 
         @uuid = Game.instance.new_uuid
         @active = true
@@ -35,17 +27,31 @@ class GameObject
     # handles its own destruction - override in subclasses but call +super+ !
     def destroy
         self.deactivate
-        @affects.dup.each do |affect|
-            affect.clear(true)
+        if @affects
+            @affects.dup.each do |affect|
+                affect.clear(true)
+            end
+        end
+        if @keywords
+            Game.instance.decrement_keyword_set(@keywords)
+        end
+        if @model && @model.temporary
+            @model.destroy
         end
         @affects = nil
-        # @keywords = nil
-        # @keyword_string = nil
-        # @gender = nil
+        @source_affects = nil
     end
 
     def deactivate
         @active = false
+    end
+
+    def name
+        if @model
+            return @name || @model.name.to_s
+        else
+            return @name.to_s
+        end
     end
 
     def update( elapsed )
@@ -87,16 +93,24 @@ class GameObject
         if query == [""]
             query = Set.new
         end
-        return @keywords.superset?(query)
+        return self.keywords.superset?(query)
     end
 
-    # def fuzzy_match( query )
-    #     query.to_a.all?{ |q|
-    #         @keywords.any?{ |keyword|
-    #             keyword.fuzzy_match( q )
-    #         }
-    #     }
-    # end
+    def keywords
+        if @model
+            return @keywords || @model.keywords
+        end
+        @keywords || Set.new
+    end
+
+    def keyword_string
+        if self.keywords
+            key_strings = self.keywords.map(&:to_s)
+            return key_strings.reject{ |x| key_strings.any?{ |y| y.start_with?(x) } }.join(" ")
+        else
+            return "(No keywords)".freeze
+        end
+    end
 
     def can_see?(target)
         true
@@ -124,7 +138,11 @@ class GameObject
     # Returns true if the GameObject is affected by an Affect with a matching keyword.
     # Exact match only!
     def affected?( key )
-        @affects.select{ |affect| affect.check(key) }.count > 0
+        if @affects
+            @affects.select{ |affect| affect.check(key) }.count > 0
+        else
+            return false
+        end
     end
 
     # Applies an affect using a matching id.
@@ -188,7 +206,7 @@ class GameObject
         if self == observer
             prefix = "You are"
         end
-        affs_to_show = self.affects
+        affs_to_show = self.affects.to_a
         if !show_hidden
             affs_to_show = affs_to_show.reject(&:hidden?)
         end

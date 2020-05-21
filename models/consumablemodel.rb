@@ -2,8 +2,8 @@ class ConsumableModel < ItemModel
 
     attr_reader :ability_instances
 
-    def initialize(id, row)
-        super(id, row)
+    def initialize(id, row, temporary = true)
+        super(id, row, temporary)
         @ability_instances = row[:ability_instances]
     end
 

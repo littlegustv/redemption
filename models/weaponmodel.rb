@@ -5,8 +5,8 @@ class WeaponModel < ItemModel
     attr_reader :dice_count
     attr_reader :dice_sides
 
-    def initialize(id, row)
-        super(id, row)
+    def initialize(id, row, temporary = true)
+        super(id, row, temporary)
         @dice_count = row[:dice_count]
         @dice_sides = row[:dice_sides]
 

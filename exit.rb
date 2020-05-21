@@ -1,23 +1,52 @@
 class Exit < GameObject
 
 	attr_accessor :destination
+    attr_accessor :closed
+    attr_accessor :locked
     attr_reader :origin
     attr_reader :pair
+    attr_reader :pickproof
 
-	def initialize( direction, origin, destination, flags, key_id, keywords, description = nil )
+	def initialize(
+        direction,
+        origin,
+        destination,
+        keywords,
+        name,
+        short_description = "".freeze,
+        door = false,
+        key_id = nil,
+        closed = false,
+        locked = false,
+        pickproof = false,
+        passproof = false,
+        nonspatial = false,
+        reset_timer = nil,
+        id = 0
+    )
+        super(name, Game.instance.global_keyword_set_for_keyword_string(keywords.freeze) )
+        @id = id
 		@direction = direction
 		@origin = origin
 		@destination = destination
-		@flags = flags
-		@key_id = key_id == 0 ? nil : key_id
-
-		@closed = @flags.include?("door")
-		@locked = @key_id != nil
-
-		@description = description.to_s
+		@short_description = short_description.to_s
+        @door = door
+		@key_id = key_id
+        @closed = closed
+        @locked = locked
+        @pickproof = pickproof
+        @passproof = passproof
+        @nonspatial = nonspatial
+        @reset = nil
+        if reset_timer
+            @reset = ExitReset.new(self, @closed, @locked, reset_timer )
+        end
 		@pair = nil
-		super( direction, keywords )
 	end
+
+    def destroy
+        super
+    end
 
 	def add_pair( exit )
 		if @pair.nil?
@@ -26,22 +55,13 @@ class Exit < GameObject
 		end
 	end
 
-	# could be replaced with the tokenizing method, if needed
-    def fuzzy_match( query )
-        query.to_a.all?{ |q|
-            @keywords.any?{ |keyword|
-                keyword.to_s.fuzzy_match( q )
-            }
-        }
-    end
-
 	def to_s
-		@closed ? "{c(#{@direction}){x" : "#{@direction}"
+		@closed ? "{c(#{@direction.name}){x" : "#{@direction.name}"
 	end
 
-	def short_description
-		(@keywords.first || "door")
-	end
+    def name
+        @name || "door"
+    end
 
 	def lock( actor, silent: false )
 		if not @closed
@@ -51,10 +71,10 @@ class Exit < GameObject
 			actor.output "It is already locked." unless silent
 			return false
 		elsif actor.items.map(&:id).include?(@key_id)
-
+            @reset.activate if @reset
 			unless silent
 				actor.output "Click."
-				(actor.room.occupants - [actor]).each_output "0<N> locks the #{short_description} to the #{@direction}.", [actor]
+				(actor.room.occupants - [actor]).each_output "0<N> locks the #{self.name} to the #{@direction.name}.", [actor]
 			end
 
 			@locked = true
@@ -71,10 +91,10 @@ class Exit < GameObject
 			actor.output "It isn't locked." unless silent
 			return false
 		elsif actor.items.map(&:id).include?(@key_id) || override
-
+            @reset.activate if @reset
 			unless silent
 				actor.output "Click."
-				(actor.room.occupants - [actor]).each_output "0<N> unlocks the #{short_description} to the #{@direction}.", [actor]
+				(actor.room.occupants - [actor]).each_output "0<N> unlocks the #{self.name} to the #{@direction.name}.", [actor]
 			end
 
 			@locked = false
@@ -91,9 +111,9 @@ class Exit < GameObject
 			actor.output "It's locked." unless silent
 			return false
 		elsif @closed
-
+            @reset.activate if @reset
 			unless silent
-				actor.output "You open #{short_description}."
+				actor.output "You open the #{name}."
 				(actor.room.occupants - [actor]).each_output "0<N> opens #{short_description}", [actor]
 			end
 
@@ -107,12 +127,12 @@ class Exit < GameObject
 	end
 
 	def close( actor, silent: false )
-		if !@closed && @flags.include?("door")
+		if !@closed
 			@closed = true
 			@pair.close( actor, silent: true ) if @pair
 
 			unless silent
-				actor.output "You close #{short_description}."
+				actor.output "You close the #{name}."
 				(actor.room.occupants - [actor]).each_output "0<N> closes #{short_description}", [actor]
 			end
 
@@ -128,8 +148,11 @@ class Exit < GameObject
 
 	def move( mobile )
 		if @closed && !mobile.affected?("pass door")
-			mobile.output "The #{short_description} is closed.", [ self ]
+			mobile.output "The #{name} is closed."
 			return false
+        elsif mobile.affected?("pass door") && @passproof
+            mobile.output "You can't pass through the #{self.name}."
+            return false
 		else
             mobile.move_to_room( @destination )
             return true

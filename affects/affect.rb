@@ -144,17 +144,20 @@ class Affect
             # no target or target is inactive, don't apply
             return false
         end
-        existing_affects = @target.affects.select { |a| self.shares_keywords_with?(a) }
-        if [:source_overwrite, :source_stack, :source_single, :source_unique_data].include?(@application_type) && @source
-            existing_affects.select! { |a| a.source == @source }
+
+        existing_affects = nil
+        if @target.affects
+            existing_affects = @target.affects.select { |a| self.shares_keywords_with?(a) }
+            if [:source_overwrite, :source_stack, :source_single, :source_unique_data].include?(@application_type) && @source
+                existing_affects.select! { |a| a.source == @source }
+            end
         end
-        if !existing_affects.empty?
+        if existing_affects && !existing_affects.empty?
             case @application_type
             when :global_overwrite, :source_overwrite
                 # delete old affect(s) and push the new one
                 existing_affects.each { |a| a.clear(true) }
                 self.send_refresh_messages if !silent
-                @target.affects.unshift(self)
                 self.start
             when :global_stack, :source_stack
                 existing_affects.first.send_refresh_messages if !silent
@@ -166,7 +169,6 @@ class Affect
             when :global_unique_data, :source_unique_data
                 if existing_affects.find { |a| a.data == self.data }.nil?
                     self.send_start_messages if !silent
-                    @target.affects.unshift(self)
                     self.start
                 else
                     return nil
@@ -174,7 +176,6 @@ class Affect
             when :multiple
                 # :multiple application type affects stack no matter what
                 self.send_start_messages if !silent
-                @target.affects.unshift(self)
                 self.start
             else
                 log "Unknown application type #{@application_type} in affect.apply, affect: #{self.name} target: #{@target.name}"
@@ -183,12 +184,20 @@ class Affect
         else
             # no relevant existing affects, apply normally
             self.send_start_messages if !silent
-            @target.affects.unshift(self)
             self.start
         end
         @active = true
+        if @target.affects
+            @target.affects.unshift(self)
+        else
+            @target.affects = [self]
+        end
         if @source
-            @source.source_affects << self
+            if @source.source_affects
+                @source.source_affects << self
+            else
+                @source.source_affects = [self]
+            end
         end
         @start_time = Game.instance.frame_time
         set_duration(@duration)
@@ -218,14 +227,18 @@ class Affect
         complete
         remove_events
         @target.affects.delete self
-        if @source
+        if @target.affects.size == 0
+            @target.affects = nil
+        end
+        if @source && @source.source_affects
             @source.source_affects.delete(self)
+            if @source.source_affects.size == 0
+                @source.source_affects = nil
+            end
         end
         toggle_periodic(nil)
         Game.instance.destroy_affect(self)
         send_complete_messages if !silent
-        @source = nil
-        @target = nil
     end
 
     def toggle_periodic(new_period)
@@ -267,7 +280,7 @@ class Affect
 
     def summary
         if @modifiers && @modifiers.length > 0
-            return "Spell: #{@name.rpad(17)} : #{ @modifiers.map{ |stat, value| "modifies #{stat.name} by #{value} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
+            return "Spell: #{@name.rpad(17)} : #{ @modifiers.map{ |stat, value| "modifies #{stat.name} by #{value}#{stat.percent?} #{ duration_string }" }.join("\n" + (" " * 24) + " : ") }"
         else
             if @permanent
                 return "Spell: #{@name}"
@@ -325,6 +338,7 @@ class Affect
     # (Also probably only used when loading existing affects from the database)
     def overwrite_data(data)
         if !data
+            @data = nil
             return
         end
         if !@data

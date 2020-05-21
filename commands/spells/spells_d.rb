@@ -204,7 +204,7 @@ class SpellDispelMagic < Spell
 
     def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.remove_affect( actor.affects.sample.keywords.first ) if target.affects.count > 0
+            target.remove_affect( actor.affects.sample.keywords.first ) if target.affects && target.affects.count > 0
             return true
         else
             actor.output "There is no one here with that name."

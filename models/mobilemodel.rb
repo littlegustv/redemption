@@ -1,8 +1,7 @@
-class MobileModel
+class MobileModel < KeywordedModel
 
     attr_reader :id
     attr_reader :level
-    attr_reader :keywords
     attr_reader :name
     attr_reader :short_description
     attr_reader :long_description
@@ -17,6 +16,13 @@ class MobileModel
     attr_reader :size
     attr_reader :material
 
+    attr_reader :base_health
+    attr_reader :base_mana
+    attr_reader :base_movement
+    attr_reader :base_armor_class
+    attr_reader :base_hit_roll
+    attr_reader :base_damage_roll
+
     attr_reader :stats
     attr_reader :affect_models
     attr_reader :genders
@@ -24,17 +30,25 @@ class MobileModel
     attr_reader :learned_skills
     attr_reader :learned_spells
 
-    def initialize(id, row)
+    def initialize(id, row, temporary = true)
+        super(temporary, row[:keywords])
         @id = id
         @level = row[:level] || 1
-        @keywords = row[:keywords].to_s.split(" ")
         @name = row[:name].to_s
         @short_description = row[:short_description].to_s.chomp
         @long_description = row[:long_description].to_s.chomp
+
         @alignment = row[:alignment] || 0
         @hand_to_hand_dice_sides = row.dig(:hand_to_hand_dice_sides)
         @hand_to_hand_dice_count = row.dig(:hand_to_hand_dice_count)
         @wealth = row[:wealth] || 0
+        @stats = nil
+        @base_health = row.dig(:max_health)
+        @base_mana = row.dig(:max_mana)
+        @base_movement = row.dig(:max_movement)
+        @base_armor_class = row.dig(:armor_class)
+        @base_hit_roll = row.dig(:hit_roll)
+        @base_damage_roll = row.dig(:damage_roll)
 
         # race
         if row.dig(:race_id)
@@ -101,9 +115,6 @@ class MobileModel
         add_stat(:max_intelligence, row[:max_intelligence]) if row.dig(:max_intelligence)
         add_stat(:max_wisdom, row[:max_wisdom]) if row.dig(:max_wisdom)
         add_stat(:max_constitution, row[:max_constitution]) if row.dig(:max_constitution)
-        add_stat(:armor_class, row[:armor_class]) if row.dig(:armor_class)
-        add_stat(:hit_roll, row[:hit_roll]) if row.dig(:hit_roll)
-        add_stat(:damage_roll, row[:damage_roll]) if row.dig(:damage_roll)
 
         # affect models
         if row.dig(:affect_models)

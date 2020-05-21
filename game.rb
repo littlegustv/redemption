@@ -56,6 +56,7 @@ class Game
         @frame_time = 0
         @frame_count = 0                    # Frame count - goes up by 1 every frame (:
         @starting_room = nil                # The room that players log in to - currently gets set in make_rooms
+        @reload = false
 
         # Database tables
         @game_settings = Hash.new           # Hash with values for next_uuid, login_splash, etc
@@ -86,6 +87,7 @@ class Game
         @mobile_models = Hash.new           # Hash of mobile models (uses :id as key)
 
         # Data Classes
+        @directions =       Hash.new
         @elements =         Hash.new        # hash of damage element objects  (uses :id as key)
         @equip_slot_infos = Hash.new        # hash of the equip slot info objects
         @genders =          Hash.new
@@ -99,6 +101,17 @@ class Game
         @sizes =            Hash.new        # hash of mobile sizes            (uses :id as key)
         @stats =            Hash.new        # hash of stats                   (uses :id as key)
         @wear_locations =   Hash.new        # hash of wear locations          (uses :id as key)
+
+        @direction_lookup = nil
+        @element_lookup = nil
+        @gender_lookup = nil
+        @genre_lookup = nil
+        @material_lookup = nil
+        @noun_lookup = nil
+        @position_lookup = nil
+        @sector_lookup = nil
+        @size_lookup = nil
+        @stat_lookup = nil
 
         # GameObjects
         @continents = Hash.new              # Continent objects as hash   (uses :id as key)
@@ -121,6 +134,7 @@ class Game
         @regen_mobs = Set.new
         @cooldown_objects = Set.new
 
+        @global_keyword_set_map = Hash.new
         @item_keyword_map = Hash.new
         @mobile_keyword_map = Hash.new
 
@@ -249,7 +263,7 @@ class Game
 
     def slow_frame_diagnostic(loop_computation_time)
         percent_overage = (loop_computation_time * 100 / (1.0 / Constants::Interval::FPS) - 100).floor
-        if $VERBOSE
+        if $VERBOSE && false
             @last_gc_stat = GC.stat
             gc_stat = GC.stat
             lines = []
@@ -379,13 +393,16 @@ class Game
     end
 
     def target_global_items(query)
-        targets = []
+        targets = nil
         query[:keyword].each do |keyword|
             if @item_keyword_map[keyword]
-                if targets.length > 0
-                    targets = targets & @item_keyword_map[keyword].to_a
+                if targets
+                    targets = targets & @item_keyword_map[keyword]
                 else
-                    targets = @item_keyword_map[keyword].to_a
+                    targets = @item_keyword_map[keyword]
+                end
+                if targets.size == 0
+                    return targets
                 end
             end
         end
@@ -393,13 +410,16 @@ class Game
     end
 
     def target_global_mobiles(query)
-        targets = []
+        targets = nil
         query[:keyword].each do |keyword|
             if @mobile_keyword_map[keyword]
-                if targets.length > 0
-                    targets = targets & @mobile_keyword_map[keyword].to_a
+                if targets
+                    targets = targets & @mobile_keyword_map[keyword]
                 else
-                    targets = @mobile_keyword_map[keyword].to_a
+                    targets = @mobile_keyword_map[keyword]
+                end
+                if targets.size == 0
+                    return targets
                 end
             end
         end
@@ -545,6 +565,11 @@ class Game
     def handle_resets
         if @active_resets.size == 0
             if @initial_reset
+
+                if $VERBOSE
+                    report = MemoryProfiler.stop
+                    report.pretty_print
+                end
                 log "Initial resets complete."
                 @initial_reset = false
             end
@@ -556,6 +581,12 @@ class Game
             end
             reset = @active_resets.first
             if @initial_reset && reset.pop_time > 0
+
+                if $VERBOSE
+                    report = MemoryProfiler.stop
+                    report.pretty_print
+                end
+
                 log "Initial resets complete."
                 @initial_reset = false
             end
@@ -666,22 +697,26 @@ class Game
 
     def add_global_item(item)
         @items.add(item)
-        item.keywords.each do |keyword|
-            if !@item_keyword_map[keyword]
-                @item_keyword_map[keyword] = Set.new([item])
-            else
-                @item_keyword_map[keyword].add(item)
+        if item.keywords
+            item.keywords.each do |keyword|
+                if !@item_keyword_map[keyword]
+                    @item_keyword_map[keyword] = [item]
+                else
+                    @item_keyword_map[keyword] << item
+                end
             end
         end
     end
 
     def remove_global_item(item)
         @items.delete(item)
-        item.keywords.each do |keyword|
-            if @item_keyword_map[keyword]
-                @item_keyword_map[keyword].delete(item)
-                if @item_keyword_map[keyword].size == 0
-                    @item_keyword_map.delete(keyword)
+        if item.keywords
+            item.keywords.each do |keyword|
+                if @item_keyword_map.has_key?(keyword)
+                    @item_keyword_map[keyword].delete(item)
+                    if @item_keyword_map[keyword].size == 0
+                        @item_keyword_map.delete(keyword)
+                    end
                 end
             end
         end
@@ -689,22 +724,26 @@ class Game
 
     def add_global_mobile(mobile)
         @mobiles.add(mobile)
-        mobile.keywords.each do |keyword|
-            if !@mobile_keyword_map[keyword]
-                @mobile_keyword_map[keyword] = Set.new([mobile])
-            else
-                @mobile_keyword_map[keyword].add(mobile)
+        if mobile.keywords
+            mobile.keywords.each do |keyword|
+                if !@mobile_keyword_map[keyword]
+                    @mobile_keyword_map[keyword] = [mobile]
+                else
+                    @mobile_keyword_map[keyword] << mobile
+                end
             end
         end
     end
 
     def remove_global_mobile(mobile)
         @mobiles.delete(mobile)
-        mobile.keywords.each do |keyword|
-            if @mobile_keyword_map[keyword]
-                @mobile_keyword_map[keyword].delete(mobile)
-                if @mobile_keyword_map[keyword].size == 0
-                    @mobile_keyword_map.delete(keyword)
+        if mobile.keywords
+            mobile.keywords.each do |keyword|
+                if @mobile_keyword_map.has_key?(keyword)
+                    @mobile_keyword_map[keyword].delete(mobile)
+                    if @mobile_keyword_map[keyword].size == 0
+                        @mobile_keyword_map.delete(keyword)
+                    end
                 end
             end
         end
@@ -732,6 +771,39 @@ class Game
 
     def remove_cooldown_object(gameobject)
         @cooldown_objects.delete(gameobject)
+    end
+
+    # Pass in a keyword string to get the global keyword set of equal value
+    # global list is managed as a hash
+    # key is the keyword set's #hash,
+    # value is [keyword_set, count], where count is number of objects using this keyword set.
+    def global_keyword_set_for_keyword_string(string, increment = true)
+        new_set = string.to_keyword_set
+        if (result = @global_keyword_set_map.dig(new_set.hash))
+            result[1] += 1 if increment
+            return result[0]
+        end
+        if !increment
+            return nil
+        end
+        @global_keyword_set_map[new_set.hash] = [new_set, 1]
+        return new_set
+    end
+
+     # decrement a keyword set in the global list and delete it if its counter reaches 0
+    def decrement_keyword_set(keyword_set)
+        if @reload
+            return
+        end
+        result = @global_keyword_set_map.dig(keyword_set.hash)
+        if !result
+            return
+        end
+        if result[1] > 1
+            result[1] -= 1
+        else
+            @global_keyword_set_map.delete(keyword_set.hash)
+        end
     end
 
     ##
@@ -770,16 +842,6 @@ class Game
 
     # destroy a room object
     def destroy_room(room)
-        if !@reload
-            @rooms.values.each do |other_room| # remove exits that go to the room being destroyed
-                other_room.exits.each do |direction, exit|
-                    if exit && exit.destination == room
-                        exit.destination = nil
-                        # destroy exit object as well?
-                    end
-                end
-            end
-        end
         @rooms.delete(room.id)
     end
 
@@ -791,7 +853,9 @@ class Game
 
     # destroy a player object
     def destroy_player(player)
-        @inactive_player_source_affects[player.id] = player.source_affects
+        if player.source_affects
+            @inactive_player_source_affects[player.id] = player.source_affects
+        end
         @players.delete(player)
     end
 

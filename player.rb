@@ -8,8 +8,6 @@ class Player < Mobile
         @name = player_model.name
         @creation_points = player_model.creation_points
         @account_id = player_model.account_id
-        @learned_skills = player_model.learned_skills
-        @learned_spells = player_model.learned_spells
         @buffer = ""
         @delayed_buffer = ""
         @scroll = 60
@@ -39,9 +37,11 @@ class Player < Mobile
             end
             self.items.each do |item|
                 Game.instance.add_global_item(item)
-                item.affects.each do |affect|
-                    affect.active = true
-                    Game.instance.add_global_affect(affect)
+                if item.affects
+                    item.affects.each do |affect|
+                        affect.active = true
+                        Game.instance.add_global_affect(affect)
+                    end
                 end
             end
         end
@@ -204,7 +204,7 @@ class Player < Mobile
             @lag = nil
         end
         if @casting
-            if rand(1..100) <= stat(:success)
+            if rand(1..100) > stat(:failure)
                 @casting.execute( self, @casting.name, @casting_args, @casting_input )
                 @casting = nil
                 @casting_args = []
@@ -215,7 +215,7 @@ class Player < Mobile
             end
         end
 
-        @commands.each_with_index do |cmd_array, index|            
+        @commands.each_with_index do |cmd_array, index|
             if !cmd_array[0] || cmd_array[0].lag == 0 || (!@lag)
                 do_command(cmd_array[1])
                 @commands[index] = nil

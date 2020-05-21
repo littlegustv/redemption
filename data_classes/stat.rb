@@ -15,6 +15,7 @@ class Stat
         @max_stat = nil
         @base_cap = row[:base_cap]
         @hard_cap = row[:hard_cap]
+        @percent_based = row[:percent_based]
     end
 
     def ==(other_object)
@@ -27,6 +28,14 @@ class Stat
 
     def set_max_stat(max_stat)
         @max_stat = max_stat
+    end
+
+    def percent?
+        if @percent_based
+            return "%"
+        else
+            return ""
+        end
     end
 
 end

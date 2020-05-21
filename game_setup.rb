@@ -24,7 +24,7 @@ module GameSetup
         end
         @started = true
 
-        # MemoryProfiler.start
+        MemoryProfiler.start if $VERBOSE
 
         # start TCPServer
         start_server(ip, port)
@@ -94,8 +94,25 @@ module GameSetup
         @stats = {}
         @wear_locations = {}
 
+        @direction_lookup = nil
+        @element_lookup = nil
+        @gender_lookup = nil
+        @genre_lookup = nil
+        @material_lookup = nil
+        @noun_lookup = nil
+        @position_lookup = nil
+        @sector_lookup = nil
+        @size_lookup = nil
+        @stat_lookup = nil
+
         @inactive_player_source_affects = {}
+        @mobile_models.each do |model|
+            model.destroy
+        end
         @mobile_models = {}
+        @item_models.dup.each do |model|
+            model.destroy
+        end
         @item_models = {}
         @help_data = {}
 
@@ -107,6 +124,7 @@ module GameSetup
         @periodic_affects.clear
         @responders.clear
 
+        @global_keyword_set_map.clear
         @mobile_keyword_map.clear
         @item_keyword_map.clear
 
@@ -147,6 +165,7 @@ module GameSetup
         load_social_data
 
         load_stats
+        load_directions
         load_elements
         load_positions
         load_commands
@@ -195,7 +214,7 @@ module GameSetup
     # Open up the connection to the database.
     protected def connect_database
         log( "Connecting to database... ", false, 70)
-        sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ")[1] }
+        sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ".freeze)[1] }
         @db = Sequel.mysql2( :host => sql_host,
                              :port => sql_port,
                              :username => sql_username,
@@ -253,7 +272,7 @@ module GameSetup
         # log list of affects that didn't get an id set
         missing = Constants::AFFECT_CLASSES.select { |aff_class| aff_class.id == nil }.map { |aff_class| aff_class.affect_info[:name] }
         if missing.size > 0
-            log "Affects not found in database: {y#{missing.join("\r\n#{" " * 52}")}{x"
+            log "Affects not found in database: {y#{missing.join("\r\n#{" ".freeze * 52}")}{x"
         end
     end
 
@@ -276,7 +295,7 @@ module GameSetup
         end
         log( "done." )
         if missing.size > 0
-            log "Commands not found in database: {y#{missing.join("\r\n#{" " * 53}")}{x"
+            log "Commands not found in database: {y#{missing.join("\r\n#{" ".freeze * 53}")}{x"
         end
     end
 
@@ -287,7 +306,7 @@ module GameSetup
             command = command_class.new
             @server_commands.push command
         end
-        log("done")
+        log("done.")
     end
 
     # load skill data from database
@@ -320,8 +339,21 @@ module GameSetup
         end
         log( "done." )
         if missing.size > 0
-            log "Abilities not found in database: {y#{missing.join("\r\n#{" " * 51}")}{x"
+            log "Abilities not found in database: {y#{missing.join("\r\n#{" ".freeze * 51}")}{x"
         end
+    end
+
+    protected def load_directions
+        log("Loading Direction tables... ", false, 70)
+        direction_data = @db[:direction_base].to_hash(:id)
+
+        direction_data.each do |id, row|
+            @directions[id] = Direction.new(row)
+        end
+        direction_data.each do |id, row|
+            @directions[id].set_opposite(@directions[row[:opposite_direction_id]])
+        end
+        log ("done.")
     end
 
     protected def load_elements
@@ -624,15 +656,28 @@ module GameSetup
         end
         # assign each exit to its room in the hash (if the destination exists)
         exit_data.each do |row|
-            if @rooms[row[:room_id]] && @rooms[row[:to_room_id]]
-                exit = Exit.new(    row[:direction],
-                                    @rooms[row[:room_id]],
-                                    @rooms[row[:to_room_id]],
-                                    row[:flags].split(" "),
-                                    row[:key_id],
-                                    row[:keywords].split + [ row[:direction] ], # i.e. [oak,door,north]
-                                    row[:short_description] )
-                @rooms[row[:room_id]].exits[row[:direction].to_sym] = exit
+            room_id = row[:room_id]
+            to_room_id = row[:to_room_id]
+            direction = @directions[row[:direction_id]]
+            if @rooms.dig(room_id) && @rooms[row[:to_room_id]]
+                exit = Exit.new(
+                    direction,
+                    @rooms[row[:room_id]],
+                    @rooms[row[:to_room_id]],
+                    "#{row[:keywords].to_s} #{direction.name}",
+                    row[:name].to_s,
+                    row[:short_description].to_s,
+                    row[:door],
+                    row[:key_id],
+                    row[:closed],
+                    row[:locked],
+                    row[:pickproof],
+                    row[:passproof],
+                    row[:nonspatial],
+                    row[:reset_timer],
+                    row[:id]
+                )
+                @rooms[row[:room_id]].add_exit(direction, exit)
 
                 # adds the exit to this list with the key :inverse-direction_room-origin-id
                 #
@@ -640,8 +685,8 @@ module GameSetup
                 #
                 # all of this is so that exits have 'paired' actions - a door is opened or closed at both ends
 
-                exit_inverse_list[ "#{Constants::Directions::INVERSE[ row[:direction].to_sym ]}_#{row[:room_id]}".to_sym ] = exit
-                if (pair = exit_inverse_list[ "#{row[:direction]}_#{row[:to_room_id]}".to_sym ])
+                exit_inverse_list[ "#{direction.opposite.name}_#{row[:room_id]}".to_sym ] = exit
+                if (pair = exit_inverse_list[ "#{direction.name}_#{row[:to_room_id]}".to_sym ])
                     exit.add_pair( pair )
                 end
             end
@@ -675,8 +720,9 @@ module GameSetup
             if mob_gender_rows.dig(id)
                 row[:genders] = mob_gender_rows[id].map { |gender_row| Game.instance.genders.dig(row[:gender_id]) }
             end
-            @mobile_models[id] = MobileModel.new(id, row)
+            @mobile_models[id] = MobileModel.new(id, row, false)
         end
+        mob_rows = nil
         log( "done." )
     end
 
@@ -712,7 +758,7 @@ module GameSetup
                 row[:ability_instances].reject! { |ability, level| ability.nil? }
             end
 
-            @item_models[id] = @item_model_classes[row[:item_type_id]].new(id, row)
+            @item_models[id] = @item_model_classes[row[:item_type_id]].new(id, row, false)
         end
         log( "done." )
     end
@@ -767,7 +813,6 @@ module GameSetup
         end
 
         reset_mobile_data.each do |row|
-
             mob_itemgroup_rows = reset_mobile_itemgroups[row[:id]]
             row[:quantity].times do
                 timer = row[:timer]
@@ -831,7 +876,7 @@ module GameSetup
     protected def load_help_data
         log("Loading Helpfile table... ", false, 70)
         @help_data = @db[:help_base].to_hash(:id)
-        # @help_data.each { |id, help| help[:keywords] = help[:keywords].split(" ") }
+        @help_data.each { |id, help| help[:keywords] = help[:keywords].split(" ".freeze) }
         log( "done." )
     end
 

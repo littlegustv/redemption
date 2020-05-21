@@ -26,6 +26,10 @@ class SkillLayHands < Skill
             lag: 1,
             position: :standing
         )
+        @data = {
+            heal: "(3*[level])+([level]/4)d[wisdom]",
+            cooldown: 600
+        }
     end
 
     def attempt( actor, cmd, args, input )
@@ -33,7 +37,11 @@ class SkillLayHands < Skill
             actor.output "You are too tired."
             return false
         end
-        actor.add_cooldown(:lay_hands, 10 * 60, "Your healing powers are restored.")
+        if dice(1, 100) < actor.stat(:failure)
+            actor.output "You failed your attempt to lay hands!"
+            return true
+        end
+        actor.add_cooldown(:lay_hands, @data[:cooldown], "Your healing powers are restored.")
         target = actor
         if args[1]
             if !(target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first)
@@ -41,7 +49,8 @@ class SkillLayHands < Skill
                 return false
             end
         end
-        heal = 200
+        formula = Formula.new(@data[:heal])
+        heal = formula.evaluate([actor])
         target.receive_heal(actor, heal, :lay_hands)
     end
 end

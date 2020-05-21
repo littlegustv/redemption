@@ -153,7 +153,7 @@ class AffectGuard < Affect
 
     def periodic
         players = @target.room.players
-        if players.empty?
+        if !players || players.empty?
             toggle_periodic(nil)
             return
         end

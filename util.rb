@@ -78,7 +78,18 @@ class String
 
     def to_columns( column_width, column_count )
         # split by line
-        self.split("\n").each_slice( column_count ).map{ |row| row.map{ |col| col.to_s.rpad( column_width ) }.join(" ") }.join("\n")
+        self.split("\n").each_slice( column_count ).map{ |row| row.map{ |col| col.to_s.rpad( column_width ) }.join(" ".freeze) }.join("\n")
+    end
+
+    def to_keyword_set
+        keyword_set = Set.new
+        self.downcase.split(" ".freeze).each do |keyword|
+            while keyword.length > 0
+                keyword_set.add(keyword.to_sym)
+                keyword.chop!
+            end
+        end
+        return keyword_set
     end
 
     def fuzzy_match( arg )
@@ -124,7 +135,7 @@ class String
             {
                 offset: self[/(\d+|all)\./, 1] || 0,
                 quantity: self[/(\d+|all)\*/, 1] || default_quantity,
-                keyword: self[/((\d+|all).)?'?([a-zA-Z\s]+)'?/, 3].to_s.downcase.split(" ").map(&:to_sym).to_set
+                keyword: self[/((\d+|all).)?'?([a-zA-Z\s]+)'?/, 3].to_s.downcase.split(" ".freeze).map(&:to_sym).to_set
             }
         end
     end
@@ -147,12 +158,12 @@ class String
         return count
     end
 
-    def rpad(n, fill=" ")
+    def rpad(n, fill=" ".freeze)
         n += self.color_code_length_offset
         return self.ljust(n, fill)
     end
 
-    def lpad(n, fill=" ")
+    def lpad(n, fill=" ".freeze)
         n += self.color_code_length_offset
         return self.rjust(n, fill)
     end
@@ -160,6 +171,10 @@ class String
 end
 
 class Symbol
+
+    def to_direction
+        return Game.instance.direction_with_symbol(self)
+    end
 
     def to_element
         return Game.instance.element_with_symbol(self)
@@ -201,7 +216,7 @@ end
 
 def dice( count, sides )
     n = 0
-    count.times do
+    count.to_i.times do
         n += rand(1..sides)
     end
     return n
@@ -228,19 +243,19 @@ class Logger
     end
 
     def log(s, newline, min_line_length)
-        s = s.to_s.gsub(/\n/, "\n#{" " * 20} ")
+        s = s.to_s.gsub(/\n/, "\n#{" ".freeze * 20} ")
         if @last_newline
             @timestamp = Time.now
             s = "{d[#{@timestamp.strftime("%m-%d %T.%L")}]\033{x #{s}"
         end
         if min_line_length > s.length + @line.length
-            s += (" " * (min_line_length - s.length - @line.length))
+            s += (" ".freeze * (min_line_length - s.length - @line.length))
         end
         @line << s
         if !@last_newline && newline
             diff = Time.now - @timestamp
             col = @@time_diffs.select { |k, v| k <= diff }.values.last
-            s = "#{s}#{" " * [80 - @line.length, 0].max}#{col}#{diff.to_s[0..6]}{x\r\n"
+            s = "#{s}#{" ".freeze * [80 - @line.length, 0].max}#{col}#{diff.to_s[0..6]}{x\r\n"
         elsif newline
             s += "\r\n"
         end

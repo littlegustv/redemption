@@ -1,8 +1,7 @@
-class ItemModel
+class ItemModel < KeywordedModel
 
     attr_reader :id
     attr_reader :name
-    attr_reader :keywords
     attr_reader :short_description
     attr_reader :item_type
     attr_reader :level
@@ -15,10 +14,11 @@ class ItemModel
     attr_reader :affect_models
     attr_reader :modifiers
 
-    def initialize(id, row)
+    def initialize(id, row, temporary = true)
+        super(temporary, row[:keywords])
+        @temporary = temporary
         @id = id
         @name = row[:name].to_s
-        @keywords = row[:keywords].to_s.split(" ")
         @short_description = row[:short_description].to_s
         @level = row[:level] || 0
         @weight = row[:weight] || 0
@@ -38,14 +38,14 @@ class ItemModel
         if row.dig(:wear_locations)
             @wear_locations = row[:wear_locations]
         else
-            @wear_locations = []
+            @wear_locations = nil
         end
 
         # modifiers
         if row.dig(:modifiers)
             @modifiers = row[:modifiers]
         else
-            @modifiers = {}
+            @modifiers = nil
         end
 
         # affect models
@@ -53,7 +53,7 @@ class ItemModel
         if row.dig(:affect_models)
             @affect_models = row[:affect_models]
         else
-            @affect_models = []
+            @affect_models = nil
         end
     end
 

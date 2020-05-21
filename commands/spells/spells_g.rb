@@ -18,7 +18,7 @@ class SpellGate < Spell
         end
         if target
             actor.output "You step through a gate and vanish."
-            (target.room.occupants - [actor]).each_output "0<N> steps through a gate and vanishes.",actor.room.occupants - [actor], [actor]
+            (target.room.occupants - [actor]).each_output "0<N> steps through a gate and vanishes.", [actor]
             actor.move_to_room target.room
             (target.room.occupants - [actor]).each_output "0<N> has arrived through a gate.", [actor]
         else

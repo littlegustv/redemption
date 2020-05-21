@@ -5,8 +5,8 @@ class ContainerModel < ItemModel
     attr_reader :max_total_weight
     attr_reader :key_id
 
-    def initialize(id, row)
-        super(id, row)
+    def initialize(id, row, temporary = true)
+        super(id, row, temporary)
         @max_item_weight = row[:max_item_weight]
         @weight_multiplier = row[:weight_multiplier]
         @max_total_weight = row[:max_total_weight]

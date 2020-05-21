@@ -19,7 +19,6 @@ class Mobile < GameObject
     attr_accessor :mana
     attr_accessor :movement
 
-    attr_reader :game
     attr_reader :race
     attr_reader :size
     attr_reader :mobile_class
@@ -32,7 +31,7 @@ class Mobile < GameObject
 
     def initialize( model, room, reset = nil )
         @model = model
-        super(nil, @model.keywords, reset)
+        super(nil, nil, reset, @model)
         @short_description = nil
         @long_description = nil
         @attacking = nil
@@ -40,9 +39,14 @@ class Mobile < GameObject
         @id = model.id
         @h2h_equip_slot = EquipSlot.new(self, Game.instance.equip_slot_infos.values.first)
 
-        @learned_skills = []
-        @learned_spells = []
+        @learned_skills = model.learned_skills
+        @learned_spells = model.learned_spells
         @experience = 0
+
+        @base_health = model.base_health
+        @base_mana = model.base_mana
+        @base_movement = model.base_movement
+        @base_armor_class = model.base_armor_class
 
         @creation_points = 5
         @experience_to_level = 1000
@@ -52,7 +56,7 @@ class Mobile < GameObject
         @wealth = model.wealth
         @wimpy = 0
         @active = true
-        @group = []
+        @group = nil
         @in_group = nil
         @deity = "Gabriel".freeze # deity table?
 
@@ -62,13 +66,8 @@ class Mobile < GameObject
         @casting_args = nil
         @casting_input = nil
 
-        @stats = {
-            :success.to_stat => 100,
-            :hit_roll.to_stat => model.stats.dig(:hit_roll) || 6,
-            :damage_roll.to_stat => model.stats.dig(:damage_roll) || 0,
-            :attack_speed.to_stat => 1,
-        }
-        @stats.merge!(model.stats) if model.stats
+        @stats = nil
+        @stats = model.stats if model.stats
 
         @level = model.level
 
@@ -89,6 +88,9 @@ class Mobile < GameObject
         @mobile_class_equip_slots = nil
         @mobile_class_affects = nil                  # list of affects applied by race
 
+        @health = 0
+        @mana = 0
+        @mana = 0
         set_race(model.race)
         set_mobile_class(model.mobile_class)
         @model.affect_models.to_a.each do |affect_model|
@@ -105,6 +107,7 @@ class Mobile < GameObject
         @health_regen_rollover = 0.0
         @mana_regen_rollover = 0.0
         @movement_regen_rollover = 0.0
+        @attack_speed_rollover = 0.0
 
         if model.size
             @size = model.size
@@ -139,9 +142,9 @@ class Mobile < GameObject
 
     def learn( skill_name )
         skill_name = skill_name.to_s
-        unlearned = (spells + skills) - (@learned_skills + @learned_spells)
-        unlearned_skills = self.skills - @learned_skills
-        unlearned_spells = self.spells - @learned_spells
+        unlearned = (spells + skills) - (@learned_skills.to_a + @learned_spells.to_a)
+        unlearned_skills = self.skills - @learned_skills.to_a
+        unlearned_spells = self.spells - @learned_spells.to_a
         if skill_name.nil? || skill_name.to_s.length <= 0 # no argument - list learnable skills
             output "\n" + ("{GCOST : SKILL{x\n" * 3).to_columns( 30, 3 )
             output unlearned_skills.map{ |skill| "#{ skill.creation_points.to_s.rpad(4) } : #{skill.name}" }.join("\n").to_columns( 30, 3 )
@@ -155,9 +158,17 @@ class Mobile < GameObject
         if to_learn
             if to_learn.creation_points <= @creation_points
                 if to_learn.is_a?(Spell)
-                    @learned_spells << to_learn
+                    if @learned_spells
+                        @learned_spells.to_a << to_learn
+                    else
+                        @learned_spells = [to_learn]
+                    end
                 else
-                    @learned_skills << to_learn
+                    if @learned_skills
+                        @learned_skills.to_a << to_learn
+                    else
+                        @learned_skills = [to_learn]
+                    end
                 end
                 @creation_points -= to_learn.creation_points
                 output "You have learned #{ to_learn.name }!"
@@ -170,7 +181,7 @@ class Mobile < GameObject
     end
 
     def knows( ability )
-        (@learned_skills | @learned_spells).include? ability
+        (@learned_skills.to_a | @learned_spells.to_a).include? ability
     end
 
     def proficient( genre )
@@ -520,6 +531,16 @@ class Mobile < GameObject
         return weapon
     end
 
+    def attack_speed
+        weapons = equipped(Weapon)
+        if weapons.size == 0
+            weapons = [self.hand_to_hand_weapon]
+        end
+        speed = weapons.map(&:attack_speed).reduce(:+) / weapons.size.to_f
+        speed *= (1.0 + stat(:attack_speed).to_f / 100.0)
+        return speed
+    end
+
     #
     def hand_to_hand_weapon
         if !@h2h_equip_slot.item
@@ -533,9 +554,12 @@ class Mobile < GameObject
         if !target
             target = @attacking
         end
-        stat( :attack_speed ).times do |attack|
+        @attack_speed_rollover += self.attack_speed
+
+        @attack_speed_rollover.to_i.times do |attack|
             weapon_hit(target) if target.attacking
         end
+        @attack_speed_rollover -= @attack_speed_rollover.to_i
     end
 
     # Hit a target using weapon for damage
@@ -802,7 +826,8 @@ class Mobile < GameObject
 
     # this COULD be handled with events, but they are so varied that I thought I'd try it this way first...
     def can_move?( direction )
-        if (@room.sector.requires_flight || @room.exits[ direction.to_sym ].destination.sector.requires_flight) && !self.affected?("flying")
+        direction = direction.to_direction
+        if (@room.sector.requires_flight || @room.exits[ direction ].destination.sector.requires_flight) && !self.affected?("flying")
             output "You can't fly!"
             return false
         else
@@ -817,16 +842,17 @@ class Mobile < GameObject
     end
 
     def move( direction )
-        if @room.exits[ direction.to_sym ].nil?
+        direction = direction.to_direction
+        if @room.exits[ direction ].nil?
             output "Alas, you cannot go that way."
             return false
         elsif not can_move? direction
             # nothing
         else
-            (@room.occupants - [self]).each_output "0<N> leaves #{direction}.", [self] unless self.affected? "sneak"
+            (@room.occupants - [self]).each_output "0<N> leaves #{direction.name}.", [self] unless self.affected? "sneak"
             Game.instance.fire_event(self, :event_mobile_exit, { mobile: self, direction: direction })
             old_room = @room
-            if @room.exits[direction.to_sym].move( self )
+            if @room.exits[direction].move( self )
                 (@room.occupants - [self]).each_output "0<N> has arrived.", [self] unless self.affected? "sneak"
                 (old_room.occupants - [self]).select { |t| t.position == :sleeping }.each do |t|
                     Game.instance.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
@@ -929,7 +955,15 @@ class Mobile < GameObject
     end
 
     def defense_rating
-        ( -1 * stat(:armor_class ) - 100 ) / 5
+        ( -1 * self.armor_class - 100 ) / 5
+    end
+
+    def armor_class
+        value = stat(:armor_class)
+        if @base_armor_class
+            value += @base_armor_class
+        end
+        return value
     end
 
     def hit_roll
@@ -1034,8 +1068,9 @@ class Mobile < GameObject
     end
 
     def base_health
-        if @stats.dig(:health)
-            return @stats[:health]
+
+        if @base_health
+            return @base_health
         end
         return 20 + (@level - 1) * ( 10 + ( stat(:wisdom) / 5 ).to_i + ( stat(:constitution) / 2 ).to_i )
     end
@@ -1045,8 +1080,8 @@ class Mobile < GameObject
     end
 
     def base_mana
-        if @stats.dig(:mana)
-            return @stats[:mana]
+        if @base_mana
+            return @base_mana
         end
         return 100 + (@level - 1) * ( 10 + ( stat(:wisdom) / 5 ).to_i + ( stat(:intelligence) / 3 ).to_i )
     end
@@ -1056,8 +1091,8 @@ class Mobile < GameObject
     end
 
     def base_movement
-        if @stats.dig(:movement)
-            return @stats[:movement]
+        if @base_movement
+            return @base_movement
         end
         return 100 + (@level - 1) * ( 10 + ( stat(:wisdom) / 5 ).to_i + ( stat(:dexterity) / 3 ).to_i )
     end
@@ -1076,7 +1111,10 @@ class Mobile < GameObject
         if !s
             return 0
         end
-        value = @race.stat(s) + @stats.dig(s).to_i
+        value = @race.stat(s)
+        if @stats
+            value += @stats.dig(s).to_i
+        end
 
         if @mobile_class
             value += @mobile_class.stat(s)
@@ -1087,8 +1125,14 @@ class Mobile < GameObject
         end
 
         # add item modifiers and item affect modifiers
-        # value += equipment.map{ |item| item.nil? ? 0 : item.modifier(s).to_i + item.affects.map{ |aff| aff.modifier(s) }.reduce(0, :+) }.reduce(0, :+)
-        value += equipment.map{ |item| item.modifier(s) + item.affects.map{ |aff| aff.modifier(s) }.reduce(0, :+) }.reduce(0, :+)
+        # value += equipment.map{ |item| item.modifier(s) + (item.affects) ? item.affects.map{ |aff| aff.modifier(s) }.reduce(0, :+) : 0 }.reduce(0, :+)
+
+        equipment.each do |item|
+            value += item.modifier(s)
+            if item.affects
+                value += item.affects.map{ |aff| aff.modifier(s) }.reduce(:+)
+            end
+        end
 
         # add affect modifiers
         if @affects
@@ -1157,11 +1201,11 @@ Member of clan Kenshi
 #{score_stat(:dexterity)}
 {cHit Roll:{x     #{ self.hit_roll.to_s.rpad(23)} {cDamage Roll:{x  #{ self.damage_roll }
 {cDamResist:{x    #{ stat(:damage_reduction).to_s.rpad(23) } {cSpell Damage:{x #{ stat(:spell_damage) }
-{cAttack Speed:{x #{ stat(:attack_speed) }
+{cAttack Speed:{x #{ self.attack_speed }
 -------------------------------- Elements -------------------------------
 #{resist_string}
 --------------------------------- Armour --------------------------------
-{cArmor Class:{x   #{ (-1 * stat(:armor_class)).to_s.rpad(23) } {c{x
+{cArmor Class:{x   #{ (-1 * self.armor_class).to_s.rpad(23) } {c{x
 ------------------------- Condition and Affects -------------------------
 You are Ruthless.
 You are #{@position.name}.)
@@ -1174,6 +1218,9 @@ You are #{@position.name}.)
         s = s.to_stat
 
         base = @stats[s].to_i + @race.stat(s)
+        if @stats
+            base += @stats[s]
+        end
         if @mobile_class
             base += @mobile_class.stat(s)
         end

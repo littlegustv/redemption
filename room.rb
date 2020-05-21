@@ -1,44 +1,52 @@
 class Room < GameObject
 
-    attr_accessor :exits
-
     attr_reader :id
     attr_reader :inventory
-    attr_reader :mobiles
-    attr_reader :players
     attr_reader :sector
     attr_reader :hp_regen
     attr_reader :mana_regen
 
     def initialize(id, name, short_description, sector, area, hp_regen, mana_regen)
-        super(name, nil)
+        super(name.freeze, nil)
         @id = id
-        @short_description = short_description
+        @short_description = short_description.freeze
         @sector = sector
         @area = area
         @hp_regen = hp_regen
         @mana_regen = mana_regen
-
-        @exits = { north: nil, south: nil, east: nil, west: nil, up: nil, down: nil }
-        @mobiles = []
-        @players = []
+        @exits = nil
+        @entrances = nil
+        @mobiles = nil
+        @players = nil
         @inventory = Inventory.new(self)
     end
 
     def destroy
         super
         @area.rooms.delete self
-        @exits.dup.each do |direction, exit|
-            # exit.destroy
+        if @exits
+            @exits.dup.each do |direction, exit|
+                remove_exit(exit)
+            end
+        end
+        if @entrances
+            @entrances.dup.each do |entrance|
+                entrance.source.remove_exit(entrance)
+                entrance.destroy
+            end
         end
         @inventory.items.dup.each do |item|
             item.destroy
         end
-        @mobiles.dup.each do |mob|
-            mob.destroy
+        if @mobiles
+            @mobiles.dup.each do |mob|
+                mob.destroy
+            end
         end
-        @players.dup.each do |player|
-            player.move_to_room(Game.instance.starting_room)
+        if @players
+            @players.dup.each do |player|
+                player.move_to_room(Game.instance.starting_room)
+            end
         end
         @area = nil
         @exits = nil
@@ -81,10 +89,18 @@ class Room < GameObject
 
     def mobile_enter(mobile)
         if mobile.is_player?
-            @players.delete(mobile)
-            @players.unshift(mobile)
+            if @players
+                @players.delete(mobile)
+                @players.unshift(mobile)
+            else
+                @players = [mobile]
+            end
         else
-            @mobiles.unshift(mobile)
+            if @mobiles
+                @mobiles.unshift(mobile)
+            else
+                @mobiles = [mobile]
+            end
         end
         Game.instance.fire_event(self, :event_room_mobile_enter, {mobile: mobile})
     end
@@ -92,8 +108,14 @@ class Room < GameObject
     def mobile_exit(mobile)
         if mobile.is_player?
             @players.delete(mobile)
+            if @players.empty?
+                @players = nil
+            end
         else
             @mobiles.delete(mobile)
+            if @mobiles.empty?
+                @mobiles = nil
+            end
         end
         Game.instance.fire_event(self, :event_room_mobile_exit, {mobile: mobile})
     end
@@ -103,8 +125,16 @@ class Room < GameObject
         return (mobiles.to_a - occupants).empty?
     end
 
+    def players
+        @players || []
+    end
+
+    def mobiles
+        @mobiles || []
+    end
+
     def occupants
-        return @mobiles | @players
+        return @mobiles.to_a | @players.to_a
     end
 
     def items
@@ -130,6 +160,47 @@ class Room < GameObject
 
     def continent
         @area.continent
+    end
+
+    def add_exit(direction, exit)
+        if !@exits
+            @exits = {}
+        end
+        exit.destination.add_entrance(exit)
+        @exits[direction] = exit
+    end
+
+    def remove_exit(exit)
+        if !@exits
+            return
+        end
+        exit.destination.remove_entrance(exit)
+        @exits.delete_if { |k,v| v == exit }
+        if @exits.empty?
+            @exits = nil
+        end
+    end
+
+    # adds an Exit object to the list of exits that lead to this room
+    def add_entrance(exit)
+        if !@entrances
+            @entrances = []
+        end
+        @entrances << exit
+    end
+
+    def remove_entrance(exit)
+        if !@entrances
+            return
+        end
+        @entrances.delete(exit)
+        if @entrances.empty?
+            @entrances = nil
+        end
+    end
+
+    def exits
+        @exits || {}
     end
 
 end

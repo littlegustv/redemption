@@ -215,18 +215,24 @@ module GameSave
         end
 
         # skills and spells
-        player.learned_skills.each do |s|
-            query_hash[:player_learned_skill] << "(#{player.id},#{s.id})"
+        if player.learned_skills
+            player.learned_skills.each do |s|
+                query_hash[:player_learned_skill] << "(#{player.id},#{s.id})"
+            end
         end
 
-        player.learned_spells.each do |s|
-            query_hash[:player_learned_spell] << "(#{player.id},#{s.id})"
+        if player.learned_spells
+            player.learned_spells.each do |s|
+                query_hash[:player_learned_spell] << "(#{player.id},#{s.id})"
+            end
         end
 
 
         # save current affects
-        player.affects.select{ |affect| affect.savable }.each do |affect|
-            save_player_affect(affect, player.id, query_hash).to_s
+        if player.affects
+            player.affects.select{ |affect| affect.savable }.each do |affect|
+                save_player_affect(affect, player.id, query_hash).to_s
+            end
         end
 
         #save current items
@@ -278,8 +284,10 @@ module GameSave
             container: container
         }
         query_hash[:player_item] << hash_to_insert_query_values(item_data)
-        item.affects.select{ |affect| affect.savable }.each do |affect|
-            save_player_item_affect(affect, item, saved_player_id, @saved_player_item_id_max, query_hash)
+        if item.affects
+            item.affects.select{ |affect| affect.savable }.each do |affect|
+                save_player_item_affect(affect, item, saved_player_id, @saved_player_item_id_max, query_hash)
+            end
         end
         if item.cooldowns
             item.cooldowns.each do |symbol, hash|

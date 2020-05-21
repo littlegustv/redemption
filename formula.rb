@@ -1,24 +1,51 @@
 class Formula
 
     def initialize(definition)
-        @definition = definition.gsub(/\s+/, "")
+        @definition = definition.gsub(/\s+/, "").downcase
     end
 
-    def formula_for_player(player)
-        player_formula = @definition
-        player_formula.gsub!("level", player.level.to_s)
+    def formula_for_player(players)
+        players = [players].flatten
+        player_formula = @definition.dup
+
+        # multiple player format:
+        # players = [actor, target]
+        # formula = "[0level] + 1d100 - [1constitution]"
+        player_formula.scan(/(\[(\d*)(\w*)\])/).each do |match, index_match, attribute|
+            index = index_match.to_i
+            symbol = attribute.to_sym
+            case symbol
+            when :level
+                player_formula.sub!(match, players[index].level.to_s)
+            else
+                player_formula.sub!(match, players[index].stat(symbol).to_s)
+            end
+        end
+        # single player format:
+        # players = [actor]
+        # formula = "[level] + 1d[strength]"
+        player_formula.scan(/(\[(\w*)\])/).each do |match, attribute|
+            symbol = attribute.to_sym
+            case symbol
+            when :level
+                player_formula.sub!(match, players.first.level.to_s)
+            else
+                player_formula.sub!(match, players.first.stat(symbol).to_s)
+            end
+        end
+
         return player_formula
     end
 
-    def evaluate(player)
-        return calculate(formula_for_player(player)).to_i
+    def evaluate(players)
+        return calculate(formula_for_player(players)).to_i
     end
 
     def calculate(substr)
         last_substr = ""
         number = 0
         loop do
-            last_substr = substr
+            last_substr = substr.dup
             substr.scan(/(\(([^()]*)\))/).each do |bracket, content|
                 substr.sub!(bracket, calculate(content))
             end
