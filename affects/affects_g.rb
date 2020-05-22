@@ -162,7 +162,7 @@ class AffectGuard < Affect
             if player
             	@target.do_command "yell #{player} is a KILLER! PROTECT THE INNOCENT!! BANZAI!!"
                 @target.start_combat player
-                @target.do_round_of_attacks(target: player)
+                @target.do_round_of_attacks(player)
             end
         end
     end

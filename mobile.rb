@@ -107,7 +107,8 @@ class Mobile < GameObject
         @health_regen_rollover = 0.0
         @mana_regen_rollover = 0.0
         @movement_regen_rollover = 0.0
-        @attack_speed_rollover = 0.0
+
+        @attack_speed_rollovers = nil
 
         if model.size
             @size = model.size
@@ -375,6 +376,7 @@ class Mobile < GameObject
 
     def stop_combat
         @attacking = nil
+        @attack_speed_rollovers = nil
         Game.instance.remove_combat_mobile(self)
         target({ attacking: self, list: @room.occupants }).each do |t|
             attacking_t = target({ quantity: "all", attacking: t, list: t.room.occupants })
@@ -447,7 +449,7 @@ class Mobile < GameObject
 
     def combat
         if @attacking && @active && @attacking.active
-            do_round_of_attacks(target: @attacking)
+            do_round_of_attacks(@attacking)
         end
     end
 
@@ -562,14 +564,19 @@ class Mobile < GameObject
         return weapon
     end
 
-    def attack_speed
-        weapons = equipped(Weapon)
-        if weapons.size == 0
-            weapons = [self.hand_to_hand_weapon]
+    def weapons
+        items = equipped(Weapon)
+        if items.empty?
+            items = [self.hand_to_hand_weapon]
         end
-        speed = weapons.map(&:attack_speed).reduce(:+) / weapons.size.to_f
-        speed *= (1.0 + stat(:attack_speed).to_f / 100.0)
-        return speed
+        return items
+    end
+
+    def attack_speeds
+        weapons = self.weapons
+        multiplier = (1.0 + stat(:attack_speed).to_f / 100.0)
+        speeds = weapons.map{ |weapon| [weapon, multiplier * weapon.attack_speed / weapons.size] }.to_h
+        return speeds
     end
 
     #
@@ -581,24 +588,39 @@ class Mobile < GameObject
     end
 
     # do a round of attacks against a target
-    def do_round_of_attacks(target: nil)
+    def do_round_of_attacks(target = nil)
         if !target
             target = @attacking
         end
-        @attack_speed_rollover += self.attack_speed
-
-        @attack_speed_rollover.to_i.times do |attack|
-            weapon_hit(target) if target.attacking
+        attack_speeds = self.attack_speeds
+        weapons = equipped(Weapon)
+        if !@attack_speed_rollovers || @attack_speed_rollovers.keys != attack_speeds.keys
+            @attack_speed_rollovers = {}
+            attack_speeds.each_with_index do |pair, index|
+                staggered_multiplier = (attack_speeds.size - index).to_f / attack_speeds.size.to_f
+                speed = pair[1] * staggered_multiplier
+                if index == 0
+                    speed = [speed, 1].max
+                end
+                @attack_speed_rollovers[pair[0]] = speed
+            end
+        else
+            attack_speeds.each do |weapon, speed|
+                @attack_speed_rollovers[weapon] += speed
+            end
         end
-        @attack_speed_rollover -= @attack_speed_rollover.to_i
+        @attack_speed_rollovers.each do |weapon, speed|
+            speed.to_i.times do
+                weapon_hit(target, 0, 0, nil, weapon)
+            end
+            @attack_speed_rollovers[weapon] -= speed.to_i
+        end
     end
 
     # Hit a target using weapon for damage
     def weapon_hit(target, damage_bonus = 0, hit_bonus = 0, custom_noun = nil, weapon = nil, noun_name_override = nil)
-
         # get data from weapon item or hand-to-hand
-
-        weapon = weapon || weapon_for_next_hit
+        weapon = weapon || self.weapons.first
         noun = custom_noun || weapon.noun
         noun = noun.to_noun
         hit = false
@@ -740,7 +762,7 @@ class Mobile < GameObject
             resistance *= -1
         end
         if resistance != 0
-            damage = (damage * (100.0 - resistance)).to_i
+            damage = (damage * (100.0 - resistance) / 100.0)
         end
         if !silent && ((source && source.is_a?(Player)) || self.room.players.length > 0)
             decorators = nil
@@ -1241,13 +1263,12 @@ Member of clan Kenshi
 #{score_stat(:dexterity)}
 {cHit Roll:{x     #{ self.hit_roll.to_s.rpad(23)} {cDamage Roll:{x  #{ self.damage_roll }
 {cDamResist:{x    #{ stat(:damage_reduction).to_s.rpad(23) } {cSpell Damage:{x #{ stat(:spell_damage) }
-{cAttack Speed:{x #{ self.attack_speed }
+{cAttack Speed:{x #{ self.attack_speeds.values.join(" / ") }
 -------------------------------- Elements -------------------------------
 #{resist_string}
 --------------------------------- Armour --------------------------------
 {cArmor Class:{x   #{ (-1 * self.armor_class).to_s.rpad(23) } {c{x
 ------------------------- Condition and Affects -------------------------
-You are Ruthless.
 You are #{@position.name}.)
     end
 

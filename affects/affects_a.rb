@@ -42,7 +42,7 @@ class AffectAggressive < Affect
         if player && !@target.attacking
             @target.room.occupants.each_output "0<N> scream0<,s> and attack0<,s>!!", [@target]
             @target.start_combat player
-            @target.do_round_of_attacks(target: player)
+            @target.do_round_of_attacks(player)
         end
     end
 

@@ -10,7 +10,7 @@ class AffectHaste < Affect
             120, # duration
             {
                 dexterity: 1 + level / 12,
-                attack_speed: 1
+                attack_speed: 50
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false

@@ -68,7 +68,7 @@ class CommandOutfit < Command
         if actor.level > 5
             actor.output "Find it yourself!"
         else
-            genres = @@weapons.keys.map(&:to_genre) | actor.proficiencies
+            genres = @@weapons.keys.map(&:to_genre) & actor.proficiencies
             if genres.empty?
                 actor.output "Some people just can't be helped!"
                 return
