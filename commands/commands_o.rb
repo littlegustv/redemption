@@ -77,7 +77,7 @@ class CommandOutfit < Command
                 return
             end
             item = @@weapons[genres.sample.symbol]
-            actor.wear( Game.instance.load_item( item, actor.inventory ) ) if actor.free?( :weapon )     # weapon
+            actor.wear( Game.instance.load_item( item, actor.inventory ) )    # weapon
             actor.output "You have been outfitted by Gabriel."
         end
     end
