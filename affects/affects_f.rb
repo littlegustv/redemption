@@ -283,12 +283,12 @@ class AffectFollow < Affect
     end
 
     def start
-        add_event_listener(@target, :event_observe_mobile_exit, :do_follow)
+        add_event_listener(@target, :event_observe_mobile_use_exit, :do_follow)
     end
 
     def do_follow( data )
         if data[:mobile] == @source
-            @target.do_command data[:direction]
+            @target.do_command data[:direction].name
         end
     end
 

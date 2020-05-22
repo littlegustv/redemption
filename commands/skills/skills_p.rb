@@ -70,7 +70,7 @@ class SkillPickLock < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target( { list: actor.room.exits.values }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = Game.instance.target( { list: actor.room.exits }.merge( args.first.to_s.to_query ) ).first )
             if rand(0...10) < 5
                 return target.unlock( actor, override: true )
             else

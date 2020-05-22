@@ -55,14 +55,18 @@ class CommandEnter < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target({ list: actor.room.items }.merge( args.first.to_s.to_query )).first )
-            data = { mobile: actor, success: false, failure_message: "You can't enter that." }
-            Game.instance.fire_event( target, :event_try_enter, data)
-            if !data[:success]
-                actor.output data[:failure_message]
-            end
-        elsif args.first.nil?
+        if args.first.nil?
             actor.output "Enter what?"
+            return
+        end
+        if ( target = Game.instance.target({ list: actor.room.items }.merge( args.first.to_s.to_query )).first )
+            if !target.is_a?(Portal)
+                actor.output "You can't enter that."
+                return false
+            elsif target.exit
+                target.exit.move(actor)
+                return true
+            end
         else
             actor.output "You don't see that here."
         end

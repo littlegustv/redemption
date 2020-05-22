@@ -25,13 +25,12 @@ class Room < GameObject
         super
         @area.rooms.delete self
         if @exits
-            @exits.dup.each do |direction, exit|
-                remove_exit(exit)
+            @exits.dup.each do |exit|
+                exit.destroy
             end
         end
         if @entrances
             @entrances.dup.each do |entrance|
-                entrance.source.remove_exit(entrance)
                 entrance.destroy
             end
         end
@@ -72,7 +71,7 @@ class Room < GameObject
         if looker.can_see? self
             out = "#{ @name }\n" +
             "  #{ @short_description }\n" +
-            "[Exits: #{ @exits.select { |direction, room| not room.nil? }.map{ |k, v| v.to_s }.join(" ") }]"
+            "[Exits: #{ @exits.select.map(&:to_s).join(" ") }]"
             description_data = {extra_show: ""}
             Game.instance.fire_event(self, :event_calculate_room_description, description_data)
             out += description_data[:extra_show]
@@ -162,20 +161,19 @@ class Room < GameObject
         @area.continent
     end
 
-    def add_exit(direction, exit)
+    def add_exit(exit)
         if !@exits
-            @exits = {}
+            @exits = []
         end
-        exit.destination.add_entrance(exit)
-        @exits[direction] = exit
+        @exits << exit
+        @exits.sort_by!{ |exit| exit.direction.id }
     end
 
     def remove_exit(exit)
         if !@exits
             return
         end
-        exit.destination.remove_entrance(exit)
-        @exits.delete_if { |k,v| v == exit }
+        @exits.delete(exit)
         if @exits.empty?
             @exits = nil
         end
@@ -200,7 +198,12 @@ class Room < GameObject
     end
 
     def exits
-        @exits || {}
+        exits = (@exits || []) + self.items.reject{|i| !i.is_a?(Portal) }.map(&:exit)
+        return exits
+    end
+
+    def connected_rooms
+        return self.exits.map(&:destination) + @entrances.to_a
     end
 
 end

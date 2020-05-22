@@ -67,7 +67,6 @@ class Game
         @saved_player_item_affect_id_max = 0    # max id in database table saved_player_item_affect
 
         @shop_data = Hash.new               # Shop table as hash       (uses :mobile_id as key)
-        @portal_data = Hash.new
         @help_data = Hash.new                   # Help table as hash  (uses :id as key)
         @social_data = Hash.new                 # Social table as hash (uses :id as key)
         @account_data = Hash.new                # Account table as hash (uses :id  as key)
@@ -625,11 +624,6 @@ class Game
         item_class = model.class.item_class
         item = item_class.new(model, inventory, reset)
         add_global_item(item)
-        if @portal_data.dig(item.id)
-            # portal = AffectPortal.new( source: nil, target: item, level: 0, game: self )
-            # portal.overwrite_modifiers({ destination: @rooms[ @portal_data[id][:to_room_id] ] })
-            AffectPortal.new( item, @rooms[ @portal_data[item.id][:to_room_id] ] ).apply
-        end
         return item
     end
 

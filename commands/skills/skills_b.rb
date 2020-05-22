@@ -55,7 +55,7 @@ class SkillBash < Skill
     def attempt( actor, cmd, args, input )
         target = nil
         if args.length > 0
-            target = actor.target({ list: actor.room.occupants + actor.room.exits.values, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target({ list: actor.room.occupants + actor.room.exits, visible_to: actor }.merge( args.first.to_s.to_query )).first
         else
             target = actor.attacking
         end

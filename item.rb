@@ -263,6 +263,46 @@ class Light < Item
     end
 end
 
+class Portal < Item
+
+    attr_reader :exit
+
+    def initialize(model, parent_inventory, reset = nil)
+        super(model, parent_inventory, reset)
+        @exit = Exit.new(
+            nil,
+            nil,
+            Game.instance.rooms[model.to_room_id],
+            self.keyword_string,
+            model.name,
+            model.short_description,
+            model.door,
+            model.key_id,
+            model.closed,
+            model.locked,
+            model.pickproof,
+            model.passproof,
+            model.nonspatial,
+            model.reset_timer
+        )
+    end
+
+    def destroy
+        super
+        if @exit
+            @exit.destroy
+        end
+    end
+
+    def move(new_inventory)
+        super(new_inventory)
+        if @parent_inventory
+            room = new_inventory.owner.room
+        end
+    end
+
+end
+
 class Tattoo < Item
 
     attr_reader :brilliant

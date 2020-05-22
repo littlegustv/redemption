@@ -242,8 +242,10 @@ class Mobile < GameObject
 
         # wander
         if attacking.nil? && @position == :standing && rand(1..1200) == 1 && @wander_range > 0
-            if ( direction = @room.exits.reject{ |k, v| v.nil? }.keys.sample )
-                if ( destination = @room.exits[direction].destination ) && destination.area == @room.area
+            if ( exit = @room.exits.sample)
+                destination = exit.destination
+                direction = exit.direction
+                if direction && destination && destination.area == @room.area
                     move( direction )
                 end
             end
@@ -889,7 +891,12 @@ class Mobile < GameObject
     # this COULD be handled with events, but they are so varied that I thought I'd try it this way first...
     def can_move?( direction )
         direction = direction.to_direction
-        if (@room.sector.requires_flight || @room.exits[ direction ].destination.sector.requires_flight) && !self.affected?("flying")
+        destination = @room.exits.find{ |exit| exit.direction == direction }.destination
+        if !direction || !destination
+            output "Alas, you cannot go that way."
+            return false
+        end
+        if (@room.sector.requires_flight || destination.sector.requires_flight) && !self.affected?("flying")
             output "You can't fly!"
             return false
         else
@@ -905,28 +912,14 @@ class Mobile < GameObject
 
     def move( direction )
         direction = direction.to_direction
-        if @room.exits[ direction ].nil?
+        exit = @room.exits.find { |exit| exit.direction == direction }
+        if exit.nil?
             output "Alas, you cannot go that way."
             return false
         elsif not can_move? direction
-            # nothing
+            return false
         else
-            (@room.occupants - [self]).each_output "0<N> leaves #{direction.name}.", [self] unless self.affected? "sneak"
-            Game.instance.fire_event(self, :event_mobile_exit, { mobile: self, direction: direction })
-            old_room = @room
-            if @room.exits[direction].move( self )
-                (@room.occupants - [self]).each_output "0<N> has arrived.", [self] unless self.affected? "sneak"
-                (old_room.occupants - [self]).select { |t| t.position != :sleeping }.each do |t|
-                    Game.instance.fire_event( t, :event_observe_mobile_exit, {mobile: self, direction: direction } )
-                end
-                Game.instance.fire_event( self, :event_mobile_enter, { mobile: self } )
-                (@room.occupants - [self]).each do |t|
-                    Game.instance.fire_event( t, :event_observe_mobile_enter, {mobile: self} )
-                end
-                return true
-            else
-                return false
-            end
+            return exit.move( self )
         end
     end
 
@@ -947,6 +940,9 @@ class Mobile < GameObject
         if @attacking && @attacking.room != room
             stop_combat
         end
+        if self.responds_to_event(:event_mobile_exit)
+            Game.instance.fire_event(self, :event_mobile_exit, nil)
+        end
         @room&.mobile_exit(self)
         @room = room
         if @room
@@ -956,6 +952,12 @@ class Mobile < GameObject
             else
                 do_command "look"
             end
+        end
+        if responds_to_event(:event_mobile_enter)
+            Game.instance.fire_event( self, :event_mobile_enter, { mobile: self } )
+        end
+        (@room.occupants - [self]).reject{|t| !t.responds_to_event(:event_observe_mobile_enter) }.each do |t|
+            Game.instance.fire_event( t, :event_observe_mobile_enter, {mobile: self} )
         end
     end
 

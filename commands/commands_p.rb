@@ -13,9 +13,11 @@ class CommandPeer < Command
     def attempt( actor, cmd, args, input )
         if args.first.to_s == ""
             actor.output "Peer in which direction?"
-        elsif ( direction = actor.room.exits.select{ |k, v| k.to_s.fuzzy_match( args.first.to_s ) && !v.nil? }.keys.first )
-            actor.output "You peer #{direction}."
-            actor.output actor.room.exits[ direction ].destination.show( actor )
+        elsif ( target = Game.instance.target( { list: actor.room.exits }.merge( args.first.to_s.to_query ) ).first)
+            direction = target.direction
+            destination = target.destination
+            actor.output "You peer intently and see..."
+            actor.output destination.show( actor )
         else
             actor.output "There is no room in that direction."
         end

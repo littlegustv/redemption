@@ -22,8 +22,8 @@ class SpellFarsight < Spell
             # right there!
             actor.output target.room.occupants.map{ |occupant| "#{occupant}, #{describe(0, nil)}" }.join("\n")
             # each direction
-            [:north, :south, :east, :west, :up, :down].each do |direction|
-                actor.output "You scan intently #{direction.to_s}"
+            Game.instance.directions.each do |direction|
+                actor.output "You scan intently #{direction.name}"
                 actor.output scan( target.room, direction, 1 )
             end
         else
@@ -43,7 +43,7 @@ class SpellFarsight < Spell
         output = ""
         if distance >= 3
             return ""
-        elsif ( newroom = room.exits[ direction ].destination )
+        elsif ( newroom = room.exits.find { |exit| exit.direction == direction } )
             output += newroom.occupants.map{ |occupant| "#{occupant}, #{describe(distance, direction)}" }.join("\n")
             return output + scan( newroom, direction, distance + 1 )
         else

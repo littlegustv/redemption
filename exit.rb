@@ -3,7 +3,8 @@ class Exit < GameObject
 	attr_accessor :destination
     attr_accessor :closed
     attr_accessor :locked
-    attr_reader :origin
+    attr_accessor :origin
+    attr_reader :direction
     attr_reader :pair
     attr_reader :pickproof
 
@@ -28,7 +29,13 @@ class Exit < GameObject
         @id = id
 		@direction = direction
 		@origin = origin
+        if @origin
+            @origin.add_exit(self)
+        end
 		@destination = destination
+        if @destination
+            @destination.add_entrance(self)
+        end
 		@short_description = short_description.to_s
         @door = door
 		@key_id = key_id
@@ -46,6 +53,12 @@ class Exit < GameObject
 
     def destroy
         super
+        if @origin
+            @origin.remove_exit(self)
+        end
+        if @destination
+            @destination.remove_entrance(self)
+        end
     end
 
 	def add_pair( exit )
@@ -56,7 +69,10 @@ class Exit < GameObject
 	end
 
 	def to_s
-		@closed ? "{c(#{@direction.name}){x" : "#{@direction.name}"
+        if !@direction
+            return ""
+        end
+		return @closed ? "{c(#{@direction.name}){x" : "#{@direction.name}"
 	end
 
     def name
@@ -74,7 +90,11 @@ class Exit < GameObject
             @reset.activate if @reset
 			unless silent
 				actor.output "Click."
-				(actor.room.occupants - [actor]).each_output "0<N> locks the #{self.name} to the #{@direction.name}.", [actor]
+                if @direction
+	                (actor.room.occupants - [actor]).each_output "0<N> locks the #{self.name} to the #{@direction.name}.", [actor]
+                else
+                    (actor.room.occupants - [actor]).each_output "0<N> locks #{self.name}.", [actor]
+                end
 			end
 
 			@locked = true
@@ -94,7 +114,11 @@ class Exit < GameObject
             @reset.activate if @reset
 			unless silent
 				actor.output "Click."
-				(actor.room.occupants - [actor]).each_output "0<N> unlocks the #{self.name} to the #{@direction.name}.", [actor]
+                if @direction
+	                (actor.room.occupants - [actor]).each_output "0<N> unlocks the #{self.name} to the #{@direction.name}.", [actor]
+                else
+                    (actor.room.occupants - [actor]).each_output "0<N> unlocks #{self.name}.", [actor]
+                end
 			end
 
 			@locked = false
@@ -113,8 +137,8 @@ class Exit < GameObject
 		elsif @closed
             @reset.activate if @reset
 			unless silent
-				actor.output "You open the #{name}."
-				(actor.room.occupants - [actor]).each_output "0<N> opens #{short_description}", [actor]
+				actor.output "You open the #{self.name}."
+				(actor.room.occupants - [actor]).each_output "0<N> opens the #{self.name}", [actor]
 			end
 
 			@closed = false
@@ -154,9 +178,32 @@ class Exit < GameObject
             mobile.output "You can't pass through the #{self.name}."
             return false
 		else
+            portal = @direction.nil?
+            sneaking = mobile.affected?("sneak")
+            leave_string = ""
+            if portal
+                leave_string = "0<N> steps into 1<n>."
+                mobile.output("You step into 0<n>.", [self]) unless sneaking
+            else
+                leave_string = "0<N> leaves #{@direction.name}."
+            end
+            (mobile.room.occupants - [mobile]).each_output(leave_string, [mobile, self]) unless sneaking
+            old_room = mobile.room
             mobile.move_to_room( @destination )
-            return true
+            if old_room
+                old_room.occupants.select { |t| t.position != :sleeping && t.responds_to_event(:event_observe_mobile_use_exit) }.each do |t|
+                    Game.instance.fire_event( t, :event_observe_mobile_use_exit, {mobile: mobile, direction: direction } )
+                end
+            end
+            arrive_string = ""
+            if portal
+                arrive_string = "0<N> has arrived through 1<n>."
+            else
+                arrive_string = "0<N> has arrived."
+            end
+            (mobile.room.occupants - [mobile]).each_output arrive_string, [mobile, self] unless sneaking
 		end
+        return true
 	end
 
     def db_source_type_id

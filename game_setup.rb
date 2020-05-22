@@ -106,13 +106,7 @@ module GameSetup
         @stat_lookup = nil
 
         @inactive_player_source_affects = {}
-        @mobile_models.each do |model|
-            model.destroy
-        end
         @mobile_models = {}
-        @item_models.dup.each do |model|
-            model.destroy
-        end
         @item_models = {}
         @help_data = {}
 
@@ -195,7 +189,6 @@ module GameSetup
         load_reset_data
         load_account_data
         load_saved_player_data
-        load_portal_data
 
         load_max_ids
 
@@ -677,7 +670,6 @@ module GameSetup
                     row[:reset_timer],
                     row[:id]
                 )
-                @rooms[row[:room_id]].add_exit(direction, exit)
 
                 # adds the exit to this list with the key :inverse-direction_room-origin-id
                 #
@@ -730,9 +722,12 @@ module GameSetup
     protected def load_item_data
         log("Loading Item tables... ", false, 70)
         item_rows = @db[:item_base].to_hash(:id)
+        # rows that are 1:1 with items (or nil)
         weapon_rows = @db[:item_weapon].to_hash(:item_id)
         container_rows = @db[:item_container].to_hash(:item_id)
+        portal_rows = @db[:item_portal].to_hash(:item_id)
 
+        # rows with potentially many per item
         ability_rows = @db[:item_ability].to_hash_groups(:item_id)
         item_modifier_rows = @db[:item_modifier].to_hash_groups(:item_id)
         item_wear_locations = @db[:item_wear_location].to_hash_groups(:item_id)
@@ -741,6 +736,7 @@ module GameSetup
         item_rows.each do |id, row|
             row.merge!(weapon_rows[id]) if weapon_rows.dig(id)
             row.merge!(container_rows[id]) if container_rows.dig(id)
+            row.merge!(portal_rows[id]) if portal_rows.dig(id)
 
 
             row[:modifiers] = {}
@@ -767,12 +763,6 @@ module GameSetup
     protected def load_shop_data
         log("Loading Shop tables... ", false, 70)
         @shop_data = @db[:shop_base].to_hash(:mobile_id)
-        log( "done." )
-    end
-
-    protected def load_portal_data
-        log("Loading portal table... ", false, 70)
-        @portal_data = @db[:item_portal].to_hash(:item_id)
         log( "done." )
     end
 

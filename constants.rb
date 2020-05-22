@@ -549,6 +549,7 @@ module Constants
         ItemModel,
         WeaponModel,
         LightModel,
+        PortalModel,
     ]
 
     SOURCE_TYPE_ID_TO_SOURCE_CLASS = {
