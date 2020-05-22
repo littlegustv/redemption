@@ -17,12 +17,7 @@ class Mobile < GameObject
     attr_accessor :health
     attr_accessor :mana
     attr_accessor :movement
-<<<<<<< HEAD
 
-=======
-    
-    attr_reader :game
->>>>>>> df6685e8b1922b2d601b6203b13ec23dc35a9403
     attr_reader :race
     attr_reader :size
     attr_reader :mobile_class
@@ -199,7 +194,7 @@ class Mobile < GameObject
         group.invited.delete( self )
         group.joined << self
         @group = group
-        @group.joined.each_output "{C0<N>{x 0<have,has> joined the group!", [self]        
+        @group.joined.each_output "{C0<N>{x 0<have,has> joined the group!", [self]
     end
 
     def knows( ability )
@@ -726,10 +721,7 @@ class Mobile < GameObject
                 damage = 10
             end
         end
-        resistance = 0
-        if noun.element.resist_stat
-            resistance = stat(noun.element.resist_stat)
-        end
+        resistance = self.resistance(noun.element)
         # resistance = 0
         noun_name = noun_name_override || noun.name
         if resistance >= 100.0 # immune!
@@ -844,15 +836,15 @@ class Mobile < GameObject
         end
 
         (@room.occupants - [self]).each_output "0<N>'s head is shattered, and 0<p> brains splash all over you.", [self]
-        
+
         if killer
             if killer.group
-                killer.group.joined.each{ |k| 
+                killer.group.joined.each{ |k|
                     wealth = (@wealth / killer.group.joined.count).to_i
-                    k.xp( self ) 
+                    k.xp( self )
                     k.earn( wealth )
                     k.output("You get #{ wealth.to_worth } from the corpse of 0<n>.", [self])
-                } 
+                }
             else
                 killer.xp( self )
                 killer.earn( @wealth )
@@ -865,7 +857,7 @@ class Mobile < GameObject
             end
             killer.output("You offer your victory to #{@deity} who rewards you with 1 deity points.")
         end
-        
+
         stop_combat
         destroy
     end
@@ -1262,7 +1254,6 @@ You are #{@position.name}.)
     #  score_stat("str")     # => Str:       14(14) of 23
     def score_stat(s)
         s = s.to_stat
-
         base = @stats[s].to_i + @race.stat(s)
         if @stats
             base += @stats[s]
@@ -1284,14 +1275,11 @@ You are #{@position.name}.)
     end
 
     def resistance(element)
-        event = "event_get_#{element.name}_resist".to_sym
-        if responds_to_event(event)
-            resist_data = {value: 0}
-            Game.instance.fire_event(self, event, resist_data)
-            return resist_data[:value]
-        else
+        element = element.to_element
+        if !element.resist_stat
             return 0
         end
+        return self.stat(element.resist_stat)
     end
 
     def resistances

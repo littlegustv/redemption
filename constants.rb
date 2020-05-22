@@ -496,7 +496,6 @@ module Constants
         AffectHatchling,
         AffectHide,
         AffectIgnoreWounds,
-        AffectImmunity,
         AffectIndoors,
         AffectInfravision,
         AffectInvisibility,
@@ -518,7 +517,6 @@ module Constants
         AffectQuestMaster,
         AffectQuestVillain,
         AffectRegeneration,
-        AffectResistance,
         AffectScramble,
         AffectShackle,
         AffectShackleRune,
@@ -532,7 +530,6 @@ module Constants
         AffectStoneSkin,
         AffectStun,
         AffectTaunt,
-        AffectVulnerable,
         AffectWeaken,
         AffectZeal,
     ]

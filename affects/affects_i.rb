@@ -48,47 +48,6 @@ class AffectIgnoreWounds < Affect
 
 end
 
-class AffectImmunity < Affect
-
-    def initialize(source, target, level)
-        super(
-            source, # source
-            target, # target
-            level, # level
-            60, # duration
-            nil, # modifiers: nil
-            nil, # period: nil
-            true, # permanent: false
-            Visibility::HIDDEN, # visibility
-            true # savable
-        )
-        @data = {
-            element_id: -1, # this gets set from outside of this class
-            value: 1.0
-        }
-    end
-
-    def self.affect_info
-        return @info || @info = {
-            name: "immunity",
-            keywords: ["immunity"],
-            application_type: :global_unique_data,
-        }
-    end
-
-    def start
-        element = Game.instance.elements[@data[:element_id]]
-        event = "event_get_#{element.name}_resist".to_sym
-        add_event_listener(@target, event, :do_resist)
-    end
-
-    def do_resist(data)
-        data[:value] += @data[:value]
-    end
-
-end
-
-
 class AffectIndoors < Affect
 
     def initialize(source, target, level)
