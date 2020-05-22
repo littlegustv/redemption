@@ -100,7 +100,7 @@ class SpellBless < Spell
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
             AffectBless.new( nil, actor, actor.level ).apply
-        elsif ( target = Game.instance.target({ list: actor.items + @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = Game.instance.target({ list: actor.items + actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
             AffectBless.new( nil, target, actor.level ).apply
         else
             actor.output "There is no one here with that name."

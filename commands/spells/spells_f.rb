@@ -145,7 +145,7 @@ class SpellFly < Spell
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
             AffectFly.new( actor, actor, actor.level ).apply
-        elsif ( target = Game.instance.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = Game.instance.target({ list: actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
             AffectFly.new( actor, target, actor.level ).apply
         else
             actor.output "There is no one here with that name."
@@ -166,7 +166,7 @@ class SpellFrenzy < Spell
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
             AffectFrenzy.new( nil, actor, level || actor.level ).apply
-        elsif ( target = Game.instance.target({ list: @room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = Game.instance.target({ list: actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
             AffectFrenzy.new( nil, target, level || actor.level ).apply
         else
             actor.output "There is no one here with that name."

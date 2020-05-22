@@ -30,7 +30,9 @@ class SkillBackstab < Skill
 
     def do_backstab( actor, target )
         if target.condition_percent >= 50
-            actor.weapon_hit(target, actor.level, actor.level, nil, nil, "backstab")
+            hit_bonus = actor.level
+            damage_bonus = actor.level
+            actor.weapon_hit(target, hit_bonus, damage_bonus, nil, nil, "backstab")
 
         else
             actor.output "0<N> is hurt and suspicious... you can't sneak up.", [target]
