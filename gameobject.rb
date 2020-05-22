@@ -104,9 +104,9 @@ class GameObject
     end
 
     def keyword_string
-        if self.keywords
+        if self.keywords && self.keywords.size > 0
             key_strings = self.keywords.map(&:to_s)
-            return key_strings.reject{ |x| key_strings.any?{ |y| y.start_with?(x) } }.join(" ")
+            return key_strings.reject{ |x| key_strings.any?{ |y| x != y && y.start_with?(x) } }.join(" ")
         else
             return "(No keywords)".freeze
         end

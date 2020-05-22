@@ -66,17 +66,28 @@
     end
 
     def lore
-        output = "Object '#{ self.short_description }' is of type #{ self.type_name }.\n"
-        output += "Description: #{ @long_description }\n"
-        output += "Keywords '#{ @keyword_string }'\n"
+        output = self.pre_lore
+        output += self.post_lore
+        return output
+    end
+
+    def pre_lore
+        output = "Object '#{ self.name }' is of type #{ self.type_name }.\n"
+        output += "Description: #{ self.short_description }\n"
+        output += "Keywords '#{ self.keyword_string }'\n"
         output += "Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }."
+        return output
+    end
+
+    def post_lore
+        output = ""
         if wear_locations.size > 0
             output += "\nItem can #{wear_locations.map(&:display_string).to_list("or")}."
         end
         if @modifiers
-            output += "\n" + @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}#{stat.percent?}" }.join("\n")
+            output += "\n" + @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}#{stat.percent?}." }.join("\n")
         end
-        if affects.size > 0
+        if @affects && @affects.size > 0
             output += "\n" + show_affects(observer: nil, full: false)
         end
         return output
@@ -162,21 +173,10 @@ class Weapon < Item
 	end
 
     def lore
-        output = "Object '#{ self.short_description }' is of type #{ self.type_name }.\n"
-        output += "Description: #{ @long_description }\n"
-        output += "Keywords '#{ @keyword_string }'\n"
-        output += "Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }.\n"
-        output += "Damage is #{@dice_count}d#{@dice_sides} (#{@dice_count}-#{@dice_count*@dice_sides}, average #{@dice_count * (1 + @dice_sides) / 2}).\n"
-        output += "Attack speed is #{@genre.attack_speed}."
-        if wear_locations.size > 0
-            output += "\nItem can #{wear_locations.map(&:display_string).to_list("or")}."
-        end
-        if @modifiers
-            output += "\n" + @modifiers.map { |stat, value| "Object modifies #{stat.name} by #{value}#{stat.percent?}" }.join("\n")
-        end
-        if affects.size > 0
-            output += "\n" + show_affects(observer: nil, full: false)
-        end
+        output = self.pre_lore
+        output += "\nDamage is #{@dice_count}d#{@dice_sides} (#{@dice_count}-#{@dice_count*@dice_sides}, average #{@dice_count * (1 + @dice_sides) / 2})."
+        output += "\nAttack speed is #{@genre.attack_speed}."
+        output += self.post_lore
         return output
     end
 

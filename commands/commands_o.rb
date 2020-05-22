@@ -68,9 +68,18 @@ class CommandOutfit < Command
         if actor.level > 5
             actor.output "Find it yourself!"
         else
-            actor.wear( Game.instance.load_item( @@weapons[ actor.proficiencies.sample.name.to_sym ], actor.inventory ) ) if actor.free?( :weapon )     # weapon
+            genres = @@weapons.keys.map(&:to_genre) | actor.proficiencies
+            if genres.empty?
+                actor.output "Some people just can't be helped!"
+                return
+            elsif !actor.free?( :weapon )
+                actor.output "You don't seem to need a weapon. Maybe try removing one?"
+                return
+            end
+            item = @@weapons[genres.sample.symbol]
+            actor.wear( Game.instance.load_item( item, actor.inventory ) ) if actor.free?( :weapon )     # weapon
             actor.output "You have been outfitted by Gabriel."
         end
-    end 
+    end
 
 end
