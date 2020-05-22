@@ -163,9 +163,10 @@ class SpellPortal < Spell
         end
         if target
             portal = Game.instance.load_item( 1956, actor.room.inventory )
+            portal.set_destination(target.room)
             # remove auto-added affect
-            portal.remove_affect("portal")
-            AffectPortal.new( portal, target.room ).apply
+            # portal.remove_affect("portal")
+            # AffectPortal.new( portal, target.room ).apply
 
             actor.output "0<N> rises up before you.", [portal]
             (actor.room.occupants - [actor]).each_output "%N rises up from the ground.", [portal]
@@ -228,7 +229,7 @@ class SpellPurification < Spell
             actor.output "They aren't here."
             return false
         end
-        
+
         old_hp = target.health
         target.regen( 20 + level, 0, 0 )
         healed = target.health - old_hp

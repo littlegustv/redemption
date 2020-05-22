@@ -288,7 +288,10 @@ class AffectFollow < Affect
 
     def do_follow( data )
         if data[:mobile] == @source
-            @target.do_command data[:direction].name
+            exit = data[:exit]
+            if exit
+                exit.move(@target)
+            end
         end
     end
 

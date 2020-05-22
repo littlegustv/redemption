@@ -516,7 +516,6 @@ module Constants
         AffectPlague,
         AffectPoisoned,
         AffectPoisonWeapon,
-        AffectPortal,
         AffectProtectionEvil,
         AffectProtectionGood,
         AffectProtectionNeutral,

@@ -272,7 +272,7 @@ class Portal < Item
         @exit = Exit.new(
             nil,
             nil,
-            Game.instance.rooms[model.to_room_id],
+            Game.instance.rooms.dig(model.to_room_id),
             self.keyword_string,
             model.name,
             model.short_description,
@@ -299,6 +299,10 @@ class Portal < Item
         if @parent_inventory
             room = new_inventory.owner.room
         end
+    end
+
+    def set_destination(room)
+        @exit.set_destination(room)
     end
 
 end

@@ -192,7 +192,7 @@ class Exit < GameObject
             mobile.move_to_room( @destination )
             if old_room
                 old_room.occupants.select { |t| t.position != :sleeping && t.responds_to_event(:event_observe_mobile_use_exit) }.each do |t|
-                    Game.instance.fire_event( t, :event_observe_mobile_use_exit, {mobile: mobile, direction: direction } )
+                    Game.instance.fire_event( t, :event_observe_mobile_use_exit, {mobile: mobile, exit: self } )
                 end
             end
             arrive_string = ""
@@ -208,6 +208,16 @@ class Exit < GameObject
 
     def db_source_type_id
         return 7
+    end
+
+    def set_destination(destination)
+        if @destination
+            @destination.remove_entrance(self)
+        end
+        @destination = destination
+        if @destination
+            @destination.add_entrance(self)
+        end
     end
 
 end
