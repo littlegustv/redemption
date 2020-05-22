@@ -137,6 +137,52 @@ class AffectAnimalGrowth < Affect
     end
 end
 
+class AffectAnoint < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            120, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Visibility::NORMAL, # visibility
+            true # savable
+        )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "anoint",
+            keywords: ["anoint"],
+            application_type: :global_single,
+        }
+    end
+
+    def start
+        add_event_listener(@target, :event_on_deal_damage, :do_lifesteal)
+        add_event_listener(@target, :event_calculate_receive_damage, :do_amplify)
+    end
+
+    def send_start_messages
+        @target.room.occupants.each_output "0<N> 0<prepare,prepares> 0<p> for some good work.", @target
+    end
+
+    def send_complete_messages
+        @target.room.occupants.each_output "0<N> 0<are/is> no longer so actively holy.", @target
+    end
+
+    def do_lifesteal( data )
+        @target.regen( data[:damage] * 0.1, 0, 0 )
+    end
+
+    def do_amplify( data )
+        data[:damage] *= 1.1
+    end
+end
+
 class AffectArmor < Affect
 
     def initialize(source, target, level)

@@ -199,6 +199,49 @@ class SpellProtection < Spell
 
 end
 
+class SpellPurification < Spell
+
+    def initialize
+        super(
+            name: "purification",
+            keywords: ["purification"],
+            lag: 0.25,
+        )
+    end
+
+    def cast( actor, cmd, args, input )
+        if args.first.nil? && actor.attacking.nil?
+            actor.output "Cast the spell on who, now?"
+        else
+            super
+        end
+    end
+
+    def attempt( actor, cmd, args, input, level )
+        target = nil
+        if args.first.nil? && actor.attacking
+            target = actor.attacking
+        elsif !args.first.nil?
+            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        end
+        if !target
+            actor.output "They aren't here."
+            return false
+        end
+        
+        old_hp = target.health
+        target.regen( 20 + level, 0, 0 )
+        healed = target.health - old_hp
+
+        log("Healed #{healed}, #{old_hp} #{target.health}")
+
+        target.target({ list: target.room.occupants, attacking: target }).each do |splash_victim|
+            splash_victim.receive_damage( actor, healed, :divine_power )
+        end
+        return true
+    end
+end
+
 class SpellPyrotechnics < Spell
 
     def initialize

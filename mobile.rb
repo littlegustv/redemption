@@ -399,8 +399,9 @@ class Mobile < GameObject
         # max_mana = nil
         # max_movement = nil
         if responds_to_event(:event_calculate_regeneration)
-            data = { hp: hp, mp: mp, mv: mv }
+            data = { hp: hp, mp: mp, mv: mv, mobile: self }
             Game.instance.fire_event( self, :event_calculate_regeneration, data )
+            Game.instance.fire_event( self.room, :event_calculate_regeneration, data )
             hp, mp, mv = data.values
         end
 
@@ -423,6 +424,7 @@ class Mobile < GameObject
                 @movement = @max_movement
             end
         end
+
         if @health == @max_health && @mana == @max_mana && @movement == @max_movement
             Game.instance.remove_regen_mobile(self)
         end

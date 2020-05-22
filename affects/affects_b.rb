@@ -252,6 +252,47 @@ class AffectBlur < Affect
 
 end
 
+class AffectBolster < Affect
+
+    def initialize(source, target, level)
+        super(
+            source, # source
+            target, # target
+            level, # level
+            60, # duration
+            nil, # modifiers: nil
+            3, # period: nil
+            false, # permanent: false
+            Visibility::NORMAL, # visibility
+            true # savable
+        )
+    end
+
+    def self.affect_info
+        return @info || @info = {
+            name: "bolster",
+            keywords: ["bolster"],
+            application_type: :global_single,
+        }
+    end
+
+    def send_complete_messages
+        @target.room.occupants.each_output "0<N> 0<are,is> no longer so resolutely holy.", @target
+    end
+
+    def start
+        old_hp = @target.health
+        @target.room.occupants.each_output "0<N> 0<bolster,bolsters> 0<p> faith!"
+        @target.regen( 3 * @target.level + 25, 0, 0 )
+        @healed = @target.health - old_hp
+    end
+
+    def periodic
+        @target.output "Some divine protection leaves you."
+        @target.receive_damage( @target, 1.5 * @healed / 20, :divine_power )
+    end
+end
+
 class AffectBurstRune < Affect
 
 

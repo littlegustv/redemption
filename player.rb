@@ -144,7 +144,7 @@ class Player < Mobile
     end
 
     def prompt
-        "{c<#{@health}/#{max_health}hp #{@mana}/#{max_mana}mp #{@movement}/#{max_movement}mv>{x"
+        "{c<#{@health.to_i}/#{max_health}hp #{@mana.to_i}/#{max_mana}mp #{@movement.to_i}/#{max_movement}mv>{x"
     end
 
     def send_to_client
