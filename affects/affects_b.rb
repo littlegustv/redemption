@@ -282,7 +282,7 @@ class AffectBolster < Affect
 
     def start
         old_hp = @target.health
-        @target.room.occupants.each_output "0<N> 0<bolster,bolsters> 0<p> faith!"
+        @target.room.occupants.each_output "0<N> 0<bolster,bolsters> 0<p> faith!", @target
         @target.regen( 3 * @target.level + 25, 0, 0 )
         @healed = @target.health - old_hp
     end
