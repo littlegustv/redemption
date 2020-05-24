@@ -40,7 +40,7 @@ class SpellTaunt < Spell
     def attempt( actor, cmd, args, input, level )
         target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
         if target
-             AffectTaunt.new( actor, target, actor.level ).apply
+             AffectTaunt.new( target, actor, actor.level ).apply
             target.start_combat( actor ) if target != actor
             return true
         else

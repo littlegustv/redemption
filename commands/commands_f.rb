@@ -78,7 +78,7 @@ class CommandFollow < Command
         if args.first.nil?
             actor.remove_affect("follow")
         elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            AffectFollow.new( target, actor, 1 ).apply
+            AffectFollow.new( actor, target, 1 ).apply
         else
             actor.output "They aren't here"
         end

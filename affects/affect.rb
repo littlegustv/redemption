@@ -25,8 +25,8 @@ class Affect
     end
 
     def initialize(
-        source,
         target,
+        source,
         level,
         duration,
         modifiers,
@@ -35,8 +35,8 @@ class Affect
         visibility,
         savable
     )
-        @source = source                        # GameObject that is the source of this affect - prefer nil when possible.
         @target = target                        # The GameObjects that this affect is attached to.
+        @source = source                        # GameObject that is the source of this affect - prefer nil when possible.
         @keywords = keywords
         @name = name
         @level = level

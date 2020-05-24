@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectWeaken < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             69 + level, # duration
             { strength: -10 }, # modifiers: nil

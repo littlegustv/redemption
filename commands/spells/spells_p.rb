@@ -12,7 +12,7 @@ class SpellPassDoor < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectPassDoor.new( nil, actor, actor.level ).apply
+        AffectPassDoor.new( actor, nil, actor.level ).apply
     end
 
 end
@@ -31,8 +31,8 @@ class SpellPhantasmMonster < Spell
     def attempt( actor, cmd, args, input, level )
         actor.output "You call forth phantasmic forces!"
         mob = Game.instance.load_mob( 1844, actor.room )
-        AffectFollow.new( actor, mob, 1 ).apply
-        AffectCharm.new( actor, mob, actor.level ).apply
+        AffectFollow.new( mob, actor, 1 ).apply
+        AffectCharm.new( mob, actor, actor.level ).apply
     end
 
 end
@@ -102,7 +102,7 @@ class SpellPlague < Spell
             actor.output "They aren't here."
             return false
         end
-        AffectPlague.new( actor, target, actor.level ).apply
+        AffectPlague.new( target, actor, actor.level ).apply
         target.start_combat( actor )
         return true
     end
@@ -139,7 +139,7 @@ class SpellPoison < Spell
             actor.output "They aren't here."
             return false
         end
-        AffectPoisoned.new( actor, target, actor.level ).apply
+        AffectPoisoned.new( target, actor, actor.level ).apply
         target.start_combat( actor )
         return true
     end
@@ -187,11 +187,11 @@ class SpellProtection < Spell
 
     def attempt( actor, cmd, args, input, level )
         if args.first.to_s.fuzzy_match("good")
-            AffectProtectionGood.new( nil, actor, actor.level ).apply
+            AffectProtectionGood.new( actor, nil, actor.level ).apply
         elsif args.first.to_s.fuzzy_match("neutral")
-            AffectProtectionNeutral.new( nil, actor, actor.level ).apply
+            AffectProtectionNeutral.new( actor, nil, actor.level ).apply
         elsif args.first.to_s.fuzzy_match("evil")
-            AffectProtectionEvil.new( nil, actor, actor.level ).apply
+            AffectProtectionEvil.new( actor, nil, actor.level ).apply
         end
     end
 

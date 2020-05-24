@@ -12,7 +12,7 @@ class SkillAnoint < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        AffectAnoint.new( nil, actor, actor.level ).apply
+        AffectAnoint.new( actor, actor, actor.level ).apply
     end
 
 end
@@ -37,7 +37,7 @@ class SkillAppraise < Skill
             if target.affected? "appraised"
             	actor.output "%N has already been appraised.", [target]
             else
-            	# Affect.new( name: "appraised", permanent: true, keywords: ["appraised"], target: target, source: nil ).apply
+            	
             	target.cost *= 1.15
                 actor.room.occupants.each_output "0<N> glitters and shines more brightly as 1<n> appraise1<,s> it.", [target, actor]
             end

@@ -610,7 +610,7 @@ class Game
         mob = Mobile.new( model, room, reset )
         add_global_mobile(mob)
         if @shop_data.dig(model.id)
-            AffectShopkeeper.new( mob, mob, 0 ).apply(true)
+            AffectShopkeeper.new( mob ).apply(true)
         end
         return mob
     end

@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectGiantStrength < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             120, # duration
             { strength: 1 + level / 12 }, # modifiers: nil
@@ -35,10 +35,10 @@ end
 
 class AffectGlowing < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             level * 60, # duration
             nil, # modifiers: nil
@@ -77,10 +77,10 @@ end
 
 class AffectGrandeur < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -120,10 +120,10 @@ end
 
 class AffectGuard < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil

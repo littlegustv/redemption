@@ -12,7 +12,7 @@ class SpellKarma < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectKarma.new( nil, actor, actor.level ).apply
+        AffectKarma.new( actor, nil, actor.level ).apply
     end
 
 end

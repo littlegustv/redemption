@@ -12,7 +12,7 @@ class SpellDarkness < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectDarkness.new( actor, actor.room, level ).apply
+        AffectDarkness.new( actor.room, actor, level ).apply
     end
 
 end
@@ -81,7 +81,7 @@ class SpellDemonFire < Spell
         target.receive_damage(actor, 100, :torments)
         actor.alignment = [ actor.alignment - 50, -1000 ].max
 
-        AffectCurse.new( nil, target, actor.level ).apply
+        AffectCurse.new( target, nil, actor.level ).apply
 
         return true
     end

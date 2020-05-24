@@ -30,7 +30,7 @@ class SpellWeaken < Spell
             actor.output "They aren't here."
             return false
         end
-        AffectWeaken.new( actor, target, actor.level ).apply
+        AffectWeaken.new( target, actor, actor.level ).apply
         target.start_combat( actor )
         return true
     end

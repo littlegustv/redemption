@@ -128,6 +128,6 @@ class SkillBolster < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        AffectBolster.new( nil, actor, actor.level ).apply
+        AffectBolster.new( actor, actor, actor.level ).apply
     end
 end

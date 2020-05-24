@@ -408,7 +408,7 @@ module GameSave
             affect_class = Game.instance.affect_class_with_id(affect_row[:affect_id])
             if affect_class
                 source = find_affect_source(affect_row, player, player.items)
-                affect = affect_class.new(source, player, affect_row[:level])
+                affect = affect_class.new(player, source, affect_row[:level])
                 affect.set_duration(affect_row[:duration])
                 modifiers = {}
                 modifier_rows = all_modifier_rows.select{ |row| row[:saved_player_affect_id] == affect_row[:id] }
@@ -435,7 +435,7 @@ module GameSave
                     # portal??
                     # if affect_row[:name] == "portal"
                         # need to make portal use standard initialize args
-                    affect = affect_class.new(source, item, affect_row[:level])
+                    affect = affect_class.new(item, source, affect_row[:level])
                     modifiers = {}
                     modifier_rows = all_item_modifier_rows.select{ |row| row[:saved_player_item_affect_id] == affect_row[:id] }
                     modifier_rows.each do |modifier_row|

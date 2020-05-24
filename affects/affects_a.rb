@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectAggressive < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             0, # level
             0, # duration
             nil, # modifiers
@@ -50,10 +50,10 @@ end
 
 class AffectAlarmRune < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             120, # duration
             nil, # modifiers: nil
@@ -103,10 +103,10 @@ end
 
 class AffectAnimalGrowth < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             120, # duration
             {
@@ -139,10 +139,10 @@ end
 
 class AffectAnoint < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             120, # duration
             nil, # modifiers: nil
@@ -185,10 +185,10 @@ end
 
 class AffectArmor < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             300, # duration
             { armor_class: -20 }, # modifiers: nil

@@ -19,7 +19,7 @@ class SpellCalm < Spell
             entity.remove_affect "frenzy"
             entity.remove_affect "taunt"
             entity.stop_combat
-            AffectCalm.new( nil, entity, actor.level ).apply
+            AffectCalm.new( entity, nil, actor.level ).apply
         end
     end
 
@@ -215,8 +215,8 @@ class SpellCharmPerson < Spell
     def attempt( actor, cmd, args, input, level )
         if ( target = Game.instance.target( { list: actor.room.occupants - [actor], visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
             if rand(1..10) <= 5
-                AffectFollow.new( actor, target, 1 ).apply
-                AffectCharm.new( actor, target, actor.level ).apply
+                AffectFollow.new( target, actor, 1 ).apply
+                AffectCharm.new( target, actor, actor.level ).apply
             else
                 actor.output "You failed."
                 target.start_combat( actor )
@@ -240,7 +240,7 @@ class SpellCloakOfMind < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectCloakOfMind.new( nil, actor, actor.level ).apply
+        AffectCloakOfMind.new( actor, nil, actor.level ).apply
     end
 
 end
@@ -257,7 +257,7 @@ class SpellCloudkill < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectCloudkill.new( actor, actor.room, actor.level ).apply
+        AffectCloudkill.new( actor.room, actor, actor.level ).apply
     end
 
 end
@@ -314,7 +314,7 @@ class SpellContinualLight < Spell
             item = Game.instance.load_item( 1952, actor.inventory )
             actor.room.occupants.each_output "0<N> twiddles 0<p> thumbs and 1<n> appears.", [actor, item]
         elsif ( target = Game.instance.target( { list: actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
-            AffectGlowing.new( nil, target, actor.level ).apply
+            AffectGlowing.new( target, nil, actor.level ).apply
         else
             actor.output "You don't see that here."
         end
@@ -590,7 +590,7 @@ class SpellCurse < Spell
             actor.output "They aren't here."
             return false
         end
-        AffectCurse.new( actor, target, actor.level ).apply
+        AffectCurse.new( target, actor, actor.level ).apply
         target.start_combat( actor )
         return true
     end

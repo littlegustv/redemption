@@ -40,7 +40,7 @@ class SpellGiantStrength < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectGiantStrength.new( nil, actor, level || actor.level ).apply
+        AffectGiantStrength.new( actor, nil, level || actor.level ).apply
     end
 
 end
@@ -56,6 +56,6 @@ class SpellGrandeur < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectGrandeur.new( nil, actor, actor.level ).apply
+        AffectGrandeur.new( actor, nil, actor.level ).apply
     end
 end

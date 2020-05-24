@@ -16,7 +16,7 @@ class SpellOracle < Spell
         	actor.output "There already is an oracle in this room."
         else
         	actor.room.occupants.each_output "0<N> 0<,has> create0<,ed> an oracle of benefit.", [actor]
-        	AffectOracle.new( actor, actor.room, actor.level ).apply
+        	AffectOracle.new( actor.room, actor, actor.level ).apply
         end
     end
 end

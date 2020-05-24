@@ -4,10 +4,10 @@ require_relative 'affect.rb'
 
 class AffectDark < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -50,10 +50,10 @@ end
 
 class AffectDarkness < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             9 + level, # duration
             nil, # modifiers: nil
@@ -101,10 +101,10 @@ end
 
 class AffectDarkvision < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -127,10 +127,10 @@ end
 
 class AffectDeathRune < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             120, # duration
             nil, # modifiers: nil
@@ -179,10 +179,10 @@ end
 
 class AffectDetectInvisibility < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             level * 60, # duration
             nil, # modifiers: nil

@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectCalm < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             { hit_roll: -5, damage_roll: -5 }, # modifiers: nil
@@ -32,10 +32,10 @@ end
 
 class AffectCharm < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             210 + level * 10, # duration
             nil, # modifiers: nil
@@ -76,10 +76,10 @@ end
 
 class AffectChilled < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             30, # duration
             { strength: -2 }, # modifiers: nil
@@ -116,10 +116,10 @@ end
 
 class AffectCloakOfMind < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             27 * level * 3, # duration
             nil, # modifiers: nil
@@ -164,10 +164,10 @@ end
 
 class AffectCloudkill < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             70 + level, # duration
             nil, # modifiers: nil
@@ -232,10 +232,10 @@ end
 
 class AffectCorroded < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             30, # duration
             { armor_class: 10 }, # modifiers: nil
@@ -272,10 +272,10 @@ end
 
 class AffectCorrosiveWeapon < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -308,7 +308,7 @@ class AffectCorrosiveWeapon < Affect
             damage = dice(1, 1 + (@target.level / 7))
             data[:target].receive_damage(data[:source], damage, :corrosive_weapon, true)
             if dice(1, 100) <= @data[:chance]
-                AffectCorroded.new(data[:source], data[:target], @target.level).apply
+                AffectCorroded.new(data[:target], data[:source], @target.level).apply
             end
         end
     end
@@ -317,10 +317,10 @@ end
 
 class AffectCurse < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             69 + level, # duration
             { hit_roll: -5 }, # modifiers: nil

@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectPassDoor < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             9 + level, # duration
             nil, # modifiers: nil
@@ -36,10 +36,10 @@ end
 
 class AffectPlague < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             180, # duration
             { strength: -1 }, # modifiers: nil
@@ -73,7 +73,7 @@ class AffectPlague < Affect
         @target.receive_damage(nil, 10, :plague, true, true)
 
         occupants.each do |occupant|
-            AffectPlague.new( nil, occupant, @level ).apply if rand(1...100) < 50
+            AffectPlague.new( occupant, nil, @level ).apply if rand(1...100) < 50
         end
     end
 
@@ -88,10 +88,10 @@ end
 
 class AffectPoisoned < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             180, # duration
             { strength: -1 }, # modifiers: nil
@@ -136,10 +136,10 @@ end
 
 class AffectPoisonWeapon < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -168,7 +168,7 @@ class AffectPoisonWeapon < Affect
     def do_flag(data)
         if data[:target].active
             if dice(1, 100) <= @data[:chance]
-                aff = AffectPoisoned.new(data[:source], data[:target], @target.level)
+                aff = AffectPoisoned.new(data[:target], data[:source], @target.level)
                 aff.set_duration(60)
                 aff.apply
             end
@@ -178,10 +178,10 @@ end
 
 class AffectProtectionEvil < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             600, # duration
             { saves: -1 }, # modifiers: nil
@@ -224,10 +224,10 @@ end
 
 class AffectProtectionGood < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             600, # duration
             { saves: -1 }, # modifiers: nil
@@ -270,10 +270,10 @@ end
 
 class AffectProtectionNeutral < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             600, # duration
             { saves: -1 }, # modifiers: nil

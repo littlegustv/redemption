@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectTaunt < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             147 + level * 3, # duration
             {damage_roll: 7, hit_roll: 7 }, # modifiers: nil

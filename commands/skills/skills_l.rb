@@ -12,7 +12,7 @@ class SkillLair < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        AffectLair.new( actor, actor.room, actor.level ).apply
+        AffectLair.new( actor.room, actor, actor.level ).apply
     end
 
 end

@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectMinimation < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             level * 60, # duration
             nil, # modifiers: nil
@@ -45,10 +45,10 @@ end
 
 class AffectMirrorImage < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             120, # duration
             nil, # modifiers: nil

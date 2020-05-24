@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectFireBlind < AffectBlind
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -37,10 +37,10 @@ end
 
 class AffectFireRune < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             90 + level * 10, # duration
             nil, # modifiers: nil
@@ -88,10 +88,10 @@ end
 
 class AffectFlamingWeapon < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -124,7 +124,7 @@ class AffectFlamingWeapon < Affect
             damage = dice(1, 1 + (@target.level / 7))
             data[:target].receive_damage(data[:source], damage, :flaming_weapon, true)
             if dice(1, 100) <= @data[:chance]
-                AffectFireBlind.new(data[:source], data[:target], @target.level).apply
+                AffectFireBlind.new(data[:target], data[:source], @target.level).apply
             end
         end
     end
@@ -133,10 +133,10 @@ end
 
 class AffectFloodingWeapon < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -169,7 +169,7 @@ class AffectFloodingWeapon < Affect
             damage = dice(1, 1 + (@target.level / 7))
             data[:target].receive_damage(data[:source], damage, :flooding_weapon, true)
             if dice(1, 100) <= @data[:chance]
-                AffectFlooded.new(data[:source], data[:target], @target.level).apply
+                AffectFlooded.new(data[:target], data[:source], @target.level).apply
             end
         end
     end
@@ -178,10 +178,10 @@ end
 
 class AffectFlooded < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             30, # duration
             { attack_speed: -1, dexterity: -1 }, # modifiers: nil
@@ -216,10 +216,10 @@ end
 
 class AffectFly < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             69 + level, # duration
             nil, # modifiers: nil
@@ -250,10 +250,10 @@ end
 
 class AffectFollow < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             0, # duration
             nil, # modifiers: nil
@@ -299,10 +299,10 @@ end
 
 class AffectFrenzy < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             90 + level * 10, # duration
             {
@@ -338,10 +338,10 @@ end
 class AffectFrostWeapon < Affect
 
 
-        def initialize(source, target, level)
-            super(
-                source, # source
-                target, # target
+    def initialize(target, source = nil, level = 0)
+        super(
+            target, # target
+            source, # source
                 level, # level
                 60, # duration
                 nil, # modifiers: nil
@@ -374,7 +374,7 @@ class AffectFrostWeapon < Affect
                 damage = dice(1, 1 + (@target.level / 7))
                 data[:target].receive_damage(data[:source], damage, :frost_weapon, true)
                 if dice(1, 100) <= @data[:chance]
-                    AffectChilled.new(data[:source], data[:target], @target.level).apply
+                    AffectChilled.new(data[:target], data[:source], @target.level).apply
                 end
             end
         end

@@ -13,10 +13,10 @@ class AffectKarma < Affect
         damage_roll: "karma is more deadly!"
     }
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             level * 60, # duration
             nil, # modifiers: nil
@@ -50,10 +50,10 @@ end
 
 class AffectKiller < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             1, # duration
             nil, # modifiers: nil

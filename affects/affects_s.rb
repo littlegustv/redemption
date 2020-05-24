@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectScramble < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             9 + level, # duration
             nil, # modifiers: nil
@@ -53,10 +53,10 @@ end
 
 class AffectShackle < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             5, # duration
             nil, # modifiers: nil
@@ -98,10 +98,10 @@ end
 
 class AffectShackleRune < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             120, # duration
             nil, # modifiers: nil
@@ -134,7 +134,7 @@ class AffectShackleRune < Affect
         if data[:mobile] == @source # || rand(0..100) < 50
             data[:mobile].output "You sense the power of the room's rune and avoid it!"
         else
-            AffectShackle.new( @source, data[:mobile], @source.level, Game.instance ).apply
+            AffectShackle.new( data[:mobile], @source, @source.level ).apply
         end
     end
 
@@ -146,10 +146,10 @@ end
 
 class AffectShield < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             300, # duration
             { resist_pierce: 5 }, # modifiers: nil
@@ -180,10 +180,10 @@ end
 
 class AffectShocked < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             6, # duration
             { failure: 10 }, # modifiers: nil
@@ -215,10 +215,10 @@ end
 
 class AffectShockingWeapon < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -251,7 +251,7 @@ class AffectShockingWeapon < Affect
             damage = dice(1, 1 + (@target.level / 7))
             data[:target].receive_damage(data[:source], damage, :shocking_weapon, true)
             if dice(1, 100) <= @data[:chance]
-                AffectCorroded.new(data[:source], data[:target], @target.level).apply
+                AffectCorroded.new(data[:target], data[:source], @target.level).apply
             end
         end
     end
@@ -260,10 +260,10 @@ end
 
 class AffectShopkeeper < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -286,10 +286,10 @@ end
 
 class AffectSneak < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             level * 60, # duration
             nil, # modifiers: nil
@@ -320,10 +320,10 @@ end
 
 class AffectSleep < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             15, # duration
             nil, # modifiers: nil
@@ -363,10 +363,10 @@ end
 
 class AffectSlow < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             9 + level, # duration
             { attack_speed: -1 }, # modifiers: nil
@@ -397,10 +397,10 @@ end
 
 class AffectStoneSkin < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             300, # duration
             { resist_pierce: 5 }, # modifiers: nil
@@ -431,10 +431,10 @@ end
 
 class AffectStun < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             2, # duration
             { failure: 50 }, # modifiers: nil

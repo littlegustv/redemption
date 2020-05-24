@@ -47,7 +47,7 @@ class SpellHaste < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectHaste.new( nil, actor, level || actor.level ).apply
+        AffectHaste.new( actor, nil, level || actor.level ).apply
     end
 
 end
@@ -138,8 +138,8 @@ class SpellHolyWord < Spell
         if target
             target.output "A warm feeling runs through your body."
             target.regen 100, 0, 0
-            AffectBless.new( nil, target, actor.level ).apply
-            AffectFrenzy.new( nil, target, actor.level ).apply
+            AffectBless.new( target, nil, actor.level ).apply
+            AffectFrenzy.new( target, nil, actor.level ).apply
         else
             actor.output "There is no one here with that name."
         end

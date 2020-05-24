@@ -1,18 +1,18 @@
 require_relative 'affect.rb'
 
 class AffectQuestItem < Affect
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-                source, # source
-                target, # target
-                level, # level
-                60 * 5, # duration
-                nil, # modifiers: nil
-                nil, # period: nil
-                false, # permanent: false
-                Visibility::PASSIVE, # visibility
-                false # savable
-            )
+            target, # target
+            source, # source
+            level, # level
+            60 * 5, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Visibility::PASSIVE, # visibility
+            false # savable
+        )
         areas = Game.instance.areas.values.select{ |area| area.questable && area.min < @target.level && area.max > @target.level }
         @room = areas.map{ |area| area.rooms }.flatten.sample
         @item = Game.instance.load_item( [2089,2090,2091].sample, @room.inventory )
@@ -20,7 +20,7 @@ class AffectQuestItem < Affect
     end
 
     def start
-        add_event_listener(@item, :event_calculate_aura_description, :do_quest_flag)
+        add_event_listener(@item, :event_calculate_long_auras, :do_quest_flag)
         add_event_listener(@target, :event_get_item, :do_quest)
         add_event_listener(@target, :event_complete_quest, :do_quest_complete)
     end
@@ -70,25 +70,25 @@ class AffectQuestItem < Affect
 end
 
 class AffectQuestVillain < Affect
-    def initialize(source, target, level)
-	    super(
-	            source, # source
-	            target, # target
-	            level, # level
-	            60 * 5, # duration
-	            nil, # modifiers: nil
-	            nil, # period: nil
-	            false, # permanent: false
-	            Visibility::PASSIVE, # visibility
-	            false # savable
-	        )
+    def initialize(target, source = nil, level = 0)
+        super(
+            target, # target
+            source, # source
+            level, # level
+            60 * 5, # duration
+            nil, # modifiers: nil
+            nil, # period: nil
+            false, # permanent: false
+            Visibility::PASSIVE, # visibility
+            false # savable
+        )
 	    areas = Game.instance.areas.values.select{ |area| area.questable && area.min < @target.level && area.max > @target.level }
 		@villain = areas.map(&:mobiles).flatten.select{ |mob| mob.level < @target.level + 5 && mob.level > @target.level - 5 }.sample
         @completed = false
 	end
 
 	def start
-        add_event_listener(@villain, :event_calculate_aura_description, :do_quest_flag)
+        add_event_listener(@villain, :event_calculate_long_auras, :do_quest_flag)
 		add_event_listener(@villain, :event_on_die, :do_quest)
         add_event_listener(@target, :event_complete_quest, :do_quest_complete)
     end
@@ -143,10 +143,10 @@ end
 
 class AffectQuestMaster < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil

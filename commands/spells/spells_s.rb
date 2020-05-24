@@ -30,7 +30,7 @@ class SpellScramble < Spell
             actor.output "There is no one here with that name."
             return false
         end
-        AffectScramble.new( actor, target, actor.level ).apply
+        AffectScramble.new( target, actor, actor.level ).apply
         target.start_combat( actor )
         return true
     end
@@ -55,7 +55,7 @@ class SpellShackleRune < Spell
     	else
     		actor.output "You place a shackle on the ground preventing easy movement."
             (actor.room.occupants - [actor]).each_output "0<N> places a strange rune on the ground.", [actor]
-    		AffectShackleRune.new( actor, actor.room, actor.level ).apply
+    		AffectShackleRune.new( actor.room, actor, actor.level ).apply
             return true
     	end
     end
@@ -74,7 +74,7 @@ class SpellShield < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectShield.new( nil, actor, actor.level ).apply
+        AffectShield.new( actor, nil, actor.level ).apply
     end
 
 end
@@ -128,7 +128,7 @@ class SpellSleep < Spell
 
     def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            AffectSleep.new( nil, target, actor.level ).apply
+            AffectSleep.new( target, nil, actor.level ).apply
         else
             actor.output "There is no one here with that name."
         end
@@ -166,7 +166,7 @@ class SpellSlow < Spell
             actor.output "They aren't here."
             return false
         end
-        AffectSlow.new( actor, target, actor.level ).apply
+        AffectSlow.new( target, actor, actor.level ).apply
         target.start_combat( actor )
         return true
     end
@@ -185,7 +185,7 @@ class SpellStoneSkin < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        AffectStoneSkin.new( nil, actor, actor.level ).apply
+        AffectStoneSkin.new( actor, nil, actor.level ).apply
     end
 
 end
@@ -208,7 +208,7 @@ class SpellStun < Spell
             target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
         end
         if target
-            AffectStun.new( nil, target, actor.level ).apply
+            AffectStun.new( target, nil, actor.level ).apply
             target.start_combat( actor )
             return true
         else

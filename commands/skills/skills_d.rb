@@ -67,7 +67,7 @@ class SkillDirtKick < Skill
     def do_dirtkick( actor, target )
         if not target.affected? "blind"
             actor.room.occupants.each_output "0<N> is blinded by the dirt in 0<p> eyes!", [target]
-            AffectBlind.new( actor, target, actor.level ).apply
+            AffectBlind.new( target, actor, actor.level ).apply
             target.receive_damage(actor, 5, :dirt_kick, true)
         else
             target.output "They are already blind!"

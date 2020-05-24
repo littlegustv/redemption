@@ -2,10 +2,10 @@ require_relative 'affect.rb'
 
 class AffectBarkSkin < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             300, # duration
             { resist_bash: 5 }, # modifiers: nil
@@ -38,10 +38,10 @@ end
 
 class AffectBerserk < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             {
@@ -101,10 +101,10 @@ class AffectBladeRune < Affect
         [ "The weapon is endowed with killing dweomers.", { damroll: 10 } ]
     ]
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -136,10 +136,10 @@ end
 
 class AffectBless < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             300, # duration
             {
@@ -175,10 +175,10 @@ end
 
 class AffectBlind < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             30, # duration
             {
@@ -220,10 +220,10 @@ end
 
 class AffectBlur < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             300, # duration
             { resist_slash: 5 }, # modifiers: nil
@@ -254,10 +254,10 @@ end
 
 class AffectBolster < Affect
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
@@ -298,10 +298,10 @@ class AffectBurstRune < Affect
 
     @@NOUN_NAME = "elemental charged strike"
 
-    def initialize(source, target, level)
+    def initialize(target, source = nil, level = 0)
         super(
-            source, # source
             target, # target
+            source, # source
             level, # level
             60, # duration
             nil, # modifiers: nil
