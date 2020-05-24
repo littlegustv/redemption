@@ -1,5 +1,6 @@
 class Exit < GameObject
 
+    # @return [Room] the Room object that this exit leads to
 	attr_accessor :destination
     attr_accessor :closed
     attr_accessor :locked

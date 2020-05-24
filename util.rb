@@ -33,6 +33,10 @@ end
 
 class Array
 
+    # @param message [String] A message format to send to this array of Gameobjects.
+    # @param objects [Array] The array of object to inject into the message.
+    # @param sleeping [Boolean] Whether or not the message should be sent to sleeping targets.
+    # @return [nil]
     def each_output( message, objects = [], send_to_sleeping: false )
         targets = self.select{ |t| t.instance_of? Player }
         if targets.size == 0

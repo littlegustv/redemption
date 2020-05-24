@@ -1,14 +1,23 @@
 class GameObject
 
-    attr_accessor :affects, :uuid, :active, :short_description, :long_description
+    # @return [Array<Affect>, nil] The Array of Affects applied to this GameObject, or `nil`.
+    attr_accessor :affects
+    attr_accessor :uuid, :active, :short_description, :long_description
+    # @return [Reset] the Reset
     attr_accessor :reset
     attr_reader :room
     attr_reader :gender
     attr_accessor :source_affects
+    # @return 
     attr_reader :cooldowns
 
+    # Initialize a GameObject.
+    # @param name [String, nil] The name of the object. `nil` probably means the name is attached to the model.
+    # @param keywords [Set, nil] The keyword set of the object. `nil` probably means the keywords is attached to the model.
+    # @param reset [Reset, nil] The Reset that generated this object, or `nil` if it has none.
+    # @param model [Model, nil] The Model to associate with this object, or `nil` if it doesn't have one.
     def initialize( name, keywords, reset = nil, model = nil )
-        @name = nil
+        @name = name
         @model = model
         if !model
             @name = name
@@ -360,15 +369,23 @@ class GameObject
 
     # aura string generation
     def short_auras
-        data = { description: "" }
-        Game.instance.fire_event( self, :event_calculate_short_auras, data )
-        return data[:description]
+        if responds_to_event(:event_calculate_short_auras)
+            data = { description: "" }
+            Game.instance.fire_event( self, :event_calculate_short_auras, data )
+            return data[:description]
+        else
+            return ""
+        end
     end
 
     def long_auras
-        data = { description: "" }
-        Game.instance.fire_event( self, :event_calculate_long_auras, data )
-        return data[:description]
+        if responds_to_event(:event_calculate_long_auras)
+            data = { description: "" }
+            Game.instance.fire_event( self, :event_calculate_long_auras, data )
+            return data[:description]
+        else
+            return ""
+        end
     end
 
     def add_cooldown(symbol, timer, message = nil)
@@ -408,7 +425,7 @@ class GameObject
             end
         end
         if @cooldowns.length == 0
-            # mischief managed!
+            # Cooldowns array set to nil if all cooldowns have been deleted.
             @cooldowns = nil
             Game.instance.remove_cooldown_object(self)
         end
