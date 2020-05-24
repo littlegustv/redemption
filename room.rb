@@ -203,7 +203,7 @@ class Room < GameObject
     end
 
     def connected_rooms
-        return self.exits.map(&:destination) + @entrances.to_a
+        return (self.exits.map(&:destination) + @entrances.to_a).reject{ |room| room == self }
     end
 
 end

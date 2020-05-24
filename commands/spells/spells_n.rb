@@ -21,18 +21,12 @@ class SpellNexus < Spell
 
             portal = Game.instance.load_item( 1956, actor.room.inventory)
             portal.set_destination(target.room)
-            # remove auto-added affect
-            # portal.remove_affect("portal")
-            # AffectPortal.new( portal, target.room ).apply
 
             actor.output "0<N> rises up before you.", [portal]
             (actor.room.occupants - [actor]).each_output "0<N> rises up from the ground.", [portal]
 
             portal = Game.instance.load_item( 1956, target.room.inventory )
             portal.set_destination(actor.room)
-            # remove auto-added affect
-            # portal.remove_affect("portal")
-            # AffectPortal.new( portal, actor.room ).apply
 
             (target.room.occupants - [actor]).each_output "0<N> rises up from the ground.", [portal]
         else
