@@ -436,7 +436,7 @@ class AffectStun < Affect
             target, # target
             source, # source
             level, # level
-            2, # duration
+            6, # duration
             { failure: 50 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
@@ -453,8 +453,4 @@ class AffectStun < Affect
         }
     end
 
-    def send_start_messages
-        @target.output "Bands of force crush you, leaving you stunned momentarily."
-        (@target.room.occupants - [@target]).each_output "Bands of force stun 0<n> momentarily.", [@target]
-    end
 end

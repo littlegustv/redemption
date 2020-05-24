@@ -208,6 +208,8 @@ class SpellStun < Spell
             target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
         end
         if target
+            target.output "Bands of force crush you, leaving you stunned momentarily."
+            (target.room.occupants - [target]).each_output "Bands of force stun 0<n> momentarily.", [@target]
             AffectStun.new( target, nil, actor.level ).apply
             target.start_combat( actor )
             return true
