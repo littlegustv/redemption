@@ -2,8 +2,8 @@ module GameSave
 
     # save an account info to the database, then update account table
     def save_new_account(account_data)
-        account_id = @db[:account_base].insert(account_data)
-        @account_data = @db[:account_base].to_hash(:id)
+        account_id = @db[:accounts].insert(account_data)
+        @account_data = @db[:accounts].to_hash(:id)
         return account_id
     end
 
@@ -12,8 +12,8 @@ module GameSave
         player_data[:position_id] = :standing.to_position.id
         player_data[:room_id] = @starting_room.id
         player_data[:level] = 1
-        player_id = @db[:saved_player_base].insert(player_data)
-        @saved_player_data = @db[:saved_player_base].to_hash(:id)
+        player_id = @db[:players].insert(player_data)
+        @saved_player_data = @db[:players].to_hash(:id)
         return player_id
     end
 
@@ -41,7 +41,7 @@ module GameSave
                 save_player(player, query_hash) # data for each player
             end
             if query_hash[:player_base].length > 0 # player table
-                query = "INSERT INTO `saved_player_base` " +
+                query = "INSERT INTO `players` " +
                 "(`id`, `account_id`, `name`, `level`, `experience`, `room_id`, `race_id`, " +
                 "`mobile_class_id`, `strength`, `dexterity`, `intelligence`, `wisdom`, `constitution`," +
                 " `current_health`, `current_mana`, `current_movement`, " +
@@ -50,58 +50,58 @@ module GameSave
                 @db.run(query)
             end
             if query_hash[:player_cooldown].length > 0 # player cooldowns
-                query = "INSERT INTO `saved_player_cooldown` " +
+                query = "INSERT INTO `player_cooldowns` " +
                 "(`saved_player_id`, `symbol`, `timer`, `message`) VALUES #{query_hash[:player_cooldown].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_learned_skill].length > 0 # player skills
-                query = "INSERT INTO `saved_player_skill` " +
+                query = "INSERT INTO `player_skills` " +
                 "(`saved_player_id`, `skill_id`) VALUES #{query_hash[:player_learned_skill].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_learned_spell].length > 0 # player spells
-                query = "INSERT INTO `saved_player_spell` " +
+                query = "INSERT INTO `player_spells` " +
                 "(`saved_player_id`, `spell_id`) VALUES #{query_hash[:player_learned_spell].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_affect].length > 0 # player affects
-                query = "INSERT INTO `saved_player_affect` " +
+                query = "INSERT INTO `player_affects` " +
                 "(`id`, `saved_player_id`, `affect_id`, `level`, `duration`, `source_uuid`, " +
                 "`source_id`, `source_type_id`, `data`) " +
                 "VALUES #{query_hash[:player_affect].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_affect_modifier].length > 0 # player affect modifiers
-                query = "INSERT INTO `saved_player_affect_modifier` " +
+                query = "INSERT INTO `player_affect_modifiers` " +
                 "(`saved_player_affect_id`, `stat_id`, `value`) " +
                 "VALUES #{query_hash[:player_affect_modifier].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_item].length > 0 # player items
-                query = "INSERT INTO `saved_player_item` " +
+                query = "INSERT INTO `player_items` " +
                 "(`id`, `saved_player_id`, `equipped`, `item_id`, `container_id`) " +
                 "VALUES #{query_hash[:player_item].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_item_cooldown].length > 0
-                query = "INSERT INTO `saved_player_item_cooldown` " +
+                query = "INSERT INTO `player_item_cooldowns` " +
                 "(`saved_player_item_id`, `symbol`, `timer`, `message) VALUES #{query_hash[:player_item_cooldown]};"
                 @db.run(query)
             end
             if query_hash[:player_item_affect].length > 0 # player item affects
-                query = "INSERT INTO `saved_player_item_affect` " +
+                query = "INSERT INTO `player_item_affects` " +
                 "(`id`, `saved_player_item_id`, `affect_id`, `level`, `duration`, `source_uuid`, " +
                 "`source_id`, `source_type_id`, `data`) " +
                 "VALUES #{query_hash[:player_item_affect].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_item_affect_modifier].length > 0 # player item affect modifiers
-                query = "INSERT INTO `saved_player_item_affect_modifier` " +
+                query = "INSERT INTO `player_item_affect_modifiers` " +
                 "(`saved_player_item_affect_id`, `stat_id`, `value`) " +
                 "VALUES #{query_hash[:player_item_affect_modifier].join(", ")};"
                 @db.run(query)
             end
-            @saved_player_data = @db[:saved_player_base].to_hash(:id)
+            @saved_player_data = @db[:players].to_hash(:id)
         end
         # after_save = Time.now
         # log "{rSave time:{x #{after_save - before_save}"
@@ -111,31 +111,31 @@ module GameSave
     protected def delete_old_player_data
         player_ids = @players.map(&:id)
         # delete player_base rows
-        @db[:saved_player_base].where(id: player_ids).delete
+        @db[:players].where(id: player_ids).delete
         # get affects
-        old_affect_dataset = @db[:saved_player_affect].where(saved_player_id: player_ids)
+        old_affect_dataset = @db[:player_affects].where(saved_player_id: player_ids)
         # delete affect modifiers
-        @db[:saved_player_affect_modifier].where(saved_player_affect_id: old_affect_dataset.map(:id)).delete
+        @db[:player_affect_modifiers].where(saved_player_affect_id: old_affect_dataset.map(:id)).delete
         # delete affects
         old_affect_dataset.delete
         # get items
-        old_item_dataset = @db[:saved_player_item].where(saved_player_id: player_ids)
+        old_item_dataset = @db[:player_items].where(saved_player_id: player_ids)
         # get item affects
-        old_item_affect_dataset = @db[:saved_player_item_affect].where(saved_player_item_id: old_item_dataset.map(:id))
+        old_item_affect_dataset = @db[:player_item_affects].where(saved_player_item_id: old_item_dataset.map(:id))
         # delete item affect modifiers
-        @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: old_item_affect_dataset.map(:id)).delete
+        @db[:player_item_affect_modifiers].where(saved_player_item_affect_id: old_item_affect_dataset.map(:id)).delete
         # delete item affects
-        @db[:saved_player_item_affect].where(saved_player_item_id: old_item_dataset.map(:id)).delete
+        @db[:player_item_affects].where(saved_player_item_id: old_item_dataset.map(:id)).delete
         # delete item cooldowns
-        @db[:saved_player_item_cooldown].where(saved_player_item_id: old_item_dataset.map(:id)).delete
+        @db[:player_item_cooldowns].where(saved_player_item_id: old_item_dataset.map(:id)).delete
         # delete items
-        @db[:saved_player_item].where(saved_player_id: player_ids).delete
+        @db[:player_items].where(saved_player_id: player_ids).delete
         # delete skills
-        @db[:saved_player_skill].where(saved_player_id: player_ids).delete
+        @db[:player_skills].where(saved_player_id: player_ids).delete
         # delete spells
-        @db[:saved_player_spell].where(saved_player_id: player_ids).delete
+        @db[:player_spells].where(saved_player_id: player_ids).delete
         # delete cooldowns
-        @db[:saved_player_cooldown].where(saved_player_id: player_ids).delete
+        @db[:player_cooldowns].where(saved_player_id: player_ids).delete
     end
 
     # delete saved_player_affect row and relevant rows in subtables for a player with a given name
@@ -144,9 +144,9 @@ module GameSave
             log "Deleting database affects for a player not in the database: #{id}"
             return
         end
-        old_affect_data = @db[:saved_player_affect].where(saved_player_id: id)
+        old_affect_data = @db[:player_affects].where(saved_player_id: id)
         old_affect_data.all.each do |row| # Delete old modifier rows
-            @db[:saved_player_affect_modifier].where(saved_player_affect_id: row[:id]).delete
+            @db[:player_affect_modifiers].where(saved_player_affect_id: row[:id]).delete
         end
         old_affect_data.delete # delete old affect rows
     end
@@ -157,11 +157,11 @@ module GameSave
             log "Deleting database items for a player not in the database? #{id}"
             return
         end
-        old_item_data = @db[:saved_player_item].where(saved_player_id: id)
+        old_item_data = @db[:player_items].where(saved_player_id: id)
         old_item_data.all.each do |item_row|
-            old_item_affect_rows = @db[:saved_player_item_affect].where(saved_player_item_id: item_row[:id])
+            old_item_affect_rows = @db[:player_item_affects].where(saved_player_item_id: item_row[:id])
             old_item_affect_rows.all.each do |item_affect_row|
-                @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: item_affect_row[:id]).delete
+                @db[:player_item_affect_modifiers].where(saved_player_item_affect_id: item_affect_row[:id]).delete
                 # old_item_affect_modifiers.delete
             end
             old_item_affect_rows.delete
@@ -340,15 +340,15 @@ module GameSave
     # Load a player from the database. Returns the player object.
     def load_player(id, client)
 
-        player_data = @db[:saved_player_base].where(id: id).first
-        cooldown_rows = @db[:saved_player_cooldown].where(saved_player_id: id).all
-        item_rows = @db[:saved_player_item].where(saved_player_id: player_data[:id]).all.reverse
-        all_item_affect_rows = @db[:saved_player_item_affect].where(saved_player_item_id: item_rows.map{ |row| row[:id] }).all.reverse
-        all_item_modifier_rows = @db[:saved_player_item_affect_modifier].where(saved_player_item_affect_id: all_item_affect_rows.map{ |row| row[:id]}).all.reverse
-        affect_rows = @db[:saved_player_affect].where(saved_player_id: player_data[:id]).all.reverse
-        all_modifier_rows = @db[:saved_player_affect_modifier].where(saved_player_affect_id: affect_rows.map{ |row| row[:id] }).all.reverse
-        skill_rows = @db[:saved_player_skill].where(saved_player_id: player_data[:id]).all
-        spell_rows = @db[:saved_player_spell].where(saved_player_id: player_data[:id]).all
+        player_data = @db[:players].where(id: id).first
+        cooldown_rows = @db[:player_cooldowns].where(saved_player_id: id).all
+        item_rows = @db[:player_items].where(saved_player_id: player_data[:id]).all.reverse
+        all_item_affect_rows = @db[:player_item_affects].where(saved_player_item_id: item_rows.map{ |row| row[:id] }).all.reverse
+        all_item_modifier_rows = @db[:player_item_affect_modifiers].where(saved_player_item_affect_id: all_item_affect_rows.map{ |row| row[:id]}).all.reverse
+        affect_rows = @db[:player_affects].where(saved_player_id: player_data[:id]).all.reverse
+        all_modifier_rows = @db[:player_affect_modifiers].where(saved_player_affect_id: affect_rows.map{ |row| row[:id] }).all.reverse
+        skill_rows = @db[:player_skills].where(saved_player_id: player_data[:id]).all
+        spell_rows = @db[:player_spells].where(saved_player_id: player_data[:id]).all
 
         if !player_data
             log "Trying to load invalid player: \"#{id}\""
@@ -393,7 +393,7 @@ module GameSave
         # also add cooldown data here
         item_rows.select{ |row| row[:container_id] == 0 }.each do |row|
             item = load_player_item(player, row, item_rows, item_saved_id_hash)
-            item_cooldown_rows = @db[:saved_player_item_cooldown].where(saved_player_item_id: row[:id]).all
+            item_cooldown_rows = @db[:player_item_cooldowns].where(saved_player_item_id: row[:id]).all
 
             item_cooldown_rows.each do |cooldown_row|
                 symbol = cooldown_row[:symbol].to_sym
@@ -514,7 +514,7 @@ module GameSave
                 return source
             end
             # check database players
-            player_data = @db[:saved_player_base].where(id: data[:source_id]).first
+            player_data = @db[:players].where(id: data[:source_id]).first
             if player_data # source exists in the database
                 source = load_player(player_data[:id], nil)
                 source.quit(true) # removes affects from master lists, puts into inactive players

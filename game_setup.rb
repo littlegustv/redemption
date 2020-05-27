@@ -223,8 +223,8 @@ module GameSetup
     # clear some rows that were valid on the last time the game was running but are now errant data
     protected def clean_database
         log( "Cleaning database... ", false, 70)
-        @db[:saved_player_affect].update(source_uuid: 0)
-        @db[:saved_player_item_affect].update(source_uuid: 0)
+        @db[:player_affects].update(source_uuid: 0)
+        @db[:player_item_affects].update(source_uuid: 0)
         log( "done." )
     end
 
@@ -237,7 +237,7 @@ module GameSetup
 
     protected def load_item_types
         log("Loading Item Type tables... ", false, 70)
-        item_type_rows = @db[:item_type_base].to_hash(:id)
+        item_type_rows = @db[:item_types].to_hash(:id)
 
         item_type_rows.each do |id, row|
             model_class = Constants::ITEM_MODEL_CLASSES.find{ |model_class| model_class.item_class_name == row[:name] }
@@ -252,7 +252,7 @@ module GameSetup
     # Load the affect_base table and link its ids to affect classes
     protected def load_affects
         log("Loading Affect tables... ", false, 70)
-        affect_data = @db[:affect_base].all
+        affect_data = @db[:affects].all
 
         Constants::AFFECT_CLASSES.each do |aff_class|
             row = affect_data.find { |row| row[:name] == aff_class.affect_info[:name] }
@@ -274,7 +274,7 @@ module GameSetup
     # load command data from database
     protected def load_commands
         log("Loading Command tables... ", false, 70)
-        command_data = @db[:command_base].to_hash(:id)
+        command_data = @db[:commands].to_hash(:id)
 
         # Construct Command objects
         missing = []
@@ -307,7 +307,7 @@ module GameSetup
     # load skill data from database
     protected def load_abilities
         log("Loading Ability tables... ", false, 70)
-        ability_data = @db[:ability_base].to_hash(:id)
+        ability_data = @db[:abilities].to_hash(:id)
 
         missing = []
         Constants::SKILL_CLASSES.each do |skill_class|
@@ -340,7 +340,7 @@ module GameSetup
 
     protected def load_directions
         log("Loading Direction tables... ", false, 70)
-        direction_data = @db[:direction_base].to_hash(:id)
+        direction_data = @db[:directions].to_hash(:id)
 
         direction_data.each do |id, row|
             @directions[id] = Direction.new(row)
@@ -353,7 +353,7 @@ module GameSetup
 
     protected def load_elements
         log("Loading Element tables... ", false, 70)
-        element_data = @db[:element_base].to_hash(:id)
+        element_data = @db[:elements].to_hash(:id)
 
         element_data.each do |id, row|
             @elements[id] = Element.new(row)
@@ -364,8 +364,8 @@ module GameSetup
     # Load the equip_slot_base table
     protected def load_equip_slots
         log("Loading Equip slot tables... ", false, 70)
-        equip_slot_rows = @db[:equip_slot_base].all
-        equip_slot_wear_loc_rows = @db[:equip_slot_wear_location].all
+        equip_slot_rows = @db[:equipment_slots].all
+        equip_slot_wear_loc_rows = @db[:equipment_slot_wear_locations].all
 
         # make EquipSlotInfo objects
         equip_slot_rows.each do |eq_slot_row|
@@ -384,8 +384,8 @@ module GameSetup
 
     protected def load_genres
         log("Loading Genre tables... ", false, 70)
-        genre_data = @db[:genre_base].to_hash(:id)
-        genre_affect_data = @db[:genre_affect].all
+        genre_data = @db[:genres].to_hash(:id)
+        genre_affect_data = @db[:genre_affects].all
 
         genre_data.each do |id, row|
             @genres[id] = Genre.new(row)
@@ -398,7 +398,7 @@ module GameSetup
 
     protected def load_genders
         log("Loading Gender tables... ", false, 70)
-        gender_data = @db[:gender_base].to_hash(:id)
+        gender_data = @db[:genders].to_hash(:id)
 
         gender_data.each do |id, row|
             @genders[id] = Gender.new(row)
@@ -411,7 +411,7 @@ module GameSetup
 
     protected def load_materials
         log("Loading Material tables... ", false, 70)
-        material_data = @db[:material_base].to_hash(:id)
+        material_data = @db[:materials].to_hash(:id)
 
         material_data.each do |id, row|
             @materials[id] = Material.new(row)
@@ -423,13 +423,13 @@ module GameSetup
     protected def load_mobile_classes
         log("Loading Class tables... ", false, 70)
 
-        class_rows = @db[:class_base].to_hash(:id)
-        affect_rows = @db[:class_affect].all
-        genre_rows = @db[:class_genre].all
-        equip_slot_rows = @db[:class_equip_slot].all
-        skill_rows = @db[:class_skill].all
-        spell_rows = @db[:class_spell].all
-        stat_rows = @db[:class_stat].all
+        class_rows = @db[:classes].to_hash(:id)
+        affect_rows = @db[:class_affects].all
+        genre_rows = @db[:class_genres].all
+        equip_slot_rows = @db[:class_equipment_slots].all
+        skill_rows = @db[:class_skills].all
+        spell_rows = @db[:class_spells].all
+        stat_rows = @db[:class_stats].all
 
         class_rows.each do |id, row|
             @mobile_classes[id] = MobileClass.new(row)
@@ -472,7 +472,7 @@ module GameSetup
 
     protected def load_nouns
         log("Loading Noun tables... ", false, 70)
-        noun_data = @db[:noun_base].to_hash(:id)
+        noun_data = @db[:nouns].to_hash(:id)
 
         noun_data.each do |id, row|
             @nouns[id] = Noun.new(row)
@@ -482,7 +482,7 @@ module GameSetup
 
     protected def load_positions
         log("Loading Position tables... ", false, 70)
-        position_data = @db[:position_base].to_hash(:id)
+        position_data = @db[:positions].to_hash(:id)
 
         position_data.each do |id, row|
             @positions[id] = Position.new(row)
@@ -493,14 +493,14 @@ module GameSetup
     # Load the race_base table
     protected def load_races
         log("Loading Race tables... ", false, 70)
-        race_rows = @db[:race_base].to_hash(:id)
-        affect_rows = @db[:race_affect].all
-        genre_rows = @db[:race_genre].all
-        equip_slot_rows = @db[:race_equip_slot].all
-        h2h_affect_rows = @db[:race_hand_to_hand_affect].all
-        skill_rows = @db[:race_skill].all
-        spell_rows = @db[:race_spell].all
-        stat_rows = @db[:race_stat].all
+        race_rows = @db[:races].to_hash(:id)
+        affect_rows = @db[:race_affects].all
+        genre_rows = @db[:race_genres].all
+        equip_slot_rows = @db[:race_equipment_slots].all
+        h2h_affect_rows = @db[:race_hand_to_hand_affects].all
+        skill_rows = @db[:race_skills].all
+        spell_rows = @db[:race_spells].all
+        stat_rows = @db[:race_stats].all
 
         # Make Race objects
         race_rows.each do |id, race_row|
@@ -550,7 +550,7 @@ module GameSetup
 
     protected def load_sectors
         log("Loading Sector tables... ", false, 70)
-        sector_data = @db[:sector_base].to_hash(:id)
+        sector_data = @db[:sectors].to_hash(:id)
 
         sector_data.each do |id, row|
             @sectors[id] = Sector.new(row)
@@ -560,7 +560,7 @@ module GameSetup
 
     protected def load_sizes
         log("Loading Size tables... ", false, 70)
-        size_data = @db[:size_base].to_hash(:id)
+        size_data = @db[:sizes].to_hash(:id)
 
         size_data.each do |id, row|
             @sizes[id] = Size.new(row)
@@ -570,7 +570,7 @@ module GameSetup
 
     protected def load_stats
         log("Loading Stat tables... ", false, 70)
-        stat_data = @db[:stat_base].to_hash(:id)
+        stat_data = @db[:stats].to_hash(:id)
 
         stat_data.each do |id, row|
             @stats[id] = Stat.new(row)
@@ -585,7 +585,7 @@ module GameSetup
 
     protected def load_wear_locations
         log("Loading Wear location tables... ", false, 70)
-        wear_loc_rows = @db[:wear_location_base].to_hash(:id)
+        wear_loc_rows = @db[:wear_locations].to_hash(:id)
 
         wear_loc_rows.each do |id, row|
             @wear_locations[id] = WearLocation.new(row)
@@ -597,7 +597,7 @@ module GameSetup
     protected def load_continents
         log("Loading Continent tables... ", false, 70)
 
-        continent_data = @db[:continent_base].to_hash(:id)
+        continent_data = @db[:continents].to_hash(:id)
 
         continent_data.each do |id, row|
             @continents[id] = Continent.new(
@@ -614,7 +614,7 @@ module GameSetup
     # Load the area_base table
     protected def load_areas
         log("Loading Area tables... ", false, 70)
-        area_data = @db[:area_base].to_hash(:id)
+        area_data = @db[:areas].to_hash(:id)
 
         area_data.each do |id, row|
             @areas[id] = Area.new(row[:id], row[:name], row[:age], @continents[row[:continent_id]], row[:credits], row[:gateable], row[:questable], row[:security])
@@ -625,10 +625,10 @@ module GameSetup
     # Load the room_base table
     protected def load_rooms
         log("Loading Room tables... ", false, 70)
-        room_data = @db[:room_base].to_hash(:id)
-        exit_data = @db[:room_exit].all
-        room_affect_data = @db[:room_affect].all
-        room_description_data = @db[:room_description].all
+        room_data = @db[:rooms].to_hash(:id)
+        exit_data = @db[:room_exits].all
+        room_affect_data = @db[:room_affects].all
+        room_description_data = @db[:room_descriptions].all
         room_affect_data.each do |row|
             if row[:data]
                 row[:data] = JSON.parse(row[:data], symbolize_names: true)
@@ -700,10 +700,10 @@ module GameSetup
     # Load the mobile_base table
     protected def load_mobiles
         log("Loading Mobile tables... ", false, 70)
-        mob_rows = @db[:mobile_base].to_hash(:id)
-        mob_affect_rows = @db[:mobile_affect].to_hash_groups(:mobile_id)
-        mob_gender_rows = @db[:mobile_gender].to_hash_groups(:mobile_id)
-        mob_h2h_affect_rows = @db[:mobile_hand_to_hand_affect].all
+        mob_rows = @db[:mobiles].to_hash(:id)
+        mob_affect_rows = @db[:mobile_affects].to_hash_groups(:mobile_id)
+        mob_gender_rows = @db[:mobile_genders].to_hash_groups(:mobile_id)
+        mob_h2h_affect_rows = @db[:mobile_hand_to_hand_affects].all
 
         mob_rows.each do |id, row|
 
@@ -723,17 +723,17 @@ module GameSetup
     # Load the item tables from database and merge them together
     protected def load_item_data
         log("Loading Item tables... ", false, 70)
-        item_rows = @db[:item_base].to_hash(:id)
+        item_rows = @db[:items].to_hash(:id)
         # rows that are 1:1 with items (or nil)
-        weapon_rows = @db[:item_weapon].to_hash(:item_id)
-        container_rows = @db[:item_container].to_hash(:item_id)
-        portal_rows = @db[:item_portal].to_hash(:item_id)
+        weapon_rows = @db[:item_weapons].to_hash(:item_id)
+        container_rows = @db[:item_containers].to_hash(:item_id)
+        portal_rows = @db[:item_portals].to_hash(:item_id)
 
         # rows with potentially many per item
-        ability_rows = @db[:item_ability].to_hash_groups(:item_id)
-        item_modifier_rows = @db[:item_modifier].to_hash_groups(:item_id)
-        item_wear_locations = @db[:item_wear_location].to_hash_groups(:item_id)
-        item_affect_rows = @db[:item_affect].to_hash_groups(:item_id)
+        ability_rows = @db[:item_abilities].to_hash_groups(:item_id)
+        item_modifier_rows = @db[:item_modifiers].to_hash_groups(:item_id)
+        item_wear_locations = @db[:item_wear_locations].to_hash_groups(:item_id)
+        item_affect_rows = @db[:item_affects].to_hash_groups(:item_id)
 
         item_rows.each do |id, row|
             row.merge!(weapon_rows[id]) if weapon_rows.dig(id)
@@ -764,24 +764,24 @@ module GameSetup
     # Load shop table from database
     protected def load_shop_data
         log("Loading Shop tables... ", false, 70)
-        @shop_data = @db[:shop_base].to_hash(:mobile_id)
+        @shop_data = @db[:shops].to_hash(:mobile_id)
         log( "done." )
     end
 
     protected def load_social_data
         log("Loading Social table... ", false, 70)
-        @social_data = @db[:social_base].to_hash(:id)
+        @social_data = @db[:socials].to_hash(:id)
         log( "done." )
     end
 
     # load reset tables from database
     protected def load_reset_data
         log("Loading Reset tables... ", false, 70)
-        reset_mobile_data = @db[:reset_mobile].all
-        reset_mobile_itemgroups = @db[:reset_mobile_itemgroup].to_hash_groups(:mobile_reset_id)
-        reset_itemgroup_item_data = @db[:reset_itemgroup_item].to_hash_groups(:itemgroup_id)
+        reset_mobile_data = @db[:reset_mobiles].all
+        reset_mobile_itemgroups = @db[:reset_mobile_itemgroups].to_hash_groups(:mobile_reset_id)
+        reset_itemgroup_item_data = @db[:reset_itemgroup_items].to_hash_groups(:itemgroup_id)
 
-        reset_room_itemgroups = @db[:reset_room_itemgroup].all
+        reset_room_itemgroups = @db[:reset_room_itemgroups].all
         reset_room_itemgroups.each do |row|
             timer = row[:timer]
             room_id = row[:room_id]
@@ -867,7 +867,7 @@ module GameSetup
     # load helpfiles
     protected def load_help_data
         log("Loading Helpfile table... ", false, 70)
-        @help_data = @db[:help_base].to_hash(:id)
+        @help_data = @db[:helps].to_hash(:id)
         @help_data.each { |id, help| help[:keywords] = help[:keywords].split(" ".freeze) }
         log( "done." )
     end
@@ -875,24 +875,24 @@ module GameSetup
     # load account data = this will be continually updated
     protected def load_account_data
         log("Loading Account table... ", false, 70)
-        @account_data = @db[:account_base].to_hash(:id)
+        @account_data = @db[:accounts].to_hash(:id)
         log( "done." )
     end
 
     # load player data - this will be continually updated in the main thread
     protected def load_saved_player_data
         log("Loading Player table... ", false, 70)
-        @saved_player_data = @db[:saved_player_base].to_hash(:id)
+        @saved_player_data = @db[:players].to_hash(:id)
         log( "done." )
     end
 
     # load max ids for saved_player tables
     protected def load_max_ids
         log("Loading Player id max values... ", false, 70)
-        @saved_player_id_max = @db[:saved_player_base].max(:id).to_i
-        @saved_player_affect_id_max = @db[:saved_player_affect].max(:id).to_i
-        @saved_player_item_id_max = @db[:saved_player_item].max(:id).to_i
-        @saved_player_item_affect_id_max = @db[:saved_player_item_affect].max(:id).to_i
+        @saved_player_id_max = @db[:players].max(:id).to_i
+        @saved_player_affect_id_max = @db[:player_affects].max(:id).to_i
+        @saved_player_item_id_max = @db[:player_items].max(:id).to_i
+        @saved_player_item_affect_id_max = @db[:player_item_affects].max(:id).to_i
         log( "done." )
     end
 
