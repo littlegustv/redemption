@@ -15,7 +15,7 @@ class ItemModel < KeywordedModel
     attr_reader :modifiers
 
     def initialize(id, row, temporary = true)
-        super(temporary, row[:keywords])
+        super(temporary, row[:keywords].split(","))
         @temporary = temporary
         @id = id
         @name = row[:name].to_s

@@ -46,7 +46,6 @@ module GameSetup
             loop do
                 # @param client_connection [TCPSocket]
                 client_thread = Thread.start(@server.accept) do |client_connection|
-                    client_connection.gets
                     client = Client.new(client_connection, client_thread)
                     @clients << client
                     client.input_loop
@@ -180,7 +179,6 @@ module GameSetup
 
         load_continents
         load_areas
-
         load_rooms
 
         load_mobiles

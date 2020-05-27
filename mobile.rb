@@ -1188,18 +1188,15 @@ class Mobile < GameObject
         end
 
         # add item modifiers and item affect modifiers
-        # value += equipment.map{ |item| item.modifier(s) + (item.affects) ? item.affects.map{ |aff| aff.modifier(s) }.reduce(0, :+) : 0 }.reduce(0, :+)
 
         equipment.each do |item|
             value += item.modifier(s)
-            if item.affects
-                value += item.affects.map{ |aff| aff.modifier(s) }.reduce(:+)
-            end
+            value += item.affects.map{ |aff| aff.modifier(s) }.sum
         end
 
         # add affect modifiers
         if @affects
-            value += @affects.map{ |aff| aff.modifier(s) }.reduce(0, :+)
+            value += @affects.map{ |aff| aff.modifier(s) }.sum
         end
 
         # enforce max_stat cap
@@ -1215,10 +1212,6 @@ class Mobile < GameObject
         end
         return value
     end
-
-    # def armor(index)
-    #     @armor_class[index].to_i + @equipment.map{ |slot, value| value.nil? ? 0 : value.armor( index ).to_i }.reduce(0, :+)
-    # end
 
     def cast( spell, args, input )
         @casting = spell
@@ -1254,7 +1247,7 @@ Member of clan Kenshi
 {cPracs:{x        N/A                     {cCreation Points:{x #{@creation_points}
 {cExp:{x          #{"#{@experience} (#{@experience_to_level}/lvl)".rpad(23)} {cNext Level:{x   #{@experience_to_level - @experience}
 {cQuest Points:{x #{ @quest_points }
-{cCarrying:{x     #{ "#{@inventory.count} of #{carry_max}".rpad(23) } {cWeight:{x       #{ @inventory.items.map(&:weight).reduce(0, :+).to_i } of #{ weight_max }
+{cCarrying:{x     #{ "#{@inventory.count} of #{carry_max}".rpad(23) } {cWeight:{x       #{ @inventory.items.map(&:weight).sum.to_i } of #{ weight_max }
 {cGold:{x         #{ @wealth.gold.to_s.rpad(23) } {cSilver:{x       #{ @wealth.silver.to_s }
 ---------------------------------- Stats --------------------------------
 {cHealth:{x       #{"#{@health} of #{max_health} (#{max_health})".rpad(23)} {cMana:{x         #{@mana} of #{max_mana} (#{max_mana})

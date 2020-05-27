@@ -20,7 +20,8 @@ class AffectCalm < Affect
         return @info || @info = {
             name: "calm",
             keywords: ["calm"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -50,7 +51,8 @@ class AffectCharm < Affect
         return @info || @info = {
             name: "charm",
             keywords: ["charm"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :single,
         }
     end
 
@@ -94,7 +96,8 @@ class AffectChilled < Affect
         return @info || @info = {
             name: "chilled",
             keywords: ["chilled"],
-            application_type: :global_stack,
+            existing_affect_selection: :none,
+            application_type: :stack,
         }
     end
 
@@ -134,7 +137,8 @@ class AffectCloakOfMind < Affect
         return @info || @info = {
             name: "cloak of mind",
             keywords: ["cloak of mind"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -182,7 +186,8 @@ class AffectCloudkill < Affect
         return @info || @info = {
             name: "cloudkill",
             keywords: ["cloudkill"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -250,7 +255,8 @@ class AffectCorroded < Affect
         return @info || @info = {
             name: "corroded",
             keywords: ["corroded"],
-            application_type: :global_stack,
+            existing_affect_selection: :none,
+            application_type: :stack,
         }
     end
 
@@ -293,7 +299,8 @@ class AffectCorrosiveWeapon < Affect
         return @info || @info = {
             name: "corrosive",
             keywords: ["corrosive"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :multiple,
         }
     end
 
@@ -335,7 +342,8 @@ class AffectCurse < Affect
         return @info || @info = {
             name: "curse",
             keywords: ["curse"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :single,
         }
     end
 

@@ -359,7 +359,7 @@ module GameSave
             learned_spell_ids: spell_rows.map { |row| row[:spell_id] },
         }
         player_row.merge!(player_data)
-
+        player_row[:keywords] = player_row[:name]
 
         player_model = PlayerModel.new(player_data[:id], player_row)
         player = Player.new(

@@ -8,8 +8,9 @@ class Direction
 
     def initialize(row)
         @id = row[:id]
-        @name = row[:name].gsub(/_/, " ")
+        @name = row[:name].gsub(/_/, " ").dup
         @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
+        @opposite = nil
     end
 
     def ==(other_object)

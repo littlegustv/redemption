@@ -11,7 +11,7 @@ class Area < GameObject
     attr_reader :max
 
 	def initialize( id, name, age, continent, credits, gateable, questable, security )
-        super(name, name)
+        super(name, name.split)
         @id = id
         @age = age
 		@continent = continent

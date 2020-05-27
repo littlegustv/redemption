@@ -22,7 +22,8 @@ class AffectDark < Affect
         return @info || @info = {
             name: "dark",
             keywords: ["dark"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -68,7 +69,8 @@ class AffectDarkness < Affect
         return @info || @info = {
             name: "darkness",
             keywords: ["darkness"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -119,7 +121,8 @@ class AffectDarkvision < Affect
         return @info || @info = {
             name: "darkvision",
             keywords: ["darkvision"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -145,7 +148,8 @@ class AffectDeathRune < Affect
         return @info || @info = {
             name: "death rune",
             keywords: ["death rune", "rune"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -197,7 +201,8 @@ class AffectDetectInvisibility < Affect
         return @info || @info = {
             name: "detect invisibility",
             keywords: ["detect invisibility"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

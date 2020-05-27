@@ -20,7 +20,8 @@ class AffectFireBlind < AffectBlind
         return @info || @info = {
             name: "fireblind",
             keywords: ["fireblind", "blind"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :single,
         }
     end
 
@@ -55,7 +56,8 @@ class AffectFireRune < Affect
         return @info || @info = {
             name: "fire rune",
             keywords: ["fire rune", "rune"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -109,7 +111,8 @@ class AffectFlamingWeapon < Affect
         return @info || @info = {
             name: "flaming",
             keywords: ["flaming"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :multiple,
         }
     end
 
@@ -154,7 +157,8 @@ class AffectFloodingWeapon < Affect
         return @info || @info = {
             name: "flooding",
             keywords: ["flooding"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :multiple,
         }
     end
 
@@ -184,7 +188,7 @@ class AffectFlooded < Affect
             source, # source
             level, # level
             30, # duration
-            { attack_speed: -1, dexterity: -1 }, # modifiers: nil
+            { attack_speed: -3, dexterity: -1 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
             :normal, # visibility
@@ -196,7 +200,8 @@ class AffectFlooded < Affect
         return @info || @info = {
             name: "flooded",
             keywords: ["flooded", "slow"],
-            application_type: :source_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -234,7 +239,8 @@ class AffectFly < Affect
         return @info || @info = {
             name: "flying",
             keywords: ["flying"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -268,7 +274,8 @@ class AffectFollow < Affect
         return @info || @info = {
             name: "follow",
             keywords: ["follow"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -321,7 +328,8 @@ class AffectFrenzy < Affect
         return @info || @info = {
             name: "frenzy",
             keywords: ["frenzy"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -359,7 +367,8 @@ class AffectFrostWeapon < Affect
             return @info || @info = {
                 name: "frost",
                 keywords: ["frost"],
-                application_type: :global_single,
+                existing_affect_selection: :affect_id,
+                application_type: :multiple,
             }
         end
 

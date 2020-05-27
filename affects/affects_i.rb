@@ -20,7 +20,8 @@ class AffectIgnoreWounds < Affect
         return @info || @info = {
             name: "ignore wounds",
             keywords: ["ignore wounds"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -68,7 +69,8 @@ class AffectIndoors < Affect
         return @info || @info = {
             name: "indoors",
             keywords: ["indoors"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -94,7 +96,8 @@ class AffectInfravision < Affect
         return @info || @info = {
             name: "infravision",
             keywords: ["infravision"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -127,7 +130,8 @@ class AffectInvisibility < Affect
         return @info || @info = {
             name: "invisibility",
             keywords: ["invisibility"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

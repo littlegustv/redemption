@@ -20,7 +20,8 @@ class AffectScramble < Affect
         return @info || @info = {
             name: "scramble",
             keywords: ["scramble"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -71,7 +72,8 @@ class AffectShackle < Affect
         return @info || @info = {
             name: "shackle",
             keywords: ["shackle"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -116,7 +118,8 @@ class AffectShackleRune < Affect
         return @info || @info = {
             name: "shackle rune",
             keywords: ["shackle rune", "rune"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -164,7 +167,8 @@ class AffectShield < Affect
         return @info || @info = {
             name: "shield",
             keywords: ["shield", "armor"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :keywords,
+            application_type: :overwrite,
         }
     end
 
@@ -198,7 +202,8 @@ class AffectShocked < Affect
         return @info || @info = {
             name: "shocking",
             keywords: ["shocking"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -236,7 +241,8 @@ class AffectShockingWeapon < Affect
         return @info || @info = {
             name: "shocking",
             keywords: ["shocking"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :multiple,
         }
     end
 
@@ -278,7 +284,8 @@ class AffectShopkeeper < Affect
         return @info || @info = {
             name: "shopkeeper",
             keywords: ["shopkeeper"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -304,7 +311,8 @@ class AffectSneak < Affect
         return @info || @info = {
             name: "sneak",
             keywords: ["sneak"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -338,7 +346,8 @@ class AffectSleep < Affect
         return @info || @info = {
             name: "sleep",
             keywords: ["sleep"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -381,7 +390,8 @@ class AffectSlow < Affect
         return @info || @info = {
             name: "slow",
             keywords: ["slow"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -415,7 +425,8 @@ class AffectStoneSkin < Affect
         return @info || @info = {
             name: "stone skin",
             keywords: ["stone skin", "stoneskin", "armor"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :keywords,
+            application_type: :overwrite,
         }
     end
 
@@ -449,7 +460,8 @@ class AffectStun < Affect
         return @info || @info = {
             name: "stun",
             keywords: ["stun"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

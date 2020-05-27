@@ -20,7 +20,8 @@ class AffectGiantStrength < Affect
         return @info || @info = {
             name: "giant strength",
             keywords: ["giant strength"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -53,7 +54,8 @@ class AffectGlowing < Affect
         return @info || @info = {
             name: "glowing",
             keywords: ["glowing"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -95,7 +97,8 @@ class AffectGrandeur < Affect
         return @info || @info = {
             name: "grandeur",
             keywords: ["grandeur", "grandeurminimation"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :single,
         }
     end
 
@@ -138,7 +141,8 @@ class AffectGuard < Affect
         return @info || @info = {
             name: "guard",
             keywords: ["guard"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

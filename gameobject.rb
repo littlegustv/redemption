@@ -26,9 +26,7 @@ class GameObject
         @source_affects = nil
         @cooldowns = nil
         @keywords = nil
-        if keyword_string
-            @keywords = Keywords.keywords_for_array(keywords)
-        end
+        @keywords = Keywords.keywords_for_array(keywords.to_a)
 
         @uuid = Game.instance.new_uuid
         @active = true
@@ -182,7 +180,7 @@ class GameObject
     # @return [Array<Affect>] The Affects.
     #
     def affects
-        @affects || []
+        return @affects.to_a
     end
 
     def add_affect(affect)

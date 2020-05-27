@@ -64,7 +64,8 @@ class AffectQuestItem < Affect
         return @info || @info = {
             name: "quest item",
             keywords: ["quest", "quest item"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 end
@@ -136,7 +137,8 @@ class AffectQuestVillain < Affect
         return @info || @info = {
             name: "quest villain",
             keywords: ["quest", "quest villain"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 end
@@ -161,7 +163,8 @@ class AffectQuestMaster < Affect
         return @info || @info = {
             name: "questmaster",
             keywords: ["questmaster"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

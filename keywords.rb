@@ -22,7 +22,8 @@ class Keywords
     def initialize(array)
         # @type [Set<Symbol>] The keywords and possible substrings of keywords as Symbols
         @keyword_set = Set.new
-        array.to_a.dup.each do |keyword|
+        array = array.to_a.dup.map(&:dup)
+        array.each do |keyword|
             while keyword.length > 0
                 @keyword_set.add(keyword.to_sym)
                 keyword.chop!
@@ -83,7 +84,7 @@ class Keywords
     #
     # @return [Set<Symbol>] The resultant set.
     #
-    def intersection(set)
+    def intersection(keywords)
         @keyword_set.intersection(set)
     end
 
@@ -110,6 +111,17 @@ class Keywords
     end
 
     #
+    # Returns true if the Keywords objects has keyword symbols in common with another Keywords object.
+    #
+    # @param [Keywords] keywords The other Keywords object.
+    #
+    # @return [Boolean] True if there are keywords in common.
+    #
+    def shares_keywords?(keywords)
+        return @keyword_set.intersect?(keywords.keyword_set)
+    end
+
+    #
     # Generate a keyword string from this set of keywords, ignoring substrings. If the set is empty,
     # return a static string instead.
     #
@@ -120,7 +132,7 @@ class Keywords
             return "(none)"
         else
             key_strings = @keyword_set.map(&:to_s)
-            return key_strings.reject{ |x| key_strings.any?{ |y| x != y && y.start_with?(x) } }.join(" ")
+            return key_strings.reject{ |x| key_strings.any?{ |y| x != y && y.start_with?(x) } }.map{ |s| "'#{s}'" }.join(" ")
         end
     end
 
@@ -150,6 +162,15 @@ class Keywords
     #
     def symbols
         return @keyword_set.to_a
+    end
+
+    #
+    # Returns the a duplicate of the keyword set.
+    #
+    # @return [Set<Symbol>] The set.
+    #
+    protected def keyword_set
+        return @keyword_set
     end
 
     #   

@@ -31,7 +31,7 @@ class MobileModel < KeywordedModel
     attr_reader :learned_spells
 
     def initialize(id, row, temporary = true)
-        super(temporary, row[:keywords])
+        super(temporary, row[:keywords].split(","))
         @id = id
         @level = row[:level] || 1
         @name = row[:name].to_s

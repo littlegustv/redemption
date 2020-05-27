@@ -20,7 +20,8 @@ class AffectBarkSkin < Affect
         return @info || @info = {
             name: "bark skin",
             keywords: ["barkskin", "armor"],
-            application_type: :source_overwrite,
+            existing_affect_selection: :keywords,
+            application_type: :overwrite,
         }
     end
 
@@ -63,7 +64,8 @@ class AffectBerserk < Affect
         return @info || @info = {
             name: "berserk",
             keywords: ["berserk"],
-            application_type: :source_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -120,7 +122,8 @@ class AffectBladeRune < Affect
         return @info || @info = {
             name: "blade rune",
             keywords: ["blade rune", "rune"],
-            application_type: :source_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -157,7 +160,8 @@ class AffectBless < Affect
         return @info || @info = {
             name: "bless",
             keywords: ["bless"],
-            application_type: :source_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -195,7 +199,8 @@ class AffectBlind < Affect
         return @info || @info = {
             name: "blind",
             keywords: ["blind"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :single,
         }
     end
 
@@ -238,7 +243,8 @@ class AffectBlur < Affect
         return @info || @info = {
             name: "blur",
             keywords: ["blur", "armor"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :keywords,
+            application_type: :overwrite,
         }
     end
 
@@ -272,7 +278,8 @@ class AffectBolster < Affect
         return @info || @info = {
             name: "bolster",
             keywords: ["bolster"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -325,7 +332,8 @@ class AffectBurstRune < Affect
         return @info || @info = {
             name: "burst rune",
             keywords: ["burst rune", "rune"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 

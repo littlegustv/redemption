@@ -23,7 +23,8 @@ class AffectHaste < Affect
         return @info || @info = {
             name: "haste",
             keywords: ["haste"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -67,7 +68,8 @@ class AffectHatchling < Affect
         return @info || @info = {
             name: "hatchling",
             keywords: ["hatchling"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -105,7 +107,8 @@ class AffectHide < Affect
         return @info || @info = {
             name: "hide",
             keywords: ["hide"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

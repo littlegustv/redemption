@@ -106,9 +106,9 @@ class Affect
         when :affect_id_with_source
             existing_affects = @target.affects.select { |a| a.id == self.id && a.source == @source }
         when :keywords
-            existing_affects = @target.affects.select { |a| shares_keywords_with?(a) }
+            existing_affects = @target.affects.select { |a| keywords.shares_keywords?(a.keywords) }
         when :keywords_and_source
-            existing_affects = @target.affects.select { |a| shares_keywords_with?(a) && a.source == @source }
+            existing_affects = @target.affects.select { |a| keywords.shares_keywords?(a.keywords) && a.source == @source }
         else
             log "Unknown existing affect selection type in Affect#apply, affect: #{self.name} target #{@target.name}"
             existing_affects = []
@@ -421,7 +421,7 @@ class Affect
     # @return [Boolean] True if there are common keywords, otherwise false.
     #
     def shares_keywords_with?(affect)
-        keywords.any? { |keyword| affect.keywords.include?(keyword) }
+        return self.keywords.intersect?(keywords)
     end
 
     #

@@ -75,7 +75,7 @@ class Command
         @id = new_attr_hash[:id].to_i
         @priority = new_attr_hash[:priority].to_i
         @keywords.decrement_use_count
-        @keywords = Keywords.keywords_for_array(new_attr_hash[:keywords])
+        @keywords = Keywords.keywords_for_array(new_attr_hash[:keywords].split(","))
         @lag = new_attr_hash[:lag].to_f
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = new_attr_hash[:usable_in_combat]

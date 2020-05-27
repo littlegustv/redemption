@@ -20,7 +20,8 @@ class AffectEnchantArmor < Affect
         return @info || @info = {
             name: "enchant armor",
             keywords: ["enchant armor"],
-            application_type: :global_stack,
+            existing_affect_selection: :affect_id,
+            application_type: :stack,
         }
     end
 
@@ -46,7 +47,8 @@ class AffectEnchantWeapon < Affect
         return @info || @info = {
             name: "enchant weapon",
             keywords: ["enchant weapon"],
-            application_type: :global_stack,
+            existing_affect_selection: :affect_id,
+            application_type: :stack,
         }
     end
 
@@ -72,7 +74,8 @@ class AffectEssence < Affect
         return @info || @info = {
             name: "essence",
             keywords: ["essence"],
-            application_type: :global_overwrite
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

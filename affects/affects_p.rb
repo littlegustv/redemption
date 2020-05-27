@@ -54,7 +54,8 @@ class AffectPlague < Affect
         return @info || @info = {
             name: "plague",
             keywords: ["plague"],
-            application_type: :source_stack,
+            existing_affect_selection: :affect_id_with_source,
+            application_type: :stack,
         }
     end
 
@@ -106,7 +107,8 @@ class AffectPoisoned < Affect
         return @info || @info = {
             name: "poisoned",
             keywords: ["poisoned"],
-            application_type: :source_stack,
+            existing_affect_selection: :affect_id_with_source,
+            application_type: :stack,
         }
     end
 
@@ -157,7 +159,8 @@ class AffectPoisonWeapon < Affect
         return @info || @info = {
             name: "poisonous",
             keywords: ["poisonous"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :multiple,
         }
     end
 
@@ -196,7 +199,8 @@ class AffectProtectionEvil < Affect
         return @info || @info = {
             name: "protection evil",
             keywords: ["protection evil", "protect"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :overwrite,
         }
     end
 
@@ -242,7 +246,8 @@ class AffectProtectionGood < Affect
         return @info || @info = {
             name: "protection good",
             keywords: ["protection good", "protect"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :overwrite,
         }
     end
 
@@ -288,7 +293,8 @@ class AffectProtectionNeutral < Affect
         return @info || @info = {
             name: "protection neutral",
             keywords: ["protection neutral", "protect"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :overwrite,
         }
     end
 

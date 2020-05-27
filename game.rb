@@ -34,6 +34,7 @@ class Game
     attr_reader :item_models
 
     # data classes
+    attr_reader :directions
     attr_reader :elements
     attr_reader :equip_slot_infos
     attr_reader :genders
@@ -629,8 +630,8 @@ class Game
 
     def find_commands( actor, cmd )
         matches = (
-            @commands.select { |command| command.check( cmd ) } +
-            @skills.select{ |skill| skill.check( cmd ) && actor.knows( skill ) }
+            @commands.select { |command| command.keywords.include?( cmd.to_sym ) } +
+            actor.skills.select{ |skill| skill.keywords.include?( cmd.to_sym ) }
         ).sort_by(&:priority)
         return matches
     end

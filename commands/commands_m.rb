@@ -14,7 +14,7 @@ class CommandMove < Command
     end
 
     def attempt( actor, cmd, args, input )
-        direction = @keywords.find{ |keyword| keyword.fuzzy_match( cmd ) }
-        return actor.move direction.to_sym.to_direction
+        direction = Game.instance.directions.values.find{ |d| d.name.fuzzy_match(cmd) }
+        return actor.move direction
     end
 end

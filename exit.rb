@@ -13,7 +13,7 @@ class Exit < GameObject
         direction,
         origin,
         destination,
-        keyword_string,
+        keywords,
         name,
         short_description = "".freeze,
         door = false,
@@ -26,7 +26,7 @@ class Exit < GameObject
         reset_timer = nil,
         id = 0
     )
-        super(name, keyword_string )
+        super(name, keywords )
         @id = id
 		@direction = direction
 		@origin = origin

@@ -20,7 +20,8 @@ class AffectZeal < Affect
         return @info || @info = {
             name: "zeal",
             keywords: ["zeal"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 

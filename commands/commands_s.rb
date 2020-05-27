@@ -150,7 +150,8 @@ class CommandSocial < Command
             priority: 0
         )
         @socials = Game.instance.social_data
-        @keywords = @socials.map { |id, row| row[:keyword] }.concat(["social"])
+        @keywords.decrement_use_count
+        @keywords = Keywords.keywords_for_array(@socials.map { |id, row| row[:keyword] }.concat(["social"]))
     end
 
     def attempt( actor, cmd, args, input )
@@ -192,8 +193,20 @@ class CommandSocial < Command
 
     # override for overwrite_attributes in order to keep all social keywords from database
     def overwrite_attributes(new_attr_hash)
-        new_attr_hash[:keywords] = @keywords.join(",")
-        super(new_attr_hash)
+        @id = new_attr_hash[:id].to_i
+        @priority = new_attr_hash[:priority].to_i
+        @lag = new_attr_hash[:lag].to_f
+        @name = new_attr_hash[:name].to_s
+        @usable_in_combat = new_attr_hash[:usable_in_combat]
+        @creation_points = new_attr_hash[:creation_points]
+        @position = Game.instance.positions[(new_attr_hash[:position_id] || 1)]
+        @hp_cost = new_attr_hash[:hp_cost].to_i
+        @mana_cost = new_attr_hash[:mana_cost].to_i
+        @movement_cost = new_attr_hash[:movement_cost].to_i
+        data_string = new_attr_hash[:data]
+        if data_string && data_string.length > 0
+            @data = JSON.parse(data_string, symbolize_names: true)
+        end
     end
 
 end

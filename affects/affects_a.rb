@@ -23,7 +23,8 @@ class AffectAggressive < Affect
         return @info || @info = {
             name: "aggressive",
             keywords: ["aggressive"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -71,7 +72,8 @@ class AffectAlarmRune < Affect
         return @info || @info = {
             name: "alarm rune",
             keywords: ["alarm rune", "rune"],
-            application_type: :source_overwrite,
+            existing_affect_selection: :affect_id_with_source,
+            application_type: :single,
         }
     end
 
@@ -127,7 +129,8 @@ class AffectAnimalGrowth < Affect
         return @info || @info = {
             name: "animal growth",
             keywords: ["animal growth"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -160,7 +163,8 @@ class AffectAnoint < Affect
         return @info || @info = {
             name: "anoint",
             keywords: ["anoint"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
@@ -206,7 +210,8 @@ class AffectArmor < Affect
         return @info || @info = {
             name: "armor",
             keywords: ["armor"],
-            application_type: :source_overwrite,
+            existing_affect_selection: :keywords,
+            application_type: :overwrite,
         }
     end
 

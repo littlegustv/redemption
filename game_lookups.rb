@@ -15,6 +15,7 @@ module GameLookups
             d = Direction.new({
                 id: id,
                 name: symbol.to_s,
+                symbol: symbol
             })
             @direction_lookup[symbol] = d
             @directions[id] = d

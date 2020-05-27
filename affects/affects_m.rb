@@ -20,7 +20,8 @@ class AffectMinimation < Affect
         return @info || @info = {
             name: "minimation",
             keywords: ["minimation", "grandeurminimation"],
-            application_type: :global_single,
+            existing_affect_selection: :keywords,
+            application_type: :single,
         }
     end
 
@@ -64,7 +65,8 @@ class AffectMirrorImage < Affect
         return @info || @info = {
             name: "mirror image",
             keywords: ["mirror image"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 

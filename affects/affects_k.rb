@@ -33,7 +33,8 @@ class AffectKarma < Affect
         return @info || @info = {
             name: "karma",
             keywords: ["karma"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -68,7 +69,8 @@ class AffectKiller < Affect
         return @info || @info = {
             name: "killer",
             keywords: ["killer"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

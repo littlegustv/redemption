@@ -70,7 +70,7 @@ class Room < GameObject
     def show( looker )
         if looker.can_see? self
             out = "#{ @name }\n" +
-            "  #{ @short_description }\n" +
+            "  #{ @short_description }\n\n" +
             "[Exits: #{ @exits.select.map(&:to_s).join(" ") }]"
             description_data = {extra_show: ""}
             Game.instance.fire_event(self, :event_calculate_room_description, description_data)

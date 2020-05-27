@@ -20,7 +20,8 @@ class AffectLair < Affect
         return @info || @info = {
             name: "lair",
             keywords: ["lair"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 
@@ -73,7 +74,8 @@ class AffectLivingStone < Affect
         return @info || @info = {
             name: "living stone",
             keywords: ["living stone"],
-            application_type: :global_overwrite,
+            existing_affect_selection: :affect_id,
+            application_type: :overwrite,
         }
     end
 

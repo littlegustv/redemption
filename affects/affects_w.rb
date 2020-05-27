@@ -20,7 +20,8 @@ class AffectWeaken < Affect
         return @info || @info = {
             name: "weaken",
             keywords: ["weaken"],
-            application_type: :global_single,
+            existing_affect_selection: :affect_id,
+            application_type: :single,
         }
     end
 
