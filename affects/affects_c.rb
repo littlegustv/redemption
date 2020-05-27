@@ -11,7 +11,7 @@ class AffectCalm < Affect
             { hit_roll: -5, damage_roll: -5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -41,7 +41,7 @@ class AffectCharm < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -85,7 +85,7 @@ class AffectChilled < Affect
             { strength: -2 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -125,7 +125,7 @@ class AffectCloakOfMind < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -173,7 +173,7 @@ class AffectCloudkill < Affect
             nil, # modifiers: nil
             10, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -241,7 +241,7 @@ class AffectCorroded < Affect
             { armor_class: 10 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -281,7 +281,7 @@ class AffectCorrosiveWeapon < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
         @data = {
@@ -326,7 +326,7 @@ class AffectCurse < Affect
             { hit_roll: -5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end

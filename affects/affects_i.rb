@@ -11,7 +11,7 @@ class AffectIgnoreWounds < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -59,7 +59,7 @@ class AffectIndoors < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::HIDDEN, # visibility
+            :hidden, # visibility
             true # savable
         )
     end
@@ -85,7 +85,7 @@ class AffectInfravision < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -118,7 +118,7 @@ class AffectInvisibility < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end

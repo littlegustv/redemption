@@ -14,7 +14,7 @@ class AffectHaste < Affect
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -58,7 +58,7 @@ class AffectHatchling < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Visibility::HIDDEN, # visibility
+            :hidden, # visibility
             true # savable
         )
     end
@@ -96,7 +96,7 @@ class AffectHide < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end

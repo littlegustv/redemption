@@ -11,7 +11,7 @@ class AffectScramble < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -62,7 +62,7 @@ class AffectShackle < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -107,7 +107,7 @@ class AffectShackleRune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -155,7 +155,7 @@ class AffectShield < Affect
             { resist_pierce: 5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -189,7 +189,7 @@ class AffectShocked < Affect
             { failure: 10 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -224,7 +224,7 @@ class AffectShockingWeapon < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
         @data = {
@@ -269,7 +269,7 @@ class AffectShopkeeper < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Visibility::PASSIVE, # visibility
+            :passive, # visibility
             true # savable
         )
     end
@@ -295,7 +295,7 @@ class AffectSneak < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -329,7 +329,7 @@ class AffectSleep < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -372,7 +372,7 @@ class AffectSlow < Affect
             { attack_speed: -1 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -406,7 +406,7 @@ class AffectStoneSkin < Affect
             { resist_pierce: 5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -440,7 +440,7 @@ class AffectStun < Affect
             { failure: 50 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end

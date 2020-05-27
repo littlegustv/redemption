@@ -1,5 +1,8 @@
 require_relative 'affect.rb'
 
+#
+# Affect to make mobiles automatically attack players.
+#
 class AffectAggressive < Affect
 
     def initialize(target, source = nil, level = 0)
@@ -11,7 +14,7 @@ class AffectAggressive < Affect
             nil, # modifiers
             1, # period
             true, # permanent
-            Visibility::HIDDEN, # visibility
+            :hidden, # visibility
             true # savable
         )
     end
@@ -35,7 +38,7 @@ class AffectAggressive < Affect
 
     def periodic
         if (players = @target.room.players).empty?
-            # toggle_periodic(nil)
+            toggle_periodic(nil)
             return
         end
         player = players.select{ |t| @target.can_see?(t) }.shuffle!.first
@@ -59,7 +62,7 @@ class AffectAlarmRune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -115,7 +118,7 @@ class AffectAnimalGrowth < Affect
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -148,7 +151,7 @@ class AffectAnoint < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -194,7 +197,7 @@ class AffectArmor < Affect
             { armor_class: -20 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end

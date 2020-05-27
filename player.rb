@@ -17,12 +17,12 @@ class Player < Mobile
 
     #
     def destroy
-        super
+        Game.instance.destroy_player(self)
         if @client
             @client.player = nil
             @client = nil
         end
-        Game.instance.destroy_player(self)
+        super
     end
 
     # this method basically has to undo a Game.instance.destroy_player(self) call

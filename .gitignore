@@ -1,5 +1,6 @@
 *.todo
 .DS_Store
+.yardoc/
 server_config.txt
 scratch.txt
 doc/

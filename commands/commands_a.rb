@@ -5,7 +5,7 @@ class CommandAffects < Command
     def initialize
         super(
             name: "affects",
-            keywords: ["affects"]
+            keywords: "affects"
         )
     end
 

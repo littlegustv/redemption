@@ -15,9 +15,9 @@ class SpellCalm < Spell
         actor.room.occupants.each do | entity |
             entity.output "A wave of calm washes over you."
             (entity.room.occupants - [entity]).each_output "0<N> calms down and loses the will to fight.", [entity]
-            entity.remove_affect "berserk"
-            entity.remove_affect "frenzy"
-            entity.remove_affect "taunt"
+            entity.remove_affects_with_keywords "berserk"
+            entity.remove_affects_with_keywords "frenzy"
+            entity.remove_affects_with_keywords "taunt"
             entity.stop_combat
             AffectCalm.new( entity, nil, actor.level ).apply
         end
@@ -37,7 +37,7 @@ class SpellCancellation < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.remove_affect( actor.affects.sample.keywords.first ) if actor.affects && actor.affects.count > 0
+        actor.remove_affects_with_keywords( actor.affects.sample.keywords.first ) if actor.affects && actor.affects.count > 0
     end
 
 end
@@ -419,7 +419,7 @@ class SpellCureBlindness < Spell
         if target
             if target.affected? "blind"
                 target.output "Your vision returns!"
-                target.remove_affect "blind"
+                target.remove_affects_with_keywords "blind"
             else
                 actor.output "They aren't blind."
             end
@@ -472,7 +472,7 @@ class SpellCureDisease < Spell
         if target
             if target.affected? "plague"
                 target.output "You feel better!"
-                target.remove_affect "plague"
+                target.remove_affects_with_keywords "plague"
             else
                 actor.output "They aren't infected."
             end
@@ -525,7 +525,7 @@ class SpellCurePoison < Spell
         if target
             if target.affected? "poison"
                 target.output "You feel better!"
-                target.remove_affect "poison"
+                target.remove_affects_with_keywords "poison"
             else
                 actor.output "They aren't poisoned."
             end

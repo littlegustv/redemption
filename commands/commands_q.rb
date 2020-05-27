@@ -73,7 +73,7 @@ class CommandQuest < Command
             end
         elsif args.first.to_s.fuzzy_match "RESET"
             if actor.affected? "quest"
-                actor.remove_affect( "quest" )
+                actor.remove_affects_with_keywords( "quest" )
             else
                 actor.output "I never sent you on a quest!  Perhaps you're thinking of someone else."
             end

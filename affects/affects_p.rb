@@ -11,7 +11,7 @@ class AffectPassDoor < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -45,7 +45,7 @@ class AffectPlague < Affect
             { strength: -1 }, # modifiers: nil
             10, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -97,7 +97,7 @@ class AffectPoisoned < Affect
             { strength: -1 }, # modifiers: nil
             10, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -145,7 +145,7 @@ class AffectPoisonWeapon < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
         @data = {
@@ -187,7 +187,7 @@ class AffectProtectionEvil < Affect
             { saves: -1 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -233,7 +233,7 @@ class AffectProtectionGood < Affect
             { saves: -1 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -279,7 +279,7 @@ class AffectProtectionNeutral < Affect
             { saves: -1 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end

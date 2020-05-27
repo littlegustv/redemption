@@ -85,17 +85,6 @@ class String
         self.split("\n").each_slice( column_count ).map{ |row| row.map{ |col| col.to_s.rpad( column_width ) }.join(" ".freeze) }.join("\n")
     end
 
-    def to_keyword_set
-        keyword_set = Set.new
-        self.downcase.split(" ".freeze).each do |keyword|
-            while keyword.length > 0
-                keyword_set.add(keyword.to_sym)
-                keyword.chop!
-            end
-        end
-        return keyword_set
-    end
-
     def fuzzy_match( arg )
         self.downcase.start_with? arg.to_s.downcase
             # arg = arg.to_s.downcase
@@ -139,7 +128,7 @@ class String
             {
                 offset: self[/(\d+|all)\./, 1] || 0,
                 quantity: self[/(\d+|all)\*/, 1] || default_quantity,
-                keyword: self[/((\d+|all).)?'?([a-zA-Z\s]+)'?/, 3].to_s.downcase.split(" ".freeze).map(&:to_sym).to_set
+                keyword: self[/((\d+|all).)?'?([a-zA-Z\s]+)'?/, 3].to_s.downcase.split.map(&:to_sym).to_set
             }
         end
     end

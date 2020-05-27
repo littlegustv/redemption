@@ -11,7 +11,7 @@ class AffectTaunt < Affect
             {damage_roll: 7, hit_roll: 7 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end

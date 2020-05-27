@@ -16,7 +16,7 @@ class SkillZeal < Skill
 	        AffectZeal.new( actor, actor, actor.level ).apply
             return true
 	    else
-	    	actor.remove_affect "zeal"
+	    	actor.remove_affects_with_keywords "zeal"
             return true
 	    end
     end

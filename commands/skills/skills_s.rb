@@ -13,7 +13,7 @@ class SkillShadow < Skill
 
     def attempt( actor, cmd, args, input )
         if args.first.nil?
-            actor.remove_affect("follow")
+            actor.remove_affects_with_keywords("follow")
         elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if actor.stat(:dexterity) >= target.stat(:intelligence)
                 AffectFollow.new( actor, target, 1 ).apply(true)

@@ -32,9 +32,9 @@
     end
 
     def destroy
-        super
         self.move(nil)
         Game.instance.destroy_item(self)
+        super
     end
 
     def name
@@ -74,7 +74,7 @@
     def pre_lore
         output = "Object '#{ self.name }' is of type #{ self.type_name }.\n"
         output += "Description: #{ self.short_description }\n"
-        output += "Keywords '#{ self.keyword_string }'\n"
+        output += "Keywords '#{ self.keywords.to_s }'\n"
         output += "Weight #{ @weight } lbs, Value #{ @cost } silver, level is #{ @level }, Material is #{ @material.name }."
         return output
     end
@@ -273,7 +273,7 @@ class Portal < Item
             nil,
             nil,
             Game.instance.rooms.dig(model.to_room_id),
-            self.keyword_string,
+            self.keywords.to_s,
             model.name,
             model.short_description,
             model.door,

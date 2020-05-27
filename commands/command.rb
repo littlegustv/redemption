@@ -1,6 +1,20 @@
+#
+# Command base class. All Commands, Skills, and Spells inherit from this class.
+#
 class Command
 
-    attr_reader :id, :priority, :name, :creation_points, :lag
+    # @return [Integer, nil] The ID of the command.
+    attr_reader :id
+    # @return [Integer] The priority of the command. Higher priority commands will be selected over lower ones.
+    attr_reader :priority
+    # @return [String] The name of the command.
+    attr_reader :name
+    # @return [Integer] The creation point cost of the command.
+    attr_reader :creation_points
+    # @return [Float] The amount of lag applied to the actor when the command is used.
+    attr_reader :lag
+    # @return [Keywords] The Keywords for the Command.
+    attr_reader :keywords
 
     # Set what you need to here, but most of it is overwritten by values in the database,
     # if they can be found.
@@ -17,7 +31,7 @@ class Command
     )
         @id = nil
         @priority = priority
-        @keywords = keywords
+        @keywords = Keywords.keywords_for_array(keywords.to_a)
         @lag = lag
         @name = name
         @usable_in_combat = usable_in_combat
@@ -27,10 +41,6 @@ class Command
         @movement_cost = movement_cost
         @creation_points = 0
         @data = {}
-    end
-
-    def check( cmd )
-        @keywords.select{ |keyword| keyword.fuzzy_match( cmd ) }.any?
     end
 
     def to_s
@@ -64,8 +74,8 @@ class Command
     def overwrite_attributes(new_attr_hash)
         @id = new_attr_hash[:id].to_i
         @priority = new_attr_hash[:priority].to_i
-        @keywords = new_attr_hash[:keywords].to_s.split(",")
-        @keywords = [""] if @keywords.empty?
+        @keywords.decrement_use_count
+        @keywords = Keywords.keywords_for_array(new_attr_hash[:keywords])
         @lag = new_attr_hash[:lag].to_f
         @name = new_attr_hash[:name].to_s
         @usable_in_combat = new_attr_hash[:usable_in_combat]

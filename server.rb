@@ -12,6 +12,7 @@ require 'memory_profiler' if $VERBOSE
 # require 'allocation_tracer'
 # require 'pp'
 require_relative 'util'
+require_relative 'keywords'
 require_relative 'data_classes/direction'
 require_relative 'data_classes/element'
 require_relative 'data_classes/equipslotinfo'

@@ -11,7 +11,7 @@ class AffectGiantStrength < Affect
             { strength: 1 + level / 12 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -44,7 +44,7 @@ class AffectGlowing < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -86,7 +86,7 @@ class AffectGrandeur < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -129,7 +129,7 @@ class AffectGuard < Affect
             nil, # modifiers: nil
             1, # period: nil
             false, # permanent: false
-            Visibility::HIDDEN, # visibility
+            :hidden, # visibility
             true # savable
         )
     end

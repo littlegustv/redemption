@@ -2,18 +2,22 @@ class KeywordedModel < Model
 
     attr_reader :keywords
 
-    def initialize(temporary, keyword_string)
+    def initialize(temporary, keywords)
         super(temporary)
-        @keywords = Game.instance.global_keyword_set_for_keyword_string(keyword_string.to_s)
+        @keywords = Keywords.keywords_for_array(keywords)
     end
 
     def destroy
         super
-        Game.instance.decrement_keyword_set(@keywords)
+        if @keywords
+            @keywords.decrement_use_count
+            @keywords = nil
+        end
     end
 
     def keywords
-        @keywords || Set.new
+        @keywords
     end
 
 end
+ 

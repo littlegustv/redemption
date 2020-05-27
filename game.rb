@@ -133,7 +133,6 @@ class Game
         @regen_mobs = Set.new
         @cooldown_objects = Set.new
 
-        @global_keyword_set_map = Hash.new
         @item_keyword_map = Hash.new
         @mobile_keyword_map = Hash.new
 
@@ -544,7 +543,8 @@ class Game
 
         periodics_affects_to_call = @periodic_affects.slice!(0...index)
         periodics_affects_to_call.each_with_index do |aff, index|
-            aff.update
+            aff.periodic
+            aff.schedule_next_periodic_time
         end
     end
 
@@ -692,11 +692,11 @@ class Game
     def add_global_item(item)
         @items.add(item)
         if item.keywords
-            item.keywords.each do |keyword|
-                if !@item_keyword_map[keyword]
-                    @item_keyword_map[keyword] = [item]
+            item.keywords.symbols.each do |symbol|
+                if !@item_keyword_map[symbol]
+                    @item_keyword_map[symbol] = [item]
                 else
-                    @item_keyword_map[keyword] << item
+                    @item_keyword_map[symbol] << item
                 end
             end
         end
@@ -705,11 +705,11 @@ class Game
     def remove_global_item(item)
         @items.delete(item)
         if item.keywords
-            item.keywords.each do |keyword|
-                if @item_keyword_map.has_key?(keyword)
-                    @item_keyword_map[keyword].delete(item)
-                    if @item_keyword_map[keyword].size == 0
-                        @item_keyword_map.delete(keyword)
+            item.keywords.symbols.each do |symbol|
+                if @item_keyword_map.has_key?(symbol)
+                    @item_keyword_map[symbol].delete(item)
+                    if @item_keyword_map[symbol].size == 0
+                        @item_keyword_map.delete(symbol)
                     end
                 end
             end
@@ -719,11 +719,11 @@ class Game
     def add_global_mobile(mobile)
         @mobiles.add(mobile)
         if mobile.keywords
-            mobile.keywords.each do |keyword|
-                if !@mobile_keyword_map[keyword]
-                    @mobile_keyword_map[keyword] = [mobile]
+            mobile.keywords.symbols.each do |symbol|
+                if !@mobile_keyword_map[symbol]
+                    @mobile_keyword_map[symbol] = [mobile]
                 else
-                    @mobile_keyword_map[keyword] << mobile
+                    @mobile_keyword_map[symbol] << mobile
                 end
             end
         end
@@ -732,11 +732,11 @@ class Game
     def remove_global_mobile(mobile)
         @mobiles.delete(mobile)
         if mobile.keywords
-            mobile.keywords.each do |keyword|
-                if @mobile_keyword_map.has_key?(keyword)
-                    @mobile_keyword_map[keyword].delete(mobile)
-                    if @mobile_keyword_map[keyword].size == 0
-                        @mobile_keyword_map.delete(keyword)
+            mobile.keywords.symbols.each do |symbol|
+                if @mobile_keyword_map.has_key?(symbol)
+                    @mobile_keyword_map[symbol].delete(mobile)
+                    if @mobile_keyword_map[symbol].size == 0
+                        @mobile_keyword_map.delete(symbol)
                     end
                 end
             end
@@ -765,39 +765,6 @@ class Game
 
     def remove_cooldown_object(gameobject)
         @cooldown_objects.delete(gameobject)
-    end
-
-    # Pass in a keyword string to get the global keyword set of equal value
-    # global list is managed as a hash
-    # key is the keyword set's #hash,
-    # value is [keyword_set, count], where count is number of objects using this keyword set.
-    def global_keyword_set_for_keyword_string(string, increment = true)
-        new_set = string.to_keyword_set
-        if (result = @global_keyword_set_map.dig(new_set.hash))
-            result[1] += 1 if increment
-            return result[0]
-        end
-        if !increment
-            return nil
-        end
-        @global_keyword_set_map[new_set.hash] = [new_set, 1]
-        return new_set
-    end
-
-     # decrement a keyword set in the global list and delete it if its counter reaches 0
-    def decrement_keyword_set(keyword_set)
-        if @reload
-            return
-        end
-        result = @global_keyword_set_map.dig(keyword_set.hash)
-        if !result
-            return
-        end
-        if result[1] > 1
-            result[1] -= 1
-        else
-            @global_keyword_set_map.delete(keyword_set.hash)
-        end
     end
 
     ##

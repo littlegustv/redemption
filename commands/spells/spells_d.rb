@@ -102,7 +102,7 @@ class SpellDestroyRune < Spell
     	if args.first.nil?
     		if actor.room.affected? "rune"
                 actor.room.occupants.each_output "The runes present in this room begin fade."
-                actor.room.remove_affect( "rune" )
+                actor.room.remove_affects_with_keywords( "rune" )
                 return true
             else
                 actor.output "There are no runes found."
@@ -111,7 +111,7 @@ class SpellDestroyRune < Spell
     	elsif ( target = actor.target({ list: actor.equipment + actor.inventory, item_type: Weapon }.merge( args.first.to_s.to_query )).first )
     		if target.affected?("rune")
     			actor.output "The runes on 0<n> slowly fade out of existence.", [target]
-    			target.remove_affect( "rune" )
+    			target.remove_affects_with_keywords( "rune" )
                 return true
             else
                 actor.output "0<N> is not runed.", [target]
@@ -204,7 +204,7 @@ class SpellDispelMagic < Spell
 
     def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            target.remove_affect( actor.affects.sample.keywords.first ) if target.affects && target.affects.count > 0
+            target.remove_affects_with_keywords( actor.affects.sample.keywords.first ) if target.affects && target.affects.count > 0
             return true
         else
             actor.output "There is no one here with that name."

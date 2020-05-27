@@ -11,7 +11,7 @@ class AffectRegeneration < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::PASSIVE, # visibility
+            :passive, # visibility
             true # savable
         )
     end

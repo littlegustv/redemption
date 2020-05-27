@@ -89,7 +89,7 @@ class SpellRemoveCurse < Spell
     def attempt( actor, cmd, args, input, level )
         if ( target = actor.target({ list: actor.room.occupants + actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query )).first )
             if target.affected? "curse"
-                target.remove_affect( "curse" )
+                target.remove_affects_with_keywords( "curse" )
                 return true
             else
                 actor.output "There doesn't seem to be a curse on 0<n>.", [target]

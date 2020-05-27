@@ -419,6 +419,10 @@ module GameSave
                     end
                 end
                 affect.overwrite_modifiers(modifiers)
+                data = JSON.parse(affect_row[:data], symbolize_names: true)
+                data_string = affect_row[:data]
+                pp data
+                pp data_string
                 affect.overwrite_data(JSON.parse(affect_row[:data], symbolize_names: true))
                 if affect.apply(true)
                     affect.set_duration(affect_row[:duration])

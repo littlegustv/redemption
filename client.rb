@@ -138,7 +138,7 @@ class Client
         if !input
             input = get_input
         end
-        words = input.split(" ").to_a
+        words = input.split
         word1 = words.dig(0).to_s
         word2 = words.dig(1).to_s
         if word1 == ""

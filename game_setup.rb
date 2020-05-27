@@ -1,4 +1,4 @@
-    # This module contains methods relevant to Game's initial setup.
+# This module contains methods relevant to Game's initial setup.
 module GameSetup
 
     # The main setup method for game.
@@ -19,7 +19,7 @@ module GameSetup
     # +port+:: The port the server uses.
     public def start(ip, port)
         if @started
-            log("This game object has already been started!")
+            log("This game instance has already been started!")
             return
         end
         @started = true
@@ -44,7 +44,9 @@ module GameSetup
         # each client runs on its own thread as well
         @client_accept_thread = Thread.start do
             loop do
+                # @param client_connection [TCPSocket]
                 client_thread = Thread.start(@server.accept) do |client_connection|
+                    client_connection.gets
                     client = Client.new(client_connection, client_thread)
                     @clients << client
                     client.input_loop
@@ -118,7 +120,6 @@ module GameSetup
         @periodic_affects.clear
         @responders.clear
 
-        @global_keyword_set_map.clear
         @mobile_keyword_map.clear
         @item_keyword_map.clear
 
@@ -197,9 +198,9 @@ module GameSetup
     # Opens the TCPServer at ip (optional) and port (required)
     protected def start_server(ip, port)
         if ip
-            @server = TCPServer.open( ip, port )
+            @server = TCPServer.new( ip, port )
         else
-            @server = TCPServer.open( port )
+            @server = TCPServer.new( port )
         end
         log "Server opened on port #{port}."
     end
@@ -208,6 +209,7 @@ module GameSetup
     protected def connect_database
         log( "Connecting to database... ", false, 70)
         sql_host, sql_port, sql_username, sql_password = File.read( "server_config.txt" ).split("\n").map{ |line| line.split(" ".freeze)[1] }
+        # @type []
         @db = Sequel.mysql2( :host => sql_host,
                              :port => sql_port,
                              :username => sql_username,
@@ -657,7 +659,7 @@ module GameSetup
                     direction,
                     @rooms[row[:room_id]],
                     @rooms[row[:to_room_id]],
-                    "#{row[:keywords].to_s} #{direction.name}",
+                    row[:keywords].split(",") + [direction.name],
                     row[:name].to_s,
                     row[:short_description].to_s,
                     row[:door],

@@ -11,7 +11,7 @@ class AffectBarkSkin < Affect
             { resist_bash: 5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -50,7 +50,7 @@ class AffectBerserk < Affect
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
         @healing_left = 3 * level
@@ -110,7 +110,7 @@ class AffectBladeRune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
         @message, @modifiers = @@TYPES.sample
@@ -119,7 +119,7 @@ class AffectBladeRune < Affect
     def self.affect_info
         return @info || @info = {
             name: "blade rune",
-            keywords: ["blade rune"],
+            keywords: ["blade rune", "rune"],
             application_type: :source_overwrite,
         }
     end
@@ -148,7 +148,7 @@ class AffectBless < Affect
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -186,7 +186,7 @@ class AffectBlind < Affect
             }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -229,7 +229,7 @@ class AffectBlur < Affect
             { resist_slash: 5 }, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -263,7 +263,7 @@ class AffectBolster < Affect
             nil, # modifiers: nil
             3, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
     end
@@ -307,7 +307,7 @@ class AffectBurstRune < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::NORMAL, # visibility
+            :normal, # visibility
             true # savable
         )
         @ELEMENTS = [
@@ -324,7 +324,7 @@ class AffectBurstRune < Affect
     def self.affect_info
         return @info || @info = {
             name: "burst rune",
-            keywords: ["burst rune"],
+            keywords: ["burst rune", "rune"],
             application_type: :global_single,
         }
     end

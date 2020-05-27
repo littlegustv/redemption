@@ -5,7 +5,7 @@ class Continent < GameObject
     attr_reader :areas
 
     def initialize( id, name, preposition, recall_room_id, starting_room_id )
-        super(name, Game.instance.global_keyword_set_for_keyword_string(name))
+        super(name, name)
         @id = id
         @preposition = preposition
         @recall_room_id = recall_room_id

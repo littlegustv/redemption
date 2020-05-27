@@ -10,7 +10,7 @@ class AffectQuestItem < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::PASSIVE, # visibility
+            :passive, # visibility
             false # savable
         )
         areas = Game.instance.areas.values.select{ |area| area.questable && area.min < @target.level && area.max > @target.level }
@@ -54,7 +54,7 @@ class AffectQuestItem < Affect
             @target.output "You have completed your quest! Yay!"
             @target.xp( @target )
             @target.qp( @target )
-            @target.remove_affect "quest"
+            @target.remove_affects_with_keywords "quest"
         else
             @target.output "You aren't done yet."
         end
@@ -79,7 +79,7 @@ class AffectQuestVillain < Affect
             nil, # modifiers: nil
             nil, # period: nil
             false, # permanent: false
-            Visibility::PASSIVE, # visibility
+            :passive, # visibility
             false # savable
         )
 	    areas = Game.instance.areas.values.select{ |area| area.questable && area.min < @target.level && area.max > @target.level }
@@ -117,7 +117,7 @@ class AffectQuestVillain < Affect
             @completed = true
         else
         	@target.output "Something is wrong... has someone else completed your quest?"
-        	@target.remove_affect "quest"
+        	@target.remove_affects_with_keywords "quest"
         end
     end
 
@@ -126,7 +126,7 @@ class AffectQuestVillain < Affect
             @target.output "You have completed your quest! Yay!"
             @target.xp( @target )
             @target.qp( @target )
-            @target.remove_affect "quest"
+            @target.remove_affects_with_keywords "quest"
         else
             @target.output "You aren't done yet."
         end
@@ -152,7 +152,7 @@ class AffectQuestMaster < Affect
             nil, # modifiers: nil
             nil, # period: nil
             true, # permanent: false
-            Visibility::PASSIVE, # visibility
+            :passive, # visibility
             true # savable
         )
     end

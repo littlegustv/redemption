@@ -116,7 +116,9 @@ class Mobile < GameObject
     end
 
     def destroy
-        super
+        Game.instance.remove_regen_mobile(self)
+        Game.instance.remove_combat_mobile(self)
+        Game.instance.destroy_mobile(self)
         if @reset
             @reset.activate
             @reset = nil
@@ -130,11 +132,8 @@ class Mobile < GameObject
         if @h2h_equip_slot.item
             @h2h_equip_slot.item.destroy
         end
-        @model = nil
         @inventory = nil
-        Game.instance.remove_regen_mobile(self)
-        Game.instance.remove_combat_mobile(self)
-        Game.instance.destroy_mobile(self)
+        super
     end
 
     def room
@@ -1404,7 +1403,7 @@ You are #{@position.name}.)
     end
 
     def do_visible
-        remove_affect("invisibility")
+        remove_affects_with_keywords("invisibility")
         output "You are now visible."
     end
 

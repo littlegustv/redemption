@@ -13,7 +13,7 @@ class Exit < GameObject
         direction,
         origin,
         destination,
-        keywords,
+        keyword_string,
         name,
         short_description = "".freeze,
         door = false,
@@ -26,7 +26,7 @@ class Exit < GameObject
         reset_timer = nil,
         id = 0
     )
-        super(name, Game.instance.global_keyword_set_for_keyword_string(keywords.freeze) )
+        super(name, keyword_string )
         @id = id
 		@direction = direction
 		@origin = origin
@@ -53,13 +53,15 @@ class Exit < GameObject
 	end
 
     def destroy
-        super
         if @origin
             @origin.remove_exit(self)
+            @origin = nil
         end
         if @destination
             @destination.remove_entrance(self)
+            @destination = nil
         end
+        super
     end
 
 	def add_pair( exit )

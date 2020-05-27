@@ -1,7 +1,6 @@
 class GameObject
 
     # @return [Array<Affect>, nil] The Array of Affects applied to this GameObject, or `nil`.
-    attr_accessor :affects
     attr_accessor :uuid, :active, :short_description, :long_description
     # @return [Reset] the Reset
     attr_accessor :reset
@@ -13,7 +12,7 @@ class GameObject
 
     # Initialize a GameObject.
     # @param name [String, nil] The name of the object. `nil` probably means the name is attached to the model.
-    # @param keywords [Set, nil] The keyword set of the object. `nil` probably means the keywords is attached to the model.
+    # @param keywords [String, nil] The keywords for the object. `nil` probably means the keywords are attached to the model.
     # @param reset [Reset, nil] The Reset that generated this object, or `nil` if it has none.
     # @param model [Model, nil] The Model to associate with this object, or `nil` if it doesn't have one.
     def initialize( name, keywords, reset = nil, model = nil )
@@ -26,7 +25,10 @@ class GameObject
         @affects = nil
         @source_affects = nil
         @cooldowns = nil
-        @keywords = keywords
+        @keywords = nil
+        if keyword_string
+            @keywords = Keywords.keywords_for_array(keywords)
+        end
 
         @uuid = Game.instance.new_uuid
         @active = true
@@ -42,7 +44,7 @@ class GameObject
             end
         end
         if @keywords
-            Game.instance.decrement_keyword_set(@keywords)
+            @keywords.decrement_use_count
         end
         if @model && @model.temporary
             @model.destroy
@@ -61,10 +63,6 @@ class GameObject
         else
             return @name.to_s
         end
-    end
-
-    def update( elapsed )
-        # @affects.each { |aff| aff.update( elapsed ) }
     end
 
     def output( message, objects = [] )
@@ -110,15 +108,6 @@ class GameObject
             return @keywords || @model.keywords
         end
         @keywords || Set.new
-    end
-
-    def keyword_string
-        if self.keywords && self.keywords.size > 0
-            key_strings = self.keywords.map(&:to_s)
-            return key_strings.reject{ |x| key_strings.any?{ |y| x != y && y.start_with?(x) } }.join(" ")
-        else
-            return "(No keywords)".freeze
-        end
     end
 
     def can_see?(target)
@@ -187,9 +176,55 @@ class GameObject
         end
     end
 
+    #
+    # Get the currently applied affects for the GameObject.
+    #
+    # @return [Array<Affect>] The Affects.
+    #
+    def affects
+        @affects || []
+    end
+
+    def add_affect(affect)
+        if @affects.nil?
+            @affects = [affect]
+        else
+            @affects << affect
+        end
+    end
+
+    def remove_affect(affect)
+        if @affects.nil?
+            return
+        end
+        @affects.delete(affect)
+        if @affects.empty?
+            @affects = nil
+        end
+    end
+
+    def add_source_affect(affect)
+        if @source_affects.nil?
+            @source_affects = [affect]
+        else
+            @source_affects << affect
+        end
+    end
+
+    def remove_source_affect(affect)
+        if @source_affects.nil?
+            return
+        end
+        @source_affects.delete(affect)
+        if @source_affects.empty?
+            @source_affects = nil
+        end
+    end
+
     # Remove all affects by a given keyword
     # +term+:: The keyword to match
-    def remove_affect(term)
+    def remove_affects_with_keywords(keywords)
+        keywords
         list = @affects.select{ |a| a.check( term )  }
         list.each do |affect|
             affect.clear(false)
