@@ -23,7 +23,7 @@ class SpellLightningBolt < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."

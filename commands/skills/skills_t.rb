@@ -19,7 +19,7 @@ class SkillTrip < Skill
         end
         if actor.attacking and args.length <= 0
             target = actor.attacking
-        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( kill_target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first )
             target = kill_target
         else
             actor.output "I can't find anyone with that name."

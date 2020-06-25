@@ -12,7 +12,7 @@ class SpellTeleport < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        target = args.first.nil? ? actor : actor.target( argument: args[0], list: actor.room.occupants ).first
         if target
 	        newroom = Game.instance.rooms.values.sample
 	        target.output "You have been teleported!" if target != actor
@@ -38,7 +38,7 @@ class SpellTaunt < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        target = args.first.nil? ? actor : actor.target( argument: args[0], list: actor.room.occupants ).first
         if target
              AffectTaunt.new( target, actor, actor.level ).apply
             target.start_combat( actor ) if target != actor

@@ -62,8 +62,8 @@ class AffectFireRune < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_room_description, :fire_rune_description)
-        add_event_listener(@target, :event_room_mobile_enter, :do_fire_rune)
+        add_event_listener(@target, :calculate_room_description, :fire_rune_description)
+        add_event_listener(@target, :room_mobile_enter, :do_fire_rune)
     end
 
     def send_complete_messages
@@ -117,7 +117,7 @@ class AffectFlamingWeapon < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_hit, :do_flag)
+        add_event_listener(@target, :on_hit, :do_flag)
     end
 
     def do_flag(data)
@@ -163,7 +163,7 @@ class AffectFloodingWeapon < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_hit, :do_flag)
+        add_event_listener(@target, :on_hit, :do_flag)
     end
 
     def do_flag(data)
@@ -290,7 +290,7 @@ class AffectFollow < Affect
     end
 
     def start
-        add_event_listener(@target, :event_observe_mobile_use_exit, :do_follow)
+        add_event_listener(@target, :observe_mobile_use_exit, :do_follow)
     end
 
     def do_follow( data )
@@ -373,7 +373,7 @@ class AffectFrostWeapon < Affect
         end
 
         def start
-            add_event_listener(@target, :event_on_hit, :do_flag)
+            add_event_listener(@target, :on_hit, :do_flag)
         end
 
         def do_flag(data)

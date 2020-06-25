@@ -1,3 +1,6 @@
+#
+# The Model for Pill items.
+#
 class PillModel < ConsumableModel
 
     def initialize(id, row, temporary = true)

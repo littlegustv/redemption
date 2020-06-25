@@ -1,26 +1,37 @@
+# 
+# Direction class. One exists for each direction in the game (North, East, South, etc). 
 #
+class Direction < DataObject
 
-class Direction
-    attr_reader :id
-    attr_reader :name
-    attr_reader :symbol
+    # @return [Direction] The opposing direction to this one.
     attr_reader :opposite
 
     def initialize(row)
-        @id = row[:id]
-        @name = row[:name].gsub(/_/, " ").dup
-        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
+        super(row[:id], row[:name], row[:symbol])
         @opposite = nil
     end
 
-    def ==(other_object)
-        super(other_object) || @symbol == other_object
-    end
-
+    #
+    # Returns `self` to allow Symbol#to_direction to be called safely without knowing the type.
+    #
+    # @return [Direction] `self`.
+    #
     def to_direction
         self
     end
 
+    #
+    # Set the Direction opposite to this one.
+    #
+    #   north = Direction.new(row1)
+    #   south = Direction.new(row2)
+    #   north.set_opposite(south)
+    #   south.set_opposite(north)
+    #
+    # @param [Direction] opposite The opposite direction.
+    #
+    # @return [Direction] The opposite direction.
+    #
     def set_opposite(opposite)
         @opposite = opposite
     end

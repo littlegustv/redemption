@@ -18,7 +18,7 @@ class CommandSay < Command
             message = input[/#{cmd} (.*)/, 1]
 
             data = { text: message }
-            Game.instance.fire_event( actor, :event_communicate, data )
+            Game.instance.fire_event( actor, :communicate, data )
             message = data[:text]
 
             actor.room.occupants.each_output "{y0<N> say0<,s> '#{message}'{x", [actor]
@@ -57,8 +57,8 @@ class CommandSell < Command
     # buy and sell need a default quantity of '1', since otherwise the targeting system would buy the entire stock of a shop at once
 
     def attempt( actor, cmd, args, input )
-        if ( shopkeeper = actor.target({ visible_to: actor, list: actor.room.occupants, affect: "shopkeeper", not: actor }).first )
-            actor.target({ visible_to: actor, list: actor.inventory.items }.merge( args.first.to_s.to_query( 1 ) ) ).each do |sale|
+        if ( shopkeeper = actor.target( list: actor.room.occupants - [actor], affect: "shopkeeper" ).first )
+            actor.target( argument: args[0], list: actor.inventory.items ).each do |sale|
 
                 # we are selling, the shopkeeper is buying, so wer use the shopkeeper 'buy price'
 
@@ -171,7 +171,7 @@ class CommandSocial < Command
         target = nil
 
         if args.length > 0 # trying to target something?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target(argument: args[0], list: actor.room.occupants).first
             if target
                 if target == actor # target self
                     p1 = social[:p1_target_self] if social[:p1_target_self].to_s.length > 0

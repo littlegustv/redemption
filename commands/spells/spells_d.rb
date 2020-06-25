@@ -61,7 +61,7 @@ class SpellDemonFire < Spell
         elsif args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
 
         if !target
@@ -108,7 +108,7 @@ class SpellDestroyRune < Spell
                 actor.output "There are no runes found."
                 return false
             end
-    	elsif ( target = actor.target({ list: actor.equipment + actor.inventory, item_type: Weapon }.merge( args.first.to_s.to_query )).first )
+    	elsif ( target = actor.target( argument: args[0], list: actor.items, type: Weapon ).first )
     		if target.affected?("rune")
     			actor.output "The runes on 0<n> slowly fade out of existence.", [target]
     			target.remove_affects_with_keywords( "rune" )
@@ -141,7 +141,7 @@ class SpellDestroyTattoo < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-    	if ( target = actor.target({ list: actor.equipment, item_type: Tattoo }.merge( args.first.to_s.to_query )).first )
+    	if ( target = actor.target( argument: args[0], list: actor.equipment, type: Tattoo ).first )
     		actor.output "You focus your will and 0<n> explodes into flames!", [target]
     		target.destroy true
             return true
@@ -181,8 +181,8 @@ class SpellDetectMagic < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            actor.output target.show_affects(observer: actor)
+        if ( target = actor.target( argument: args[0], list: actor.room.occupants ).first )
+            actor.output target.show_affects(actor)
             return true
         else
             actor.output "There is no one here with that name."
@@ -203,7 +203,7 @@ class SpellDispelMagic < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.occupants ).first )
             target.remove_affects_with_keywords( actor.affects.sample.keywords.first ) if target.affects && target.affects.count > 0
             return true
         else

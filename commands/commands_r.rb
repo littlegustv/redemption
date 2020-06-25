@@ -26,7 +26,7 @@ class CommandRemove < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( targets = actor.target({ visible_to: actor, list: actor.equipment }.merge( args.first.to_s.to_query(1) )) )
+        if ( targets = actor.target( argument: args[0], list: actor.equipment ) )
             targets.each do |target|
                 actor.unwear(target)
             end
@@ -52,7 +52,7 @@ class CommandRest < Command
     def attempt( actor, cmd, args, input )
         if actor.position == :sleeping
             data = { success: true }
-            Game.instance.fire_event( actor, :event_try_wake, data )
+            Game.instance.fire_event( actor, :try_wake, data )
             if data[:success]
                 actor.output "You wake up and rest."
                 (actor.room.occupants - [actor]).each_output "0<N> wakes up and begins to rest.", [actor]

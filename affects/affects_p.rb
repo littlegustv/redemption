@@ -165,7 +165,7 @@ class AffectPoisonWeapon < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_hit, :do_flag)
+        add_event_listener(@target, :on_hit, :do_flag)
     end
 
     def do_flag(data)
@@ -205,7 +205,7 @@ class AffectProtectionEvil < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_receive_damage, :do_protection_evil)
+        add_event_listener(@target, :calculate_receive_damage, :do_protection_evil)
     end
 
     def send_start_messages
@@ -252,7 +252,7 @@ class AffectProtectionGood < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_receive_damage, :do_protection_good)
+        add_event_listener(@target, :calculate_receive_damage, :do_protection_good)
     end
 
     def send_start_messages
@@ -299,7 +299,7 @@ class AffectProtectionNeutral < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_receive_damage, :do_protection_neutral)
+        add_event_listener(@target, :calculate_receive_damage, :do_protection_neutral)
     end
 
     def send_start_messages

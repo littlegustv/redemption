@@ -53,6 +53,13 @@ class Spell < Command
 		"z" => "k",
 	}
 
+	#
+	# Take a string and convert it into 'spell language', replacing syllables using the @@syllables hash.
+	#
+	# @param [String] name The String to translate.
+	#
+	# @return [String] The translated string.
+	#
 	def translate( name )
 		translation = name
 		@@syllables.each{ |key, value| translation = translation.gsub(key, value.upcase) }
@@ -77,7 +84,7 @@ class Spell < Command
 		end
 	end
 
-    def execute( actor, cmd, args, input )
+	def execute( actor, cmd, args, input )
         if actor.position < @position # Check position
             case actor.position.symbol
             when :sleeping

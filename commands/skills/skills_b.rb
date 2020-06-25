@@ -19,7 +19,7 @@ class SkillBackstab < Skill
         if actor.attacking and args.length <= 0
             do_backstab( actor, actor.attacking )
             return true
-        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( kill_target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first )
             do_backstab( actor, kill_target )
             return true
         else
@@ -55,7 +55,7 @@ class SkillBash < Skill
     def attempt( actor, cmd, args, input )
         target = nil
         if args.length > 0
-            target = actor.target({ list: actor.room.occupants + actor.room.exits, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants + actor.room.exits ).first
         else
             target = actor.attacking
         end

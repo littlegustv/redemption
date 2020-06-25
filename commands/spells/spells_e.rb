@@ -14,7 +14,7 @@ class SpellEarthquake < Spell
     def attempt( actor, cmd, args, input, level )
         (actor.room.area.occupants - [actor]).each_output "The earth trembles and shivers."
         actor.output "The earth trembles beneath your feet!"
-        ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
+        ( targets = actor.target( list: actor.room.occupants - [actor] ) ).each do |target|
             target.receive_damage(actor, 100, :earthquake)
         end
         return true
@@ -41,7 +41,7 @@ class SpellEnchantArmor < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.inventory.items, item_type: Armor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.inventory.items, type: Armor ).first )
             fail = 25
             # dam =
             affect = AffectEnchantArmor.new( target, nil, actor.level )
@@ -75,7 +75,7 @@ class SpellEnchantWeapon < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.inventory.items, item_type: Weapon }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.inventory.items, type: Weapon ).first )
             fail = 25
             # dam =
             affect = AffectEnchantWeapon.new( target, nil, actor.level )
@@ -114,7 +114,7 @@ class SpellEnergyDrain < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."

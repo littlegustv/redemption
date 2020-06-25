@@ -24,7 +24,7 @@ class SpellIceBolt < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -64,7 +64,7 @@ class SpellInfravision < Spell
         target = nil
         if args.first.nil?
             target = actor
-        elsif !(target = Game.instance.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query() )).first)
+        elsif !(target = actor.target( argument: args[0], list: actor.room.occupants + actor.items ).first)
             actor.output "You don't see anything like that here."
             return false
         end
@@ -87,7 +87,7 @@ class SpellInvisibility < Spell
         target = nil
         if args.first.nil?
             target = actor
-        elsif !(target = Game.instance.target({ list: actor.room.occupants + actor.items, visible_to: actor }.merge( args.first.to_s.to_query() )).first)
+        elsif !(target = actor.target( list: actor.room.occupants + actor.items, argument: args.first).first)
             actor.output "You don't see anything like that here."
             return false
         end

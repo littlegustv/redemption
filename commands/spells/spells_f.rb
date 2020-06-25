@@ -66,7 +66,7 @@ class SpellFireball < Spell
     def attempt( actor, cmd, args, input, level )
         (actor.room.occupants - [actor]).each_output "0<N> summons a burning ball of fire!", [actor]
         actor.output "You summon a fireball!"
-        ( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
+        ( targets = actor.target( list: actor.room.occupants - [actor] )).each do |target|
             target.receive_damage(actor, 100, :fireball)
         end
         return true
@@ -120,7 +120,7 @@ class SpellFlamestrike < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -145,7 +145,7 @@ class SpellFly < Spell
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
             AffectFly.new( actor, actor, actor.level ).apply
-        elsif ( target = Game.instance.target({ list: actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first )
             AffectFly.new( target, actor, actor.level ).apply
         else
             actor.output "There is no one here with that name."
@@ -166,7 +166,7 @@ class SpellFrenzy < Spell
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
             AffectFrenzy.new( actor, nil, level || actor.level ).apply
-        elsif ( target = Game.instance.target({ list: actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first )
             AffectFrenzy.new( target, nil, level || actor.level ).apply
         else
             actor.output "There is no one here with that name."

@@ -1,33 +1,89 @@
+#
+# The Model for mobiles. 
+# Some of the mobile's attributes just link back to this to save on memory, like name and descriptions.
+#
 class MobileModel < KeywordedModel
 
+    # @return [Integer] The mobile's ID.
     attr_reader :id
+
+    # @return [Integer] The mobile's level, eg. 5
     attr_reader :level
+    
+    # @return [String] Name of the mobile, eg. `"a fungusaur"`.
     attr_reader :name
+    
+    # @return [String] Short description of the mobile, eg. `"A man-sized fungusaur prowls the walls."`.
     attr_reader :short_description
+    
+    # @return [String] Long description of the mobile,  
+    #   eg. `"The strange beast stands just over six feet tall. It seems..."`
     attr_reader :long_description
+    
+    # @return [Race]
     attr_reader :race
+
+    # @return [MobileClass, nil] The MobileClass of the mobile, or nil if there is none.
     attr_reader :mobile_class
+    
+    # @return [Integer]
     attr_reader :alignment
+
+    # @return [Integer] Dice count for hand to hand damage.
     attr_reader :hand_to_hand_dice_sides
+    
+    # @return [Integer] Dice sides for hand to hand damage.
     attr_reader :hand_to_hand_dice_count
+    
+    # @return [Noun] The noun used for hand to hand.
     attr_reader :hand_to_hand_noun
+    
+    # @return [Position] The starting position for the mobile.
     attr_reader :position
+
+    # @return [Integer]
     attr_reader :wealth
+
+    # @return [Size, nil] The natural size of the mobile, or nil if there is none.
     attr_reader :size
+
+    # @return [Material]
     attr_reader :material
 
+    # @return [Integer, nil] The mobile's base health. If nil, mobile will use max_health formula instead.
     attr_reader :base_health
+    
+    # @return [Integer, nil] The mobile's base mana. If nil, the mobile will use max_mana formula instead.
     attr_reader :base_mana
+
+    # @return [Integer, nil] The mobile's base movement. If nil, the mobile will use max_movement formula instead.
     attr_reader :base_movement
+
+    # @return [Integer] Natural armor class.
     attr_reader :base_armor_class
+
+    # @return [Integer] Natural hit roll.
     attr_reader :base_hit_roll
+    
+    # @return [Integer] Natural damage roll.
     attr_reader :base_damage_roll
 
+    # @return [Hash{Stat => Integer}, nil] Natural stats, or nil if there are none.
     attr_reader :stats
+    
+    # @return [Array<AffectModel>, nil] Array of mobile affect models, or nil if there are none.
     attr_reader :affect_models
+    
+    # @return [Array<Gender>, nil] The possible genders for this mobile, or nil if there are none.
     attr_reader :genders
+
+    # @return [Array<AffectModel>, nil] Array of hand to hand affect models, or nil if there are none.
     attr_reader :hand_to_hand_affect_models
+
+    # @return [Array<Skill>, nil] Array of learned skills, or nil if there are none.
     attr_reader :learned_skills
+    
+    # @return [Array<Spell>, nil] Array of learned spells, or nil if there are none.
     attr_reader :learned_spells
 
     def initialize(id, row, temporary = true)
@@ -46,7 +102,7 @@ class MobileModel < KeywordedModel
         @base_health = row.dig(:max_health)
         @base_mana = row.dig(:max_mana)
         @base_movement = row.dig(:max_movement)
-        @base_armor_class = row.dig(:armor_class)
+        @base_armor_class = row.dig(:armor_class).to_i
         @base_hit_roll = row.dig(:hit_roll)
         @base_damage_roll = row.dig(:damage_roll)
 
@@ -54,7 +110,7 @@ class MobileModel < KeywordedModel
         if row.dig(:race_id)
             @race = Game.instance.races[row[:race_id]]
         elsif row.dig(:race)
-            @race = row[:race]
+            @race = row[:race].to_race
         else
             @race = Game.instance.races.values.first
         end
@@ -104,17 +160,23 @@ class MobileModel < KeywordedModel
             @material = Game.instance.materials.values.first
         end
 
-        # stats
-        add_stat(:strength, row[:strength]) if row.dig(:strength)
-        add_stat(:dexterity, row[:dexterity]) if row.dig(:dexterity)
-        add_stat(:intelligence, row[:intelligence]) if row.dig(:intelligence)
-        add_stat(:wisdom, row[:wisdom]) if row.dig(:wisdom)
-        add_stat(:constitution, row[:constitution]) if row.dig(:constitution)
-        add_stat(:max_strength, row[:max_strength]) if row.dig(:max_strength)
-        add_stat(:max_dexterity, row[:max_dexterity]) if row.dig(:max_dexterity)
-        add_stat(:max_intelligence, row[:max_intelligence]) if row.dig(:max_intelligence)
-        add_stat(:max_wisdom, row[:max_wisdom]) if row.dig(:max_wisdom)
-        add_stat(:max_constitution, row[:max_constitution]) if row.dig(:max_constitution)
+        # stats to pull from row
+        stats = [
+            :strength,
+            :dexterity,
+            :intelligence,
+            :wisdom,
+            :constitution,
+            :max_strength,
+            :max_dexterity,
+            :max_intelligence,
+            :max_wisdom,
+            :max_constitution,
+        ]
+        
+        stats.each do |stat|
+            add_stat(stat, row[stat]) if row.dig(stat)
+        end
 
         # affect models
         if row.dig(:affect_models)
@@ -155,12 +217,21 @@ class MobileModel < KeywordedModel
             @learned_spells = nil
         end
     end
-
+  
+    #
+    # Adds a stat modifier to this mobile model.
+    #
+    # @param [Stat] stat The Stat to modify.
+    # @param [Integer] value The value of the stat modifier.
+    #
+    # @return [nil]
+    #
     def add_stat(stat, value)
         if !@stats
             @stats = {}
         end
         @stats[stat.to_stat] = value
+        return
     end
 
 end

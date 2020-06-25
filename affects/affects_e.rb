@@ -80,7 +80,7 @@ class AffectEssence < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_deal_magic_damage, :do_essence)
+        add_event_listener(@target, :on_deal_magic_damage, :do_essence)
     end
 
     def do_essence( data )

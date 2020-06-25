@@ -68,7 +68,7 @@ class AffectGlowing < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_long_auras, :do_glowing_aura)
+        add_event_listener(@target, :calculate_long_auras, :do_glowing_aura)
     end
 
     def do_glowing_aura(data)
@@ -103,7 +103,7 @@ class AffectGrandeur < Affect
     end
 
     def start
-        add_event_listener(@target, :event_show_condition, :do_condition)
+        add_event_listener(@target, :show_condition, :do_condition)
     end
 
     def send_start_messages
@@ -148,7 +148,7 @@ class AffectGuard < Affect
 
     #
     def start
-        add_event_listener(@target, :event_observe_mobile_enter, :toggle_guard)
+        add_event_listener(@target, :observe_mobile_enter, :toggle_guard)
     end
 
     def toggle_guard(data)

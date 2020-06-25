@@ -26,8 +26,8 @@ class AffectRegeneration < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_regeneration, :do_regeneration_bonus)
-        add_event_listener(@target, :event_on_hit, :do_regeneration_recovery)
+        add_event_listener(@target, :calculate_regeneration, :do_regeneration_bonus)
+        add_event_listener(@target, :on_hit, :do_regeneration_recovery)
     end
 
     def do_regeneration_bonus(data)

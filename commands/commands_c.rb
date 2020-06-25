@@ -19,7 +19,7 @@ class CommandCast < Command
             return false
         end
         matches = @spells.select{ |spell|
-            spell.check( spell_name ) && actor.knows( spell )
+            spell.keywords.fuzzy_match( spell_name ) && actor.knows( spell )
         }.sort_by(&:priority)
 
         if matches.any?
@@ -44,7 +44,7 @@ class CommandClose < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target( { list: actor.room.exits }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = actor.target( list: actor.room.exits, argument: args.first ).first )
             return target.close( actor )
         else
             actor.output "There is no exit in that direction."
@@ -68,7 +68,7 @@ class CommandConsider < Command
             actor.output "Who did you want to consider?"
             return false
         end
-        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( list: actor.room.occupants, argument: args.first ).first )
             case  target.level - actor.level
             when -51..-10
                 actor.output "You can kill 0<n> naked and weaponless.", [target]

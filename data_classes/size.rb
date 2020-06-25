@@ -1,22 +1,21 @@
 #
+# The Size data class.
+#
+class Size < DataObject
 
-class Size
-    attr_reader :id
-    attr_reader :name
-    attr_reader :symbol
+    # @return [Integer] An arbitrary integer to represent the size. Generally, a number from `0` to `6`.
     attr_reader :value
 
     def initialize(row)
-        @id = row[:id]
-        @name = row[:name].gsub(/_/, " ")
-        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
+        super(row[:id], row[:name], row[:symbol])
         @value = row[:value]
     end
 
-    def ==(other_object)
-        super(other_object) || @symbol == other_object
-    end
-
+    #
+    # Returns `self` to allow `Symbol#to_size` to be called safely without knowing the type.
+    #
+    # @return [Size] `self`.
+    #
     def to_size
         self
     end

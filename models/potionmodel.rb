@@ -1,3 +1,6 @@
+#
+# The Model for Potion items.
+#
 class PotionModel < ConsumableModel
 
     def initialize(id, row, temporary = true)

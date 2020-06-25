@@ -1,3 +1,6 @@
+#
+# The Model for Light Items.
+#
 class LightModel < ItemModel
 
     def initialize(id, row, temporary = true)

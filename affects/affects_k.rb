@@ -75,8 +75,8 @@ class AffectKiller < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_long_auras, :do_long_killer_flag)
-        add_event_listener(@target, :event_calculate_short_auras, :do_short_killer_flag)
+        add_event_listener(@target, :calculate_long_auras, :do_long_killer_flag)
+        add_event_listener(@target, :calculate_short_auras, :do_short_killer_flag)
     end
 
     def do_long_killer_flag(data)

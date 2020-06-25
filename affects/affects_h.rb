@@ -74,7 +74,7 @@ class AffectHatchling < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_level_up, :hatch)
+        add_event_listener(@target, :on_level_up, :hatch)
     end
 
     def hatch(data)
@@ -113,10 +113,10 @@ class AffectHide < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_start_combat, :do_remove_affect)
-        add_event_listener(@target, :event_mobile_exit, :do_remove_affect)
-        add_event_listener(@target, :event_try_can_be_seen, :do_hide)
-        add_event_listener(@target, :event_calculate_long_auras, :do_hide_aura)
+        add_event_listener(@target, :on_start_combat, :do_remove_affect)
+        add_event_listener(@target, :mobile_exit, :do_remove_affect)
+        add_event_listener(@target, :try_can_be_seen, :do_hide)
+        add_event_listener(@target, :calculate_long_auras, :do_hide_aura)
     end
 
     def send_start_messages

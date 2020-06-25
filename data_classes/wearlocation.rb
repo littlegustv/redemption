@@ -1,14 +1,23 @@
-class WearLocation
+#
+# The Wear Location data class.
+#
+class WearLocation < DataObject
 
-    attr_reader :id
+    # @return [String] The string representing what can be done with an item with this wear_location, eg: `"be worn on finger"`.
     attr_reader :display_string
-    attr_reader :symbol
 
     def initialize(row)
-        @id = row[:id]
-        @name = row[:name].gsub(/_/, " ")
-        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
+        super(row[:id], row[:name], row[:symbol])
         @display_string = row[:display_string]
+    end
+
+    #
+    # Returns `self` to allow `Symbol#to_wear_location` to be called safely without knowing the type.
+    #
+    # @return [WearLocation] `self`.
+    #
+    def to_wear_location
+        self
     end
 
 end

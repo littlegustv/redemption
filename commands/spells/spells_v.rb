@@ -21,7 +21,7 @@ class SpellVentriloquate < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-    	if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+    	if ( target = actor.target( argument: args[0], list: actor.room.occupants ).first )
             words = input.split(" ")
             message = input[/#{words[1]}.*#{words[2]} (.*)/, 1]
     		target.do_command "say #{message}"

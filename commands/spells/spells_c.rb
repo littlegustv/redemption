@@ -66,7 +66,7 @@ class SpellCauseLight < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -101,7 +101,7 @@ class SpellCauseSerious < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -136,7 +136,7 @@ class SpellCauseCritical < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -171,7 +171,7 @@ class SpellChainLightning < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -213,7 +213,7 @@ class SpellCharmPerson < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = Game.instance.target( { list: actor.room.occupants - [actor], visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first )
             if rand(1..10) <= 5
                 AffectFollow.new( target, actor, 1 ).apply
                 AffectCharm.new( target, actor, actor.level ).apply
@@ -287,7 +287,7 @@ class SpellColorSpray < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -313,7 +313,7 @@ class SpellContinualLight < Spell
         if args.first.nil?
             item = Game.instance.load_item( 1952, actor.inventory )
             actor.room.occupants.each_output "0<N> twiddles 0<p> thumbs and 1<n> appears.", [actor, item]
-        elsif ( target = Game.instance.target( { list: actor.items + actor.room.items, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+        elsif ( target = actor.target( argument: args[0], list: actor.items + actor.room.items ).first )
             AffectGlowing.new( target, nil, actor.level ).apply
         else
             actor.output "You don't see that here."
@@ -415,7 +415,7 @@ class SpellCureBlindness < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        target = args.first.nil? ? actor : actor.target( argument: args[0], list: actor.room.occupants ).first
         if target
             if target.affected? "blind"
                 target.output "Your vision returns!"
@@ -468,7 +468,7 @@ class SpellCureDisease < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        target = args.first.nil? ? actor : actor.target( argument: args[0], list: actor.room.occupants ).first
         if target
             if target.affected? "plague"
                 target.output "You feel better!"
@@ -496,7 +496,7 @@ class SpellCureLight < Spell
 
     def attempt( actor, cmd, args, input, level )
         heal = 10
-        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.occupants ).first )
             # target.output "You feel better!"
             target.receive_heal(actor, heal, :cure_light_wounds)
         elsif args.first.nil?
@@ -521,7 +521,7 @@ class SpellCurePoison < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        target = args.first.nil? ? actor : actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+        target = args.first.nil? ? actor : actor.target( argument: args[0], list: actor.room.occupants ).first
         if target
             if target.affected? "poison"
                 target.output "You feel better!"
@@ -548,7 +548,7 @@ class SpellCureSerious < Spell
     end
     def attempt( actor, cmd, args, input, level )
         heal = 25
-        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.occupants ).first )
             # target.output "You feel better!"
             target.receive_heal(actor, heal, :cure_serious_wounds)
         elsif args.first.nil?
@@ -584,7 +584,7 @@ class SpellCurse < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."

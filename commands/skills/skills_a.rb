@@ -33,7 +33,7 @@ class SkillAppraise < Skill
             actor.output "What did you want to appraise?"
             return false
         end
-        if (target = actor.target({ list: actor.items, visible_to: actor }.merge( args.first.to_s.to_query(1)) ).to_a.first)
+        if (target = actor.target( argument: args[0], list: actor.items ).first )
             if target.affected? "appraised"
             	actor.output "%N has already been appraised.", [target]
             else

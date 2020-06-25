@@ -26,8 +26,8 @@ class AffectLair < Affect
     end
 
     def start
-        add_event_listener(@target, :event_try_where_room, :do_lair)
-        add_event_listener(@target, :event_calculate_room_description, :lair_description)
+        add_event_listener(@target, :try_where_room, :do_lair)
+        add_event_listener(@target, :calculate_room_description, :lair_description)
     end
 
     def lair_description(data)

@@ -26,8 +26,8 @@ class AffectOracle < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_room_description, :oracle_description)
-        add_event_listener(@target, :event_calculate_regeneration, :do_oracle)
+        add_event_listener(@target, :calculate_room_description, :oracle_description)
+        add_event_listener(@target, :calculate_regeneration, :do_oracle)
     end
 
     def send_complete_messages

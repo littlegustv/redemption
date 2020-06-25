@@ -24,6 +24,7 @@ class Keywords
         @keyword_set = Set.new
         array = array.to_a.dup.map(&:dup)
         array.each do |keyword|
+            keyword.downcase!
             while keyword.length > 0
                 @keyword_set.add(keyword.to_sym)
                 keyword.chop!
@@ -50,20 +51,32 @@ class Keywords
     end
 
     #
-    # Returns true if the Keywords contains the keywords in a query or string.
+    # Returns true if the Keywords contains the keywords in a query .
     #
     #   keywords.fuzzy_match("cuervo".to_query)
     #   keywords.fuzzy_match("red dragon")
     #
-    # @param [String, Hash{Symbol => Integer, String, Set<Symbol>}] query A query hash.
+    # @param [String, Array<String>, Set<Symbol>, Query] query The query
     #
-    # @return [Boolean] True if the Keywords' keyword_set contains all words in `string`.
+    # @return [Boolean] True if the Keywords' keyword_set fully matches the query.
     #
     def fuzzy_match(query)
-        if query.is_a?(String)
-            query = query.to_query
+        set = nil
+        if query.is_a?(Query)
+            set = query.keywords
+        elsif query.is_a?(Array)
+            set = query.map(&:to_sym).to_set
+        elsif query.is_a?(String)
+            set = query.to_s.downcase.split.map(&:to_sym).to_set
+        elsif query.is_a?(Set)
+            set = query
         end
-        return self.superset?(query[:keyword])
+        if set.nil?
+            log("Object of class #{query.class} passed into Keywords#fuzzy_match. Oops!")
+            puts caller
+            return false
+        end
+        return self.superset?(set)
     end
 
     #
@@ -125,14 +138,16 @@ class Keywords
     # Generate a keyword string from this set of keywords, ignoring substrings. If the set is empty,
     # return a static string instead.
     #
+    # @param [String] quote What to surround the keywords with. Default is "'".
+    #
     # @return [String] The keyword string.
     #
-    def to_s
+    def to_s(quote = "")
         if @keyword_set.empty?
             return "(none)"
         else
             key_strings = @keyword_set.map(&:to_s)
-            return key_strings.reject{ |x| key_strings.any?{ |y| x != y && y.start_with?(x) } }.map{ |s| "'#{s}'" }.join(" ")
+            return key_strings.reject{ |x| key_strings.any?{ |y| x != y && y.start_with?(x) } }.map{ |s| "#{quote}#{s}#{quote}" }.join(" ")
         end
     end
 
@@ -148,7 +163,7 @@ class Keywords
     #
     # Increment the use count (the number of objects using the Keywords) of the Keywords.
     #
-    # @return [void]
+    # @return [nil]
     #
     def increment_use_count
         @use_count += 1
@@ -173,10 +188,20 @@ class Keywords
         return @keyword_set
     end
 
+    #
+    # Returns an empty set of keywords.
+    #
+    # @return [Keywords] The empty keywords.
+    #
+    def self.empty_keywords
+        keywords = Keywords.new([])
+        return keywords
+    end
+
     #   
     # Returns an existing Keywords object for a given string or generates one if necessary.
     # 
-    # @param [Array<String>] keyword_string The string to use to create the Keywords from.
+    # @param [Array<String>] array The array to create the Keywords from.
     #   Should be a space-delimited string.
     #
     # @return [Keywords] The Keywords object for the given string.
@@ -205,7 +230,7 @@ class Keywords
     #
     # @param [Keywords] keywords The Keywords object to remove.
     #
-    # @return [void]
+    # @return [nil]
     #
     def self.remove_keywords(keywords)
         if !@keyword_hash_map.empty?
@@ -218,7 +243,7 @@ class Keywords
     # Clears the existing Keyword objects from the keyword_hash_map. Call this when
     # you need to clear ALL keywords from memory, like in a server reload.
     #
-    # @return [void]
+    # @return [nil]
     #
     def self.clear
         @keyword_hash_map.clear

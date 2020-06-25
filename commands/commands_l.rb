@@ -14,29 +14,6 @@ class CommandLearn < Command
     end
 end
 
-class CommandLeave < Command
-    def initialize
-        super(
-            name: "leave",
-            keywords: ["leave"],
-            position: :resting
-        )
-    end
-
-    def attempt( actor, cmd, args, input )
-        if actor.group.any?
-            actor.output "You can't leave the group, you're the leader!"
-            return false
-        elsif actor.in_group.nil?
-            actor.output "You're not in a group."
-            return false
-        else
-            actor.remove_from_group
-            return true
-        end
-    end
-end
-
 class CommandList < Command
 
     def initialize
@@ -49,13 +26,13 @@ class CommandList < Command
     end
 
     def attempt( actor, cmd, args, input )
-        ( shopkeepers = actor.target( visible_to: actor, list: actor.room.occupants, affect: "shopkeeper", not: actor ) ).each do |shopkeeper|
+        ( shopkeepers = actor.target( list: actor.room.occupants - [actor], affect: "shopkeeper", quantity: 'all' ) ).each do |shopkeeper|
 
-            actor.output "#{shopkeeper}:"
+            actor.output "0<N>:", [shopkeeper]
 
             ids_shown = []
             lines = []
-            targets = Game.instance.target({ list: shopkeeper.inventory.items, visible_to: actor, quantity: 'all' })
+            targets = actor.target( list: shopkeeper.inventory.items, quantity: 'all' )
             targets.each do |item|
                 if ids_shown.include?(item.id)
                     next
@@ -114,7 +91,7 @@ class CommandLock < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target( { list: actor.room.exits }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.exits ).first )
             return target.lock( actor )
         else
             actor.output "There is no exit in that direction."
@@ -143,7 +120,7 @@ class CommandLook < Command
                 actor.output "Look in what?"
                 return false
             end
-            target = actor.target({ list: actor.items + actor.room.items, visible_to: actor }.merge( args[1].to_s.to_query )).first
+            target = actor.target( argument: args[1], list: actor.items + actor.room.items ).first
             if !target
                 actor.output "You don't see anything like that."
                 return false
@@ -151,12 +128,10 @@ class CommandLook < Command
                 actor.output "That's not a container."
                 return false
             else
-                actor.output "0<N> holds:", [target]
-                item_count = actor.target({list: target.inventory.items, visible_to: actor}).length
-                actor.output(item_count > 0 ? target.inventory.show(observer: actor) : "Nothing.")
+                actor.output "0<N> holds:\n#{target.inventory.show(actor, false, "Nothing.")}", [target]
                 return true
             end
-        elsif ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = actor.target( argument: args[0], list: actor.room.occupants ).first )
             actor.output %Q(#{target.long_description}
 #{target.condition}
 #{target} is using:)
@@ -184,7 +159,7 @@ class CommandLore < Command
             actor.output "What did you want to lore?"
             return false
         end
-        if (target = actor.target({ list: actor.items, visible_to: actor }.merge( args.first.to_s.to_query(1)) ).to_a.first)
+        if (target = actor.target( argument: args[0], list: actor.items ).first)
             actor.output(target.lore)
             return true
         else

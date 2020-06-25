@@ -11,7 +11,7 @@ class CommandInspect < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.occupants ).first )
             actor.output target.score
             return true
         else
@@ -36,8 +36,8 @@ class CommandInventory < Command
 
     def attempt( actor, cmd, args, input )
         actor.output "You are carrying:"
-        item_count = actor.target({list: actor.inventory.items, visible_to: actor}).length
-        actor.output item_count > 0 ? "#{actor.inventory.show(observer: actor)}" : "Nothing."
+        item_count = actor.target( list: actor.inventory.items ).length
+        actor.output (actor.inventory.show(actor, false, "Nothing."))
         return true
     end
 end

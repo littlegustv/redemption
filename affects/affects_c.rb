@@ -67,7 +67,7 @@ class AffectCharm < Affect
     end
 
     def start
-        add_event_listener(@source, :event_order, :do_order)
+        add_event_listener(@source, :order, :do_order)
     end
 
     def do_order( data )
@@ -143,14 +143,14 @@ class AffectCloakOfMind < Affect
     end
 
     def start
-        add_event_listener(@target, :event_try_can_be_seen, :do_cloak_of_mind)
-        add_event_listener(@target, :event_on_start_combat, :clear)
+        add_event_listener(@target, :try_can_be_seen, :do_cloak_of_mind)
+        add_event_listener(@target, :on_start_combat, :clear)
     end
 
     def do_cloak_of_mind(data)
         if !data[:observer].is_player?
             detect_data = { success: false }
-            Game.instance.fire_event(data[:observer], :event_try_detect_invis, detect_data)
+            Game.instance.fire_event(data[:observer], :try_detect_invis, detect_data)
             if !detect_data[:success]
                 data[:chance] = 0
             end
@@ -192,11 +192,11 @@ class AffectCloudkill < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_room_description, :cloudkill_description)
-        add_event_listener(@target, :event_room_mobile_enter, :add_damage_listener)
-        add_event_listener(@target, :event_room_mobile_exit, :remove_damage_listener)
+        add_event_listener(@target, :calculate_room_description, :cloudkill_description)
+        add_event_listener(@target, :room_mobile_enter, :add_damage_listener)
+        add_event_listener(@target, :room_mobile_exit, :remove_damage_listener)
         @target.occupants.each do |t|
-            add_event_listener(t, :event_calculate_damage, :cloudkill_poison_damage_calc)
+            add_event_listener(t, :calculate_damage, :cloudkill_poison_damage_calc)
         end
     end
 
@@ -205,11 +205,11 @@ class AffectCloudkill < Affect
     end
 
     def add_damage_listener(data)
-        add_event_listener(data[:mobile], :event_calculate_damage, :cloudkill_poison_damage_calc)
+        add_event_listener(data[:mobile], :calculate_damage, :cloudkill_poison_damage_calc)
     end
 
     def remove_damage_listener(data)
-        remove_event_listener(data[:mobile], :event_calculate_damage)
+        remove_event_listener(data[:mobile], :calculate_damage)
     end
 
     def cloudkill_poison_damage_calc(data)
@@ -305,7 +305,7 @@ class AffectCorrosiveWeapon < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_hit, :do_flag)
+        add_event_listener(@target, :on_hit, :do_flag)
     end
 
     def do_flag(data)
@@ -357,7 +357,7 @@ class AffectCurse < Affect
     end
 
     def start
-        add_event_listener(@target, :event_try_recall, :do_cursed)
+        add_event_listener(@target, :try_recall, :do_cursed)
     end
 
     def do_cursed( data )

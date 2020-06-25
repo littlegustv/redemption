@@ -47,14 +47,16 @@ class CommandFlee < Command
     end
 
     def attempt( actor, cmd, args, input )
+        direction = actor.room.exits.map(&:direction).sample
         if !actor.attacking
             actor.output "But you aren't fighting anyone!"
             return false
-        elsif rand(0..10) < 5
-            actor.output "You flee from combat!"
-            (actor.room.occupants - [actor]).each_output "0<N> has fled!", [ actor ]
-            actor.stop_combat
-            actor.do_command(actor.room.exits.map(&:direction).sample.name)
+        elsif !direction.nil? && rand(0..10) < 5
+            if actor.move(direction)
+                actor.output "You flee from combat!"
+                (actor.room.occupants - [actor]).each_output "0<N> has fled!", [ actor ]
+                actor.stop_combat
+            end
             return true
         else
             actor.output "PANIC! You couldn't escape!"
@@ -77,7 +79,7 @@ class CommandFollow < Command
     def attempt( actor, cmd, args, input )
         if args.first.nil?
             actor.remove_affects_with_keywords("follow")
-        elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = actor.target( argument: args.first, list: actor.room.occupants, not: actor ).first )
             AffectFollow.new( actor, target, 1 ).apply
         else
             actor.output "They aren't here"

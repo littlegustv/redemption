@@ -1,5 +1,9 @@
+#
+# The Mobile Reset generates a new mobile when it pops.
+#
 class MobileReset < Reset
 
+    # @return [Array<ItemReset>, nil] The Item Resets for this mobile, or `nil` if it has none.
     attr_accessor :item_resets
 
     def initialize( room_id, mobile_id, timer )
@@ -11,6 +15,12 @@ class MobileReset < Reset
     end
 
     ## Try to reset.
+
+    #
+    # Try to reset. Also pops Item Resets beloning to this reset.
+    #
+    # @return [Boolean] True if the reset was successful, otherwise false.
+    #
     def pop
         room = Game.instance.rooms.dig(@room_id)
         if !room # invalid room

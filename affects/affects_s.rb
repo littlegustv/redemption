@@ -26,7 +26,7 @@ class AffectScramble < Affect
     end
 
     def start
-        add_event_listener(@target, :event_communicate, :do_scramble)
+        add_event_listener(@target, :communicate, :do_scramble)
     end
 
     def send_start_messages
@@ -78,7 +78,7 @@ class AffectShackle < Affect
     end
 
     def start
-        add_event_listener(@target, :event_mobile_enter, :do_shackles)
+        add_event_listener(@target, :mobile_enter, :do_shackles)
     end
 
     def send_start_messages
@@ -124,8 +124,8 @@ class AffectShackleRune < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_room_description, :shackle_rune_description)
-        add_event_listener(@target, :event_room_mobile_enter, :do_shackle_rune)
+        add_event_listener(@target, :calculate_room_description, :shackle_rune_description)
+        add_event_listener(@target, :room_mobile_enter, :do_shackle_rune)
     end
 
     def send_complete_mesages
@@ -247,7 +247,7 @@ class AffectShockingWeapon < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_hit, :do_flag)
+        add_event_listener(@target, :on_hit, :do_flag)
     end
 
     def do_flag(data)
@@ -353,7 +353,7 @@ class AffectSleep < Affect
 
     def start
         @target.position = :sleeping.to_position
-        add_event_listener(@target, :event_try_wake, :do_slept)
+        add_event_listener(@target, :try_wake, :do_slept)
     end
 
     def complete

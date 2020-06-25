@@ -37,8 +37,8 @@ class CommandBuy < Command
     # buy and sell need a default quantity of '1', since otherwise the targeting system would buy the entire stock of a shop at once
 
     def attempt( actor, cmd, args, input )
-        ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper", visible_to: actor, not: actor ) ).each do |shopkeeper|
-            ( actor.target({ list: shopkeeper.inventory.items, visible_to: actor }.merge( args.first.to_s.to_query( 1 ) )) ).each do |purchase|
+        ( shopkeepers = actor.target( list: actor.room.mobiles, affect: "shopkeeper", not: actor ) ).each do |shopkeeper|
+            actor.target( list: shopkeeper.inventory.items, argument: args.first ).each do |purchase|
                 if actor.spend( shopkeeper.sell_price( purchase ) )
                     actor.output( "You buy 0<n> for #{ shopkeeper.sell_price( purchase ).to_worth }.", [purchase] )
                     shopkeeper.earn( shopkeeper.sell_price( purchase ) )

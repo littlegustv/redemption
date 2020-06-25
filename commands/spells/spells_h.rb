@@ -24,7 +24,7 @@ class SpellHarm < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -68,7 +68,7 @@ class SpellHeal < Spell
         quantity = 100
         target = actor
         if !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if target
             target.output "You feel better!"
@@ -105,7 +105,7 @@ class SpellHeatMetal < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -133,7 +133,7 @@ class SpellHolyWord < Spell
     def attempt( actor, cmd, args, input, level )
         target = actor
         if args.first
-            target = Game.instance.target({ list: actor.items + actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.items + actor.room.occupants - [actor] ).first
         end
         if target
             target.output "A warm feeling runs through your body."
@@ -161,7 +161,7 @@ class SpellHurricane < Spell
     def attempt( actor, cmd, args, input, level )
         (actor.room.occupants - [actor]).each_output "0<N> summons the power of a hurricane!", [actor]
         actor.output "You summon a hurricane!"
-    	( targets = actor.target({ not: actor, list: actor.room.occupants })).each do |target|
+    	( targets = actor.target( list: actor.room.occupants - [actor] ) ).each do |target|
     		target.receive_damage(actor, 100, :hurricane)
     	end
         return true
@@ -180,7 +180,7 @@ class SpellHypnosis < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.shift.to_s.to_query ) ).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first )
             actor.output "You hypnotize 0<n>", [target]
             target.output "0<N> hypnotizes you to '#{args.join(" ")}'", [actor]
             target.do_command args.join(" ")

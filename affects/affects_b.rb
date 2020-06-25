@@ -205,7 +205,7 @@ class AffectBlind < Affect
     end
 
     def start
-        add_event_listener(@target, :event_try_can_see, :do_blindness)
+        add_event_listener(@target, :try_can_see, :do_blindness)
     end
 
     def send_start_messages
@@ -247,7 +247,7 @@ class AffectBlur < Affect
             application_type: :overwrite,
         }
     end
-
+    
     def send_start_messages
         @target.room.occupants.each_output "0<N>'s outline turns blurry.", [@target]
     end
@@ -344,7 +344,7 @@ class AffectBurstRune < Affect
     end
 
     def start
-        add_event_listener(@target, :event_override_hit, :do_burst_rune)
+        add_event_listener(@target, :override_hit, :do_burst_rune)
     end
 
     def do_burst_rune(data)

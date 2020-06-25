@@ -16,7 +16,7 @@ class CommandGet < Command
             args[1] = args.dig(2)
         end
         if args.dig(1)
-            container = actor.target({ list: actor.items + actor.room.items, visible_to: actor }.merge(args[1].to_s.to_query)).first
+            container = actor.target( argument: args[1], list: actor.items + actor.room.items ).first
             if !container
                 actor.output "You don't see that container here."
                 return false
@@ -26,7 +26,7 @@ class CommandGet < Command
             end
             list = container.inventory.items
         end
-        if ( targets = actor.target({ list: list, visible_to: actor }.merge( args.first.to_s.to_query(1) ) ) )
+        if ( targets = actor.target( argument: args.first, list: list ) )
             targets.each do |t|
                 actor.get_item(t)
             end
@@ -56,8 +56,8 @@ class CommandGive < Command
             actor.output "Give it to whom?"
             return false
         end
-        items = actor.target({ list: actor.inventory.items, visible_to: actor }.merge( args[0].to_s.to_query(1) ) )
-        person = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args[1].to_s.to_query(1) ) ).first
+        items = actor.target( argument: args[0], list: actor.inventory.items )
+        person = actor.target( argument: args[1], list: actor.room.occupants ).first
         if !items
             actor.output "You don't see that here."
             return false
@@ -87,13 +87,14 @@ class CommandGoTo < Command
     end
 
     def attempt( actor, cmd, args, input )
-        area_target = actor.target({type: [Area]}.merge( args.first.to_s.to_query() )).first
+        area_target = actor.target(argument: args[0], type: Area).first
         room_target = area_target.rooms.first if area_target
         if !area_target || !room_target
             actor.output "Nothing by that name."
-            return
+            return false
         end
         actor.move_to_room( room_target )
+        return true
     end
 end
 
@@ -112,7 +113,7 @@ class CommandGroup < Command
             actor.group.output( actor )
         elsif "invite".fuzzy_match args.first.to_s
             # create/get group, find player in (room/game?) and add to invited - also notify them
-            if ( target = actor.target( { list: Game.instance.players - [actor], visible_to: actor }.merge( args[1].to_s.to_query ) ).first )
+            if ( target = actor.target( argument: args[1], list: Game.instance.players - [actor] ).first )
                 actor.group.invited << target
                 target.output "{C#{ actor }{x has invited you to join their group! Type {C'group accept #{ actor }'{x to accept the invitation."
             else
@@ -120,7 +121,7 @@ class CommandGroup < Command
             end
         elsif "accept".fuzzy_match args.first.to_s
             # get player from arg -> get their group -> check if self in invited list, if so, add to actual list
-            if ( target = actor.target( { list: Game.instance.players - [actor], visible_to: actor }.merge( args[1].to_s.to_query ) ).first )
+            if ( target = actor.target( argument: args[1], list: Game.instance.players - [actor] ).first )
                 if actor.group.joined.count > 1
                     actor.output "You are already in a group! Type {C'group leave'{x to leave your current group."
                 elsif target.group.invited.include? actor

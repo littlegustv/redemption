@@ -11,7 +11,9 @@ class Command
     attr_reader :name
     # @return [Integer] The creation point cost of the command.
     attr_reader :creation_points
-    # @return [Float] The amount of lag applied to the actor when the command is used.
+    # @return [Float] The amount of time before the command executes. (not implemented!)
+    attr_reader :startup
+    # @return [Float] The amount of lag applied to the actor after the command is used.
     attr_reader :lag
     # @return [Keywords] The Keywords for the Command.
     attr_reader :keywords
@@ -32,6 +34,7 @@ class Command
         @id = nil
         @priority = priority
         @keywords = Keywords.keywords_for_array(keywords.to_a)
+        @startup = 0
         @lag = lag
         @name = name
         @usable_in_combat = usable_in_combat
@@ -43,10 +46,26 @@ class Command
         @data = {}
     end
 
+    #
+    # Representation of this command as a string.
+    #
+    # @return [String] The String representation.
+    #
     def to_s
         @name
     end
 
+    #
+    # Precursor method to `#attempt`, where basic things like position and usable_in_combat are checked.
+    # Returns false if the cmomand was unsuccessful in execution, otherwise returns Command#attempt.
+    #
+    # @param [Mobile] actor The actor executing this command.
+    # @param [String] cmd The first word from the full input, eg. "cast" in "cast acid tetragon"
+    # @param [Array<String>] args The arguments to the command, eg. ["acid", "tetragon"] in "cast acid tetragon"
+    # @param [String] input The full input string, eg. "cast acid tetragon"
+    #
+    # @return [Boolean] False if the execute is unsuccessful, otherwise returns Command#attempt.
+    #
     def execute( actor, cmd, args, input )
         if actor.position.value < @position.value # Check position
             if actor.position == :sleeping
@@ -70,7 +89,13 @@ class Command
         actor.output "Default command"
     end
 
+    #
     # overwrite attributes using values from the database
+    #
+    # @param [Hash] new_attr_hash The new attributes in a hash.
+    #
+    # @return [void]
+    #
     def overwrite_attributes(new_attr_hash)
         @id = new_attr_hash[:id].to_i
         @priority = new_attr_hash[:priority].to_i
@@ -90,8 +115,13 @@ class Command
         end
     end
 
-    def to_helpfile
-
-    end
+    #
+    # Generate a help from this Command
+    #
+    # @return [?] The help.
+    #
+    # def to_helpfile
+    #
+    # end
 
 end

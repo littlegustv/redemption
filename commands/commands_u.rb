@@ -12,7 +12,7 @@ class CommandUnlock < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target( { list: actor.room.exits }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.exits ).first )
             return target.unlock( actor )
         else
             actor.output "There is no exit in that direction."

@@ -12,7 +12,7 @@ class CommandKill < Command
     end
 
     def attempt( actor, cmd, args, input )
-        keyword_used = @keywords.find{ |keyword| keyword.fuzzy_match( cmd.split(" ").first ) }
+        keyword_used = @keywords.to_s.split.find{ |keyword| keyword.fuzzy_match( cmd.split(" ").first ) }
         if args.length <= 0
             actor.output "Who did you want to #{keyword_used}?"
             return false
@@ -20,7 +20,7 @@ class CommandKill < Command
         if actor.attacking
             actor.output "You are already fighting!"
             return false
-        elsif ( kill_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( kill_target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first )
             kill_target.start_combat(actor)
             actor.do_round_of_attacks
             return true

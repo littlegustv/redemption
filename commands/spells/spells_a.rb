@@ -26,7 +26,7 @@ class SpellAcidBlast < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -51,7 +51,7 @@ class SpellAlarmRune < Spell
 
     def attempt( actor, cmd, args, input, level )
         data = {success: true}
-        Game.instance.fire_event(actor, :event_try_alarm_rune, data)
+        Game.instance.fire_event(actor, :try_alarm_rune, data)
         if !data[:success]
             actor.output "You already sense others."
             return false

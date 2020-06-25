@@ -173,7 +173,7 @@ class Affect
             @source.remove_source_affect(self)
         end
         toggle_periodic(nil)
-        Game.instance.destroy_affect(self)
+        Game.instance.remove_affect(self)
         send_complete_messages if !silent
         return
     end
@@ -246,10 +246,6 @@ class Affect
             @next_periodic_time = nil
             return false
         end
-    end
-
-    def check( key )
-        keywords.include?( key )
     end
 
     #
@@ -393,6 +389,22 @@ class Affect
     #
     def name
         return self.class.affect_info[:name]
+    end
+
+    #
+    # Returns true if the Affect's keywords contains a match for a given query.
+    #
+    # @see Keywords#fuzzy_match
+    #
+    # @param [String, Array<String>, Set<Symbol>, Query] query The query.
+    #
+    # @return [Boolean] True if the affect's keywords fully match the query.
+    #
+    def fuzzy_match(query)
+        if keywords
+            return keywords.fuzzy_match(query)
+        end
+        return false
     end
 
     #

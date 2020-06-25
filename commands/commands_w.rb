@@ -13,12 +13,12 @@ class CommandWake < Command
     def attempt( actor, cmd, args, input )
         target = actor
         if args.first
-            target = actor.target({ visible_to: actor, list: actor.room.occupants - [actor] }.merge( args.first.to_s.to_query(1) )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first
         end
         if target == actor
             if actor.position == :sleeping
                 data = { success: true }
-                Game.instance.fire_event( actor, :event_try_wake, data )
+                Game.instance.fire_event( actor, :try_wake, data )
                 if data[:success]
                     actor.output "You wake and stand up."
                     (actor.room.occupants - [actor]).each_output "0<N> wakes and stands up.", [actor]
@@ -40,7 +40,7 @@ class CommandWake < Command
             if target
                 if target.position == :sleeping
                     data = { success: true }
-                    Game.instance.fire_event( actor, :event_try_wake, data )
+                    Game.instance.fire_event( actor, :try_wake, data )
                     if data[:success]
                         actor.room.occupants.each_ouptut "0<N> wake0<,s> 1<n> up.", [actor, target]
                         target.position = :standing.to_position
@@ -80,7 +80,7 @@ class CommandWear < Command
             actor.wear_all
             return true
         end
-        if ( targets = actor.target({ visible_to: actor, list: actor.inventory.items }.merge( args.first.to_s.to_query(1) )) )
+        if ( targets = actor.target( argument: args[0], list: actor.inventory.items ) )
             targets.each do |target|
                 actor.wear(target)
             end
@@ -125,9 +125,9 @@ class CommandWhere < Command
     end
 
     def attempt( actor, cmd, args, input )
-        targets = actor.target( {  list: actor.room.area.players, visible_to: actor, where_to: actor } )
+        targets = actor.target( quantity: "all", list: actor.room.area.players, where_to: actor )
         actor.output %Q(
-Current Area: #{ actor.room.area }. Level Range: ? ?
+Current Area: #{ actor.room.area }. Level Range: #{actor.room.area.min} #{actor.room.area.max}
 Players near you:
 #{ targets.map{ |t| "#{t.to_s.rpad(28)} #{t.room}" }.join("\n") })
         return true
@@ -163,7 +163,7 @@ class CommandWho < Command
     end
 
     def attempt( actor, cmd, args, input )
-        targets = actor.target( { type: [Player], visible_to: actor } )
+        targets = actor.target( type: Player, quantity: "all" )
         out = ""
         Game.instance.continents.values.each do |continent|
             out += "----==== Characters #{continent.preposition} #{continent.name} ====----\n"

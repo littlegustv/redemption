@@ -28,7 +28,7 @@ class AffectDark < Affect
     end
 
     def start
-        add_event_listener(@target, :event_try_can_see_room, :do_dark)
+        add_event_listener(@target, :try_can_see_room, :do_dark)
     end
 
     def do_dark( data )
@@ -75,8 +75,8 @@ class AffectDarkness < Affect
     end
 
     def start
-        add_event_listener(@target, :event_try_can_see_room, :do_dark)
-        add_event_listener(@target, :event_calculate_room_description, :darkness_description)
+        add_event_listener(@target, :try_can_see_room, :do_dark)
+        add_event_listener(@target, :calculate_room_description, :darkness_description)
     end
 
     def darkness_description(data)
@@ -154,7 +154,7 @@ class AffectDeathRune < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_die, :do_death_rune)
+        add_event_listener(@target, :on_die, :do_death_rune)
     end
 
     def send_start_messages
@@ -215,7 +215,7 @@ class AffectDetectInvisibility < Affect
     end
 
     def start
-        add_event_listener(@target, :event_try_detect_invis, :do_detect_invis)
+        add_event_listener(@target, :try_detect_invis, :do_detect_invis)
     end
 
     def do_detect_invis(data)

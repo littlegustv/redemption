@@ -1,17 +1,41 @@
+#
+# Base Item Model. Gets subclassed for different item types.
+# Items are passed in a model when they are created and have access 
+# to their model from creation until they are destroyed. 
+#
 class ItemModel < KeywordedModel
 
+    # @return [Integer] The ID of the item.
     attr_reader :id
+
+    # @return [String] The name of the item.
     attr_reader :name
+
+    # @return [String] The short description of the item.
     attr_reader :short_description
-    attr_reader :item_type
+
+    # @return [Integer] The level of the item.
     attr_reader :level
+
+    # @return [Float] The weight of the item.
     attr_reader :weight
+
+    # @return [Integer] The cost of the item.
     attr_reader :cost
+
+    # @return [Material] The Material of the item.
     attr_reader :material
+
+    # @return [Array<WearLocation>, nil] The wear locations for the item, or nil if there are none.
     attr_reader :wear_locations
+
+    # @return [Booleamn] True if the item cannot be picked up.
     attr_reader :fixed
 
+    # @return [Array<AffectModel>, nil] The affects attached to the Item, or nil if there are none.
     attr_reader :affect_models
+
+    # @return [Hash{Stat => Integer}] The stat modifiers for the item, or nil if there are none.
     attr_reader :modifiers
 
     def initialize(id, row, temporary = true)
@@ -57,10 +81,22 @@ class ItemModel < KeywordedModel
         end
     end
 
+    #
+    # The name of the item's type. This is used when loading items from the database to make Models
+    # of the correct subclass.
+    #
+    # @return [String] The type name.
+    #
     def self.item_class_name
         "item".freeze
     end
 
+    #
+    # The actual class of Item to make when constructing a new item using this model.
+    # Overridden in subclasses.
+    #
+    # @return [Class] The Class of Item that this model generates.
+    #
     def self.item_class
         return Item
     end

@@ -26,7 +26,7 @@ class AffectIgnoreWounds < Affect
     end
 
     def start
-        add_event_listener(@target, :event_override_receive_damage, :do_ignore_wounds)
+        add_event_listener(@target, :override_receive_damage, :do_ignore_wounds)
     end
 
     def send_start_messages
@@ -136,9 +136,9 @@ class AffectInvisibility < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_start_combat, :do_remove_affect)
-        add_event_listener(@target, :event_try_can_be_seen, :do_invisibility)
-        add_event_listener(@target, :event_calculate_long_auras, :do_invisibility_aura)
+        add_event_listener(@target, :on_start_combat, :do_remove_affect)
+        add_event_listener(@target, :try_can_be_seen, :do_invisibility)
+        add_event_listener(@target, :calculate_long_auras, :do_invisibility_aura)
     end
 
     def send_start_messages
@@ -155,7 +155,7 @@ class AffectInvisibility < Affect
 
     def do_invisibility(data)
         detect_data = { success: false }
-        Game.instance.fire_event(data[:observer], :event_try_detect_invis, detect_data)
+        Game.instance.fire_event(data[:observer], :try_detect_invis, detect_data)
         if !detect_data[:success]
             data[:chance] = 0
         end

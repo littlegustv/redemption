@@ -1,22 +1,19 @@
+#
+# The Position data class.
+#
+class Position < DataObject
 
-
-class Position
-    attr_reader :id
-    attr_reader :name
-    attr_reader :symbol
+    # @return [Integer] An arbitrary value associated with the position to allow for comparisons,
+    #    eg: :sleeping < :resting < :standing
     attr_reader :value
+
+    # @return [Float] The multipler given by this position for normal regeneration.
     attr_reader :regen_multiplier
 
     def initialize(row)
-        @id = row[:id]
-        @name = row[:name].gsub(/_/, " ")
-        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
+        super(row[:id], row[:name], row[:symbol])
         @value = row[:value]
         @regen_multiplier = row[:regen_multiplier]
-    end
-
-    def ==(other_object)
-        super(other_object) || @symbol == other_object
     end
 
     def <(other_object)
@@ -27,6 +24,11 @@ class Position
         @value > other_object.value
     end
 
+    #
+    # Returns `self` to allow `Symbol#to_position` to be called safely without knowing the type.
+    #
+    # @return [Position] `self`.
+    #
     def to_position
         self
     end

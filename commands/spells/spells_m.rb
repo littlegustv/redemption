@@ -63,7 +63,7 @@ class SpellManaDrain < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -99,7 +99,7 @@ class SpellMassHealing < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        actor.target({ list: actor.room.occupants, visible_to: actor, not: actor.attacking }).reject{ |occ| occ.attacking == actor }.each do |occupant|
+        actor.target( argument: args[0], list: actor.room.occupants ).reject{ |occ| occ.attacking == actor }.each do |occupant|
             occupant.output "You feel less tired."
             occupant.output "You feel better!"
             occupant.regen( 100, 0, 50 )
@@ -119,7 +119,7 @@ class SpellMassInvisibility < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        ( targets = Game.instance.target( args.first.to_s.to_query.merge({ list: actor.room.occupants, visible_to: actor }) ) ).each do |target|
+        ( targets = actor.target( list: actor.room.occupants ) ).each do |target|
             AffectInvisibility.new( target, nil, level ).apply
         end
     end

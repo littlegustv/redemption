@@ -20,9 +20,9 @@ class AffectQuestItem < Affect
     end
 
     def start
-        add_event_listener(@item, :event_calculate_long_auras, :do_quest_flag)
-        add_event_listener(@target, :event_get_item, :do_quest)
-        add_event_listener(@target, :event_complete_quest, :do_quest_complete)
+        add_event_listener(@item, :calculate_long_auras, :do_quest_flag)
+        add_event_listener(@target, :get_item, :do_quest)
+        add_event_listener(@target, :complete_quest, :do_quest_complete)
     end
 
     def do_quest_flag(data)
@@ -89,9 +89,9 @@ class AffectQuestVillain < Affect
 	end
 
 	def start
-        add_event_listener(@villain, :event_calculate_long_auras, :do_quest_flag)
-		add_event_listener(@villain, :event_on_die, :do_quest)
-        add_event_listener(@target, :event_complete_quest, :do_quest_complete)
+        add_event_listener(@villain, :calculate_long_auras, :do_quest_flag)
+		add_event_listener(@villain, :on_die, :do_quest)
+        add_event_listener(@target, :complete_quest, :do_quest_complete)
     end
 
     def do_quest_flag(data)

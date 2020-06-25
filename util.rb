@@ -1,5 +1,13 @@
 class Integer
 
+    #
+    # Returns an ordinal number as a string using this one.
+    #
+    #   2.ordinalize  # => "2nd"
+    #   17.ordinalize # => "17th"
+    #
+    # @return [String] The number as a String.
+    #
     def ordinalize
         if (11..13).include?(self % 100)
             "#{self}th"
@@ -13,18 +21,44 @@ class Integer
       end
     end
 
+    #
+    # Returns the Gold value for an amount of wealth.
+    #
+    #   1253.gold # => 1
+    #
+    # @return [Integer] The value in Gold.
+    #
     def gold
         ( self / 1000 ).floor
     end
 
+    #
+    # Returns the Silver value for an amount of wealth.
+    #
+    #   1253.silver # => 253
+    #
+    # @return [Integer] The value in silver.
+    #
     def silver
         ( self - gold * 1000 )
     end
 
+    #
+    # Returns a string representation of a wealth value, described in terms of silver/gold.
+    #
+    #   1253.to_worth # => "1 gold and 253 silver."
+    #
+    # @return [String] The string.
+    #
     def to_worth
         self.gold > 0 ? "#{ self.gold } gold and #{ self.silver } silver" : "#{ self.silver } silver"
     end
 
+    #
+    # Returns a binary value for this Integer. Any nonzero Integer is 'true'.
+    #
+    # @return [Boolean] False if Integer is 0, otherwise true.
+    #
     def to_b
         !self.zero?
     end
@@ -35,8 +69,34 @@ class Array
 
     # @param message [String] A message format to send to this array of Gameobjects.
     # @param objects [Array] The array of object to inject into the message.
-    # @param sleeping [Boolean] Whether or not the message should be sent to sleeping targets.
+    # @param send_to_sleeping [Boolean] Whether or not the message should be sent to sleeping targets.
     # @return [nil]
+    
+    #
+    # Sends an output to an array of GameObjects.
+    # 
+    #   output("0<N> drops 0<p> 1<n>.", [mobile, item]) # "A bag boy drops his sword."
+    #   # 0 and 1 are the index of the object in the objects array
+    #
+    #   # Pronoun format
+    #   "N" => Name                 "A bag boy"
+    #   "S" => Short Description    "A boy is waiting here to pack your bags for you. "
+    #   "L" => Long Description     "With a bored look on his face, you know that this youngster..."
+    #   "O" => Personal Objective   "Him"
+    #   "U" => Personal Subjective  "He"
+    #   "P" => Possessive           "His"
+    #   "R" => Reflexive            "Himself"
+    #
+    #   # Capitalization of pronouns in the format will be reflected in the output.
+    #   "0<N>" => "A bag boy"
+    #   "0<n>" => "a bag boy"
+    #
+    # @param [String] message The format.
+    # @param [Array<GameObject>] objects The objects.
+    # @param [Boolean] send_to_sleeping True if the message should be sent even to sleeping GameObjects.
+    #
+    # @return [nil]
+    #
     def each_output( message, objects = [], send_to_sleeping: false )
         targets = self.select{ |t| t.instance_of? Player }
         if targets.size == 0
@@ -121,16 +181,8 @@ class String
         return result
     end
 
-    def to_query( default_quantity = "all" )
-        if self == "all"
-            { offset: 0, quantity: "all", keyword: [""] }
-        else
-            {
-                offset: self[/(\d+|all)\./, 1] || 0,
-                quantity: self[/(\d+|all)\*/, 1] || default_quantity,
-                keyword: self[/((\d+|all).)?'?([a-zA-Z\s]+)'?/, 3].to_s.downcase.split.map(&:to_sym).to_set
-            }
-        end
+    def to_query( default_quantity = 1 )
+        return Query.new(self, default_quantity)
     end
 
     def replace_color_codes
@@ -193,6 +245,10 @@ class Symbol
         return Game.instance.position_with_symbol(self)
     end
 
+    def to_race
+        return Game.instance.race_with_symbol(self)
+    end
+
     def to_sector
         return Game.instance.sector_with_symbol(self)
     end
@@ -203,6 +259,10 @@ class Symbol
 
     def to_stat
         return Game.instance.stat_with_symbol(self)
+    end
+
+    def to_wear_location
+        return Game.instance.wear_location_with_symbol(self)
     end
 
 end

@@ -12,7 +12,7 @@ class CommandOpen < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target( { list: actor.room.exits }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.exits ).first )
             return target.open( actor )
         else
             actor.output "There is no exit in that direction."
@@ -33,8 +33,8 @@ class CommandOrder < Command
     end
 
     def attempt( actor, cmd, args, input )
-    	if ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.shift.to_s.to_query ) ).first )
-	        Game.instance.fire_event(  actor, :event_order, { command: args.join(" ") } )
+    	if ( target = actor.target( argument: args.shift, list: actor.room.occupants - [actor] ).first )
+	        Game.instance.fire_event(  actor, :order, { command: args.join(" ") } )
 	    else
 	    	actor.output "Order whom to do what?"
         end

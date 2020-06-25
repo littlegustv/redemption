@@ -1,21 +1,21 @@
-class Material
+#
+# The Material data class.
+#
+class Material < DataObject
 
-    attr_reader :id
-    attr_reader :name
-    attr_reader :symbol
+    # @return [Boolean] Whether or not this material is metallic.
     attr_reader :metallic
 
     def initialize(row)
-        @id = row[:id]
-        @name = row[:name].gsub(/_/, " ")
-        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
+        super(row[:id], row[:name], row[:symbol])
         @metallic = row[:metallic]
     end
 
-    def ==(other_object)
-        super(other_object) || @symbol == other_object
-    end
-
+    #
+    # Returns `self` to allow `Symbol#to_material` to be called safely without knowing the type.
+    #
+    # @return [Material] `self`.
+    #
     def to_material
         self
     end

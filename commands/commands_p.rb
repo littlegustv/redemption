@@ -13,7 +13,7 @@ class CommandPeer < Command
     def attempt( actor, cmd, args, input )
         if args.first.to_s == ""
             actor.output "Peer in which direction?"
-        elsif ( target = Game.instance.target( { list: actor.room.exits }.merge( args.first.to_s.to_query ) ).first)
+        elsif ( target = actor.target( argument: args[0], list: actor.room.exits ).first)
             direction = target.direction
             destination = target.destination
             actor.output "You peer intently and see..."
@@ -101,8 +101,8 @@ class CommandPut < Command
             actor.output "Where did you want to put it?"
             return false
         end
-        container = actor.target({ list: actor.items + actor.room.items, visible_to: actor }.merge(args[1].to_s.to_query)).first
-        targets = actor.target({ not: container, list: actor.items, visible_to: actor }.merge(args[0].to_s.to_query(1)))
+        container = actor.target( argument: args[1], list: actor.items + actor.room.items ).first
+        targets = actor.target( argument: args[0], list: actor.items)
         if targets.size == 0
             actor.output "You don't have anything like that."
             return false
@@ -114,6 +114,10 @@ class CommandPut < Command
             return false
         end
         targets.each do |t|
+            if t == container
+                actor.output "That seems like a bad idea."
+                next
+            end 
             actor.put_item(t, container)
         end
         return true

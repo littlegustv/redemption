@@ -1,23 +1,12 @@
-module GameSave
+class Game
 
-    # save an account info to the database, then update account table
-    def save_new_account(account_data)
-        account_id = @db[:accounts].insert(account_data)
-        @account_data = @db[:accounts].to_hash(:id)
-        return account_id
-    end
+    public
 
-    # save an account info to the database, then update account table
-    def save_new_player(player_data)
-        player_data[:position_id] = :standing.to_position.id
-        player_data[:room_id] = @starting_room.id
-        player_data[:level] = 1
-        player_id = @db[:players].insert(player_data)
-        @saved_player_data = @db[:players].to_hash(:id)
-        return player_id
-    end
-
+    #
     # Main save method for the game. This saves all active players.
+    #
+    # @return [nil]
+    #
     def save
         # before_save = Time.now
         if @players.empty? # if nobody's online, there's no need to save.
@@ -41,33 +30,33 @@ module GameSave
                 save_player(player, query_hash) # data for each player
             end
             if query_hash[:player_base].length > 0 # player table
-                query = "INSERT INTO `players` " +
-                "(`id`, `account_id`, `name`, `level`, `experience`, `room_id`, `race_id`, " +
-                "`mobile_class_id`, `strength`, `dexterity`, `intelligence`, `wisdom`, `constitution`," +
-                " `current_health`, `current_mana`, `current_movement`, " +
-                " `wealth`, `quest_points`, `position_id`, `alignment`, `creation_points`, `gender_id`, `logout_time`) " +
+                query = "INSERT INTO `players` " \
+                "(`id`, `account_id`, `name`, `level`, `experience`, `room_id`, `race_id`, " \
+                "`mobile_class_id`, `strength`, `dexterity`, `intelligence`, `wisdom`, `constitution`," \
+                " `current_health`, `current_mana`, `current_movement`, " \
+                " `wealth`, `quest_points`, `position_id`, `alignment`, `creation_points`, `gender_id`, `logout_time`) " \
                 "VALUES #{query_hash[:player_base].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_cooldown].length > 0 # player cooldowns
-                query = "INSERT INTO `player_cooldowns` " +
+                query = "INSERT INTO `player_cooldowns` " \
                 "(`saved_player_id`, `symbol`, `timer`, `message`) VALUES #{query_hash[:player_cooldown].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_learned_skill].length > 0 # player skills
-                query = "INSERT INTO `player_skills` " +
+                query = "INSERT INTO `player_skills` " \
                 "(`saved_player_id`, `skill_id`) VALUES #{query_hash[:player_learned_skill].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_learned_spell].length > 0 # player spells
-                query = "INSERT INTO `player_spells` " +
+                query = "INSERT INTO `player_spells` " \
                 "(`saved_player_id`, `spell_id`) VALUES #{query_hash[:player_learned_spell].join(", ")};"
                 @db.run(query)
             end
             if query_hash[:player_affect].length > 0 # player affects
-                query = "INSERT INTO `player_affects` " +
-                "(`id`, `saved_player_id`, `affect_id`, `level`, `duration`, `source_uuid`, " +
-                "`source_id`, `source_type_id`, `data`) " +
+                query = "INSERT INTO `player_affects` "\
+                "(`id`, `saved_player_id`, `affect_id`, `level`, `duration`, `source_uuid`, "\
+                "`source_id`, `source_type_id`, `data`) "\
                 "VALUES #{query_hash[:player_affect].join(", ")};"
                 @db.run(query)
             end
@@ -105,10 +94,47 @@ module GameSave
         end
         # after_save = Time.now
         # log "{rSave time:{x #{after_save - before_save}"
+        return
     end
 
+    private
+
+    #
+    # Saves a new account, updates the @account_data hash, and returns the new account's id.
+    #
+    # @param [Hash{Symbol => Integer, String}] account_data The account data hash.
+    #
+    # @return [Integer] The new account's ID.
+    #
+    def save_new_account(account_data)
+        account_id = @db[:accounts].insert(account_data)
+        @account_data = @db[:accounts].to_hash(:id)
+        return account_id
+    end
+
+    #
+    # Save a new player to the database, then updates the @saved_player_data hash.
+    # Returns the player id.
+    #
+    # @param [Hash{Symbol => Integer, String}] player_data <description>
+    #
+    # @return [Integer] The new player's ID.
+    #
+    def save_new_player(player_data)
+        player_data[:position_id] = :standing.to_position.id
+        player_data[:room_id] = @starting_room.id
+        player_data[:level] = 1
+        player_id = @db[:players].insert(player_data)
+        @saved_player_data = @db[:players].to_hash(:id)
+        return player_id
+    end
+
+    #
     # delete saved player database entries for online players
-    protected def delete_old_player_data
+    #
+    # @return [nil]
+    #
+    def delete_old_player_data
         player_ids = @players.map(&:id)
         # delete player_base rows
         @db[:players].where(id: player_ids).delete
@@ -136,10 +162,17 @@ module GameSave
         @db[:player_spells].where(saved_player_id: player_ids).delete
         # delete cooldowns
         @db[:player_cooldowns].where(saved_player_id: player_ids).delete
+        return
     end
 
-    # delete saved_player_affect row and relevant rows in subtables for a player with a given name
-    protected def delete_database_player_affects(id)
+    #
+    # Delete player_affects row and relevant rows in subtables for a player with a given ID.
+    #
+    # @param [Integer] id The player ID.
+    #
+    # @return [nil]
+    #
+    def delete_database_player_affects(id)
         if !id
             log "Deleting database affects for a player not in the database: #{id}"
             return
@@ -149,10 +182,16 @@ module GameSave
             @db[:player_affect_modifiers].where(saved_player_affect_id: row[:id]).delete
         end
         old_affect_data.delete # delete old affect rows
+        return
     end
 
-    # delete saved_player_item row and relevant rows in subtables for a player with a given name
-    protected def delete_database_player_items(id)
+    # Delete player_items row and relevant rows in subtables for a player with a given ID.
+    #
+    # @param [Integer] id The Player ID.
+    #
+    # @return [nil]
+    #
+    def delete_database_player_items(id)
         if !id
             log "Deleting database items for a player not in the database? #{id}"
             return
@@ -167,11 +206,20 @@ module GameSave
             old_item_affect_rows.delete
         end
         old_item_data.delete
+        return
     end
 
-    # save a player and their items. saves md5 password hash if passed in.
-    # returns the database id of the player
-    protected def save_player(player, query_hash)
+    #
+    # Save a player and their items by adding their savable information to `query_hash`.
+    # `query hash` is later used to construct the database query.
+    # Returns the player ID.
+    #
+    # @param [Player] player The Player to save.
+    # @param [Hash] query_hash The hash being built on to eventually become the database query.
+    #
+    # @return [Integer] <description>
+    #
+    def save_player(player, query_hash)
         player_data = { # order is important
             id: player.id,
             account_id: player.account_id,
@@ -202,7 +250,7 @@ module GameSave
         # query_hash[:player_base] << "UPDATE `saved_player_base` SET #{hash_to_update_query_values(player_data)} WHERE (`id` = #{player.id});\n"
         query_hash[:player_base] << hash_to_insert_query_values(player_data)
 
-        if player.cooldowns
+        if player.cooldowns.any?
             player.cooldowns.each do |symbol, hash|
                 cooldown_data = {
                     saved_player_id: player.id,
@@ -239,12 +287,21 @@ module GameSave
         player.items.each do |item|
             save_player_item(item, player.id, query_hash)
         end
-
+        return player.id
 
     end
 
-    #save one player affect
-    protected def save_player_affect(affect, saved_player_id, query_hash)
+    #
+    # Save one player affect by adding its savable information to `query_hash`.
+    # `query hash` is later used to construct the database query.
+    #
+    # @param [Affect] affect The Affect to save.
+    # @param [Integer] saved_player_id The player
+    # @param [Hash] query_hash The hash being built on to eventually become the database query.
+    #
+    # @return [nil]
+    #
+    def save_player_affect(affect, saved_player_id, query_hash)
         @saved_player_affect_id_max += 1
         affect_data = { # The order of this is important!
             id: @saved_player_affect_id_max,
@@ -271,10 +328,21 @@ module GameSave
                 query_hash[:player_affect_modifier] << hash_to_insert_query_values(modifier_data)
             end
         end
+        return
     end
 
-    # save one item
-    protected def save_player_item(item, saved_player_id, query_hash, container = 0)
+    #
+    # Save one player item by adding its savable information to `query_hash`.
+    # `query hash` is later used to construct the database query.
+    #
+    # @param [Item] item The item.
+    # @param [Integer] saved_player_id The player's ID.
+    # @param [Hash] query_hash The hash being built on to eventually become the database query.
+    # @param [Integer] container The database ID of the Container containing this item, or `0` if there isn't one.
+    #
+    # @return [nil]
+    #
+    def save_player_item(item, saved_player_id, query_hash, container = 0)
         @saved_player_item_id_max += 1
         item_data = { # The order of this is important!
             id: @saved_player_item_id_max,
@@ -289,7 +357,7 @@ module GameSave
                 save_player_item_affect(affect, item, saved_player_id, @saved_player_item_id_max, query_hash)
             end
         end
-        if item.cooldowns
+        if item.cooldowns.any?
             item.cooldowns.each do |symbol, hash|
                 cooldown_data = {
                     saved_player_item_id: @saved_player_item_id_max,
@@ -305,10 +373,22 @@ module GameSave
                 save_player_item(contained_item, saved_player_id, query_hash, item_data[:id])
             end
         end
+        return
     end
 
-    # save one item affect
-    protected def save_player_item_affect(affect, item, saved_player_id, saved_player_item_id, query_hash)
+    #
+    # Save one item affect by adding its savable information to `query_hash`.
+    # `query hash` is later used to construct the database query.
+    #
+    # @param [Affect] affect The Affect to save.
+    # @param [Item] item The Item the affect is on.
+    # @param [Integer] saved_player_id The Player ID.
+    # @param [Integer] saved_player_item_id The database ID of the Item.
+    # @param [Hash] query_hash The hash being built on to eventually become the database query.
+    #
+    # @return [nil]
+    #
+    def save_player_item_affect(affect, item, saved_player_id, saved_player_item_id, query_hash)
         @saved_player_item_affect_id_max += 1
         affect_data = { # The order of this is important!
             id: @saved_player_item_affect_id_max,
@@ -335,9 +415,17 @@ module GameSave
                 query_hash[:player_item_affect_modifier] << hash_to_insert_query_values(modifier_data)
             end
         end
+        return
     end
 
+    #
     # Load a player from the database. Returns the player object.
+    #
+    # @param [Integer] id The Player ID.
+    # @param [Client] client The Client to attach the loaded player to.
+    #
+    # @return [Player, nil] The loaded player, or `nil` if the player fails to load.
+    #
     def load_player(id, client)
 
         player_data = @db[:players].where(id: id).first
@@ -460,8 +548,9 @@ module GameSave
         return player
     end
 
-    # loads a single item for a player - does not load affects. that happens later!
-    protected def load_player_item(player, item_row, all_item_rows, item_saved_id_hash)
+    # Loads a single Item for a player - does not load affects. That happens later!
+    # Returns the Item.
+    def load_player_item(player, item_row, all_item_rows, item_saved_id_hash)
         item = load_item(item_row[:item_id], player.inventory)
         if item_row[:equipped]
             player.wear(item, true)
@@ -477,10 +566,10 @@ module GameSave
     # Find/load a source for an affect.
     # Returns the source (or nil if that was the affect's source)
     # Can also return nil if the source wasn't found.
-    protected def find_affect_source(data, player, items)
+    def find_affect_source(data, player, items)
         source = nil
-        source_type_class = Constants::SOURCE_TYPE_ID_TO_SOURCE_CLASS.dig(data[:source_type_id])
-        if source_type_class == Player
+        # source_type_class_id = Constants::SOURCE_TYPE_ID_TO_SOURCE_CLASS.dig()
+        if data[:source_type_id] == Player.gameobject_id
             source = player if player.id == data[:source_id]
         else
             source = items.find{ |i| i.uuid == data[:source_uuid] }
@@ -488,16 +577,22 @@ module GameSave
         if source
             return source   # source was an item on the player or the player itself? - return it!
         end
-        case source_type_class
+        if data[:source_uuid] != 0 # existing uuid - try to find it
+            if !(source = @gameobjects_by_uuid.dig(data[:source_uuid])).nil?
+                # object with existing uuid has been found!
+                return source
+            end
+        end
+        case data[:source_type_id]
         when nil
             return nil
-        when Continent
+        when Continent.gameobject_id
             source = @continents.dig(data[:source_id])
-        when Area
+        when Area.gameobject_id
             source = @areas.dig(data[:source_id])
-        when Room
+        when Room.gameobject_id
             source = @rooms.dig(data[:source_id])
-        when Player
+        when Player.gameobject_id
             # check active players
             source = @players.find { |p| p.id == data[:source_id] }
             if source # online player has been found
@@ -505,7 +600,7 @@ module GameSave
             end
             # check affects from inactive players
             if @inactive_player_source_affects.dig(data[:source_id])
-                if @inactive_player_source_affects[data[:source_id]].size > 0
+                if @inactive_player_source_affects[data[:source_id]].any?
                     source = @inactive_player_source_affects[data[:source_id]].first.source
                 end
             end
@@ -519,26 +614,20 @@ module GameSave
                 source = load_player(player_data[:id], nil)
                 source.quit(true) # removes affects from master lists, puts into inactive players
             end
-        when Mobile
-            source = @mobiles.find{ |m| m.uuid == data[:source_uuid] }
-            if source               # found the mobile with that uuid - great!
-                return source
-            end
+        when Mobile.gameobject_id
             model = @mobile_models.dig(data[:source_id])
             if model
                 source = load_mob(model, nil)
                 source.destroy # mark as inactive, remove affects, etc
             end
-        when Item
-            source = @items.find{ |i| i.uuid = data[:source_uuid] }
-            if source               # found the item with that uuid - :)
-                return source
-            end
+        when Item.gameobject_id
             model = @item_models.dig(data[:source_id])
             if model
                 source = load_item(model, nil)
                 source.destroy # mark as inactive, remove affects, etc
             end
+        when Exit.gameobject_id
+
         else
             log "Unknown source_type in find_affect_source"
             log data
@@ -548,12 +637,6 @@ module GameSave
             return source
         end
         return nil
-    end
-
-    def new_uuid
-        uuid = @next_uuid
-        @next_uuid += 1
-        return uuid
     end
 
     # takes a hash and turns it into the values section of an INSERT sql query

@@ -41,7 +41,7 @@ class SpellBlastOfRot < Spell
     	if args.first.nil? && actor.attacking
             target = actor.attacking
     	elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
     	end
         if !target
     		actor.output "They aren't here."
@@ -71,7 +71,7 @@ class SpellBladeRune < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.items, item_type: Weapon, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.items, type: Weapon ).first )
             if target.affected? "blade rune"
                 actor.output "The existing blade rune repels your magic."
                 return false
@@ -100,7 +100,7 @@ class SpellBless < Spell
     def attempt( actor, cmd, args, input, level )
         if args.first.nil?
             AffectBless.new( actor, actor, actor.level ).apply
-        elsif ( target = Game.instance.target({ list: actor.items + actor.room.occupants - [actor] }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = actor.target( argument: args[0], list: actor.items + actor.room.occupants ).first )
             AffectBless.new( target, actor, actor.level ).apply
         else
             actor.output "There is no one here with that name."
@@ -133,7 +133,7 @@ class SpellBlindness < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -207,7 +207,7 @@ class SpellBurningHands < Spell
         if args.first.nil? && actor.attacking
             target = actor.attacking
         elsif !args.first.nil?
-            target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first
+            target = actor.target( argument: args[0], list: actor.room.occupants ).first
         end
         if !target
             actor.output "They aren't here."
@@ -238,7 +238,7 @@ class SpellBurstRune < Spell
     end
 
     def attempt( actor, cmd, args, input, level )
-        if ( target = actor.target({ list: actor.items, item_type: Weapon, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.items, type: Weapon ).first )
             if target.affected? "burst rune"
                 actor.output "The existing burst rune repels your magic."
                 return false

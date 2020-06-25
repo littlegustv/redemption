@@ -11,7 +11,7 @@ class CommandEat < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = actor.target({ list: actor.items, item_type: Pill, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args.first, list: actor.items, type: Pill ).first )
             actor.room.occupants.each_output "0<N> 0<eat,eats> 1<n>.", [actor, target]
             target.consume( actor )
         else
@@ -59,7 +59,7 @@ class CommandEnter < Command
             actor.output "Enter what?"
             return
         end
-        if ( target = Game.instance.target({ list: actor.room.items }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args.first, list: actor.room.items ).first )
             if !target.is_a?(Portal)
                 actor.output "You can't enter that."
                 return false

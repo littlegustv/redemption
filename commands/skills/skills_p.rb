@@ -42,14 +42,9 @@ class SkillPeek < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first )
-            if target.inventory.count > 0
-                actor.output "0<N> is carrying:\n#{target.inventory.items.map(&:to_s).join("\n")}", [target]
-                return true
-            else
-                actor.output "0<N> is carrying:\nNothing.", [target]
-                return true
-            end
+        if ( target = actor.target( argument: args[0], list: actor.room.occupants ).first )
+            actor.output("0<N> is carrying:\n#{target.inventory.show(actor, false, "Nothing.")}", [target])
+            return true
         else
             actor.output "You cannot seem to catch a glimpse."
             return false
@@ -70,7 +65,7 @@ class SkillPickLock < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target( { list: actor.room.exits }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = actor.target( argument: args[0], list: actor.room.exits ).first )
             if rand(0...10) < 5
                 return target.unlock( actor, override: true )
             else

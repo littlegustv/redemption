@@ -26,7 +26,7 @@ class AffectMinimation < Affect
     end
 
     def start
-        add_event_listener(@target, :event_show_condition, :do_condition)
+        add_event_listener(@target, :show_condition, :do_condition)
     end
 
     def send_start_messages
@@ -71,7 +71,7 @@ class AffectMirrorImage < Affect
     end
 
     def start
-        add_event_listener(@target, :event_override_receive_hit, :do_mirror_image)
+        add_event_listener(@target, :override_receive_hit, :do_mirror_image)
     end
 
     def send_start_messages

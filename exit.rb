@@ -1,15 +1,54 @@
+#
+# EXits are the objects that link rooms together. Exits are GameObjects.
+#
+# A room with a two-way link to another room has two exits. These exits are
+# linked to one another with their `pair` attribute.
+#
+# Exits can have a reset to return them to an inital state (door closed, etc).
+#
 class Exit < GameObject
 
-    # @return [Room] the Room object that this exit leads to
-	attr_accessor :destination
-    attr_accessor :closed
-    attr_accessor :locked
+    # @return [Room, nil] The room that this exit belongs to.
     attr_accessor :origin
+
+    # @return [Room, nil] the Room object that this exit leads to
+    attr_accessor :destination
+
+    # @return [Direction, nil] The direction of this exit, or nil if it has none.
     attr_reader :direction
+
+    # @return [Exit, nil] The mirrored exit for this one, or nil if there isn't one.
     attr_reader :pair
+
+    # @return [Boolean] Whether or not the door is closed.
+    attr_accessor :closed
+
+    # @return [Boolean] Whether or not the door is locked.
+    attr_accessor :locked
+
+    # @return [Boolean] Whether or not the door lock can be picked.
     attr_reader :pickproof
 
-	def initialize(
+	#
+    # Exit initializer.
+    #
+    # @param [Direction, nil] direction The direction of the exit or `nil`.
+    # @param [Room, nil] origin The origin room or `nil`.
+    # @param [Room] destination The destination room.
+    # @param [String] keywords The keywords as a String.
+    # @param [String] name The name of the exit.
+    # @param [String] short_description The short description.
+    # @param [Boolean] door Whether or not the exit has a door.
+    # @param [Integer, nil] key_id The ID of the key object.
+    # @param [Boolean] closed Whether or not the door is closed.
+    # @param [Boolean] locked Whether or not the door is locked.
+    # @param [Boolean] pickproof Whether or not the door's lock can be picked.
+    # @param [Boolean] passproof Whether or not the door can be passdoor'd thru on.
+    # @param [Boolean] nonspatial Whether or not the door is spatial
+    # @param [Float, nil] reset_timer The reset timer for the door state, or `nil`.
+    # @param [Integer, nil] id The ID for the exit, or `nil`.
+    #
+    def initialize(
         direction,
         origin,
         destination,
@@ -24,7 +63,7 @@ class Exit < GameObject
         passproof = false,
         nonspatial = false,
         reset_timer = nil,
-        id = 0
+        id = nil
     )
         super(name, keywords )
         @id = id
@@ -52,6 +91,12 @@ class Exit < GameObject
 		@pair = nil
 	end
 
+    #
+    # Destroys this exit. Remove it as an exit and entrance from its origin and destination
+    # respectively.
+    #
+    # @return [nil]
+    #
     def destroy
         if @origin
             @origin.remove_exit(self)
@@ -62,27 +107,59 @@ class Exit < GameObject
             @destination = nil
         end
         super
+        return
     end
 
-	def add_pair( exit )
+	#
+    # Link this exit to another one. The other exit will also become linked.
+    # Fails if this exit is already paired.
+    #
+    # @param [Exit] other_exit The exit to link to.
+    #
+    # @return [nil]
+    #
+    def add_pair( other_exit )
 		if @pair.nil?
-			@pair = exit
-			exit.add_pair( self )
-		end
+			@pair = other_exit
+			other_exit.add_pair( self )
+        end
+        return
 	end
 
-	def to_s
+	#
+    # Returns a string representation of the Exit. If the exit has a closed door, this will
+    # surround the name in a colour.
+    #
+    #   exit.to_s # => "{cwest{x"
+    #
+    # @return [String] The string representation.
+    #
+    def to_s
         if !@direction
             return ""
         end
 		return @closed ? "{c(#{@direction.name}){x" : "#{@direction.name}"
 	end
 
+    #
+    # The name of the exit, or "door" if it has no name.
+    #
+    # @return [String] The name.
+    #
     def name
         @name || "door"
     end
 
-	def lock( actor, silent: false )
+    
+	#
+    # Locks the door from the perspective of a mobile. Returns success.
+    #
+    # @param [Mobile] actor The mobile doing the locking.
+    # @param [Boolean] silent True to suppress messages, otherwise false.
+    #
+    # @return [Boolean] True if the lock was locked.
+    #
+    def lock( actor, silent = false )
 		if not @closed
 			actor.output "You can't lock it while it's open!" unless silent
 			return false
@@ -109,7 +186,15 @@ class Exit < GameObject
 		end
 	end
 
-	def unlock( actor, silent: false, override: false )
+	#
+    # Unlocks the door from the perspective of a mobile. Returns success.
+    #
+    # @param [Mobile] actor The mobile doing the unlocking.
+    # @param [Boolean] silent True to suppress messages, otherwise false.
+    # @param [Boolean] override True if the key should be ignored.
+    # @return [Boolean] True if the door was unlocked.
+    #
+    def unlock( actor, silent = false, override = false )
 		if not @locked
 			actor.output "It isn't locked." unless silent
 			return false
@@ -125,7 +210,7 @@ class Exit < GameObject
 			end
 
 			@locked = false
-			@pair.unlock( actor, silent: true, override: override ) if @pair
+			@pair.unlock( actor, true, override ) if @pair
 			return true
 		else
 			actor.output "You lack the key." unless silent
@@ -133,7 +218,16 @@ class Exit < GameObject
 		end
 	end
 
-	def open( actor, silent: false, override: false )
+	#
+    # Opens the door from the perspective of a mobile. Returns success.
+    #
+    # @param [Mobile] actor The mobile doing the opening.
+    # @param [Boolean] silent True to suppress messages, otherwise false.
+    # @param [Boolean] override TODO: figure out what override does?
+    #
+    # @return [Boolean] True if the door was opened, otherwise false.
+    #
+    def open( actor, silent = false, override = false )
 		if @locked
 			actor.output "It's locked." unless silent
 			return false
@@ -145,7 +239,7 @@ class Exit < GameObject
 			end
 
 			@closed = false
-			@pair.open( actor, silent: true, override: override ) if @pair
+			@pair.open( actor, true, override ) if @pair
 			return true
 		else
 			actor.output "It's already open." unless silent
@@ -153,7 +247,15 @@ class Exit < GameObject
 		end
 	end
 
-	def close( actor, silent: false )
+	#
+    # Closes the door from the perspective of a mobile. Returns success.
+    #
+    # @param [Mobile] actor The mobile doing the closing.
+    # @param [Boolean] silent True to suppress messages, otherwise false.
+    #
+    # @return [Boolean] True if the door was closed, otherwise false.
+    #
+    def close( actor, silent = false )
 		if !@closed
 			@closed = true
 			@pair.close( actor, silent: true ) if @pair
@@ -173,7 +275,15 @@ class Exit < GameObject
 		end
 	end
 
-	def move( mobile )
+	#
+    # Take a mobile and move it through this exit to the exit's destination.
+    # Returns success.
+    #
+    # @param [Mobile] mobile The mobile to move.
+    #
+    # @return [Boolean] True if the mobile was moved, otherwise false.
+    #
+    def move( mobile )
 		if @closed && !mobile.affected?("pass door")
 			mobile.output "The #{name} is closed."
 			return false
@@ -194,8 +304,8 @@ class Exit < GameObject
             old_room = mobile.room
             mobile.move_to_room( @destination )
             if old_room
-                old_room.occupants.select { |t| t.position != :sleeping && t.responds_to_event(:event_observe_mobile_use_exit) }.each do |t|
-                    Game.instance.fire_event( t, :event_observe_mobile_use_exit, {mobile: mobile, exit: self } )
+                old_room.occupants.select { |t| t.position != :sleeping && t.responds_to_event(:observe_mobile_use_exit) }.each do |t|
+                    Game.instance.fire_event( t, :observe_mobile_use_exit, {mobile: mobile, exit: self } )
                 end
             end
             arrive_string = ""
@@ -209,10 +319,14 @@ class Exit < GameObject
         return true
 	end
 
-    def db_source_type_id
-        return 7
-    end
-
+    #
+    # Set the destination of the exit after initialization. Clears existing destination if
+    # there is one. Used by portals.
+    #
+    # @param [Room] destination The new destination room.
+    #
+    # @return [nil]
+    #
     def set_destination(destination)
         if @destination
             @destination.remove_entrance(self)
@@ -221,6 +335,7 @@ class Exit < GameObject
         if @destination
             @destination.add_entrance(self)
         end
-    end
+        return
+    end 
 
 end

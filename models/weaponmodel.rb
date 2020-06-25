@@ -1,8 +1,18 @@
+#
+# The Model for Weapon items.
+#
 class WeaponModel < ItemModel
 
+    # @return [Noun] The Noun of the weapon.
     attr_reader :noun
+
+    # @return [Genre] The Genre of the weapon.
     attr_reader :genre
+
+    # @return [Integer] The number of dice used for the weapon's damage.
     attr_reader :dice_count
+
+    # @return [Integer] The number of sides of the weapon's damage dice.
     attr_reader :dice_sides
 
     def initialize(id, row, temporary = true)

@@ -44,7 +44,7 @@ class SkillLayHands < Skill
         actor.add_cooldown(:lay_hands, @data[:cooldown], "Your healing powers are restored.")
         target = actor
         if args[1]
-            if !(target = actor.target({ list: actor.room.occupants, visible_to: actor }.merge( args.first.to_s.to_query )).first)
+            if !(target = actor.target( argument: args[0], list: actor.room.occupants ).first)
                 actor.output "You don't see them here."
                 return false
             end

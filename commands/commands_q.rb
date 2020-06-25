@@ -11,7 +11,7 @@ class CommandQuaff < Command
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = actor.target({ list: actor.items, item_type: Potion, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        if ( target = actor.target( argument: args[0], list: actor.items, type: Potion ).first )
             actor.room.occupants.each_output "0<N> 0<quaff,quaffs> 1<n>.", [actor, target]
             target.consume( actor )
         else
@@ -49,7 +49,7 @@ class CommandQuest < Command
             if actor.affected? "quest"
                 actor.output "You are already on a quest!"
             else
-                if ( questmaster = actor.target( list: actor.room.mobiles, affect: "questmaster", visible_to: actor, not: actor ).first )
+                if ( questmaster = actor.target( list: actor.room.mobiles - [actor], affect: "questmaster" ).first )
                     if args[1].to_s.fuzzy_match "VILLAIN"
                         AffectQuestVillain.new( actor, actor, actor.level ).apply
                     elsif args[1].to_s.fuzzy_match "ITEM"
@@ -63,8 +63,8 @@ class CommandQuest < Command
             end
         elsif args.first.to_s.fuzzy_match "COMPLETE"
             if actor.affected? "quest"
-                if ( questmaster = actor.target( list: actor.room.mobiles, affect: "questmaster", visible_to: actor, not: actor ).first )
-                    Game.instance.fire_event(actor, :event_complete_quest, {} )
+                if ( questmaster = actor.target( list: actor.room.mobiles - [actor], affect: "questmaster" ).first )
+                    Game.instance.fire_event(actor, :complete_quest, {} )
                 else
                     actor.output "You can't do that here."
                 end

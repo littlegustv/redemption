@@ -1,14 +1,24 @@
+class Game
 
-module GameLookups
-
+    #
+    # Returns the Affect Class for a given ID.
+    #
+    # @param [Integer] id The ID of the affect class.
+    #
+    # @return [Class, nil] The Afect Class, or `nil` if there isn't one.
+    #
     def affect_class_with_id(id)
         return @affect_class_hash.dig(id)
     end
 
+    #
+    # Returns the Direction for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Direction] The direction.
+    #
     def direction_with_symbol(symbol)
-        if !@direction_lookup
-            @direction_lookup = @directions.values.map { |d| [d.symbol, d] }.to_h
-        end
         if !(d = @direction_lookup[symbol])
             log ("No direction with symbol #{symbol} found. Creating one now.")
             id = (@directions.keys.min || 0) - 1
@@ -23,10 +33,14 @@ module GameLookups
         return d
     end
 
+    #
+    # Returns an Element for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Element] The element.
+    #
     def element_with_symbol(symbol)
-        if !@element_lookup
-            @element_lookup = @elements.values.map { |e| [e.symbol, e] }.to_h
-        end
         if !(e = @element_lookup[symbol])
             log ("No element with symbol #{symbol} found. Creating one now.")
             id = (@elements.keys.min || 0) - 1
@@ -40,10 +54,14 @@ module GameLookups
         return e
     end
 
+    #
+    # Returns the Gender for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given Symbol.
+    #
+    # @return [Gender] The Gender.
+    #
     def gender_with_symbol(symbol)
-        if !@gender_lookup
-            @gender_lookup = @genders.values.map { |g| [g.symbol, g] }.to_h
-        end
         if !(g = @gender_lookup[symbol])
             log ("No gender with symbol #{symbol} found. Creating one now.")
             id = (@genders.keys.min || 0) - 1
@@ -61,10 +79,14 @@ module GameLookups
         return g
     end
 
+    #
+    # Returns the Genre for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Genre] The genre.
+    #
     def genre_with_symbol(symbol)
-        if !@genre_lookup
-            @genre_lookup = @genres.values.map { |g| [g.symbol, g] }.to_h
-        end
         if !(g = @genre_lookup[symbol])
             log ("No genre with symbol #{symbol} found. Creating one now.")
             id = (@genres.keys.min || 0) - 1
@@ -78,10 +100,14 @@ module GameLookups
         return g
     end
 
+    #
+    # Returns a Material for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Material] The material.
+    #
     def material_with_symbol(symbol)
-        if !@material_lookup
-            @material_lookup = @materials.values.map { |m| [m.symbol, m] }.to_h
-        end
         if !(m = @material_lookup[symbol])
             log ("No material with symbol #{symbol} found. Creating one now.")
             id = (@materials.keys.min || 0) - 1
@@ -95,10 +121,14 @@ module GameLookups
         return m
     end
 
+    #
+    # Returns the noun for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Noun] The noun.
+    #
     def noun_with_symbol(symbol)
-        if !@noun_lookup
-            @noun_lookup = @nouns.values.map { |n| [n.symbol, n] }.to_h
-        end
         if !(n = @noun_lookup[symbol])
             log ("No noun with symbol #{symbol} found. Creating one now.")
             copy_noun = @nouns.values.first
@@ -108,7 +138,7 @@ module GameLookups
             end
             id = (@nouns.keys.min || 0) - 1
             n = Noun.new({
-                id: new_id,
+                id: id,
                 name: symbol.to_s,
                 element: copy_noun.element.id,
                 magic: copy_noun.magic,
@@ -119,10 +149,14 @@ module GameLookups
         return n
     end
 
+    #
+    # Returns a position for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Position] The position.
+    #
     def position_with_symbol(symbol)
-        if !@position_lookup
-            @position_lookup = @positions.values.map { |p| [p.symbol, p] }.to_h
-        end
         if !(p = @position_lookup[symbol])
             log ("No position with symbol #{symbol} found. Creating one now.")
             id = (@positions.keys.min || 0) - 1
@@ -137,10 +171,14 @@ module GameLookups
         return p
     end
 
+    #
+    # Returns a sector for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Sector] The sector.
+    #
     def sector_with_symbol(symbol)
-        if !@sector_lookup
-            @sector_lookup = @sectors.values.map { |s| [s.symbol, s] }.to_h
-        end
         if !(s = @sector_lookup[symbol])
             log ("No sectors with symbol #{symbol} found. Creating one now.")
             id = (@sectors.keys.min || 0) - 1
@@ -154,10 +192,14 @@ module GameLookups
         return s
     end
 
+    #
+    # Returns the Size for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Size] The size.
+    #
     def size_with_symbol(symbol)
-        if !@size_lookup
-            @size_lookup = @sizes.values.map { |s| [s.symbol, s] }.to_h
-        end
         if !(s = @size_lookup[symbol])
             log ("No sizes with symbol #{symbol} found. Creating one now.")
             id = (@sizes.keys.min || 0) - 1
@@ -172,10 +214,14 @@ module GameLookups
         return s
     end
 
+    #
+    # Returns the stat for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [Stat] The stat.
+    #
     def stat_with_symbol(symbol)
-        if !@stat_lookup
-            @stat_lookup = @stats.values.map { |s| [s.symbol, s] }.to_h
-        end
         if !(s = @stat_lookup[symbol])
             log ("No stats with symbol #{symbol} found. Creating one now.")
             id = (@stats.keys.min || 0) - 1
@@ -187,6 +233,27 @@ module GameLookups
             @stats[id] = s
         end
         return s
+    end
+
+    #
+    # Returns the wear location for a given Symbol. Constructs one if necessary.
+    #
+    # @param [Symbol] symbol The given symbol.
+    #
+    # @return [WearLocation] The wear location.
+    #
+    def wear_location_with_symbol(symbol)
+        if !(w = @wear_location_lookup[symbol])
+            log ("No wear locations with symbol #{symbol} found. Creating one now.")
+            id = (@stats.keys.min || 0) - 1
+            w = WearLocation.new({
+                id: id,
+                name: symbol.to_s
+            })
+            @wear_location_lookup[symbol] = w
+            @wear_locations[id] = w
+        end
+        return w
     end
 
 end

@@ -12,10 +12,17 @@ class SkillEnvenom < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        if ( target = Game.instance.target({ list: actor.items, item_type: Weapon, visible_to: actor }.merge( args.first.to_s.to_query ) ).first )
+        if ( target = actor.target( argument: args[0], list: actor.items, type: Weapon ).first )
+            if target.affected?("poison")
+                actor.output "That's already poisoned."
+                return false
+            end
             aff = AffectPoisonWeapon.new( target, nil, actor.level )
             aff.set_duration(300)
-	        aff.apply
+            aff.apply
+        else
+            actor.output "You don't see that here."
+            return false
         end
         return true
     end

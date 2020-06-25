@@ -1,5 +1,13 @@
+#
+# The Client is where all player input comes from. Clients exist on their own threads,
+# so extra care must be taken to ensure methods marked `CLIENT METHOD` are only
+# ever called from the Client's thread, and not the main game logic thread.
+#
 class Client
 
+    #
+    # The different states clients can exist in.
+    #
     module ClientState
         LOGIN = 0
         ACCOUNT = 1
@@ -7,13 +15,25 @@ class Client
         PLAYER = 3
     end
 
+    # default sleep time for the client between various actions (creating new accounts/players, etc)
     @@sleep_time = 0.005
 
+    # @return [Player, nil] The Player object this client is controlling, or nil if there is no player currently.
     attr_accessor :player
+
+    # @return [TCPSocket] The client's socket connection.
     attr_accessor :client_connection
 
+    #
+    # Client initializer.
+    #
+    # @param [TCPSocket] client_connection The client's socket connection.
+    # @param [Thread] thread The thread this client is running on.
+    #
     def initialize(client_connection, thread)
+        # @type [TCPSocket]
         @client_connection = client_connection
+        # @type [Thread]
         @thread = thread
         @quit = false
         @account_id = nil
@@ -25,6 +45,14 @@ class Client
     end
 
     # Main input loop
+
+    #
+    # `CLIENT METHOD`
+    #
+    # The client's main input loop.
+    #
+    # @return [nil] 
+    #
     def input_loop
         send_output(Game.instance.game_settings[:login_splash])
         loop do
@@ -45,13 +73,18 @@ class Client
         end
         send_output("Goodbye.")
         disconnect
-        puts "hm"
-
+        return
     end
 
+    #
+    # `CLIENT METHOD`
+    #
     # Log into an account.
-    # When successful, +@client_state+ will be set to +ClientState::ACCOUNT+,
+    # When successful, `@client_state` will be set to `ClientState::ACCOUNT`,
     # and account management will commence.
+    #
+    # @return [nil]
+    #
     def do_login
         account_row = nil
         name = nil
@@ -130,9 +163,18 @@ class Client
         @client_state = ClientState::ACCOUNT
         send_output("\nWelcome, #{@name}.\n")
         list_characters
+        return
     end
 
-    # Account management
+    #
+    # `CLIENT METHOD`
+    #
+    # Handle account management.
+    #
+    # @param [String, nil] input 
+    #
+    # @return [nil]
+    #
     def do_account(input = nil)
         send_output("{c<#{@name}>{x")
         if !input
@@ -182,9 +224,16 @@ class Client
         else
             send_output("What's that? Try \"help\" to see what you can do from here.")
         end
+        return
     end
 
-    # create a new character
+    #
+    # `CLIENT METHOD`
+    #
+    # Handle creation of a new character.
+    #
+    # @return [nil]
+    #
     def do_creation
         send_output("Type \"back\" at any point to abandon character creation.\n")
         name = nil
@@ -305,7 +354,13 @@ class Client
         list_characters
     end
 
-    # play a character
+    #
+    # `CLIENT METHOD`
+    #
+    # Play a character. This is where gameplay inputs are received.
+    #
+    # @return [nil]
+    #
     def do_player
         input = get_input
         if @player
@@ -315,9 +370,16 @@ class Client
             list_characters
             do_account(input)
         end
+        return
     end
 
-    # list characters for a given player account and give some instructions on how to proceed
+    #
+    # `CLIENT METHOD`
+    #
+    # List characters for a given player account and give some instructions on how to proceed.
+    #
+    # @return [nil]
+    #
     def list_characters
         c_rows = Game.instance.saved_player_data.values.select{ |row| row[:account_id] == @account_id.to_i }
         c_rows = c_rows.sort_by{ |row| row[:name] }
@@ -337,11 +399,18 @@ class Client
             send_output("You have no characters.")
             send_output("Create a new character with \"new\". \"Quit\" to exit.")
         end
+        return
     end
 
     # basic input/output
 
-    # get a single input
+    #
+    # `CLIENT METHOD`
+    #
+    # Get a single input.
+    #
+    # @return [String, nil] The input from the client, or `nil`.
+    #
     def get_input
         if !@client_connection
             return
@@ -362,7 +431,13 @@ class Client
         return raw
     end
 
-    # do a single output
+    #
+    # Do a single output.
+    #
+    # @param [String] s The string to output.
+    #
+    # @return [nil]
+    #
     def send_output(s)
         if !@client_connection
             return
@@ -377,9 +452,14 @@ class Client
             log "Client #{@account_id} send_output: #{msg}"
             disconnect
         end
+        return
     end
 
-    # handle a disconnect
+    #
+    # Handle a disconnect.
+    #
+    # @return [nil]
+    #
     def disconnect
         Game.instance.client_account_ids.delete(@account_id)
         if @client_connection
@@ -399,6 +479,7 @@ class Client
             @thread = nil
         end
         @quit = true
+        return
     end
 
 end

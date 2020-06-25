@@ -29,8 +29,8 @@ class AffectAggressive < Affect
     end
 
     def start
-        add_event_listener(@target, :event_observe_mobile_enter, :toggle_aggro)
-        add_event_listener(@target, :event_mobile_enter, :toggle_aggro)
+        add_event_listener(@target, :observe_mobile_enter, :toggle_aggro)
+        add_event_listener(@target, :mobile_enter, :toggle_aggro)
     end
 
     def toggle_aggro(data)
@@ -78,9 +78,9 @@ class AffectAlarmRune < Affect
     end
 
     def start
-        add_event_listener(@target, :event_calculate_room_description, :alarm_rune_description)
-        add_event_listener(@target, :event_room_mobile_enter, :do_alarm_rune)
-        add_event_listener(@source, :event_try_alarm_rune, :stop_alarm_rune)
+        add_event_listener(@target, :calculate_room_description, :alarm_rune_description)
+        add_event_listener(@target, :room_mobile_enter, :do_alarm_rune)
+        add_event_listener(@source, :try_alarm_rune, :stop_alarm_rune)
     end
 
     def send_complete_messages
@@ -169,8 +169,8 @@ class AffectAnoint < Affect
     end
 
     def start
-        add_event_listener(@target, :event_on_deal_damage, :do_lifesteal)
-        add_event_listener(@target, :event_calculate_receive_damage, :do_amplify)
+        add_event_listener(@target, :on_deal_damage, :do_lifesteal)
+        add_event_listener(@target, :calculate_receive_damage, :do_amplify)
     end
 
     def send_start_messages

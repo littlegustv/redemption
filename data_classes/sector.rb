@@ -1,26 +1,29 @@
 #
+# The Sector data class.
+#
+class Sector < DataObject
 
-class Sector
-    attr_reader :id
-    attr_reader :name
-    attr_reader :symbol
+    # @return [Boolean] Whether or not there is water in this sector.
     attr_reader :water
+
+    # @return [Boolean] Whether or not the sector is underwater.
     attr_reader :underwater
+
+    # @return [Boolean] Whether or not this sector requires flight for movement.
     attr_reader :requires_flight
 
     def initialize(row)
-        @id = row[:id]
-        @name = row[:name].gsub(/_/, " ")
-        @symbol = (row[:symbol] || row[:name].gsub(/ /, "_")).to_sym
+        super(row[:id], row[:name], row[:symbol])
         @water = row[:water].to_i.to_b
         @underwater = row[:underwater].to_i.to_b
         @requires_flight = row[:requires_flight].to_i.to_b
     end
 
-    def ==(other_object)
-        super(other_object) || @symbol == other_object
-    end
-
+    #
+    # Returns `self` to allow `Symbol#to_sector` to be called safely without knowing the type.
+    #
+    # @return [Sector] `self`.
+    #
     def to_sector
         self
     end

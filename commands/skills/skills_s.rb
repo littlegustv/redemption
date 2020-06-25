@@ -14,7 +14,7 @@ class SkillShadow < Skill
     def attempt( actor, cmd, args, input )
         if args.first.nil?
             actor.remove_affects_with_keywords("follow")
-        elsif ( target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args.first.to_s.to_query )).first )
+        elsif ( target = actor.target( argument: args[0], list: actor.room.occupants - [actor] ).first )
             if actor.stat(:dexterity) >= target.stat(:intelligence)
                 AffectFollow.new( actor, target, 1 ).apply(true)
                 actor.output "You begin to secretly follow %n.", [target]
@@ -58,8 +58,8 @@ class SkillSteal < Skill
     end
 
     def attempt( actor, cmd, args, input )
-        if ( mobile_target = actor.target({ list: actor.room.occupants, not: actor, visible_to: actor }.merge( args[1].to_s.to_query )).first )
-            if ( item_target = actor.target({ list: mobile_target.inventory.items, visible_to: actor }.merge( args[0].to_s.to_query )).first )
+        if ( mobile_target = actor.target( argument: args[1], list: actor.room.occupants ).first )
+            if ( item_target = actor.target( argument: args[0], list: mobile_target.inventory.items ).first )
                 actor.output "You pocket 0<n>.", [ item_target ]
                 actor.output "Got it!"
                 item_target.move(actor.inventory)
